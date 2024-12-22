@@ -1,13 +1,10 @@
 # Datadog (datadog)
-Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform. 
+Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
 
 **URL:** [Visit APIs.json URL](https://raw.githubusercontent.com/api-search/infrastructure/main/_apis/pagerduty/apis.md)
 
 ## Scope
 
-- **Type:** Contract 
-- **Position:** Consuming 
-- **Access:** 3rd-Party 
 
 ## Tags:
 
@@ -23,10 +20,18 @@ Datadog is an observability service for cloud-scale applications, providing moni
 ### Datadog API
 The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
 
+**Human URL:** [https://www.datadoghq.com/](https://www.datadoghq.com/)
+
+**Base URL:** [https://api.datadoghq.com](https://api.datadoghq.com)
+
 
 #### Tags:
 
- - 
+ - Monitoring, Observability, Analytics, Dashboards
+
+#### Properties
+
+- [Documentation](https://docs.datadoghq.com/api/latest/)
 
 ## Maintainers
 
