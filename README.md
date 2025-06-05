@@ -1,5 +1,5 @@
 # Datadog (datadog)
-Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
+Datadog is a monitoring and analytics platform that helps organizations gain insight into their infrastructure, applications, and services. It allows users to collect, visualize, and analyze real-time data from a variety of sources, including servers, databases, and cloud services. Datadog's platform enables companies to track performance metrics, troubleshoot issues, and optimize their systems for peak efficiency. With its customizable dashboards and alerting system, Datadog empowers teams to proactively monitor their environments and ensure smooth operations. Ultimately, Datadog helps businesses make data-driven decisions and improve the overall performance of their technology stack.
 
 **URL:** [Visit APIs.json URL](https://raw.githubusercontent.com/api-search/infrastructure/main/_apis/pagerduty/apis.md)
 
@@ -8,44 +8,48 @@ Datadog is an observability service for cloud-scale applications, providing moni
 
 ## Tags:
 
- - Monitoring, Observability, Analytics, Dashboards
+ - Monitoring, Analytics, Visualizations, Dashboards, Platform
 
 ## Timestamps
 
 - **Created:** 2024/04/14 
-- **Modified:** 2024-12-22 
+- **Modified:** 2025-06-04 
 
 ## APIs
 
 ### Datadog API
 The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
 
-**Human URL:** [https://www.datadoghq.com/](https://www.datadoghq.com/)
-
-**Base URL:** [https://api.datadoghq.com](https://api.datadoghq.com)
+**Human URL:** [https://docs.datadoghq.com/](https://docs.datadoghq.com/)
 
 
 #### Tags:
 
- - Monitoring, Observability, Analytics, Dashboards
+ - No Tags
 
 #### Properties
 
-- [Documentation](https://docs.datadoghq.com/api/latest/)
+- [OpenAPI](openapi/datadog-openapi-original.yml)
+- [Documentation](https://docs.datadoghq.com/)
 
 ## Common Properties
 
-- [GettingStarted](https://docs.datadoghq.com/api/latest/#getting-started)
-- [SDKs](https://docs.datadoghq.com/api/latest/#client-libraries)
-- [Blog](https://www.datadoghq.com/blog/)
-- [Login](https://app.datadoghq.com/account/login?next=%2F%3F_gl%3D1%2A1tvkgt4%2A_gcl_au%2AMTE5ODczNjM4NC4xNzM0ODg3OTkw%2A_ga%2AMTA1MDM1MzQ5Ni4xNzM0ODg3OTkw%2A_ga_KN80RDFSQK%2AMTczNDg4Nzk5MC4xLjEuMTczNDg4ODE3OS4wLjAuMjkyNTQ4NTg.%2A_fplc%2AQjN5dklvNzgwaUFudjlhbVpoayUyQld4eGJmT3JjczRUZSUyRkJwR0gxdlpoYkpFSUJRNzlIbFdBWG10ME1RSFNFV0VKYzluSHlQc09sN0Q0YW8zSXJQJTJCMmhRUEJOVDl2ZFFSMDE3a1BldjVlRUdVcDFNT1olMkJBcGdUblZwVDB4UkElM0QlM0Q.)
-- [About](https://www.datadoghq.com/about/leadership/?_gl=1*11qevrp*_gcl_au*MTE5ODczNjM4NC4xNzM0ODg3OTkw*_ga*MTA1MDM1MzQ5Ni4xNzM0ODg3OTkw*_ga_KN80RDFSQK*MTczNDg4Nzk5MC4xLjEuMTczNDg4ODE5OS4wLjAuMjkyNTQ4NTg.*_fplc*QjN5dklvNzgwaUFudjlhbVpoayUyQld4eGJmT3JjczRUZSUyRkJwR0gxdlpoYkpFSUJRNzlIbFdBWG10ME1RSFNFV0VKYzluSHlQc09sN0Q0YW8zSXJQJTJCMmhRUEJOVDl2ZFFSMDE3a1BldjVlRUdVcDFNT1olMkJBcGdUblZwVDB4UkElM0QlM0Q.)
+- [Products](https://www.datadoghq.com/product/)
+- [Customers](https://www.datadoghq.com/customers/)
 - [Pricing](https://www.datadoghq.com/pricing/)
-- [Partners](https://www.datadoghq.com/partner/network/)
+- [Integrations](https://docs.datadoghq.com/integrations/)
+- [About](https://www.datadoghq.com/about/leadership/)
+- [Blog](https://www.datadoghq.com/blog/)
+- [Login](https://app.datadoghq.com/account/login)
+- [Login](https://app.datadoghq.com/account/login)
+- [Login](https://app.datadoghq.com/account/login)
+- [SignUp](https://us5.datadoghq.com/signup)
 - [Support](https://www.datadoghq.com/support/)
-- [TermsOfService](https://www.datadoghq.com/legal/)
-- [PrivacyPolicy](https://www.datadoghq.com/legal/)
+- [Certifications](https://www.datadoghq.com/certification/overview/)
+- [PrivacyPolicy](https://www.datadoghq.com/privacy/)
 - [Security](https://www.datadoghq.com/security/)
+- [Trust](https://trust.datadoghq.com/)
+- [Partners](https://www.datadoghq.com/partner/network/)
 
 ## Maintainers
 
