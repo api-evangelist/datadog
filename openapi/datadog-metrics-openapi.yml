@@ -1,0 +1,886 @@
+openapi: 3.1.0
+info:
+  title: Datadog Metrics API
+  description: >-
+    The Datadog Metrics API allows you to post metrics data to be graphed on
+    Datadog dashboards, query metrics from any time period as timeseries or
+    scalar values, and modify tag configurations for metrics. It also supports
+    viewing tags and volumes for metrics. Metrics data is stored as time series
+    and can be queried programmatically for analysis and visualization.
+  version: 'v2'
+  contact:
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  termsOfService: https://www.datadoghq.com/legal/terms/
+externalDocs:
+  description: Datadog Metrics API Documentation
+  url: https://docs.datadoghq.com/api/latest/metrics/
+servers:
+  - url: https://api.datadoghq.com
+    description: Datadog API Production Server
+tags:
+  - name: Metrics
+    description: Submit and query metric data points
+  - name: Metric Tags
+    description: Manage metric tag configurations
+  - name: Metric Metadata
+    description: View and manage metric metadata and active metrics
+security:
+  - apiKeyAuth: []
+paths:
+  /api/v2/series:
+    post:
+      operationId: submitMetrics
+      summary: Submit metrics
+      description: >-
+        Submits metrics data points to the Datadog platform. The body should
+        contain a series of metric submissions, each with a metric name, type,
+        data points (timestamp and value pairs), tags, and optional host and
+        resource information. Supports count, rate, gauge, and distribution
+        metric types. The maximum payload size is 512 KB (uncompressed). Each
+        metric series can contain up to 100 data points.
+      tags:
+        - Metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricPayload'
+      responses:
+        '202':
+          description: Payload accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntakePayloadAccepted'
+        '400':
+          description: Bad request - invalid payload format or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '408':
+          description: Request timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '413':
+          description: Payload too large - exceeds 512 KB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/query/timeseries:
+    post:
+      operationId: queryMetricsTimeseries
+      summary: Query timeseries data
+      description: >-
+        Queries timeseries metric data for the specified time range and metric
+        queries. Supports multiple metric queries in a single request. Returns
+        time series data including timestamps, values, and associated metadata.
+        The query uses Datadog's metrics query language supporting rollup,
+        aggregation, and arithmetic operations.
+      tags:
+        - Metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTimeseriesQuery'
+      responses:
+        '200':
+          description: Successful response with timeseries data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTimeseriesResponse'
+        '400':
+          description: Bad request - invalid query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/query/scalar:
+    post:
+      operationId: queryMetricsScalar
+      summary: Query scalar data
+      description: >-
+        Queries scalar metric data for the specified time range and returns a
+        single aggregated value per query formula. Useful for computing summary
+        statistics such as averages, sums, or percentiles over a time window.
+        Supports multiple formulas and metric queries in a single request.
+      tags:
+        - Metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricScalarQuery'
+      responses:
+        '200':
+          description: Successful response with scalar query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricScalarResponse'
+        '400':
+          description: Bad request - invalid query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/metrics:
+    get:
+      operationId: listActiveMetrics
+      summary: List active metrics
+      description: >-
+        Returns the list of actively reporting metric names for a given hour.
+        Optionally filters by host and metric name prefix. Metrics are
+        considered active if they reported at least one data point within the
+        last 48 hours. Useful for metric discovery and auditing.
+      tags:
+        - Metric Metadata
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: POSIX timestamp (seconds) indicating the start of the time window to query active metrics
+          schema:
+            type: integer
+            format: int64
+        - name: host
+          in: query
+          required: false
+          description: Filter metrics by the hostname that is actively reporting the metric
+          schema:
+            type: string
+        - name: tag_filter
+          in: query
+          required: false
+          description: Filter metrics by tag key or key:value pair (e.g., env:prod)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with list of active metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsListResponse'
+        '400':
+          description: Bad request - invalid or missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/metrics/{metric_name}/tags:
+    get:
+      operationId: getMetricTagConfiguration
+      summary: List tags by metric name
+      description: >-
+        Returns the tag configuration for a specified metric including all
+        configured tag keys, aggregation types, and exclude percentiles setting.
+        Only available for custom metrics with tag configurations.
+      tags:
+        - Metric Tags
+      parameters:
+        - $ref: '#/components/parameters/metricNameParam'
+      responses:
+        '200':
+          description: Successful response with metric tag configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - metric does not exist or has no tag configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    post:
+      operationId: createMetricTagConfiguration
+      summary: Create a tag configuration
+      description: >-
+        Creates a tag configuration for a specified custom metric. Allows
+        specifying which tag keys to include, the metric type, whether to
+        exclude percentile aggregations, and aggregation settings. Tag
+        configurations reduce the number of custom metrics by limiting
+        which tag combinations are stored.
+      tags:
+        - Metric Tags
+      parameters:
+        - $ref: '#/components/parameters/metricNameParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTagConfigurationCreateRequest'
+      responses:
+        '201':
+          description: Created - tag configuration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+        '400':
+          description: Bad request - invalid tag configuration parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '409':
+          description: Conflict - tag configuration already exists for this metric
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    patch:
+      operationId: updateMetricTagConfiguration
+      summary: Update a tag configuration
+      description: >-
+        Updates the tag configuration for a specified custom metric. Supports
+        partial updates using JSON merge patch semantics. Allows changing the
+        set of tag keys, aggregation types, and exclude percentiles settings.
+      tags:
+        - Metric Tags
+      parameters:
+        - $ref: '#/components/parameters/metricNameParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTagConfigurationUpdateRequest'
+      responses:
+        '200':
+          description: Successful response with updated tag configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+        '400':
+          description: Bad request - invalid tag configuration parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - metric tag configuration does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    delete:
+      operationId: deleteMetricTagConfiguration
+      summary: Delete a tag configuration
+      description: >-
+        Deletes the tag configuration for a specified custom metric. After
+        deletion, all tag combinations for the metric will be stored again,
+        which may increase custom metric usage. This action cannot be undone.
+      tags:
+        - Metric Tags
+      parameters:
+        - $ref: '#/components/parameters/metricNameParam'
+      responses:
+        '204':
+          description: No content - tag configuration deleted successfully
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - metric tag configuration does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-API-KEY
+      description: >-
+        Datadog API key for authenticating requests. Obtain from the Datadog
+        organization settings under API Keys.
+  parameters:
+    metricNameParam:
+      name: metric_name
+      in: path
+      required: true
+      description: The name of the metric to manage tag configuration for (e.g., system.cpu.user)
+      schema:
+        type: string
+  schemas:
+    MetricSeries:
+      type: object
+      description: A single metric series containing data points and associated metadata
+      required:
+        - metric
+        - points
+      properties:
+        metric:
+          type: string
+          description: The name of the metric to submit. Must not exceed 200 characters. Only ASCII alphanumerics, underscores, and periods are allowed.
+        type:
+          type: integer
+          description: The type of the metric (0=unspecified, 1=count, 2=rate, 3=gauge)
+          enum: [0, 1, 2, 3]
+          default: 3
+        points:
+          type: array
+          description: List of data points, each containing a timestamp (Unix epoch in seconds) and a value
+          items:
+            $ref: '#/components/schemas/MetricPoint'
+        tags:
+          type: array
+          description: List of tags associated with the metric in key:value format (e.g., env:prod)
+          items:
+            type: string
+        host:
+          type: string
+          description: The name of the host that produced the metric data
+        resources:
+          type: array
+          description: A list of resources associated with the metric, such as hosts or services
+          items:
+            $ref: '#/components/schemas/MetricResource'
+        interval:
+          type: integer
+          format: int64
+          description: If the type is rate or count, defines the corresponding interval in seconds
+        unit:
+          type: string
+          description: The unit of the metric value (e.g., byte, second, request)
+    MetricPoint:
+      type: object
+      description: A single data point consisting of a Unix timestamp and a numeric value
+      required:
+        - timestamp
+        - value
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: The Unix timestamp in seconds when this data point was recorded
+        value:
+          type: number
+          format: double
+          description: The numeric value of the metric at the given timestamp
+    MetricResource:
+      type: object
+      description: A resource (such as a host or service) associated with a metric series
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          description: The name of the resource (e.g., hostname or service name)
+        type:
+          type: string
+          description: The type of the resource (e.g., host, service, container)
+    MetricPayload:
+      type: object
+      description: The payload containing one or more metric series to submit
+      required:
+        - series
+      properties:
+        series:
+          type: array
+          description: List of metric series to submit in this payload
+          items:
+            $ref: '#/components/schemas/MetricSeries'
+    IntakePayloadAccepted:
+      type: object
+      description: Response indicating the metric payload was accepted for processing
+      properties:
+        errors:
+          type: array
+          description: List of any non-fatal errors encountered when processing the payload
+          items:
+            type: string
+    MetricTimeseriesQuery:
+      type: object
+      description: Request body for querying timeseries metric data
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          description: The query data object containing type and attributes
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              description: The type identifier for the query request
+              enum: [timeseries_request]
+            attributes:
+              type: object
+              description: The query attributes including formulas, queries, and time range
+              required:
+                - from
+                - to
+                - queries
+              properties:
+                from:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the start of the query time range
+                to:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the end of the query time range
+                interval:
+                  type: integer
+                  format: int64
+                  description: The granularity (in milliseconds) for returned data points
+                queries:
+                  type: array
+                  description: List of metric queries to evaluate
+                  items:
+                    $ref: '#/components/schemas/MetricQueryDefinition'
+                formulas:
+                  type: array
+                  description: List of formula expressions combining the defined queries
+                  items:
+                    $ref: '#/components/schemas/QueryFormula'
+    MetricQueryDefinition:
+      type: object
+      description: A metric query definition referencing a Datadog metrics query expression
+      required:
+        - name
+        - data_source
+        - query
+      properties:
+        name:
+          type: string
+          description: A unique name used to reference this query in formula expressions
+        data_source:
+          type: string
+          description: The data source for the query
+          enum: [metrics, cloud_cost]
+        query:
+          type: string
+          description: The Datadog metrics query string (e.g., avg:system.cpu.user{*} by {host})
+    QueryFormula:
+      type: object
+      description: A formula expression that combines one or more query results
+      required:
+        - formula
+      properties:
+        formula:
+          type: string
+          description: The formula expression using query names as variables (e.g., query1 + query2)
+        alias:
+          type: string
+          description: An optional alias for the formula result used in the response
+        limit:
+          type: object
+          description: Optional limit configuration for top/bottom N results
+          properties:
+            count:
+              type: integer
+              description: The number of results to return
+            order:
+              type: string
+              description: The sort order for limiting results
+              enum: [asc, desc]
+    MetricTimeseriesResponse:
+      type: object
+      description: Response containing timeseries metric data for the requested queries
+      properties:
+        data:
+          type: object
+          description: The response data object
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes containing timeseries results
+              properties:
+                times:
+                  type: array
+                  description: Array of Unix timestamps in milliseconds for each data point
+                  items:
+                    type: integer
+                    format: int64
+                series:
+                  type: array
+                  description: List of timeseries results, one per query formula
+                  items:
+                    $ref: '#/components/schemas/TimeseriesResult'
+    TimeseriesResult:
+      type: object
+      description: A single timeseries result for a query formula
+      properties:
+        query_index:
+          type: integer
+          description: Index of the query or formula that produced this result
+        unit:
+          type: array
+          description: Unit information for the metric values in this series
+          items:
+            type: object
+            properties:
+              family:
+                type: string
+                description: The unit family (e.g., time, bytes, percent)
+              name:
+                type: string
+                description: The unit name (e.g., second, byte, percent)
+        group_tags:
+          type: array
+          description: The tag key:value pairs that identify this series within a group-by
+          items:
+            type: string
+        values:
+          type: array
+          description: The numeric values at each timestamp
+          items:
+            type: number
+            format: double
+            nullable: true
+    MetricScalarQuery:
+      type: object
+      description: Request body for querying scalar metric data
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          description: The scalar query data object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              description: The type identifier for the scalar query request
+              enum: [scalar_request]
+            attributes:
+              type: object
+              description: The scalar query attributes
+              required:
+                - from
+                - to
+                - queries
+              properties:
+                from:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the start of the query time range
+                to:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the end of the query time range
+                queries:
+                  type: array
+                  description: List of metric queries to evaluate as scalar values
+                  items:
+                    $ref: '#/components/schemas/MetricQueryDefinition'
+                formulas:
+                  type: array
+                  description: List of formula expressions combining the defined queries
+                  items:
+                    $ref: '#/components/schemas/QueryFormula'
+    MetricScalarResponse:
+      type: object
+      description: Response containing scalar metric values for the requested queries
+      properties:
+        data:
+          type: object
+          description: The scalar response data
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes
+              properties:
+                columns:
+                  type: array
+                  description: List of scalar result columns, one per query formula
+                  items:
+                    $ref: '#/components/schemas/ScalarColumn'
+    ScalarColumn:
+      type: object
+      description: A single column of scalar results from a query formula
+      properties:
+        name:
+          type: string
+          description: The column name or formula alias
+        values:
+          type: array
+          description: The scalar values for this column
+          items:
+            type: number
+            format: double
+            nullable: true
+        group:
+          type: array
+          description: The group-by tag values for each row in this column
+          items:
+            type: array
+            items:
+              type: string
+    MetricsListResponse:
+      type: object
+      description: Response containing the list of active metric names
+      properties:
+        from:
+          type: string
+          description: The start time of the active metrics query window as a Unix timestamp string
+        metrics:
+          type: array
+          description: The list of active metric names for the specified time window
+          items:
+            type: string
+    MetricTagConfiguration:
+      type: object
+      description: The tag configuration for a custom metric
+      properties:
+        id:
+          type: string
+          description: The metric name that this tag configuration applies to
+        type:
+          type: string
+          description: The resource type identifier
+          enum: [manage_tags]
+        attributes:
+          type: object
+          description: The tag configuration attributes
+          properties:
+            tags:
+              type: array
+              description: List of tag keys to include when storing this metric
+              items:
+                type: string
+            metric_type:
+              type: string
+              description: The type of metric this configuration applies to
+              enum: [gauge, count, rate, distribution]
+            include_percentiles:
+              type: boolean
+              description: Whether to include percentile aggregations for distribution metrics
+            aggregations:
+              type: array
+              description: List of aggregation types to compute for this metric
+              items:
+                type: object
+                properties:
+                  space:
+                    type: string
+                    description: The spatial aggregation type
+                    enum: [avg, max, min, sum]
+                  time:
+                    type: string
+                    description: The temporal aggregation type
+                    enum: [avg, count, max, min, sum]
+            created_at:
+              type: string
+              format: date-time
+              description: ISO 8601 timestamp when this tag configuration was created
+            modified_at:
+              type: string
+              format: date-time
+              description: ISO 8601 timestamp when this tag configuration was last modified
+    MetricTagConfigurationResponse:
+      type: object
+      description: Response wrapper for a metric tag configuration
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfiguration'
+    MetricTagConfigurationCreateRequest:
+      type: object
+      description: Request body for creating a new metric tag configuration
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          description: The tag configuration data to create
+          required:
+            - type
+            - id
+            - attributes
+          properties:
+            type:
+              type: string
+              description: The resource type identifier
+              enum: [manage_tags]
+            id:
+              type: string
+              description: The metric name to create the tag configuration for
+            attributes:
+              type: object
+              description: The tag configuration attributes to set
+              required:
+                - metric_type
+                - tags
+              properties:
+                metric_type:
+                  type: string
+                  description: The type of the metric
+                  enum: [gauge, count, rate, distribution]
+                tags:
+                  type: array
+                  description: List of tag keys to include when storing metric data
+                  items:
+                    type: string
+                include_percentiles:
+                  type: boolean
+                  description: Whether to include percentile aggregations (only for distribution metrics)
+    MetricTagConfigurationUpdateRequest:
+      type: object
+      description: Request body for updating an existing metric tag configuration
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          description: The tag configuration data to update
+          required:
+            - type
+            - id
+            - attributes
+          properties:
+            type:
+              type: string
+              description: The resource type identifier
+              enum: [manage_tags]
+            id:
+              type: string
+              description: The metric name of the tag configuration to update
+            attributes:
+              type: object
+              description: The tag configuration attributes to update
+              properties:
+                tags:
+                  type: array
+                  description: Updated list of tag keys to include when storing metric data
+                  items:
+                    type: string
+                include_percentiles:
+                  type: boolean
+                  description: Whether to include percentile aggregations (only for distribution metrics)
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string

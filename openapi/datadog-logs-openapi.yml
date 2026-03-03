@@ -1,0 +1,594 @@
+openapi: 3.1.0
+info:
+  title: Datadog Logs API
+  description: >-
+    The Datadog Logs API allows you to search and send log events to the
+    Datadog platform over HTTP. It supports querying and aggregating log
+    data from the Log Management product. Logs can be searched using
+    Datadog's log query language, and results can be aggregated using
+    facets and measures. The API also supports managing log indexes, which
+    control how long logs are retained and queried.
+  version: 'v2'
+  contact:
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  termsOfService: https://www.datadoghq.com/legal/terms/
+externalDocs:
+  description: Datadog Logs API Documentation
+  url: https://docs.datadoghq.com/api/latest/logs/
+servers:
+  - url: https://api.datadoghq.com
+    description: Datadog API Production Server
+tags:
+  - name: Logs
+    description: Send and search log events
+  - name: Log Aggregation
+    description: Aggregate and analyze log data
+  - name: Log Indexes
+    description: Manage log indexes and retention policies
+security:
+  - apiKeyAuth: []
+paths:
+  /api/v2/logs:
+    post:
+      operationId: submitLogs
+      summary: Send logs
+      description: >-
+        Sends log entries to the Datadog platform for indexing, storage, and
+        analysis. Accepts log payloads in JSON format. Each log entry can
+        include a message, hostname, service name, source, tags, and
+        additional custom attributes. Supports batching multiple log entries
+        in a single request. The maximum payload size is 5 MB for the HTTP
+        intake endpoint. Logs must contain a message field.
+      tags:
+        - Logs
+      parameters:
+        - name: Content-Encoding
+          in: header
+          required: false
+          description: HTTP header used to compress the media-type. Use gzip or deflate encoding
+          schema:
+            type: string
+            enum: [gzip, deflate]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              description: Array of log entries to submit
+              items:
+                $ref: '#/components/schemas/HTTPLogItem'
+      responses:
+        '202':
+          description: Request accepted - logs queued for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogSuccess'
+        '400':
+          description: Bad request - invalid log format or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '408':
+          description: Request timeout - the server did not receive a complete request in time
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '413':
+          description: Payload too large - exceeds 5 MB uncompressed size limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/logs/events/search:
+    post:
+      operationId: searchLogs
+      summary: Search logs
+      description: >-
+        Searches log events that match a Datadog log search query within a
+        specified time range. Supports full-text search and structured queries
+        using Datadog's log query language. Results are paginated and can be
+        sorted by timestamp. Queries can filter by log attributes, facets,
+        tags, service, source, hostname, and status. Returns up to 1000 logs
+        per page.
+      tags:
+        - Logs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsListRequest'
+      responses:
+        '200':
+          description: Successful response with matching log events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsListResponse'
+        '400':
+          description: Bad request - invalid query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/logs/analytics/aggregate:
+    post:
+      operationId: aggregateLogs
+      summary: Aggregate logs
+      description: >-
+        Computes aggregations over log events matching a search query within
+        a specified time range. Supports count, sum, avg, min, max, and
+        percentile aggregations grouped by one or more facets. Results can
+        be used for building analytics charts, dashboards, and reports.
+        Useful for answering questions like "how many errors per service
+        per hour?" or "what is the p99 latency by endpoint?".
+      tags:
+        - Log Aggregation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsAggregateRequest'
+      responses:
+        '200':
+          description: Successful response with aggregated log analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsAggregateResponse'
+        '400':
+          description: Bad request - invalid aggregation query or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/logs/config/indexes:
+    get:
+      operationId: listLogIndexes
+      summary: List log indexes
+      description: >-
+        Returns the list of configured log indexes for your Datadog organization.
+        Each index defines a filter for which logs to include, a daily retention
+        policy, and log volume limits. Indexes are evaluated in order, and each
+        log can match at most one index. Index configurations affect log
+        retention, querying capabilities, and cost.
+      tags:
+        - Log Indexes
+      responses:
+        '200':
+          description: Successful response with list of log indexes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsIndexesResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/logs/config/indexes/{name}:
+    get:
+      operationId: getLogIndex
+      summary: Get a log index
+      description: >-
+        Returns the configuration details for a specific log index identified
+        by its name. Includes the filter query, exclusion filters, daily
+        retention settings, and current usage statistics.
+      tags:
+        - Log Indexes
+      parameters:
+        - $ref: '#/components/parameters/indexNameParam'
+      responses:
+        '200':
+          description: Successful response with log index configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsIndex'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - log index with the specified name does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-API-KEY
+      description: >-
+        Datadog API key for authenticating requests. Obtain from the Datadog
+        organization settings under API Keys.
+  parameters:
+    indexNameParam:
+      name: name
+      in: path
+      required: true
+      description: The name of the log index to retrieve
+      schema:
+        type: string
+  schemas:
+    HTTPLogItem:
+      type: object
+      description: A single log entry to submit to Datadog
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The message content of the log entry. This field is required and indexed for search.
+        hostname:
+          type: string
+          description: The name of the host that generated the log entry
+        service:
+          type: string
+          description: The name of the application or service that generated the log
+        ddsource:
+          type: string
+          description: The source technology of the log (e.g., nginx, redis, java) used for automatic processing
+        ddtags:
+          type: string
+          description: Comma-separated list of tags to apply to the log entry in key:value format
+        status:
+          type: string
+          description: The severity or log level of the event (e.g., info, warning, error, critical)
+          enum: [emerg, alert, critical, error, warning, notice, info, debug]
+    HTTPLogSuccess:
+      type: object
+      description: Response indicating logs were accepted for processing
+      properties: {}
+    LogsListRequest:
+      type: object
+      description: Request body for searching log events
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        sort:
+          type: string
+          description: The sort order for log results, either ascending or descending by timestamp
+          enum: [timestamp, -timestamp]
+        page:
+          type: object
+          description: Pagination configuration for log search results
+          properties:
+            cursor:
+              type: string
+              description: A cursor token from a previous response to retrieve the next page of results
+            limit:
+              type: integer
+              description: The maximum number of logs to return per page (default 10, max 1000)
+              minimum: 1
+              maximum: 1000
+              default: 10
+    LogsQueryFilter:
+      type: object
+      description: Filter criteria for log search queries
+      properties:
+        query:
+          type: string
+          description: A Datadog log search query string to filter log events (e.g., service:web status:error)
+        indexes:
+          type: array
+          description: List of log index names to search; if empty, all indexes are searched
+          items:
+            type: string
+        from:
+          type: string
+          description: The start of the time range for the search in ISO 8601 format or relative format (e.g., now-15m)
+        to:
+          type: string
+          description: The end of the time range for the search in ISO 8601 format or relative format (e.g., now)
+    LogsListResponse:
+      type: object
+      description: Response containing matching log events from a search query
+      properties:
+        data:
+          type: array
+          description: List of matching log events
+          items:
+            $ref: '#/components/schemas/Log'
+        meta:
+          type: object
+          description: Metadata about the search response including pagination information
+          properties:
+            page:
+              type: object
+              description: Pagination details for continuing the search
+              properties:
+                after:
+                  type: string
+                  description: Cursor token to retrieve the next page of results
+            elapsed:
+              type: integer
+              description: Time in milliseconds taken to execute the search query
+            status:
+              type: string
+              description: Status of the search request (done, timeout)
+              enum: [done, timeout]
+    Log:
+      type: object
+      description: A single log event returned from a search query
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the log event
+        type:
+          type: string
+          description: The type of the resource (always 'log')
+        attributes:
+          $ref: '#/components/schemas/LogAttributes'
+    LogAttributes:
+      type: object
+      description: The attributes of a log event returned from the search API
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the log was generated
+        status:
+          type: string
+          description: The log level or severity status of the event
+        message:
+          type: string
+          description: The raw log message content
+        host:
+          type: string
+          description: The hostname of the machine that generated the log
+        service:
+          type: string
+          description: The name of the application or service that generated the log
+        source:
+          type: string
+          description: The technology source that generated the log (e.g., nginx, java)
+        tags:
+          type: array
+          description: List of tags associated with the log event in key:value format
+          items:
+            type: string
+        attributes:
+          type: object
+          description: Custom key-value attributes extracted from the log message
+          additionalProperties: true
+    LogsAggregateRequest:
+      type: object
+      description: Request body for aggregating log events
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        compute:
+          type: array
+          description: List of aggregation computations to perform on the filtered log set
+          items:
+            $ref: '#/components/schemas/LogsCompute'
+        group_by:
+          type: array
+          description: List of facets to group results by, enabling breakdown by log attribute
+          items:
+            $ref: '#/components/schemas/LogsGroupBy'
+        options:
+          type: object
+          description: Options for the aggregation query
+          properties:
+            timezone:
+              type: string
+              description: The timezone to use for time-based group-by operations (IANA timezone name)
+    LogsCompute:
+      type: object
+      description: A computation to perform over the filtered log set
+      required:
+        - aggregation
+        - type
+      properties:
+        aggregation:
+          type: string
+          description: The type of aggregation to compute over log events
+          enum: [count, cardinality, pc75, pc90, pc95, pc98, pc99, sum, avg, min, max]
+        metric:
+          type: string
+          description: The log attribute to aggregate (required for all aggregations except count)
+        type:
+          type: string
+          description: Whether this is a total aggregation or a timeseries
+          enum: [total, timeseries]
+        interval:
+          type: string
+          description: The time interval for timeseries computations (e.g., 1m, 1h, 1d)
+    LogsGroupBy:
+      type: object
+      description: A group-by configuration for aggregating log results by facet values
+      required:
+        - facet
+      properties:
+        facet:
+          type: string
+          description: The log attribute or tag to group results by
+        limit:
+          type: integer
+          description: The maximum number of unique facet values to return in results
+          default: 10
+        sort:
+          type: object
+          description: Sort configuration for group-by results
+          properties:
+            aggregation:
+              type: string
+              description: The aggregation metric to sort by
+              enum: [count, cardinality, pc75, pc90, pc95, pc98, pc99, sum, avg, min, max]
+            order:
+              type: string
+              description: The sort direction for group-by results
+              enum: [asc, desc]
+    LogsAggregateResponse:
+      type: object
+      description: Response containing aggregated log analytics results
+      properties:
+        data:
+          type: object
+          description: The aggregation response data
+          properties:
+            attributes:
+              type: object
+              description: The aggregation result attributes
+              properties:
+                buckets:
+                  type: array
+                  description: List of aggregation buckets, each representing a group-by combination
+                  items:
+                    $ref: '#/components/schemas/LogsAggregateBucket'
+    LogsAggregateBucket:
+      type: object
+      description: A single aggregation bucket representing one group-by combination
+      properties:
+        by:
+          type: object
+          description: The facet values that define this bucket
+          additionalProperties:
+            type: string
+        computes:
+          type: object
+          description: The computed aggregation values for this bucket, keyed by computation index
+          additionalProperties: true
+    LogsIndex:
+      type: object
+      description: Configuration for a single Datadog log index
+      required:
+        - name
+        - filter
+      properties:
+        name:
+          type: string
+          description: The name of the log index
+        filter:
+          $ref: '#/components/schemas/LogsFilter'
+        exclusion_filters:
+          type: array
+          description: List of exclusion filters that drop matching logs before indexing
+          items:
+            $ref: '#/components/schemas/LogsExclusion'
+        num_retention_days:
+          type: integer
+          description: The number of days to retain logs in this index
+        daily_limit:
+          type: integer
+          format: int64
+          description: The maximum number of logs per day before the index is disabled
+        is_rate_limited:
+          type: boolean
+          description: Whether the index has exceeded its daily limit and is currently rate limited
+    LogsFilter:
+      type: object
+      description: A filter query that determines which logs are matched by an index or exclusion
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: A Datadog log search query that selects which logs match this filter
+    LogsExclusion:
+      type: object
+      description: An exclusion filter that drops matching logs from an index
+      required:
+        - name
+        - filter
+      properties:
+        name:
+          type: string
+          description: The name of the exclusion filter for identification
+        is_enabled:
+          type: boolean
+          description: Whether this exclusion filter is currently active
+        filter:
+          type: object
+          description: The exclusion filter configuration
+          properties:
+            query:
+              type: string
+              description: Log search query for logs to exclude from the index
+            sample_rate:
+              type: number
+              format: double
+              minimum: 0
+              maximum: 1
+              description: The percentage (0 to 1) of logs matching the filter to exclude
+    LogsIndexesResponse:
+      type: object
+      description: Response containing the list of configured log indexes
+      properties:
+        indexes:
+          type: array
+          description: List of log index configurations for the organization
+          items:
+            $ref: '#/components/schemas/LogsIndex'
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string

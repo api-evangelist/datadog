@@ -1,0 +1,471 @@
+openapi: 3.1.0
+info:
+  title: Datadog Events API
+  description: >-
+    The Datadog Events API allows you to programmatically post events to the
+    Events Explorer and fetch events from the Events Explorer. Events represent
+    notable changes or activity within your monitored infrastructure such as
+    code deployments, configuration changes, alert state transitions, and
+    custom business events. Events are stored for 180 days and can be correlated
+    with metrics and logs for root cause analysis. The v2 API supports richer
+    event models with attributes and more powerful search capabilities.
+  version: 'v2'
+  contact:
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  termsOfService: https://www.datadoghq.com/legal/terms/
+externalDocs:
+  description: Datadog Events API Documentation
+  url: https://docs.datadoghq.com/api/latest/events/
+servers:
+  - url: https://api.datadoghq.com
+    description: Datadog API Production Server
+tags:
+  - name: Events
+    description: Post, retrieve, and search events in the Datadog Events Explorer
+security:
+  - apiKeyAuth: []
+paths:
+  /api/v2/events:
+    post:
+      operationId: createEvent
+      summary: Post an event
+      description: >-
+        Creates a new event in the Datadog Events Explorer. Events are useful
+        for correlating infrastructure changes with metric anomalies. Common
+        use cases include deployment markers, configuration changes, scaling
+        events, and custom alerting from external systems. Events have a title,
+        text body, priority, optional host and tag associations, and an alert
+        type for visual categorization. The event timestamp defaults to the
+        current time if not specified.
+      tags:
+        - Events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '202':
+          description: Event accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCreateResponse'
+        '400':
+          description: Bad request - invalid event payload or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to post events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    get:
+      operationId: listEvents
+      summary: Get a list of events
+      description: >-
+        Returns a paginated list of events from the Events Explorer matching
+        the specified search criteria. Supports filtering by text search, tags,
+        time range, sources, alert types, and priorities. Results are sorted
+        by timestamp in descending order by default. Use cursor-based pagination
+        for large result sets. The v2 API provides richer event attributes
+        and improved search capabilities compared to v1.
+      tags:
+        - Events
+      parameters:
+        - name: filter[query]
+          in: query
+          required: false
+          description: A Datadog events search query to filter events (e.g., source:aws status:error)
+          schema:
+            type: string
+        - name: filter[from]
+          in: query
+          required: false
+          description: The start of the search time range as an ISO 8601 timestamp or relative time (e.g., now-1h)
+          schema:
+            type: string
+        - name: filter[to]
+          in: query
+          required: false
+          description: The end of the search time range as an ISO 8601 timestamp or relative time (e.g., now)
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: The sort order for events, either ascending or descending by timestamp
+          schema:
+            type: string
+            enum: [timestamp, -timestamp]
+        - name: page[cursor]
+          in: query
+          required: false
+          description: A cursor token from a previous response to retrieve the next page of events
+          schema:
+            type: string
+        - name: page[limit]
+          in: query
+          required: false
+          description: The maximum number of events to return per page (default 10, max 1000)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 10
+      responses:
+        '200':
+          description: Successful response with list of matching events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsListResponse'
+        '400':
+          description: Bad request - invalid search parameters or time range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to search events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/events/{event_id}:
+    get:
+      operationId: getEvent
+      summary: Get an event
+      description: >-
+        Returns the full details of a specific event identified by its unique
+        event ID. Includes the event title, text, timestamp, source, tags,
+        alert type, priority, and associated hosts. The event ID is returned
+        when creating events or from list event responses.
+      tags:
+        - Events
+      parameters:
+        - $ref: '#/components/parameters/eventIdParam'
+      responses:
+        '200':
+          description: Successful response with event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to view this event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - event with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v2/events/search:
+    post:
+      operationId: searchEvents
+      summary: Search events
+      description: >-
+        Searches events in the Events Explorer using a structured request body
+        with full support for Datadog's events query language. Supports
+        filtering by text, tags, sources, alert types, priorities, time ranges,
+        and custom attributes. Returns paginated results with cursor-based
+        pagination for large result sets. More powerful than the GET list
+        endpoint for complex queries.
+      tags:
+        - Events
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsSearchRequest'
+      responses:
+        '200':
+          description: Successful response with matching event search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsListResponse'
+        '400':
+          description: Bad request - invalid search query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to search events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-API-KEY
+      description: Datadog API key for authenticating requests
+  parameters:
+    eventIdParam:
+      name: event_id
+      in: path
+      required: true
+      description: The unique string identifier of the event to retrieve
+      schema:
+        type: string
+  schemas:
+    EventCreateRequest:
+      type: object
+      description: Request body for creating a new event in the Datadog Events Explorer
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          description: The event data object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              description: The resource type identifier for event creation
+              enum: [event]
+            attributes:
+              $ref: '#/components/schemas/EventCreateAttributes'
+    EventCreateAttributes:
+      type: object
+      description: The attributes for a new event to be created
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: The event title displayed in the Events Explorer (max 100 characters)
+          maxLength: 100
+        message:
+          type: string
+          description: The event body text with additional details about the event (max 4000 characters)
+          maxLength: 4000
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds for when the event occurred; defaults to current time if not specified
+        priority:
+          type: string
+          description: The event priority level for filtering and sorting in the Events Explorer
+          enum: [normal, low]
+          default: normal
+        host:
+          type: string
+          description: The hostname to associate with this event for infrastructure correlation
+        tags:
+          type: array
+          description: List of tags to apply to the event in key:value format for filtering
+          items:
+            type: string
+        alert_type:
+          type: string
+          description: The alert type category for visual display in the Events Explorer
+          enum: [error, warning, info, success, user_update, recommendation, snapshot]
+          default: info
+        aggregation_key:
+          type: string
+          description: An arbitrary string used to group related events into a rollup (max 100 characters)
+          maxLength: 100
+        source_type_name:
+          type: string
+          description: The source technology or integration that generated this event (e.g., aws, chef, nagios)
+    EventCreateResponse:
+      type: object
+      description: Response indicating an event was accepted for processing
+      properties:
+        status:
+          type: string
+          description: The status of the event creation request
+          enum: [ok]
+        event_id:
+          type: integer
+          format: int64
+          description: The unique numeric identifier assigned to the created event
+    EventsListResponse:
+      type: object
+      description: Response containing a paginated list of events from the Events Explorer
+      properties:
+        data:
+          type: array
+          description: List of event objects matching the search criteria
+          items:
+            $ref: '#/components/schemas/Event'
+        links:
+          type: object
+          description: Pagination links for navigating through the result set
+          properties:
+            next:
+              type: string
+              description: URL for the next page of results; absent if this is the last page
+        meta:
+          type: object
+          description: Metadata about the event list response
+          properties:
+            page:
+              type: object
+              description: Pagination cursor information for this response
+              properties:
+                after:
+                  type: string
+                  description: Cursor token to pass in the next request to retrieve the next page of results
+            elapsed:
+              type: integer
+              description: Time in milliseconds taken to process the event search query
+            request_id:
+              type: string
+              description: A unique identifier for this search request, useful for debugging
+            status:
+              type: string
+              description: The completion status of the search request
+              enum: [done, timeout]
+            warnings:
+              type: array
+              description: List of non-fatal warning messages about the search query or results
+              items:
+                type: object
+    Event:
+      type: object
+      description: A single event from the Datadog Events Explorer
+      properties:
+        id:
+          type: string
+          description: The unique string identifier of the event
+        type:
+          type: string
+          description: The resource type identifier (always 'event')
+        attributes:
+          $ref: '#/components/schemas/EventAttributes'
+    EventAttributes:
+      type: object
+      description: The attributes of an event returned from the Events Explorer
+      properties:
+        title:
+          type: string
+          description: The event title as displayed in the Events Explorer
+        message:
+          type: string
+          description: The event body text containing details about the event
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event was recorded
+        priority:
+          type: string
+          description: The event priority level
+          enum: [normal, low]
+        host:
+          type: string
+          description: The hostname associated with this event
+        tags:
+          type: array
+          description: List of tags associated with the event in key:value format
+          items:
+            type: string
+        alert_type:
+          type: string
+          description: The alert type category for visual display
+          enum: [error, warning, info, success, user_update, recommendation, snapshot]
+        aggregation_key:
+          type: string
+          description: The arbitrary string used to group related events into a rollup
+        source_type_name:
+          type: string
+          description: The source technology or integration that generated this event
+        status:
+          type: string
+          description: The event status (active or expired)
+        attributes:
+          type: object
+          description: Custom key-value attributes associated with the event
+          additionalProperties: true
+    EventResponse:
+      type: object
+      description: Response wrapper for a single event
+      properties:
+        data:
+          $ref: '#/components/schemas/Event'
+    EventsSearchRequest:
+      type: object
+      description: Request body for searching events using the Events Explorer query language
+      properties:
+        filter:
+          type: object
+          description: Filter configuration for the event search
+          properties:
+            query:
+              type: string
+              description: A Datadog events search query to filter events by text, tags, and attributes
+            from:
+              type: string
+              description: The start of the search time range as an ISO 8601 timestamp or relative time
+            to:
+              type: string
+              description: The end of the search time range as an ISO 8601 timestamp or relative time
+        sort:
+          type: string
+          description: Sort order for the returned events
+          enum: [timestamp, -timestamp]
+        page:
+          type: object
+          description: Pagination settings for the event search results
+          properties:
+            cursor:
+              type: string
+              description: Cursor token from a previous response to retrieve the next page
+            limit:
+              type: integer
+              description: Maximum number of events to return per page
+              minimum: 1
+              maximum: 1000
+              default: 10
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string

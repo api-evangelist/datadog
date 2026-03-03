@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/datadog/refs/heads/main/json-schema/datadog-monitor-schema.json",
+  "title": "Datadog Monitor",
+  "description": "A Datadog monitor that continuously evaluates a query against defined thresholds and sends notifications when alert conditions are triggered. Monitors are the foundation of Datadog's alerting system and support metric thresholds, anomaly detection, outlier detection, log patterns, APM traces, synthetic test results, and composite conditions. Each monitor tracks the status of one or more groups defined by the query's group-by tags.",
+  "type": "object",
+  "required": ["type", "query", "name", "message"],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The unique numeric identifier assigned by Datadog when the monitor is created. Read-only and used to reference the monitor in API calls and URLs."
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of monitor which determines the query language, threshold options, and evaluation behavior. The most common type is 'metric alert' for threshold-based alerting on metrics.",
+      "enum": [
+        "composite",
+        "event alert",
+        "event-v2 alert",
+        "log alert",
+        "metric alert",
+        "process alert",
+        "query alert",
+        "rum alert",
+        "service check",
+        "synthetics alert",
+        "trace-analytics alert",
+        "slo alert",
+        "audit alert",
+        "ci-pipelines alert",
+        "ci-tests alert",
+        "error-tracking alert",
+        "database-monitoring alert",
+        "network-performance alert"
+      ]
+    },
+    "query": {
+      "type": "string",
+      "description": "The monitor query expression defining what to evaluate and when to alert. The query syntax depends on the monitor type. For metric alerts, uses Datadog's metrics query language with threshold conditions (e.g., 'avg(last_5m):avg:system.cpu.user{*} > 80'). For log alerts, uses Datadog's log search query."
+    },
+    "name": {
+      "type": "string",
+      "description": "A descriptive name for the monitor shown in the Monitors list, notification subject lines, and dashboard widgets. Should clearly describe what is being monitored and what constitutes an alert condition."
+    },
+    "message": {
+      "type": "string",
+      "description": "The notification message body sent to alert recipients when the monitor triggers. Supports Datadog template variables (e.g., {{host.name}}, {{value}}), conditional blocks, and @-mentions for routing notifications to specific users, teams, or integrations (e.g., @slack-channel, @pagerduty)."
+    },
+    "tags": {
+      "type": "array",
+      "description": "List of tags to associate with the monitor for organization, filtering, and scoping. Tags appear in the Monitors list and can be used to group monitors by team, service, or environment. Tags do not affect monitor evaluation.",
+      "items": {
+        "type": "string",
+        "description": "A tag in key:value format or standalone key associated with this monitor"
+      }
+    },
+    "options": {
+      "$ref": "#/$defs/MonitorOptions"
+    },
+    "priority": {
+      "type": "integer",
+      "description": "The monitor priority level from 1 (highest/most critical) to 5 (lowest). Priority is used for sorting monitors in the Monitors list and can be used to filter monitors in notification rules.",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "state": {
+      "$ref": "#/$defs/MonitorState"
+    },
+    "creator": {
+      "$ref": "#/$defs/Creator"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the monitor was created. Set automatically by Datadog and cannot be modified."
+    },
+    "modified": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the monitor was last modified. Updated automatically whenever the monitor configuration is changed."
+    },
+    "deleted": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the monitor was soft-deleted, or null if the monitor is active. Soft-deleted monitors are hidden but retained for a period before permanent deletion."
+    },
+    "restricted_roles": {
+      "type": "array",
+      "description": "List of role IDs whose members are allowed to edit this monitor. When set, only users with at least one of the specified roles can modify the monitor. An empty array means all users with monitor write permissions can edit it.",
+      "items": {
+        "type": "string",
+        "description": "The unique identifier of a Datadog role"
+      }
+    }
+  },
+  "$defs": {
+    "MonitorOptions": {
+      "type": "object",
+      "description": "Configuration options controlling how the monitor evaluates its query, when notifications are sent, and how recovery is handled. These options tune the sensitivity and notification behavior of the monitor.",
+      "properties": {
+        "thresholds": {
+          "$ref": "#/$defs/MonitorThresholds"
+        },
+        "threshold_windows": {
+          "$ref": "#/$defs/MonitorThresholdWindows"
+        },
+        "notify_no_data": {
+          "type": "boolean",
+          "description": "Whether to send an alert notification when data stops reporting for the monitored metric. Useful for detecting silent failures where instrumentation stops working. Requires configuring no_data_timeframe.",
+          "default": false
+        },
+        "no_data_timeframe": {
+          "type": "integer",
+          "description": "The number of minutes after which the monitor reports a no-data condition if data stops being received. Should be at least 2x the evaluation timeframe to avoid false positives from delayed data.",
+          "minimum": 2
+        },
+        "require_full_window": {
+          "type": "boolean",
+          "description": "Whether the monitor requires a full evaluation window of data before alerting. When true, prevents early alerts that might be based on incomplete data at the start of a time window."
+        },
+        "notify_audit": {
+          "type": "boolean",
+          "description": "Whether to send notifications to users with Audit role when this monitor is modified. Useful for change management tracking on critical monitors."
+        },
+        "renotify_interval": {
+          "type": "integer",
+          "description": "Number of minutes between re-notification messages while the monitor remains in an alert or warning state. Set to 0 to disable re-notifications. Common values are 60 (hourly) or 1440 (daily).",
+          "minimum": 0
+        },
+        "renotify_statuses": {
+          "type": "array",
+          "description": "The monitor status types that will trigger re-notification messages after the initial alert. If not set, re-notifications are sent for all alert states.",
+          "items": {
+            "type": "string",
+            "description": "A monitor status type that triggers re-notification",
+            "enum": ["alert", "warn", "no data"]
+          }
+        },
+        "renotify_occurrences": {
+          "type": "integer",
+          "description": "The maximum number of re-notification messages to send before stopping. Set to prevent notification fatigue for long-running alerts.",
+          "minimum": 1
+        },
+        "escalation_message": {
+          "type": "string",
+          "description": "The message to include with re-notification alerts instead of the main monitor message. Useful for escalation workflows where re-alerts should have different content or routing."
+        },
+        "timeout_h": {
+          "type": "integer",
+          "description": "The number of hours after which an alert automatically resolves if the monitor hasn't received new data. Set to prevent stale alerts from persisting indefinitely.",
+          "minimum": 0
+        },
+        "evaluation_delay": {
+          "type": "integer",
+          "description": "The number of seconds to delay monitor evaluation from the expected evaluation time. Useful for cloud integrations where metrics arrive with latency.",
+          "minimum": 0
+        },
+        "new_group_delay": {
+          "type": "integer",
+          "description": "Number of seconds to delay the first alert for a newly-discovered monitor group. Prevents transient alerts when new infrastructure is being provisioned.",
+          "minimum": 0
+        },
+        "include_tags": {
+          "type": "boolean",
+          "description": "Whether to include the monitor group's tag scope in the notification subject and body. When true, alert notifications include the triggering tag values (e.g., host:web-01) for easier context.",
+          "default": true
+        },
+        "silenced": {
+          "type": "object",
+          "description": "Map of monitor scopes to mute expiration Unix timestamps. A value of 0 means the scope is muted indefinitely. Use the mute/unmute endpoints rather than setting this directly.",
+          "additionalProperties": {
+            "type": ["integer", "null"],
+            "description": "Unix timestamp when the mute expires, or 0 for indefinite muting"
+          }
+        },
+        "enable_logs_sample": {
+          "type": "boolean",
+          "description": "For log monitors, whether to include sample log events in alert notifications. When enabled, up to 10 matching log events are included in the alert message."
+        },
+        "groupby_simple_monitor": {
+          "type": "boolean",
+          "description": "Whether to send a single alert notification for all failing groups rather than individual alerts per group. Reduces notification volume for monitors with many groups."
+        },
+        "min_failure_duration": {
+          "type": "integer",
+          "description": "Minimum duration in minutes a monitor must be in a failing state before an alert is triggered. Reduces alert noise from transient spikes.",
+          "minimum": 0
+        },
+        "min_location_failed": {
+          "type": "integer",
+          "description": "For synthetic monitors, the minimum number of test locations that must fail before triggering an alert. Prevents alerts from single-region network issues.",
+          "minimum": 1
+        }
+      }
+    },
+    "MonitorThresholds": {
+      "type": "object",
+      "description": "Threshold values that determine when the monitor transitions between OK, Warning, and Critical states. The critical threshold is required for metric monitors. Warning thresholds are optional and provide early notification before critical conditions.",
+      "properties": {
+        "critical": {
+          "type": "number",
+          "format": "double",
+          "description": "The metric value that triggers a CRITICAL alert notification. When the monitored value crosses this threshold, on-call teams are paged and the monitor state changes to Alert."
+        },
+        "critical_recovery": {
+          "type": "number",
+          "format": "double",
+          "description": "The metric value at which a CRITICAL alert recovers back to OK state. Must be set between the warning and critical thresholds. If not set, uses the critical threshold as the recovery point."
+        },
+        "warning": {
+          "type": "number",
+          "format": "double",
+          "description": "The metric value that triggers a WARNING notification. Provides early warning before the critical threshold is reached. Must be set between the critical_recovery and critical thresholds."
+        },
+        "warning_recovery": {
+          "type": "number",
+          "format": "double",
+          "description": "The metric value at which a WARNING alert recovers back to OK state. Must be set below the warning threshold. Prevents flapping between warning and OK states."
+        },
+        "ok": {
+          "type": "number",
+          "format": "double",
+          "description": "For service check monitors, the threshold defining the OK check count. Used with service check monitors that aggregate multiple check results."
+        },
+        "unknown": {
+          "type": "number",
+          "format": "double",
+          "description": "For service check monitors, the threshold defining the UNKNOWN check count. Used when the service check cannot determine the state."
+        }
+      }
+    },
+    "MonitorThresholdWindows": {
+      "type": "object",
+      "description": "Evaluation window settings for anomaly detection monitors. These windows control how much historical data is used to establish the baseline for anomaly detection.",
+      "properties": {
+        "trigger_window": {
+          "type": "string",
+          "description": "The time window during which the metric must remain anomalous before triggering an alert (e.g., last_5m, last_15m). Prevents alerts from transient anomalies.",
+          "examples": ["last_5m", "last_15m", "last_1h"]
+        },
+        "recovery_window": {
+          "type": "string",
+          "description": "The time window during which the metric must remain normal before recovering from an anomaly alert (e.g., last_5m, last_15m).",
+          "examples": ["last_5m", "last_15m", "last_1h"]
+        }
+      }
+    },
+    "MonitorState": {
+      "type": "object",
+      "description": "The current evaluation state of the monitor showing the status of each group being monitored. Groups are defined by the unique combinations of tag values in the monitor query's group-by clause.",
+      "properties": {
+        "groups": {
+          "type": "object",
+          "description": "Map of group scope names to their current state information. Group names are comma-separated tag:value pairs identifying the unique combination of tag values for that group (e.g., 'env:prod,host:web-01').",
+          "additionalProperties": {
+            "$ref": "#/$defs/MonitorGroupState"
+          }
+        }
+      }
+    },
+    "MonitorGroupState": {
+      "type": "object",
+      "description": "The current state and history of a single monitor group, representing one unique combination of tag values being evaluated by the monitor.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "The current alert status for this monitor group indicating whether action is needed",
+          "enum": ["Alert", "Ignored", "No Data", "OK", "Skipped", "Unknown", "Warn"]
+        },
+        "name": {
+          "type": "string",
+          "description": "The scope name of this group, expressed as a comma-separated list of tag:value pairs identifying the unique group within the monitor"
+        },
+        "last_triggered_ts": {
+          "type": ["integer", "null"],
+          "format": "int64",
+          "description": "Unix timestamp in seconds of the last time this group transitioned into an alert or warning state, or null if it has never triggered"
+        },
+        "last_notified_ts": {
+          "type": ["integer", "null"],
+          "format": "int64",
+          "description": "Unix timestamp in seconds of the last time an alert notification was sent for this group, or null if no notification has been sent"
+        },
+        "last_resolved_ts": {
+          "type": ["integer", "null"],
+          "format": "int64",
+          "description": "Unix timestamp in seconds of the last time this group transitioned from an alert or warning state back to OK, or null if it has never resolved"
+        },
+        "last_nodata_ts": {
+          "type": ["integer", "null"],
+          "format": "int64",
+          "description": "Unix timestamp in seconds of the last time this group reported a no-data condition, or null if no-data has never occurred"
+        }
+      }
+    },
+    "Creator": {
+      "type": "object",
+      "description": "Information about the Datadog user who created the monitor. Read-only and set automatically by Datadog based on the authenticated user.",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "The unique numeric ID of the Datadog user who created this monitor"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full display name of the user who created this monitor"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email address of the user who created this monitor"
+        },
+        "handle": {
+          "type": "string",
+          "description": "The Datadog handle (username) of the user who created this monitor, used for @-mentions in notifications"
+        }
+      }
+    }
+  }
+}

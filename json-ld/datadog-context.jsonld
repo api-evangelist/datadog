@@ -1,0 +1,491 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "dd": "https://www.datadoghq.com/ns/",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+
+    "Metric": {
+      "@id": "dd:Metric",
+      "@context": {
+        "metric": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "type": {
+          "@id": "dd:metricType",
+          "@type": "xsd:integer"
+        },
+        "points": {
+          "@id": "dd:dataPoints",
+          "@container": "@list"
+        },
+        "tags": {
+          "@id": "dd:tags",
+          "@container": "@set"
+        },
+        "host": {
+          "@id": "schema:name",
+          "@type": "xsd:string"
+        },
+        "interval": {
+          "@id": "dd:interval",
+          "@type": "xsd:long"
+        },
+        "unit": {
+          "@id": "dd:unit",
+          "@type": "xsd:string"
+        },
+        "resources": {
+          "@id": "dd:resources",
+          "@container": "@set"
+        },
+        "source_type_name": {
+          "@id": "dcterms:source",
+          "@type": "xsd:string"
+        }
+      }
+    },
+
+    "MetricPoint": {
+      "@id": "dd:MetricPoint",
+      "@context": {
+        "timestamp": {
+          "@id": "dcterms:date",
+          "@type": "xsd:long"
+        },
+        "value": {
+          "@id": "dd:value",
+          "@type": "xsd:double"
+        }
+      }
+    },
+
+    "MetricResource": {
+      "@id": "dd:MetricResource",
+      "@context": {
+        "name": {
+          "@id": "schema:name",
+          "@type": "xsd:string"
+        },
+        "type": {
+          "@id": "dd:resourceType",
+          "@type": "xsd:string"
+        }
+      }
+    },
+
+    "Monitor": {
+      "@id": "dd:Monitor",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:long"
+        },
+        "type": {
+          "@id": "dd:monitorType",
+          "@type": "xsd:string"
+        },
+        "query": {
+          "@id": "dd:query",
+          "@type": "xsd:string"
+        },
+        "name": {
+          "@id": "schema:name",
+          "@type": "xsd:string"
+        },
+        "message": {
+          "@id": "schema:description",
+          "@type": "xsd:string"
+        },
+        "tags": {
+          "@id": "dd:tags",
+          "@container": "@set"
+        },
+        "priority": {
+          "@id": "dd:priority",
+          "@type": "xsd:integer"
+        },
+        "created": {
+          "@id": "dcterms:created",
+          "@type": "xsd:dateTime"
+        },
+        "modified": {
+          "@id": "dcterms:modified",
+          "@type": "xsd:dateTime"
+        },
+        "deleted": {
+          "@id": "dd:deleted",
+          "@type": "xsd:dateTime"
+        },
+        "options": {
+          "@id": "dd:monitorOptions",
+          "@type": "@id"
+        },
+        "state": {
+          "@id": "dd:monitorState",
+          "@type": "@id"
+        },
+        "creator": {
+          "@id": "dcterms:creator",
+          "@type": "@id"
+        },
+        "restricted_roles": {
+          "@id": "dd:restrictedRoles",
+          "@container": "@set"
+        }
+      }
+    },
+
+    "MonitorOptions": {
+      "@id": "dd:MonitorOptions",
+      "@context": {
+        "thresholds": {
+          "@id": "dd:thresholds",
+          "@type": "@id"
+        },
+        "notify_no_data": {
+          "@id": "dd:notifyNoData",
+          "@type": "xsd:boolean"
+        },
+        "no_data_timeframe": {
+          "@id": "dd:noDataTimeframe",
+          "@type": "xsd:integer"
+        },
+        "renotify_interval": {
+          "@id": "dd:renotifyInterval",
+          "@type": "xsd:integer"
+        },
+        "escalation_message": {
+          "@id": "dd:escalationMessage",
+          "@type": "xsd:string"
+        },
+        "timeout_h": {
+          "@id": "dd:timeoutHours",
+          "@type": "xsd:integer"
+        },
+        "evaluation_delay": {
+          "@id": "dd:evaluationDelay",
+          "@type": "xsd:integer"
+        },
+        "new_group_delay": {
+          "@id": "dd:newGroupDelay",
+          "@type": "xsd:integer"
+        },
+        "include_tags": {
+          "@id": "dd:includeTags",
+          "@type": "xsd:boolean"
+        }
+      }
+    },
+
+    "MonitorThresholds": {
+      "@id": "dd:MonitorThresholds",
+      "@context": {
+        "critical": {
+          "@id": "dd:criticalThreshold",
+          "@type": "xsd:double"
+        },
+        "critical_recovery": {
+          "@id": "dd:criticalRecovery",
+          "@type": "xsd:double"
+        },
+        "warning": {
+          "@id": "dd:warningThreshold",
+          "@type": "xsd:double"
+        },
+        "warning_recovery": {
+          "@id": "dd:warningRecovery",
+          "@type": "xsd:double"
+        }
+      }
+    },
+
+    "LogEvent": {
+      "@id": "dd:LogEvent",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "timestamp": {
+          "@id": "dcterms:date",
+          "@type": "xsd:dateTime"
+        },
+        "message": {
+          "@id": "schema:description",
+          "@type": "xsd:string"
+        },
+        "host": {
+          "@id": "dd:host",
+          "@type": "xsd:string"
+        },
+        "service": {
+          "@id": "dd:service",
+          "@type": "xsd:string"
+        },
+        "source": {
+          "@id": "dcterms:source",
+          "@type": "xsd:string"
+        },
+        "status": {
+          "@id": "dd:logStatus",
+          "@type": "xsd:string"
+        },
+        "tags": {
+          "@id": "dd:tags",
+          "@container": "@set"
+        },
+        "attributes": {
+          "@id": "dd:logAttributes",
+          "@type": "@id"
+        }
+      }
+    },
+
+    "Event": {
+      "@id": "dd:Event",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "title": {
+          "@id": "dcterms:title",
+          "@type": "xsd:string"
+        },
+        "text": {
+          "@id": "schema:description",
+          "@type": "xsd:string"
+        },
+        "timestamp": {
+          "@id": "dcterms:date",
+          "@type": "xsd:dateTime"
+        },
+        "date_happened": {
+          "@id": "dd:dateHappened",
+          "@type": "xsd:long"
+        },
+        "priority": {
+          "@id": "dd:priority",
+          "@type": "xsd:string"
+        },
+        "host": {
+          "@id": "dd:host",
+          "@type": "xsd:string"
+        },
+        "tags": {
+          "@id": "dd:tags",
+          "@container": "@set"
+        },
+        "alert_type": {
+          "@id": "dd:alertType",
+          "@type": "xsd:string"
+        },
+        "aggregation_key": {
+          "@id": "dd:aggregationKey",
+          "@type": "xsd:string"
+        },
+        "source_type_name": {
+          "@id": "dcterms:source",
+          "@type": "xsd:string"
+        },
+        "status": {
+          "@id": "dd:eventStatus",
+          "@type": "xsd:string"
+        }
+      }
+    },
+
+    "Dashboard": {
+      "@id": "dd:Dashboard",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "title": {
+          "@id": "dcterms:title",
+          "@type": "xsd:string"
+        },
+        "description": {
+          "@id": "dcterms:description",
+          "@type": "xsd:string"
+        },
+        "layout_type": {
+          "@id": "dd:layoutType",
+          "@type": "xsd:string"
+        },
+        "widgets": {
+          "@id": "dd:widgets",
+          "@container": "@list"
+        },
+        "tags": {
+          "@id": "dd:tags",
+          "@container": "@set"
+        },
+        "created_at": {
+          "@id": "dcterms:created",
+          "@type": "xsd:dateTime"
+        },
+        "modified_at": {
+          "@id": "dcterms:modified",
+          "@type": "xsd:dateTime"
+        },
+        "author_name": {
+          "@id": "dcterms:creator",
+          "@type": "xsd:string"
+        },
+        "is_read_only": {
+          "@id": "dd:isReadOnly",
+          "@type": "xsd:boolean"
+        },
+        "notify_list": {
+          "@id": "dd:notifyList",
+          "@container": "@set"
+        },
+        "url": {
+          "@id": "schema:url",
+          "@type": "xsd:anyURI"
+        }
+      }
+    },
+
+    "Incident": {
+      "@id": "dd:Incident",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "title": {
+          "@id": "dcterms:title",
+          "@type": "xsd:string"
+        },
+        "public_id": {
+          "@id": "dd:publicId",
+          "@type": "xsd:integer"
+        },
+        "state": {
+          "@id": "dd:incidentState",
+          "@type": "xsd:string"
+        },
+        "severity": {
+          "@id": "dd:severity",
+          "@type": "xsd:string"
+        },
+        "customer_impacted": {
+          "@id": "dd:customerImpacted",
+          "@type": "xsd:boolean"
+        },
+        "customer_impact_scope": {
+          "@id": "dd:customerImpactScope",
+          "@type": "xsd:string"
+        },
+        "customer_impact_start": {
+          "@id": "dd:customerImpactStart",
+          "@type": "xsd:dateTime"
+        },
+        "customer_impact_end": {
+          "@id": "dd:customerImpactEnd",
+          "@type": "xsd:dateTime"
+        },
+        "customer_impact_duration": {
+          "@id": "dd:customerImpactDuration",
+          "@type": "xsd:integer"
+        },
+        "created": {
+          "@id": "dcterms:created",
+          "@type": "xsd:dateTime"
+        },
+        "modified": {
+          "@id": "dcterms:modified",
+          "@type": "xsd:dateTime"
+        },
+        "detected": {
+          "@id": "dd:detected",
+          "@type": "xsd:dateTime"
+        },
+        "resolved": {
+          "@id": "dd:resolved",
+          "@type": "xsd:dateTime"
+        },
+        "time_to_detect": {
+          "@id": "dd:timeToDetect",
+          "@type": "xsd:integer"
+        },
+        "time_to_internal_response": {
+          "@id": "dd:timeToInternalResponse",
+          "@type": "xsd:integer"
+        },
+        "time_to_repair": {
+          "@id": "dd:timeToRepair",
+          "@type": "xsd:integer"
+        },
+        "fields": {
+          "@id": "dd:incidentFields",
+          "@type": "@id"
+        },
+        "notification_handles": {
+          "@id": "dd:notificationHandles",
+          "@container": "@set"
+        }
+      }
+    },
+
+    "IncidentTeam": {
+      "@id": "dd:IncidentTeam",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:string"
+        },
+        "name": {
+          "@id": "schema:name",
+          "@type": "xsd:string"
+        },
+        "created": {
+          "@id": "dcterms:created",
+          "@type": "xsd:dateTime"
+        },
+        "modified": {
+          "@id": "dcterms:modified",
+          "@type": "xsd:dateTime"
+        }
+      }
+    },
+
+    "Creator": {
+      "@id": "dd:Creator",
+      "@context": {
+        "id": {
+          "@id": "dcterms:identifier",
+          "@type": "xsd:integer"
+        },
+        "name": {
+          "@id": "schema:name",
+          "@type": "xsd:string"
+        },
+        "email": {
+          "@id": "schema:email",
+          "@type": "xsd:string"
+        },
+        "handle": {
+          "@id": "dd:handle",
+          "@type": "xsd:string"
+        }
+      }
+    },
+
+    "APIError": {
+      "@id": "dd:APIError",
+      "@context": {
+        "errors": {
+          "@id": "dd:errors",
+          "@container": "@set"
+        }
+      }
+    }
+  }
+}

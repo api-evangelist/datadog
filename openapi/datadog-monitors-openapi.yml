@@ -1,0 +1,779 @@
+openapi: 3.1.0
+info:
+  title: Datadog Monitors API
+  description: >-
+    The Datadog Monitors API allows you to create, update, delete, and mute
+    monitors that watch a metric or check and notify your team when a defined
+    threshold has been exceeded. Monitors support a variety of types including
+    metric threshold, anomaly detection, outlier detection, forecasting,
+    composite, service check, event, log, and APM monitors. Each monitor can
+    have customizable notification channels, escalation policies, and
+    scheduling for downtime.
+  version: 'v1'
+  contact:
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  termsOfService: https://www.datadoghq.com/legal/terms/
+externalDocs:
+  description: Datadog Monitors API Documentation
+  url: https://docs.datadoghq.com/api/latest/monitors/
+servers:
+  - url: https://api.datadoghq.com
+    description: Datadog API Production Server
+tags:
+  - name: Monitors
+    description: Create, read, update, and delete monitors
+  - name: Monitor Muting
+    description: Mute and unmute monitors to suppress notifications
+  - name: Monitor Validation
+    description: Validate monitor configurations before creation
+security:
+  - apiKeyAuth: []
+  - appKeyAuth: []
+paths:
+  /api/v1/monitor:
+    post:
+      operationId: createMonitor
+      summary: Create a monitor
+      description: >-
+        Creates a new monitor with the specified configuration. The monitor
+        type determines which query language and threshold options are
+        available. Monitors can alert on metric thresholds, anomalies,
+        log patterns, APM traces, synthetic test results, and more.
+        Upon creation, Datadog begins evaluating the monitor against the
+        defined query and will send notifications when alert conditions
+        are met.
+      tags:
+        - Monitors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Monitor'
+      responses:
+        '200':
+          description: Successfully created monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid monitor configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to create monitors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    get:
+      operationId: listMonitors
+      summary: List all monitors
+      description: >-
+        Returns a paginated list of monitors for your Datadog organization.
+        Results can be filtered by monitor type, group states, name tags,
+        monitor tags, creator, and ID. Supports sorting by name, status,
+        and type. Use this endpoint to audit your monitoring configuration
+        or build monitoring dashboards.
+      tags:
+        - Monitors
+      parameters:
+        - name: group_states
+          in: query
+          required: false
+          description: Comma-separated list of group states to filter monitors by (alert, ignored, no data, ok, skipped, unknown, warn)
+          schema:
+            type: string
+        - name: name
+          in: query
+          required: false
+          description: Filter monitors by name substring match
+          schema:
+            type: string
+        - name: tags
+          in: query
+          required: false
+          description: Comma-separated list of tags to filter monitors by
+          schema:
+            type: string
+        - name: monitor_tags
+          in: query
+          required: false
+          description: Comma-separated list of monitor-specific tags to filter by
+          schema:
+            type: string
+        - name: with_downtimes
+          in: query
+          required: false
+          description: When true, includes downtime information in the response
+          schema:
+            type: boolean
+        - name: id_offset
+          in: query
+          required: false
+          description: Monitor ID to start paginating from (for cursor-based pagination)
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          description: The page number to retrieve (zero-indexed, for offset-based pagination)
+          schema:
+            type: integer
+            minimum: 0
+        - name: page_size
+          in: query
+          required: false
+          description: The number of monitors to return per page (default 100, max 1000)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+      responses:
+        '200':
+          description: Successful response with list of monitors
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of monitors matching the specified filters
+                items:
+                  $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid filter parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to list monitors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/monitor/{monitor_id}:
+    get:
+      operationId: getMonitor
+      summary: Get a monitor
+      description: >-
+        Returns the configuration and current status of a specific monitor
+        identified by its ID. Includes the monitor query, notification settings,
+        alert thresholds, and current group statuses. Optionally includes
+        downtime and creator information.
+      tags:
+        - Monitors
+      parameters:
+        - $ref: '#/components/parameters/monitorIdParam'
+        - name: group_states
+          in: query
+          required: false
+          description: Comma-separated group states to include in the response (alert, ignored, no data, ok, skipped, unknown, warn)
+          schema:
+            type: string
+        - name: with_downtimes
+          in: query
+          required: false
+          description: When true, includes active downtime information in the response
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response with monitor details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid monitor ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to view this monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - monitor with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    put:
+      operationId: updateMonitor
+      summary: Edit a monitor
+      description: >-
+        Updates the configuration of an existing monitor identified by its ID.
+        The request body replaces the entire monitor configuration, so include
+        all desired fields in the update. Changes to the query or thresholds
+        take effect immediately. Updating notification channels or message
+        templates applies to future alerts.
+      tags:
+        - Monitors
+      parameters:
+        - $ref: '#/components/parameters/monitorIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid monitor configuration or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to update this monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - monitor with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+    delete:
+      operationId: deleteMonitor
+      summary: Delete a monitor
+      description: >-
+        Permanently deletes the monitor with the specified ID. Deletion cannot
+        be undone. Active alerts and notifications for the monitor are
+        immediately cancelled. Any associated SLOs referencing this monitor
+        must be updated before the monitor can be deleted.
+      tags:
+        - Monitors
+      parameters:
+        - $ref: '#/components/parameters/monitorIdParam'
+        - name: force
+          in: query
+          required: false
+          description: When true, forcefully deletes the monitor even if it is referenced by SLOs or composite monitors
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedMonitor'
+        '400':
+          description: Bad request - monitor cannot be deleted (e.g., referenced by SLO)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to delete this monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - monitor with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/monitor/{monitor_id}/mute:
+    post:
+      operationId: muteMonitor
+      summary: Mute a monitor
+      description: >-
+        Mutes the specified monitor to suppress alert notifications for all
+        groups or specific scopes. Optionally specify an end time after which
+        the monitor automatically unmutes. While muted, the monitor continues
+        to evaluate the query but does not send alert notifications. Useful
+        for planned maintenance or known issues.
+      tags:
+        - Monitor Muting
+      parameters:
+        - $ref: '#/components/parameters/monitorIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorMuteSettings'
+      responses:
+        '200':
+          description: Successfully muted monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid mute settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to mute this monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - monitor with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/monitor/{monitor_id}/unmute:
+    post:
+      operationId: unmuteMonitor
+      summary: Unmute a monitor
+      description: >-
+        Unmutes a previously muted monitor to resume alert notifications.
+        Optionally specify a scope to unmute only specific groups. If no
+        scope is specified, the monitor is unmuted globally across all groups.
+        Notifications resume immediately for any groups that are in an alert
+        or warning state.
+      tags:
+        - Monitor Muting
+      parameters:
+        - $ref: '#/components/parameters/monitorIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorUnmuteSettings'
+      responses:
+        '200':
+          description: Successfully unmuted monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        '400':
+          description: Bad request - invalid unmute settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to unmute this monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - monitor with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+  /api/v1/monitor/validate:
+    post:
+      operationId: validateMonitor
+      summary: Validate a monitor
+      description: >-
+        Validates a monitor configuration without creating it. Returns validation
+        errors if the monitor query, type, or options are invalid. Use this
+        endpoint to test monitor configurations programmatically before deploying
+        them to production. Validation checks syntax, query correctness, and
+        compatibility of monitor type with specified options.
+      tags:
+        - Monitor Validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Monitor'
+      responses:
+        '200':
+          description: Monitor configuration is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Empty response indicating successful validation
+        '400':
+          description: Bad request - monitor configuration is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for monitor validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-API-KEY
+      description: Datadog API key for authenticating requests
+    appKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-APPLICATION-KEY
+      description: Datadog application key for write operations and sensitive read operations
+  parameters:
+    monitorIdParam:
+      name: monitor_id
+      in: path
+      required: true
+      description: The unique numeric ID of the monitor to operate on
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    Monitor:
+      type: object
+      description: A Datadog monitor that watches a metric or check and alerts when thresholds are exceeded
+      required:
+        - type
+        - query
+        - name
+        - message
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: The unique numeric identifier of the monitor, assigned by Datadog upon creation
+        type:
+          type: string
+          description: The type of monitor that determines the query language and alerting behavior
+          enum:
+            - composite
+            - event alert
+            - log alert
+            - metric alert
+            - process alert
+            - query alert
+            - rum alert
+            - service check
+            - synthetics alert
+            - trace-analytics alert
+            - slo alert
+            - event-v2 alert
+            - audit alert
+            - ci-pipelines alert
+            - ci-tests alert
+            - error-tracking alert
+            - database-monitoring alert
+            - network-performance alert
+        query:
+          type: string
+          description: The monitor query expression using Datadog's query language for the specified monitor type
+        name:
+          type: string
+          description: A descriptive name for the monitor used for identification in dashboards and notifications
+        message:
+          type: string
+          description: The notification message body sent when the monitor triggers, supports template variables and @-mentions
+        tags:
+          type: array
+          description: List of tags to associate with the monitor for filtering and organization
+          items:
+            type: string
+        options:
+          $ref: '#/components/schemas/MonitorOptions'
+        priority:
+          type: integer
+          description: The monitor priority level from 1 (highest) to 5 (lowest), used for sorting and filtering
+          minimum: 1
+          maximum: 5
+        state:
+          $ref: '#/components/schemas/MonitorState'
+        creator:
+          $ref: '#/components/schemas/Creator'
+        created:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the monitor was created
+        modified:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the monitor was last modified
+        deleted:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO 8601 timestamp when the monitor was deleted, or null if not deleted
+        restricted_roles:
+          type: array
+          description: List of role IDs whose members can edit this monitor; empty means all users can edit
+          items:
+            type: string
+    MonitorOptions:
+      type: object
+      description: Configuration options for a monitor controlling evaluation, notification, and recovery behavior
+      properties:
+        thresholds:
+          $ref: '#/components/schemas/MonitorThresholds'
+        notify_no_data:
+          type: boolean
+          description: Whether to send a notification when there is no data for the monitored metric
+          default: false
+        no_data_timeframe:
+          type: integer
+          description: The number of minutes after which the monitor reports no data (minimum 2x the evaluation timeframe)
+        require_full_window:
+          type: boolean
+          description: Whether the monitor requires a full evaluation window of data before alerting
+        notify_audit:
+          type: boolean
+          description: Whether to send notifications to auditors when the monitor is changed
+        renotify_interval:
+          type: integer
+          description: The number of minutes between re-notifications while the monitor remains in an alert state (0 to disable)
+        renotify_statuses:
+          type: array
+          description: Monitor status types that trigger re-notification messages
+          items:
+            type: string
+            enum: [alert, warn, no data]
+        escalation_message:
+          type: string
+          description: The message to include with re-notification alerts instead of the main message
+        timeout_h:
+          type: integer
+          description: The number of hours after which an automatically resolving alert times out
+        evaluation_delay:
+          type: integer
+          description: The time in seconds to delay evaluation, used to ensure all data arrives before checking thresholds
+        new_group_delay:
+          type: integer
+          description: The number of seconds to delay notification for new monitor groups to allow transient issues to resolve
+        include_tags:
+          type: boolean
+          description: Whether to include group scope tags in notification subject and body
+          default: true
+        silenced:
+          type: object
+          description: Map of monitor scopes to Unix timestamps indicating when each scope's mute expires (0 for indefinite)
+          additionalProperties:
+            type: integer
+            nullable: true
+        aggregation:
+          type: object
+          description: Aggregation settings used for anomaly and outlier monitors
+          properties:
+            type:
+              type: string
+              description: The type of aggregation function applied to the metric
+            metric:
+              type: string
+              description: The metric name used in the aggregation
+            group_by:
+              type: string
+              description: The tag key to group the aggregation by
+    MonitorThresholds:
+      type: object
+      description: Alert threshold values for metric and service check monitors
+      properties:
+        critical:
+          type: number
+          format: double
+          description: The threshold value that triggers a CRITICAL alert notification
+        critical_recovery:
+          type: number
+          format: double
+          description: The threshold value at which a CRITICAL alert recovers to OK state
+        warning:
+          type: number
+          format: double
+          description: The threshold value that triggers a WARNING alert notification
+        warning_recovery:
+          type: number
+          format: double
+          description: The threshold value at which a WARNING alert recovers to OK state
+        ok:
+          type: number
+          format: double
+          description: The threshold for service check monitors indicating an OK state (used with service check monitors)
+        unknown:
+          type: number
+          format: double
+          description: The threshold for service check monitors indicating an UNKNOWN state
+    MonitorState:
+      type: object
+      description: The current evaluation state of the monitor across all groups
+      properties:
+        groups:
+          type: object
+          description: Map of monitor group names to their current state information
+          additionalProperties:
+            $ref: '#/components/schemas/MonitorGroupState'
+    MonitorGroupState:
+      type: object
+      description: The state of a single monitor group (a unique combination of tag values)
+      properties:
+        status:
+          type: string
+          description: The current alert status for this monitor group
+          enum: [Alert, Ignored, No Data, OK, Skipped, Unknown, Warn]
+        name:
+          type: string
+          description: The name of the monitor group, represented as a comma-separated list of tag:value pairs
+        last_triggered_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group triggered an alert
+        last_notified_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time a notification was sent for this group
+        last_resolved_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group resolved from an alert state
+    Creator:
+      type: object
+      description: Information about the user who created the monitor
+      properties:
+        id:
+          type: integer
+          description: The unique numeric ID of the creator user
+        name:
+          type: string
+          description: The display name of the creator user
+        email:
+          type: string
+          format: email
+          description: The email address of the creator user
+        handle:
+          type: string
+          description: The Datadog handle (username) of the creator user
+    MonitorUpdateRequest:
+      type: object
+      description: Request body for updating an existing monitor configuration
+      properties:
+        type:
+          type: string
+          description: The type of the monitor (changing type may reset other settings)
+        query:
+          type: string
+          description: The updated monitor query expression
+        name:
+          type: string
+          description: The updated descriptive name for the monitor
+        message:
+          type: string
+          description: The updated notification message body
+        tags:
+          type: array
+          description: The updated list of tags to associate with the monitor
+          items:
+            type: string
+        options:
+          $ref: '#/components/schemas/MonitorOptions'
+        priority:
+          type: integer
+          description: The updated priority level (1 highest to 5 lowest)
+          minimum: 1
+          maximum: 5
+    MonitorMuteSettings:
+      type: object
+      description: Settings for muting a monitor including scope and expiration
+      properties:
+        scope:
+          type: string
+          description: The scope expression specifying which monitor groups to mute (e.g., env:prod, host:web-01)
+        end:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds when the mute expires; omit for indefinite mute
+    MonitorUnmuteSettings:
+      type: object
+      description: Settings for unmuting a monitor including optional scope
+      properties:
+        scope:
+          type: string
+          description: The scope expression specifying which monitor groups to unmute; omit to unmute all groups
+        all_scopes:
+          type: boolean
+          description: When true, unmutes all scopes including those previously muted with different scope expressions
+    DeletedMonitor:
+      type: object
+      description: Response returned after successfully deleting a monitor
+      properties:
+        deleted_monitor_id:
+          type: integer
+          format: int64
+          description: The ID of the monitor that was deleted
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
