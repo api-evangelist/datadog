@@ -81,6 +81,30 @@ See [apis.yml](apis.yml) for the complete inventory.
 
 61 example JSON files in [examples/](examples/).
 
+## Capabilities
+
+Naftiko capabilities organized as shared per-API definitions composed into customer-facing workflows.
+
+### Shared Per-API Definitions
+
+- [Monitors](capabilities/shared/monitors.yaml) — 7 operations for alert monitor CRUD and mute/unmute
+- [Metrics](capabilities/shared/metrics.yaml) — 8 operations for metric submission, querying, and tag config
+- [Events](capabilities/shared/events.yaml) — 4 operations for event creation and search
+- [Logs](capabilities/shared/logs.yaml) — 5 operations for log submission, search, and aggregation
+- [Incidents](capabilities/shared/incidents.yaml) — 9 operations for incident CRUD and team management
+- [Dashboards](capabilities/shared/dashboards.yaml) — 4 operations for dashboard list items
+- [Synthetics](capabilities/shared/synthetics.yaml) — 2 operations for synthetic test concurrency
+- [Hosts](capabilities/shared/hosts.yaml) — 1 operation for host coverage analysis
+
+### Workflow Capabilities
+
+| Workflow | APIs Combined | Tools | Persona |
+|----------|--------------|-------|---------|
+| [Monitoring and Alerting](capabilities/monitoring-and-alerting.yaml) | Monitors + Metrics + Hosts + Dashboards | 15 | SRE / DevOps Engineer |
+| [Incident Management](capabilities/incident-management.yaml) | Incidents + Events + Monitors | 14 | Incident Commander / On-Call |
+| [Log Analytics](capabilities/log-analytics.yaml) | Logs + Events | 9 | Platform Engineer / Developer |
+| [Synthetic Testing](capabilities/synthetic-testing.yaml) | Synthetics + Monitors | 10 | QA Engineer / SRE |
+
 ## Vocabulary
 
 - [Datadog Vocabulary](vocabulary/datadog-vocabulary.yaml) — 10 resources, 2 APIs, 5 domains, 5 personas

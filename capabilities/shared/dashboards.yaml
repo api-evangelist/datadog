@@ -1,0 +1,118 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Dashboards"
+  description: "Manage Datadog dashboard list items including listing, adding, updating, and removing dashboards from dashboard lists."
+  tags:
+    - Datadog
+    - Dashboards
+    - Visualizations
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-dashboards
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Dashboard List Items API for managing dashboards within dashboard lists. Sourced from datadog-api-openapi.yml (4 operations on dashboard list items)."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: dashboard-list-items
+          path: /api/v2/dashboard/lists/manual/{dashboard_list_id}/dashboards
+          description: "Dashboard list item operations."
+          operations:
+            - name: GetDashboardListItems
+              method: GET
+              description: "Fetch the dashboard list's dashboard definitions."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: CreateDashboardListItems
+              method: POST
+              description: "Add dashboards to an existing dashboard list."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: UpdateDashboardListItems
+              method: PUT
+              description: "Update dashboards of an existing dashboard list."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: DeleteDashboardListItems
+              method: DELETE
+              description: "Delete dashboards from an existing dashboard list."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8105
+      namespace: dd-dashboards-api
+      resources:
+        - path: /v1/dashboard-lists/{dashboard_list_id}/dashboards
+          name: dashboard-list-items
+          description: "Dashboard list item operations"
+          operations:
+            - method: GET
+              name: GetDashboardListItems
+              description: "Get dashboards in a list"
+            - method: POST
+              name: CreateDashboardListItems
+              description: "Add dashboards to a list"
+            - method: PUT
+              name: UpdateDashboardListItems
+              description: "Update dashboards in a list"
+            - method: DELETE
+              name: DeleteDashboardListItems
+              description: "Remove dashboards from a list"
+
+    - type: mcp
+      port: 9105
+      namespace: dd-dashboards-mcp
+      transport: http
+      tools:
+        - name: get-dashboard-list-items
+          description: "Fetch dashboards in a dashboard list"
+          call: "dd-dashboards.GetDashboardListItems"
+          hints:
+            readOnly: true
+        - name: add-dashboard-list-items
+          description: "Add dashboards to a dashboard list"
+          call: "dd-dashboards.CreateDashboardListItems"
+        - name: update-dashboard-list-items
+          description: "Update dashboards in a dashboard list"
+          call: "dd-dashboards.UpdateDashboardListItems"
+          hints:
+            idempotent: true
+        - name: delete-dashboard-list-items
+          description: "Remove dashboards from a dashboard list"
+          call: "dd-dashboards.DeleteDashboardListItems"
+          hints:
+            destructive: true

@@ -1,0 +1,168 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Synthetic Testing"
+  description: "Unified workflow for synthetic testing combining synthetics concurrency management and monitors. Used by QA engineers and SREs for managing synthetic test execution capacity and monitoring test results."
+  tags:
+    - Datadog
+    - Synthetic Testing
+    - Synthetics
+    - Monitors
+    - QA
+  personas:
+    - QA Engineer
+    - SRE
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - import: dd-synthetics
+      location: "./shared/synthetics.yaml"
+    - import: dd-monitors
+      location: "./shared/monitors.yaml"
+
+  exposes:
+    - type: rest
+      port: 8083
+      namespace: dd-synthetic-testing-api
+      description: "Unified REST API for synthetic testing workflows combining synthetics and monitors."
+      resources:
+        - path: /v1/synthetics/concurrency-cap
+          name: synthetics-concurrency-cap
+          description: "Synthetics concurrency settings"
+          operations:
+            - method: GET
+              name: GetOnDemandConcurrencyCap
+              description: "Get the on-demand concurrency cap"
+              call: "dd-synthetics.GetOnDemandConcurrencyCap"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: POST
+              name: SetOnDemandConcurrencyCap
+              description: "Set the on-demand concurrency cap"
+              call: "dd-synthetics.SetOnDemandConcurrencyCap"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors
+          name: monitors
+          description: "Monitor management for synthetic alerts"
+          operations:
+            - method: GET
+              name: listMonitors
+              description: "List monitors"
+              call: "dd-monitors.listMonitors"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: POST
+              name: createMonitor
+              description: "Create a monitor"
+              call: "dd-monitors.createMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}
+          name: monitor
+          description: "Individual monitor operations"
+          operations:
+            - method: GET
+              name: getMonitor
+              description: "Get a monitor"
+              call: "dd-monitors.getMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: PUT
+              name: updateMonitor
+              description: "Update a monitor"
+              call: "dd-monitors.updateMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: DELETE
+              name: deleteMonitor
+              description: "Delete a monitor"
+              call: "dd-monitors.deleteMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}/mute
+          name: monitor-mute
+          description: "Mute synthetic alert monitors"
+          operations:
+            - method: POST
+              name: muteMonitor
+              description: "Mute a monitor"
+              call: "dd-monitors.muteMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/validate
+          name: monitor-validate
+          description: "Validate synthetic monitor configurations"
+          operations:
+            - method: POST
+              name: validateMonitor
+              description: "Validate a monitor"
+              call: "dd-monitors.validateMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9083
+      namespace: dd-synthetic-testing-mcp
+      transport: http
+      description: "MCP server for AI-assisted synthetic testing workflows."
+      tools:
+        - name: get-concurrency-cap
+          description: "Get the synthetics on-demand concurrency cap"
+          call: "dd-synthetics.GetOnDemandConcurrencyCap"
+          hints:
+            readOnly: true
+        - name: set-concurrency-cap
+          description: "Set a new synthetics on-demand concurrency cap"
+          call: "dd-synthetics.SetOnDemandConcurrencyCap"
+        - name: list-monitors
+          description: "List monitors including synthetic alert monitors"
+          call: "dd-monitors.listMonitors"
+          hints:
+            readOnly: true
+        - name: get-monitor
+          description: "Get a monitor by ID"
+          call: "dd-monitors.getMonitor"
+          hints:
+            readOnly: true
+        - name: create-monitor
+          description: "Create a synthetics alert monitor"
+          call: "dd-monitors.createMonitor"
+        - name: update-monitor
+          description: "Update a synthetics alert monitor"
+          call: "dd-monitors.updateMonitor"
+          hints:
+            idempotent: true
+        - name: delete-monitor
+          description: "Delete a monitor"
+          call: "dd-monitors.deleteMonitor"
+          hints:
+            destructive: true
+        - name: mute-monitor
+          description: "Mute a synthetic test monitor"
+          call: "dd-monitors.muteMonitor"
+        - name: unmute-monitor
+          description: "Unmute a synthetic test monitor"
+          call: "dd-monitors.unmuteMonitor"
+        - name: validate-monitor
+          description: "Validate a synthetic monitor configuration"
+          call: "dd-monitors.validateMonitor"
+          hints:
+            readOnly: true

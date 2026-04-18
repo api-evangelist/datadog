@@ -1,0 +1,66 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Hosts"
+  description: "Manage Datadog host coverage analysis for Cloud Security Management including hosts and containers with CSM features enabled."
+  tags:
+    - Datadog
+    - Hosts
+    - Infrastructure
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-hosts
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Hosts and Containers API for CSM coverage analysis. Sourced from datadog-api-openapi.yml (1 operation for hosts and containers coverage)."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: hosts-coverage
+          path: /api/v2/csm/onboarding/coverage_analysis/hosts_and_containers
+          description: "Host and container coverage analysis."
+          operations:
+            - name: GetCSMHostsAndContainersCoverageAnalysis
+              method: GET
+              description: "Get CSM hosts and containers coverage analysis."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8107
+      namespace: dd-hosts-api
+      resources:
+        - path: /v1/hosts/coverage
+          name: hosts-coverage
+          description: "Host coverage analysis"
+          operations:
+            - method: GET
+              name: GetCSMHostsAndContainersCoverageAnalysis
+              description: "Get CSM hosts and containers coverage"
+
+    - type: mcp
+      port: 9107
+      namespace: dd-hosts-mcp
+      transport: http
+      tools:
+        - name: get-hosts-coverage
+          description: "Get CSM hosts and containers coverage analysis"
+          call: "dd-hosts.GetCSMHostsAndContainersCoverageAnalysis"
+          hints:
+            readOnly: true

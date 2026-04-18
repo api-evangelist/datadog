@@ -1,0 +1,164 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Logs"
+  description: "Submit, search, and aggregate log events in Datadog Log Management including log index configuration."
+  tags:
+    - Datadog
+    - Logs
+    - Log Management
+    - Search
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-logs
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Logs API for submitting, searching, aggregating logs, and managing log indexes."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: logs-submit
+          path: /api/v2/logs
+          description: "Submit log entries."
+          operations:
+            - name: submitLogs
+              method: POST
+              description: "Send logs."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: logs-search
+          path: /api/v2/logs/events/search
+          description: "Search log events."
+          operations:
+            - name: searchLogs
+              method: POST
+              description: "Search logs."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: logs-aggregate
+          path: /api/v2/logs/analytics/aggregate
+          description: "Aggregate log data."
+          operations:
+            - name: aggregateLogs
+              method: POST
+              description: "Aggregate logs."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: log-indexes
+          path: /api/v1/logs/config/indexes
+          description: "Log index management."
+          operations:
+            - name: listLogIndexes
+              method: GET
+              description: "List log indexes."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: getLogIndex
+              method: GET
+              path: /api/v1/logs/config/indexes/{name}
+              description: "Get a log index."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8103
+      namespace: dd-logs-api
+      resources:
+        - path: /v1/logs
+          name: logs
+          description: "Submit logs"
+          operations:
+            - method: POST
+              name: submitLogs
+              description: "Send log entries"
+        - path: /v1/logs/search
+          name: logs-search
+          description: "Search logs"
+          operations:
+            - method: POST
+              name: searchLogs
+              description: "Search log events"
+        - path: /v1/logs/aggregate
+          name: logs-aggregate
+          description: "Aggregate logs"
+          operations:
+            - method: POST
+              name: aggregateLogs
+              description: "Aggregate log data"
+        - path: /v1/logs/indexes
+          name: log-indexes
+          description: "Log index listing"
+          operations:
+            - method: GET
+              name: listLogIndexes
+              description: "List log indexes"
+        - path: /v1/logs/indexes/{name}
+          name: log-index
+          description: "Individual log index"
+          operations:
+            - method: GET
+              name: getLogIndex
+              description: "Get a log index"
+
+    - type: mcp
+      port: 9103
+      namespace: dd-logs-mcp
+      transport: http
+      tools:
+        - name: submit-logs
+          description: "Send log entries to Datadog"
+          call: "dd-logs.submitLogs"
+        - name: search-logs
+          description: "Search log events with query language"
+          call: "dd-logs.searchLogs"
+          hints:
+            readOnly: true
+        - name: aggregate-logs
+          description: "Compute aggregations over log events"
+          call: "dd-logs.aggregateLogs"
+          hints:
+            readOnly: true
+        - name: list-log-indexes
+          description: "List configured log indexes"
+          call: "dd-logs.listLogIndexes"
+          hints:
+            readOnly: true
+        - name: get-log-index
+          description: "Get a specific log index configuration"
+          call: "dd-logs.getLogIndex"
+          hints:
+            readOnly: true

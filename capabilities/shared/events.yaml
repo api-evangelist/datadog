@@ -1,0 +1,132 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Events"
+  description: "Post, retrieve, and search events in the Datadog Events Explorer for correlating infrastructure changes with metric anomalies."
+  tags:
+    - Datadog
+    - Events
+    - Event Management
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-events
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Events API for posting, listing, retrieving, and searching events."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: events
+          path: /api/v2/events
+          description: "Event collection operations."
+          operations:
+            - name: createEvent
+              method: POST
+              description: "Post an event."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: listEvents
+              method: GET
+              description: "Get a list of events."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: event
+          path: /api/v2/events/{event_id}
+          description: "Individual event operations."
+          operations:
+            - name: getEvent
+              method: GET
+              description: "Get an event."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: events-search
+          path: /api/v2/events/search
+          description: "Search events with structured queries."
+          operations:
+            - name: searchEvents
+              method: POST
+              description: "Search events."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8102
+      namespace: dd-events-api
+      resources:
+        - path: /v1/events
+          name: events
+          description: "Event collection"
+          operations:
+            - method: GET
+              name: listEvents
+              description: "List events"
+            - method: POST
+              name: createEvent
+              description: "Post an event"
+        - path: /v1/events/{event_id}
+          name: event
+          description: "Individual event"
+          operations:
+            - method: GET
+              name: getEvent
+              description: "Get an event"
+        - path: /v1/events/search
+          name: events-search
+          description: "Search events"
+          operations:
+            - method: POST
+              name: searchEvents
+              description: "Search events"
+
+    - type: mcp
+      port: 9102
+      namespace: dd-events-mcp
+      transport: http
+      tools:
+        - name: list-events
+          description: "List events from the Events Explorer"
+          call: "dd-events.listEvents"
+          hints:
+            readOnly: true
+        - name: get-event
+          description: "Get a specific event by ID"
+          call: "dd-events.getEvent"
+          hints:
+            readOnly: true
+        - name: create-event
+          description: "Post a new event"
+          call: "dd-events.createEvent"
+        - name: search-events
+          description: "Search events with structured queries"
+          call: "dd-events.searchEvents"
+          hints:
+            readOnly: true

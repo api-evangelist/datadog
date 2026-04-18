@@ -1,0 +1,222 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Monitoring And Alerting"
+  description: "Unified workflow for infrastructure monitoring and alerting combining monitors, metrics, hosts, and dashboards. Used by SREs and DevOps engineers for setting up alerts, querying metrics, tracking host health, and organizing dashboards."
+  tags:
+    - Datadog
+    - Monitoring
+    - Alerting
+    - Metrics
+    - Dashboards
+    - Infrastructure
+  personas:
+    - SRE
+    - DevOps Engineer
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - import: dd-monitors
+      location: "./shared/monitors.yaml"
+    - import: dd-metrics
+      location: "./shared/metrics.yaml"
+    - import: dd-hosts
+      location: "./shared/hosts.yaml"
+    - import: dd-dashboards
+      location: "./shared/dashboards.yaml"
+
+  exposes:
+    - type: rest
+      port: 8080
+      namespace: dd-monitoring-alerting-api
+      description: "Unified REST API for monitoring and alerting workflows combining monitors, metrics, hosts, and dashboards."
+      resources:
+        - path: /v1/monitors
+          name: monitors
+          description: "Monitor management"
+          operations:
+            - method: GET
+              name: listMonitors
+              description: "List all monitors"
+              call: "dd-monitors.listMonitors"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: POST
+              name: createMonitor
+              description: "Create a monitor"
+              call: "dd-monitors.createMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}
+          name: monitor
+          description: "Individual monitor operations"
+          operations:
+            - method: GET
+              name: getMonitor
+              description: "Get a monitor"
+              call: "dd-monitors.getMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: PUT
+              name: updateMonitor
+              description: "Update a monitor"
+              call: "dd-monitors.updateMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: DELETE
+              name: deleteMonitor
+              description: "Delete a monitor"
+              call: "dd-monitors.deleteMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}/mute
+          name: monitor-mute
+          description: "Mute a monitor"
+          operations:
+            - method: POST
+              name: muteMonitor
+              description: "Mute a monitor"
+              call: "dd-monitors.muteMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/metrics
+          name: metrics
+          description: "Active metrics"
+          operations:
+            - method: GET
+              name: listActiveMetrics
+              description: "List active metrics"
+              call: "dd-metrics.listActiveMetrics"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/metrics/query/timeseries
+          name: metrics-timeseries
+          description: "Query timeseries"
+          operations:
+            - method: POST
+              name: queryMetricsTimeseries
+              description: "Query timeseries data"
+              call: "dd-metrics.queryMetricsTimeseries"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/metrics/series
+          name: metrics-submit
+          description: "Submit metrics"
+          operations:
+            - method: POST
+              name: submitMetrics
+              description: "Submit metrics"
+              call: "dd-metrics.submitMetrics"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/hosts/coverage
+          name: hosts-coverage
+          description: "Host coverage"
+          operations:
+            - method: GET
+              name: GetCSMHostsAndContainersCoverageAnalysis
+              description: "Get hosts coverage"
+              call: "dd-hosts.GetCSMHostsAndContainersCoverageAnalysis"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/dashboard-lists/{dashboard_list_id}/dashboards
+          name: dashboard-list-items
+          description: "Dashboard list items"
+          operations:
+            - method: GET
+              name: GetDashboardListItems
+              description: "Get dashboards in a list"
+              call: "dd-dashboards.GetDashboardListItems"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9080
+      namespace: dd-monitoring-alerting-mcp
+      transport: http
+      description: "MCP server for AI-assisted monitoring and alerting workflows."
+      tools:
+        - name: list-monitors
+          description: "List all monitors"
+          call: "dd-monitors.listMonitors"
+          hints:
+            readOnly: true
+        - name: get-monitor
+          description: "Get a monitor by ID"
+          call: "dd-monitors.getMonitor"
+          hints:
+            readOnly: true
+        - name: create-monitor
+          description: "Create a new monitor"
+          call: "dd-monitors.createMonitor"
+        - name: update-monitor
+          description: "Edit an existing monitor"
+          call: "dd-monitors.updateMonitor"
+          hints:
+            idempotent: true
+        - name: delete-monitor
+          description: "Delete a monitor"
+          call: "dd-monitors.deleteMonitor"
+          hints:
+            destructive: true
+        - name: mute-monitor
+          description: "Mute a monitor to suppress notifications"
+          call: "dd-monitors.muteMonitor"
+        - name: unmute-monitor
+          description: "Unmute a monitor to resume notifications"
+          call: "dd-monitors.unmuteMonitor"
+        - name: validate-monitor
+          description: "Validate a monitor configuration"
+          call: "dd-monitors.validateMonitor"
+          hints:
+            readOnly: true
+        - name: submit-metrics
+          description: "Submit metric data points"
+          call: "dd-metrics.submitMetrics"
+        - name: query-timeseries
+          description: "Query timeseries metric data"
+          call: "dd-metrics.queryMetricsTimeseries"
+          hints:
+            readOnly: true
+        - name: query-scalar
+          description: "Query scalar metric data"
+          call: "dd-metrics.queryMetricsScalar"
+          hints:
+            readOnly: true
+        - name: list-active-metrics
+          description: "List active metrics"
+          call: "dd-metrics.listActiveMetrics"
+          hints:
+            readOnly: true
+        - name: get-hosts-coverage
+          description: "Get CSM hosts and containers coverage"
+          call: "dd-hosts.GetCSMHostsAndContainersCoverageAnalysis"
+          hints:
+            readOnly: true
+        - name: get-dashboard-list-items
+          description: "Fetch dashboards in a dashboard list"
+          call: "dd-dashboards.GetDashboardListItems"
+          hints:
+            readOnly: true
+        - name: add-dashboard-list-items
+          description: "Add dashboards to a dashboard list"
+          call: "dd-dashboards.CreateDashboardListItems"

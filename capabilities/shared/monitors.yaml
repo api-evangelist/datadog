@@ -1,0 +1,213 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Monitors"
+  description: "Manage Datadog monitors that watch metrics and checks, including creating, updating, deleting, muting, unmuting, and validating monitors."
+  tags:
+    - Datadog
+    - Monitors
+    - Alerting
+    - Notifications
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-monitors
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Monitors API for creating, reading, updating, deleting, muting, unmuting, and validating monitors."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: monitors
+          path: /api/v1/monitor
+          description: "Monitor collection operations."
+          operations:
+            - name: createMonitor
+              method: POST
+              description: "Create a monitor."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: listMonitors
+              method: GET
+              description: "List all monitors."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: monitor
+          path: /api/v1/monitor/{monitor_id}
+          description: "Individual monitor operations."
+          operations:
+            - name: getMonitor
+              method: GET
+              description: "Get a monitor."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: updateMonitor
+              method: PUT
+              description: "Edit a monitor."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: deleteMonitor
+              method: DELETE
+              description: "Delete a monitor."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: monitor-muting
+          path: /api/v1/monitor/{monitor_id}
+          description: "Mute and unmute monitor notifications."
+          operations:
+            - name: muteMonitor
+              method: POST
+              path: /api/v1/monitor/{monitor_id}/mute
+              description: "Mute a monitor."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: unmuteMonitor
+              method: POST
+              path: /api/v1/monitor/{monitor_id}/unmute
+              description: "Unmute a monitor."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: monitor-validation
+          path: /api/v1/monitor/validate
+          description: "Validate monitor configurations before creation."
+          operations:
+            - name: validateMonitor
+              method: POST
+              description: "Validate a monitor."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8100
+      namespace: dd-monitors-api
+      resources:
+        - path: /v1/monitors
+          name: monitors
+          description: "Monitor collection"
+          operations:
+            - method: GET
+              name: listMonitors
+              description: "List all monitors"
+            - method: POST
+              name: createMonitor
+              description: "Create a monitor"
+        - path: /v1/monitors/{monitor_id}
+          name: monitor
+          description: "Individual monitor operations"
+          operations:
+            - method: GET
+              name: getMonitor
+              description: "Get a monitor"
+            - method: PUT
+              name: updateMonitor
+              description: "Edit a monitor"
+            - method: DELETE
+              name: deleteMonitor
+              description: "Delete a monitor"
+        - path: /v1/monitors/{monitor_id}/mute
+          name: monitor-mute
+          description: "Monitor mute operations"
+          operations:
+            - method: POST
+              name: muteMonitor
+              description: "Mute a monitor"
+        - path: /v1/monitors/{monitor_id}/unmute
+          name: monitor-unmute
+          description: "Monitor unmute operations"
+          operations:
+            - method: POST
+              name: unmuteMonitor
+              description: "Unmute a monitor"
+        - path: /v1/monitors/validate
+          name: monitor-validate
+          description: "Monitor validation"
+          operations:
+            - method: POST
+              name: validateMonitor
+              description: "Validate a monitor configuration"
+
+    - type: mcp
+      port: 9100
+      namespace: dd-monitors-mcp
+      transport: http
+      tools:
+        - name: list-monitors
+          description: "List all monitors"
+          call: "dd-monitors.listMonitors"
+          hints:
+            readOnly: true
+        - name: get-monitor
+          description: "Get a monitor by ID"
+          call: "dd-monitors.getMonitor"
+          hints:
+            readOnly: true
+        - name: create-monitor
+          description: "Create a new monitor"
+          call: "dd-monitors.createMonitor"
+        - name: update-monitor
+          description: "Edit an existing monitor"
+          call: "dd-monitors.updateMonitor"
+          hints:
+            idempotent: true
+        - name: delete-monitor
+          description: "Delete a monitor"
+          call: "dd-monitors.deleteMonitor"
+          hints:
+            destructive: true
+        - name: mute-monitor
+          description: "Mute a monitor to suppress notifications"
+          call: "dd-monitors.muteMonitor"
+        - name: unmute-monitor
+          description: "Unmute a monitor to resume notifications"
+          call: "dd-monitors.unmuteMonitor"
+        - name: validate-monitor
+          description: "Validate a monitor configuration without creating it"
+          call: "dd-monitors.validateMonitor"
+          hints:
+            readOnly: true

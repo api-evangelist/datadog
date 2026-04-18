@@ -1,0 +1,215 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Metrics"
+  description: "Submit, query, and manage Datadog metrics including timeseries and scalar queries, active metric listing, and tag configurations."
+  tags:
+    - Datadog
+    - Metrics
+    - Timeseries
+    - Monitoring
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-metrics
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Metrics API for submitting, querying, and managing metrics and tag configurations."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: metrics-submit
+          path: /api/v2/series
+          description: "Submit metric data points."
+          operations:
+            - name: submitMetrics
+              method: POST
+              description: "Submit metrics."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: metrics-query
+          path: /api/v2/query
+          description: "Query metric data."
+          operations:
+            - name: queryMetricsTimeseries
+              method: POST
+              path: /api/v2/query/timeseries
+              description: "Query timeseries data."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: queryMetricsScalar
+              method: POST
+              path: /api/v2/query/scalar
+              description: "Query scalar data."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: metrics-list
+          path: /api/v1/metrics
+          description: "List active metrics."
+          operations:
+            - name: listActiveMetrics
+              method: GET
+              description: "List active metrics."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: metric-tags
+          path: /api/v2/metrics/{metric_name}/tags
+          description: "Manage metric tag configurations."
+          operations:
+            - name: getMetricTagConfiguration
+              method: GET
+              description: "List tags by metric name."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: createMetricTagConfiguration
+              method: POST
+              description: "Create a tag configuration."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: updateMetricTagConfiguration
+              method: PATCH
+              description: "Update a tag configuration."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: deleteMetricTagConfiguration
+              method: DELETE
+              description: "Delete a tag configuration."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8101
+      namespace: dd-metrics-api
+      resources:
+        - path: /v1/metrics
+          name: metrics
+          description: "Active metrics listing"
+          operations:
+            - method: GET
+              name: listActiveMetrics
+              description: "List active metrics"
+        - path: /v1/metrics/series
+          name: metrics-submit
+          description: "Submit metric data"
+          operations:
+            - method: POST
+              name: submitMetrics
+              description: "Submit metrics"
+        - path: /v1/metrics/query/timeseries
+          name: metrics-timeseries
+          description: "Query timeseries data"
+          operations:
+            - method: POST
+              name: queryMetricsTimeseries
+              description: "Query timeseries data"
+        - path: /v1/metrics/query/scalar
+          name: metrics-scalar
+          description: "Query scalar data"
+          operations:
+            - method: POST
+              name: queryMetricsScalar
+              description: "Query scalar data"
+        - path: /v1/metrics/{metric_name}/tags
+          name: metric-tags
+          description: "Metric tag configuration"
+          operations:
+            - method: GET
+              name: getMetricTagConfiguration
+              description: "List tags by metric name"
+            - method: POST
+              name: createMetricTagConfiguration
+              description: "Create a tag configuration"
+            - method: PATCH
+              name: updateMetricTagConfiguration
+              description: "Update a tag configuration"
+            - method: DELETE
+              name: deleteMetricTagConfiguration
+              description: "Delete a tag configuration"
+
+    - type: mcp
+      port: 9101
+      namespace: dd-metrics-mcp
+      transport: http
+      tools:
+        - name: submit-metrics
+          description: "Submit metric data points"
+          call: "dd-metrics.submitMetrics"
+        - name: query-timeseries
+          description: "Query timeseries metric data"
+          call: "dd-metrics.queryMetricsTimeseries"
+          hints:
+            readOnly: true
+        - name: query-scalar
+          description: "Query scalar metric data"
+          call: "dd-metrics.queryMetricsScalar"
+          hints:
+            readOnly: true
+        - name: list-active-metrics
+          description: "List active metrics"
+          call: "dd-metrics.listActiveMetrics"
+          hints:
+            readOnly: true
+        - name: get-metric-tags
+          description: "List tags by metric name"
+          call: "dd-metrics.getMetricTagConfiguration"
+          hints:
+            readOnly: true
+        - name: create-metric-tag-config
+          description: "Create a metric tag configuration"
+          call: "dd-metrics.createMetricTagConfiguration"
+        - name: update-metric-tag-config
+          description: "Update a metric tag configuration"
+          call: "dd-metrics.updateMetricTagConfiguration"
+          hints:
+            idempotent: true
+        - name: delete-metric-tag-config
+          description: "Delete a metric tag configuration"
+          call: "dd-metrics.deleteMetricTagConfiguration"
+          hints:
+            destructive: true

@@ -1,0 +1,212 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Incident Management"
+  description: "Unified workflow for incident management combining incidents, events, and monitors. Used by incident commanders and on-call engineers for creating incidents, correlating events, and managing monitor alerts during outages."
+  tags:
+    - Datadog
+    - Incident Management
+    - Incidents
+    - Events
+    - Monitors
+  personas:
+    - Incident Commander
+    - On-Call Engineer
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - import: dd-incidents
+      location: "./shared/incidents.yaml"
+    - import: dd-events
+      location: "./shared/events.yaml"
+    - import: dd-monitors
+      location: "./shared/monitors.yaml"
+
+  exposes:
+    - type: rest
+      port: 8081
+      namespace: dd-incident-mgmt-api
+      description: "Unified REST API for incident management workflows combining incidents, events, and monitors."
+      resources:
+        - path: /v1/incidents
+          name: incidents
+          description: "Incident management"
+          operations:
+            - method: GET
+              name: listIncidents
+              description: "List incidents"
+              call: "dd-incidents.listIncidents"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: POST
+              name: createIncident
+              description: "Create an incident"
+              call: "dd-incidents.createIncident"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/incidents/{incident_id}
+          name: incident
+          description: "Individual incident operations"
+          operations:
+            - method: GET
+              name: getIncident
+              description: "Get an incident"
+              call: "dd-incidents.getIncident"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: PATCH
+              name: updateIncident
+              description: "Update an incident"
+              call: "dd-incidents.updateIncident"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: DELETE
+              name: deleteIncident
+              description: "Delete an incident"
+              call: "dd-incidents.deleteIncident"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/events
+          name: events
+          description: "Event correlation"
+          operations:
+            - method: GET
+              name: listEvents
+              description: "List events"
+              call: "dd-events.listEvents"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+            - method: POST
+              name: createEvent
+              description: "Post an event"
+              call: "dd-events.createEvent"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/events/search
+          name: events-search
+          description: "Search events"
+          operations:
+            - method: POST
+              name: searchEvents
+              description: "Search events"
+              call: "dd-events.searchEvents"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors
+          name: monitors
+          description: "Monitor status"
+          operations:
+            - method: GET
+              name: listMonitors
+              description: "List monitors"
+              call: "dd-monitors.listMonitors"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}
+          name: monitor
+          description: "Individual monitor"
+          operations:
+            - method: GET
+              name: getMonitor
+              description: "Get a monitor"
+              call: "dd-monitors.getMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/monitors/{monitor_id}/mute
+          name: monitor-mute
+          description: "Mute monitor during incident"
+          operations:
+            - method: POST
+              name: muteMonitor
+              description: "Mute a monitor"
+              call: "dd-monitors.muteMonitor"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9081
+      namespace: dd-incident-mgmt-mcp
+      transport: http
+      description: "MCP server for AI-assisted incident management workflows."
+      tools:
+        - name: list-incidents
+          description: "List incidents"
+          call: "dd-incidents.listIncidents"
+          hints:
+            readOnly: true
+        - name: get-incident
+          description: "Get incident details"
+          call: "dd-incidents.getIncident"
+          hints:
+            readOnly: true
+        - name: create-incident
+          description: "Create a new incident"
+          call: "dd-incidents.createIncident"
+        - name: update-incident
+          description: "Update an existing incident"
+          call: "dd-incidents.updateIncident"
+          hints:
+            idempotent: true
+        - name: delete-incident
+          description: "Delete an incident"
+          call: "dd-incidents.deleteIncident"
+          hints:
+            destructive: true
+        - name: list-incident-teams
+          description: "List incident teams"
+          call: "dd-incidents.listIncidentTeams"
+          hints:
+            readOnly: true
+        - name: list-events
+          description: "List events for correlation"
+          call: "dd-events.listEvents"
+          hints:
+            readOnly: true
+        - name: get-event
+          description: "Get a specific event"
+          call: "dd-events.getEvent"
+          hints:
+            readOnly: true
+        - name: create-event
+          description: "Post an event during incident"
+          call: "dd-events.createEvent"
+        - name: search-events
+          description: "Search events related to incident"
+          call: "dd-events.searchEvents"
+          hints:
+            readOnly: true
+        - name: list-monitors
+          description: "List monitors to check alert status"
+          call: "dd-monitors.listMonitors"
+          hints:
+            readOnly: true
+        - name: get-monitor
+          description: "Get monitor status"
+          call: "dd-monitors.getMonitor"
+          hints:
+            readOnly: true
+        - name: mute-monitor
+          description: "Mute a monitor during incident response"
+          call: "dd-monitors.muteMonitor"
+        - name: unmute-monitor
+          description: "Unmute a monitor after incident resolution"
+          call: "dd-monitors.unmuteMonitor"

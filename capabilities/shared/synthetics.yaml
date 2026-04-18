@@ -1,0 +1,83 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Synthetics"
+  description: "Manage Datadog Synthetics on-demand concurrency cap settings for controlling synthetic test execution."
+  tags:
+    - Datadog
+    - Synthetics
+    - Testing
+    - Uptime
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-synthetics
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Synthetics API for managing on-demand concurrency cap settings. Sourced from datadog-api-openapi.yml (2 operations on synthetics settings)."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: synthetics-settings
+          path: /api/v2/synthetics/settings/on_demand_concurrency_cap
+          description: "Synthetics on-demand concurrency cap operations."
+          operations:
+            - name: GetOnDemandConcurrencyCap
+              method: GET
+              description: "Get the on-demand concurrency cap."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: SetOnDemandConcurrencyCap
+              method: POST
+              description: "Save new value for on-demand concurrency cap."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8106
+      namespace: dd-synthetics-api
+      resources:
+        - path: /v1/synthetics/concurrency-cap
+          name: synthetics-concurrency-cap
+          description: "Synthetics concurrency cap settings"
+          operations:
+            - method: GET
+              name: GetOnDemandConcurrencyCap
+              description: "Get the on-demand concurrency cap"
+            - method: POST
+              name: SetOnDemandConcurrencyCap
+              description: "Set the on-demand concurrency cap"
+
+    - type: mcp
+      port: 9106
+      namespace: dd-synthetics-mcp
+      transport: http
+      tools:
+        - name: get-concurrency-cap
+          description: "Get the synthetics on-demand concurrency cap"
+          call: "dd-synthetics.GetOnDemandConcurrencyCap"
+          hints:
+            readOnly: true
+        - name: set-concurrency-cap
+          description: "Set a new synthetics on-demand concurrency cap"
+          call: "dd-synthetics.SetOnDemandConcurrencyCap"

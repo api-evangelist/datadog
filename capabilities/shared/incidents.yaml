@@ -1,0 +1,222 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "Datadog Incidents"
+  description: "Manage Datadog incident response including creating, updating, deleting, and retrieving incidents and incident teams."
+  tags:
+    - Datadog
+    - Incidents
+    - Incident Management
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      DATADOG_API_KEY: DATADOG_API_KEY
+      DATADOG_APP_KEY: DATADOG_APP_KEY
+
+capability:
+  consumes:
+    - type: http
+      namespace: dd-incidents
+      baseUri: https://api.datadoghq.com
+      description: "Datadog Incidents API for managing incident records and incident teams."
+      authentication:
+        type: apikey
+        headers:
+          DD-API-KEY: "{{DATADOG_API_KEY}}"
+          DD-APPLICATION-KEY: "{{DATADOG_APP_KEY}}"
+      resources:
+        - name: incidents
+          path: /api/v2/incidents
+          description: "Incident collection operations."
+          operations:
+            - name: createIncident
+              method: POST
+              description: "Create an incident."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: listIncidents
+              method: GET
+              description: "List incidents."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: incident
+          path: /api/v2/incidents/{incident_id}
+          description: "Individual incident operations."
+          operations:
+            - name: getIncident
+              method: GET
+              description: "Get the details of an incident."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: updateIncident
+              method: PATCH
+              description: "Update an existing incident."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: deleteIncident
+              method: DELETE
+              description: "Delete an existing incident."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+        - name: incident-teams
+          path: /api/v2/teams
+          description: "Incident team management."
+          operations:
+            - name: createIncidentTeam
+              method: POST
+              description: "Create a new incident team."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: listIncidentTeams
+              method: GET
+              description: "List incident teams."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: getIncidentTeam
+              method: GET
+              path: /api/v2/teams/{team_id}
+              description: "Get details of an incident team."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: updateIncidentTeam
+              method: PATCH
+              path: /api/v2/teams/{team_id}
+              description: "Update an existing incident team."
+              body:
+                type: json
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+            - name: deleteIncidentTeam
+              method: DELETE
+              path: /api/v2/teams/{team_id}
+              description: "Delete an existing incident team."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8104
+      namespace: dd-incidents-api
+      resources:
+        - path: /v1/incidents
+          name: incidents
+          description: "Incident collection"
+          operations:
+            - method: GET
+              name: listIncidents
+              description: "List incidents"
+            - method: POST
+              name: createIncident
+              description: "Create an incident"
+        - path: /v1/incidents/{incident_id}
+          name: incident
+          description: "Individual incident operations"
+          operations:
+            - method: GET
+              name: getIncident
+              description: "Get an incident"
+            - method: PATCH
+              name: updateIncident
+              description: "Update an incident"
+            - method: DELETE
+              name: deleteIncident
+              description: "Delete an incident"
+        - path: /v1/incidents/teams
+          name: incident-teams
+          description: "Incident team listing"
+          operations:
+            - method: GET
+              name: listIncidentTeams
+              description: "List incident teams"
+            - method: POST
+              name: createIncidentTeam
+              description: "Create an incident team"
+        - path: /v1/incidents/teams/{team_id}
+          name: incident-team
+          description: "Individual incident team"
+          operations:
+            - method: GET
+              name: getIncidentTeam
+              description: "Get an incident team"
+            - method: PATCH
+              name: updateIncidentTeam
+              description: "Update an incident team"
+            - method: DELETE
+              name: deleteIncidentTeam
+              description: "Delete an incident team"
+
+    - type: mcp
+      port: 9104
+      namespace: dd-incidents-mcp
+      transport: http
+      tools:
+        - name: list-incidents
+          description: "List incidents"
+          call: "dd-incidents.listIncidents"
+          hints:
+            readOnly: true
+        - name: get-incident
+          description: "Get incident details by ID"
+          call: "dd-incidents.getIncident"
+          hints:
+            readOnly: true
+        - name: create-incident
+          description: "Create a new incident"
+          call: "dd-incidents.createIncident"
+        - name: update-incident
+          description: "Update an existing incident"
+          call: "dd-incidents.updateIncident"
+          hints:
+            idempotent: true
+        - name: delete-incident
+          description: "Delete an incident"
+          call: "dd-incidents.deleteIncident"
+          hints:
+            destructive: true
+        - name: list-incident-teams
+          description: "List incident teams"
+          call: "dd-incidents.listIncidentTeams"
+          hints:
+            readOnly: true
+        - name: create-incident-team
+          description: "Create a new incident team"
+          call: "dd-incidents.createIncidentTeam"
