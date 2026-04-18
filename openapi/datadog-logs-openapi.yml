@@ -17,22 +17,22 @@ externalDocs:
   description: Datadog Logs API Documentation
   url: https://docs.datadoghq.com/api/latest/logs/
 servers:
-  - url: https://api.datadoghq.com
-    description: Datadog API Production Server
+- url: https://api.datadoghq.com
+  description: Datadog API Production Server
 tags:
-  - name: Log Aggregation
-    description: Aggregate and analyze log data
-  - name: Log Indexes
-    description: Manage log indexes and retention policies
-  - name: Logs
-    description: Send and search log events
+- name: Log Aggregation
+  description: Aggregate and analyze log data
+- name: Log Indexes
+  description: Manage log indexes and retention policies
+- name: Logs
+  description: Send and search log events
 security:
-  - apiKeyAuth: []
+- apiKeyAuth: []
 paths:
   /api/v2/logs:
     post:
       operationId: submitLogs
-      summary: Datadog Send logs
+      summary: Datadog Send Logs
       description: >-
         Sends log entries to the Datadog platform for indexing, storage, and
         analysis. Accepts log payloads in JSON format. Each log entry can
@@ -41,15 +41,16 @@ paths:
         in a single request. The maximum payload size is 5 MB for the HTTP
         intake endpoint. Logs must contain a message field.
       tags:
-        - Logs
+      - Logs
       parameters:
-        - name: Content-Encoding
-          in: header
-          required: false
-          description: HTTP header used to compress the media-type. Use gzip or deflate encoding
-          schema:
-            type: string
-            enum: [gzip, deflate]
+      - name: Content-Encoding
+        in: header
+        required: false
+        description: HTTP header used to compress the media-type. Use gzip or deflate encoding
+        schema:
+          type: string
+          enum: [gzip, deflate]
+        example: gzip
       requestBody:
         required: true
         content:
@@ -96,10 +97,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v2/logs/events/search:
     post:
       operationId: searchLogs
-      summary: Datadog Search logs
+      summary: Datadog Search Logs
       description: >-
         Searches log events that match a Datadog log search query within a
         specified time range. Supports full-text search and structured queries
@@ -108,7 +112,7 @@ paths:
         tags, service, source, hostname, and status. Returns up to 1000 logs
         per page.
       tags:
-        - Logs
+      - Logs
       requestBody:
         required: true
         content:
@@ -140,10 +144,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v2/logs/analytics/aggregate:
     post:
       operationId: aggregateLogs
-      summary: Datadog Aggregate logs
+      summary: Datadog Aggregate Logs
       description: >-
         Computes aggregations over log events matching a search query within
         a specified time range. Supports count, sum, avg, min, max, and
@@ -152,7 +159,7 @@ paths:
         Useful for answering questions like "how many errors per service
         per hour?" or "what is the p99 latency by endpoint?".
       tags:
-        - Log Aggregation
+      - Log Aggregation
       requestBody:
         required: true
         content:
@@ -184,10 +191,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v1/logs/config/indexes:
     get:
       operationId: listLogIndexes
-      summary: Datadog List log indexes
+      summary: Datadog List Log Indexes
       description: >-
         Returns the list of configured log indexes for your Datadog organization.
         Each index defines a filter for which logs to include, a daily retention
@@ -195,7 +205,7 @@ paths:
         log can match at most one index. Index configurations affect log
         retention, querying capabilities, and cost.
       tags:
-        - Log Indexes
+      - Log Indexes
       responses:
         '200':
           description: Successful response with list of log indexes
@@ -215,18 +225,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v1/logs/config/indexes/{name}:
     get:
       operationId: getLogIndex
-      summary: Datadog Get a log index
+      summary: Datadog Get a Log Index
       description: >-
         Returns the configuration details for a specific log index identified
         by its name. Includes the filter query, exclusion filters, daily
         retention settings, and current usage statistics.
       tags:
-        - Log Indexes
+      - Log Indexes
       parameters:
-        - $ref: '#/components/parameters/indexNameParam'
+      - $ref: '#/components/parameters/indexNameParam'
       responses:
         '200':
           description: Successful response with log index configuration
@@ -252,6 +265,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
 components:
   securitySchemes:
     apiKeyAuth:
@@ -274,27 +290,33 @@ components:
       type: object
       description: A single log entry to submit to Datadog
       required:
-        - message
+      - message
       properties:
         message:
           type: string
           description: The message content of the log entry. This field is required and indexed for search.
+          example: CPU usage is high on {{host.name}}
         hostname:
           type: string
           description: The name of the host that generated the log entry
+          example: Example Monitor
         service:
           type: string
           description: The name of the application or service that generated the log
+          example: example_value
         ddsource:
           type: string
           description: The source technology of the log (e.g., nginx, redis, java) used for automatic processing
+          example: example_value
         ddtags:
           type: string
           description: Comma-separated list of tags to apply to the log entry in key:value format
+          example: env:production
         status:
           type: string
           description: The severity or log level of the event (e.g., info, warning, error, critical)
           enum: [emerg, alert, critical, error, warning, notice, info, debug]
+          example: emerg
     HTTPLogSuccess:
       type: object
       description: Response indicating logs were accepted for processing
@@ -309,6 +331,7 @@ components:
           type: string
           description: The sort order for log results, either ascending or descending by timestamp
           enum: [timestamp, -timestamp]
+          example: timestamp
         page:
           type: object
           description: Pagination configuration for log search results
@@ -329,6 +352,7 @@ components:
         query:
           type: string
           description: A Datadog log search query string to filter log events (e.g., service:web status:error)
+          example: avg:system.cpu.user{*}
         indexes:
           type: array
           description: List of log index names to search; if empty, all indexes are searched
@@ -337,9 +361,11 @@ components:
         from:
           type: string
           description: The start of the time range for the search in ISO 8601 format or relative format (e.g., now-15m)
+          example: example_value
         to:
           type: string
           description: The end of the time range for the search in ISO 8601 format or relative format (e.g., now)
+          example: example_value
     LogsListResponse:
       type: object
       description: Response containing matching log events from a search query
@@ -374,9 +400,11 @@ components:
         id:
           type: string
           description: The unique identifier of the log event
+          example: abc-123-def
         type:
           type: string
           description: The type of the resource (always 'log')
+          example: metric alert
         attributes:
           $ref: '#/components/schemas/LogAttributes'
     LogAttributes:
@@ -387,21 +415,27 @@ components:
           type: string
           format: date-time
           description: ISO 8601 timestamp when the log was generated
+          example: '2026-04-17T12:00:00Z'
         status:
           type: string
           description: The log level or severity status of the event
+          example: OK
         message:
           type: string
           description: The raw log message content
+          example: CPU usage is high on {{host.name}}
         host:
           type: string
           description: The hostname of the machine that generated the log
+          example: example_value
         service:
           type: string
           description: The name of the application or service that generated the log
+          example: example_value
         source:
           type: string
           description: The technology source that generated the log (e.g., nginx, java)
+          example: example_value
         tags:
           type: array
           description: List of tags associated with the log event in key:value format
@@ -438,36 +472,42 @@ components:
       type: object
       description: A computation to perform over the filtered log set
       required:
-        - aggregation
-        - type
+      - aggregation
+      - type
       properties:
         aggregation:
           type: string
           description: The type of aggregation to compute over log events
           enum: [count, cardinality, pc75, pc90, pc95, pc98, pc99, sum, avg, min, max]
+          example: count
         metric:
           type: string
           description: The log attribute to aggregate (required for all aggregations except count)
+          example: example_value
         type:
           type: string
           description: Whether this is a total aggregation or a timeseries
           enum: [total, timeseries]
+          example: total
         interval:
           type: string
           description: The time interval for timeseries computations (e.g., 1m, 1h, 1d)
+          example: example_value
     LogsGroupBy:
       type: object
       description: A group-by configuration for aggregating log results by facet values
       required:
-        - facet
+      - facet
       properties:
         facet:
           type: string
           description: The log attribute or tag to group results by
+          example: example_value
         limit:
           type: integer
           description: The maximum number of unique facet values to return in results
           default: 10
+          example: 42
         sort:
           type: object
           description: Sort configuration for group-by results
@@ -514,12 +554,13 @@ components:
       type: object
       description: Configuration for a single Datadog log index
       required:
-        - name
-        - filter
+      - name
+      - filter
       properties:
         name:
           type: string
           description: The name of the log index
+          example: Example Monitor
         filter:
           $ref: '#/components/schemas/LogsFilter'
         exclusion_filters:
@@ -530,35 +571,41 @@ components:
         num_retention_days:
           type: integer
           description: The number of days to retain logs in this index
+          example: 42
         daily_limit:
           type: integer
           format: int64
           description: The maximum number of logs per day before the index is disabled
+          example: 42
         is_rate_limited:
           type: boolean
           description: Whether the index has exceeded its daily limit and is currently rate limited
+          example: true
     LogsFilter:
       type: object
       description: A filter query that determines which logs are matched by an index or exclusion
       required:
-        - query
+      - query
       properties:
         query:
           type: string
           description: A Datadog log search query that selects which logs match this filter
+          example: avg:system.cpu.user{*}
     LogsExclusion:
       type: object
       description: An exclusion filter that drops matching logs from an index
       required:
-        - name
-        - filter
+      - name
+      - filter
       properties:
         name:
           type: string
           description: The name of the exclusion filter for identification
+          example: Example Monitor
         is_enabled:
           type: boolean
           description: Whether this exclusion filter is currently active
+          example: true
         filter:
           type: object
           description: The exclusion filter configuration
@@ -585,7 +632,7 @@ components:
       type: object
       description: Standard API error response returned for failed requests
       required:
-        - errors
+      - errors
       properties:
         errors:
           type: array

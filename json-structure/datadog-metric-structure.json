@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-structure.org/meta/core/v0/#",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/datadog/refs/heads/main/json-structure/datadog-metric-structure.json",
+  "name": "Datadog Metric Series",
+  "description": "A metric series submitted to the Datadog Metrics API. Represents a named time series of numeric data points associated with optional tags, host, and resource metadata. Metric series are used to track performance, health, and business KPIs in Datadog dashboards and monitors. Datadog supports four metric types: gauge (instantaneous value), count (cumulative count), rate (per-second rate), and distribution (histogram across all hosts).",
+  "type": "object",
+  "required": [
+    "metric",
+    "points"
+  ],
+  "properties": {
+    "metric": {
+      "type": "string",
+      "description": "The name of the metric to submit. Must not exceed 200 characters. Only ASCII alphanumerics, underscores, and periods are allowed. Metric names are case-sensitive and conventionally use dot notation to establish a hierarchy (e.g., system.cpu.user).",
+      "maxLength": 200,
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.]*$"
+    },
+    "type": {
+      "type": "int32",
+      "description": "The metric type code indicating how Datadog should interpret and store the data points. 0=unspecified (defaults to gauge), 1=count (cumulative number of events), 2=rate (per-second rate computed from counts), 3=gauge (instantaneous measurement). Distribution metrics use a separate submission endpoint.",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "default": 3
+    },
+    "points": {
+      "type": "array",
+      "description": "Ordered list of data points for this metric series. Each point contains a Unix timestamp and a numeric value. Points are stored in order and used for graphing, alerting, and analytics. A single submission can contain up to 100 data points per series.",
+      "items": {
+        "$ref": "#/$defs/MetricPoint"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "tags": {
+      "type": "array",
+      "description": "List of tags to apply to this metric series in key:value format (e.g., env:production, region:us-east-1). Tags enable filtering, grouping, and scoping in dashboards and monitors. Maximum of 100 tags per series. Tag keys and values are limited to 200 characters each.",
+      "items": {
+        "type": "string",
+        "description": "A tag in key:value format or a standalone tag key"
+      },
+      "maxItems": 100
+    },
+    "host": {
+      "type": "string",
+      "description": "The hostname of the machine that produced this metric data. Associates the metric with a specific host in the Datadog Infrastructure list and host map. If omitted, the metric is not associated with any specific host."
+    },
+    "interval": {
+      "type": "int64",
+      "description": "For rate and count metric types, the time interval in seconds over which the metric was collected. Required when submitting rate or count metrics to enable proper normalization.",
+      "minimum": 1
+    },
+    "unit": {
+      "type": "string",
+      "description": "The unit of measurement for the metric values (e.g., byte, second, request, query, error). Units are displayed in Datadog dashboards and monitors to provide context for the metric values."
+    },
+    "resources": {
+      "type": "array",
+      "description": "A list of resources associated with this metric series. Resources link the metric to infrastructure entities such as hosts, containers, services, or cloud resources. Each resource has a name and type.",
+      "items": {
+        "$ref": "#/$defs/MetricResource"
+      }
+    },
+    "source_type_name": {
+      "type": "string",
+      "description": "The name of the source integration or technology that is submitting this metric (e.g., aws, nginx, kubernetes). Used for categorization and filtering in the Metrics Explorer."
+    }
+  },
+  "$defs": {
+    "MetricPoint": {
+      "type": "object",
+      "description": "A single data point in a metric series consisting of a Unix timestamp and a numeric value. The timestamp indicates when the measurement was taken, and the value is the numeric measurement at that instant.",
+      "required": [
+        "timestamp",
+        "value"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The Unix timestamp in seconds (not milliseconds) when this data point was recorded. Datadog accepts timestamps up to 10 minutes in the future and up to 1 hour in the past for standard metric submissions.",
+          "minimum": 0
+        },
+        "value": {
+          "type": "number",
+          "format": "double",
+          "description": "The numeric value of the metric measurement at the given timestamp. For gauge metrics, this is the instantaneous value. For count metrics, this is the cumulative count since the last submission. For rate metrics, this is the count that will be divided by the interval."
+        }
+      }
+    },
+    "MetricResource": {
+      "type": "object",
+      "description": "A resource associated with a metric series, linking the metric to a specific infrastructure entity. Resources are used to correlate metrics with hosts, containers, cloud resources, and other monitored entities.",
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The identifier of the resource being referenced (e.g., hostname, container ID, ARN, service name)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the resource being referenced (e.g., host, container, aws_ec2_instance, service, pod)",
+          "examples": [
+            "host",
+            "container",
+            "service",
+            "pod",
+            "aws_ec2_instance"
+          ]
+        }
+      }
+    },
+    "MetricTagConfiguration": {
+      "type": "object",
+      "description": "Configuration for controlling which tags are indexed and stored for a custom metric. Tag configurations reduce custom metric volume by specifying which tag keys to preserve and which aggregations to compute.",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "description": "The list of tag keys to include when indexing and storing this metric. Only these tag keys will be available for filtering and grouping in dashboards and monitors.",
+          "items": {
+            "type": "string",
+            "description": "A tag key to include in metric storage"
+          }
+        },
+        "metric_type": {
+          "type": "string",
+          "description": "The type of metric this tag configuration applies to, which determines which aggregation types are available",
+          "enum": [
+            "gauge",
+            "count",
+            "rate",
+            "distribution"
+          ]
+        },
+        "include_percentiles": {
+          "type": "boolean",
+          "description": "For distribution metrics only, whether to include percentile aggregations (p50, p75, p90, p95, p99). Enabling percentiles increases custom metric count but enables SLA and performance analysis."
+        },
+        "aggregations": {
+          "type": "array",
+          "description": "The spatial and temporal aggregation types to compute and store for this metric. Determines which rollup options are available in dashboards.",
+          "items": {
+            "$ref": "#/$defs/MetricAggregation"
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this tag configuration was created"
+        },
+        "modified_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this tag configuration was last modified"
+        }
+      }
+    },
+    "MetricAggregation": {
+      "type": "object",
+      "description": "A combination of spatial and temporal aggregation types used when rolling up metric data for storage and querying.",
+      "required": [
+        "space",
+        "time"
+      ],
+      "properties": {
+        "space": {
+          "type": "string",
+          "description": "The spatial aggregation function applied across multiple hosts or sources reporting the same metric",
+          "enum": [
+            "avg",
+            "max",
+            "min",
+            "sum"
+          ]
+        },
+        "time": {
+          "type": "string",
+          "description": "The temporal aggregation function applied when rolling up data points within a time bucket",
+          "enum": [
+            "avg",
+            "count",
+            "max",
+            "min",
+            "sum"
+          ]
+        }
+      }
+    },
+    "MetricMetadata": {
+      "type": "object",
+      "description": "Metadata associated with a Datadog metric including its description, unit, and statistical type. Metadata appears in the Metrics Explorer and can be set via the API.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A human-readable description of what this metric measures and how it should be interpreted"
+        },
+        "short_name": {
+          "type": "string",
+          "description": "A concise short name for the metric used in compact display contexts"
+        },
+        "unit": {
+          "type": "string",
+          "description": "The unit of the metric values (e.g., byte, second, query, error, request)"
+        },
+        "per_unit": {
+          "type": "string",
+          "description": "The denominator unit for rate metrics (e.g., for 'requests per second', the per_unit is 'second')"
+        },
+        "statsd_interval": {
+          "type": "integer",
+          "description": "The interval in seconds used for flushing StatsD metrics, if applicable"
+        },
+        "type": {
+          "type": "string",
+          "description": "The metric type as stored in Datadog",
+          "enum": [
+            "count",
+            "gauge",
+            "rate",
+            "distribution"
+          ]
+        },
+        "integration": {
+          "type": "string",
+          "description": "The name of the Datadog integration that defines this metric, if applicable"
+        }
+      }
+    }
+  }
+}

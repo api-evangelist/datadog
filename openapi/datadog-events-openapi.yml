@@ -18,18 +18,18 @@ externalDocs:
   description: Datadog Events API Documentation
   url: https://docs.datadoghq.com/api/latest/events/
 servers:
-  - url: https://api.datadoghq.com
-    description: Datadog API Production Server
+- url: https://api.datadoghq.com
+  description: Datadog API Production Server
 tags:
-  - name: Events
-    description: Post, retrieve, and search events in the Datadog Events Explorer
+- name: Events
+  description: Post, retrieve, and search events in the Datadog Events Explorer
 security:
-  - apiKeyAuth: []
+- apiKeyAuth: []
 paths:
   /api/v2/events:
     post:
       operationId: createEvent
-      summary: Datadog Post an event
+      summary: Datadog Post an Event
       description: >-
         Creates a new event in the Datadog Events Explorer. Events are useful
         for correlating infrastructure changes with metric anomalies. Common
@@ -39,7 +39,7 @@ paths:
         type for visual categorization. The event timestamp defaults to the
         current time if not specified.
       tags:
-        - Events
+      - Events
       requestBody:
         required: true
         content:
@@ -71,9 +71,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
     get:
       operationId: listEvents
-      summary: Datadog Get a list of events
+      summary: Datadog Get a List of Events
       description: >-
         Returns a paginated list of events from the Events Explorer matching
         the specified search criteria. Supports filtering by text search, tags,
@@ -82,48 +85,54 @@ paths:
         for large result sets. The v2 API provides richer event attributes
         and improved search capabilities compared to v1.
       tags:
-        - Events
+      - Events
       parameters:
-        - name: filter[query]
-          in: query
-          required: false
-          description: A Datadog events search query to filter events (e.g., source:aws status:error)
-          schema:
-            type: string
-        - name: filter[from]
-          in: query
-          required: false
-          description: The start of the search time range as an ISO 8601 timestamp or relative time (e.g., now-1h)
-          schema:
-            type: string
-        - name: filter[to]
-          in: query
-          required: false
-          description: The end of the search time range as an ISO 8601 timestamp or relative time (e.g., now)
-          schema:
-            type: string
-        - name: sort
-          in: query
-          required: false
-          description: The sort order for events, either ascending or descending by timestamp
-          schema:
-            type: string
-            enum: [timestamp, -timestamp]
-        - name: page[cursor]
-          in: query
-          required: false
-          description: A cursor token from a previous response to retrieve the next page of events
-          schema:
-            type: string
-        - name: page[limit]
-          in: query
-          required: false
-          description: The maximum number of events to return per page (default 10, max 1000)
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 1000
-            default: 10
+      - name: filter[query]
+        in: query
+        required: false
+        description: A Datadog events search query to filter events (e.g., source:aws status:error)
+        schema:
+          type: string
+        example: avg:system.cpu.user{*}
+      - name: filter[from]
+        in: query
+        required: false
+        description: The start of the search time range as an ISO 8601 timestamp or relative time (e.g., now-1h)
+        schema:
+          type: string
+        example: example_value
+      - name: filter[to]
+        in: query
+        required: false
+        description: The end of the search time range as an ISO 8601 timestamp or relative time (e.g., now)
+        schema:
+          type: string
+        example: example_value
+      - name: sort
+        in: query
+        required: false
+        description: The sort order for events, either ascending or descending by timestamp
+        schema:
+          type: string
+          enum: [timestamp, -timestamp]
+        example: timestamp
+      - name: page[cursor]
+        in: query
+        required: false
+        description: A cursor token from a previous response to retrieve the next page of events
+        schema:
+          type: string
+        example: example_value
+      - name: page[limit]
+        in: query
+        required: false
+        description: The maximum number of events to return per page (default 10, max 1000)
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 10
+        example: 42
       responses:
         '200':
           description: Successful response with list of matching events
@@ -149,19 +158,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v2/events/{event_id}:
     get:
       operationId: getEvent
-      summary: Datadog Get an event
+      summary: Datadog Get an Event
       description: >-
         Returns the full details of a specific event identified by its unique
         event ID. Includes the event title, text, timestamp, source, tags,
         alert type, priority, and associated hosts. The event ID is returned
         when creating events or from list event responses.
       tags:
-        - Events
+      - Events
       parameters:
-        - $ref: '#/components/parameters/eventIdParam'
+      - $ref: '#/components/parameters/eventIdParam'
       responses:
         '200':
           description: Successful response with event details
@@ -187,10 +199,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /api/v2/events/search:
     post:
       operationId: searchEvents
-      summary: Datadog Search events
+      summary: Datadog Search Events
       description: >-
         Searches events in the Events Explorer using a structured request body
         with full support for Datadog's events query language. Supports
@@ -199,7 +214,7 @@ paths:
         pagination for large result sets. More powerful than the GET list
         endpoint for complex queries.
       tags:
-        - Events
+      - Events
       requestBody:
         required: false
         content:
@@ -231,6 +246,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
 components:
   securitySchemes:
     apiKeyAuth:
@@ -251,14 +269,14 @@ components:
       type: object
       description: Request body for creating a new event in the Datadog Events Explorer
       required:
-        - data
+      - data
       properties:
         data:
           type: object
           description: The event data object
           required:
-            - type
-            - attributes
+          - type
+          - attributes
           properties:
             type:
               type: string
@@ -270,28 +288,33 @@ components:
       type: object
       description: The attributes for a new event to be created
       required:
-        - title
+      - title
       properties:
         title:
           type: string
           description: The event title displayed in the Events Explorer (max 100 characters)
           maxLength: 100
+          example: Example Monitor
         message:
           type: string
           description: The event body text with additional details about the event (max 4000 characters)
           maxLength: 4000
+          example: CPU usage is high on {{host.name}}
         timestamp:
           type: integer
           format: int64
           description: Unix timestamp in seconds for when the event occurred; defaults to current time if not specified
+          example: 42
         priority:
           type: string
           description: The event priority level for filtering and sorting in the Events Explorer
           enum: [normal, low]
           default: normal
+          example: normal
         host:
           type: string
           description: The hostname to associate with this event for infrastructure correlation
+          example: example_value
         tags:
           type: array
           description: List of tags to apply to the event in key:value format for filtering
@@ -302,13 +325,16 @@ components:
           description: The alert type category for visual display in the Events Explorer
           enum: [error, warning, info, success, user_update, recommendation, snapshot]
           default: info
+          example: error
         aggregation_key:
           type: string
           description: An arbitrary string used to group related events into a rollup (max 100 characters)
           maxLength: 100
+          example: example_value
         source_type_name:
           type: string
           description: The source technology or integration that generated this event (e.g., aws, chef, nagios)
+          example: Example Monitor
     EventCreateResponse:
       type: object
       description: Response indicating an event was accepted for processing
@@ -317,10 +343,12 @@ components:
           type: string
           description: The status of the event creation request
           enum: [ok]
+          example: ok
         event_id:
           type: integer
           format: int64
           description: The unique numeric identifier assigned to the created event
+          example: 42
     EventsListResponse:
       type: object
       description: Response containing a paginated list of events from the Events Explorer
@@ -370,9 +398,11 @@ components:
         id:
           type: string
           description: The unique string identifier of the event
+          example: abc-123-def
         type:
           type: string
           description: The resource type identifier (always 'event')
+          example: metric alert
         attributes:
           $ref: '#/components/schemas/EventAttributes'
     EventAttributes:
@@ -382,20 +412,25 @@ components:
         title:
           type: string
           description: The event title as displayed in the Events Explorer
+          example: Example Monitor
         message:
           type: string
           description: The event body text containing details about the event
+          example: CPU usage is high on {{host.name}}
         timestamp:
           type: string
           format: date-time
           description: ISO 8601 timestamp when the event was recorded
+          example: '2026-04-17T12:00:00Z'
         priority:
           type: string
           description: The event priority level
           enum: [normal, low]
+          example: normal
         host:
           type: string
           description: The hostname associated with this event
+          example: example_value
         tags:
           type: array
           description: List of tags associated with the event in key:value format
@@ -405,15 +440,19 @@ components:
           type: string
           description: The alert type category for visual display
           enum: [error, warning, info, success, user_update, recommendation, snapshot]
+          example: error
         aggregation_key:
           type: string
           description: The arbitrary string used to group related events into a rollup
+          example: example_value
         source_type_name:
           type: string
           description: The source technology or integration that generated this event
+          example: Example Monitor
         status:
           type: string
           description: The event status (active or expired)
+          example: OK
         attributes:
           type: object
           description: Custom key-value attributes associated with the event
@@ -445,6 +484,7 @@ components:
           type: string
           description: Sort order for the returned events
           enum: [timestamp, -timestamp]
+          example: timestamp
         page:
           type: object
           description: Pagination settings for the event search results
@@ -462,7 +502,7 @@ components:
       type: object
       description: Standard API error response returned for failed requests
       required:
-        - errors
+      - errors
       properties:
         errors:
           type: array

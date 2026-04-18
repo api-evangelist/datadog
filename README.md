@@ -1,59 +1,96 @@
 # Datadog (datadog)
-Datadog is a monitoring and analytics platform that helps organizations gain insight into their infrastructure, applications, and services. It allows users to collect, visualize, and analyze real-time data from a variety of sources, including servers, databases, and cloud services. Datadog's platform enables companies to track performance metrics, troubleshoot issues, and optimize their systems for peak efficiency. With its customizable dashboards and alerting system, Datadog empowers teams to proactively monitor their environments and ensure smooth operations. Ultimately, Datadog helps businesses make data-driven decisions and improve the overall performance of their technology stack.
+Datadog is a monitoring and observability platform for cloud-scale applications providing infrastructure monitoring, APM, log management, security monitoring, and incident management with 800+ integrations.
 
-**URL:** [Visit APIs.json URL](https://raw.githubusercontent.com/api-search/infrastructure/main/_apis/pagerduty/apis.md)
+**URL:** [Visit APIs.json URL](https://raw.githubusercontent.com/api-evangelist/datadog/refs/heads/main/apis.yml)
 
-## Scope
-
+**Run:** [Capabilities Using Naftiko](https://github.com/naftiko/fleet?utm_source=api-evangelist&utm_medium=readme&utm_campaign=company-api-evangelist&utm_content=repo)
 
 ## Tags:
 
- - Monitoring, Analytics, Visualizations, Dashboards, Platform
+ - APM, Cloud, DevOps, Infrastructure, Logging, Monitoring, Observability, Security
 
 ## Timestamps
 
-- **Created:** 2024/04/14 
-- **Modified:** 2025-06-04 
+- **Created:** 2024-01-01
+- **Modified:** 2026-04-17
 
 ## APIs
 
-### Datadog API
-The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+85 APIs covering Metrics, Monitors, Dashboards, Events, Logs, APM, Synthetics, Incidents, SLOs, Security, Hosts, Containers, Service Checks, and more.
 
-**Human URL:** [https://docs.datadoghq.com/](https://docs.datadoghq.com/)
+See [apis.yml](apis.yml) for the complete inventory.
 
+## Features
 
-#### Tags:
+| Name | Description |
+|------|-------------|
+| Infrastructure Monitoring | Monitor servers, containers, databases, and cloud services. |
+| APM and Distributed Tracing | Trace requests across microservices. |
+| Log Management | Collect, process, and analyze logs from any source. |
+| Real User Monitoring | Monitor front-end performance and user experience. |
+| Synthetic Monitoring | Proactive API tests, browser tests, and workflows. |
+| Security Monitoring | Detect threats and misconfigurations. |
+| Dashboards | Custom dashboards with drag-and-drop widgets. |
+| Alerting | Monitors with thresholds, anomaly detection, and notifications. |
+| Incidents | Incident response with timeline and postmortems. |
+| Service Level Objectives | Define and track SLOs with error budgets. |
+| CI/CD Visibility | Monitor pipeline performance and deployments. |
+| Cloud Cost Management | Track and optimize cloud costs. |
 
- - No Tags
+## Use Cases
 
-#### Properties
+| Name | Description |
+|------|-------------|
+| Full-Stack Observability | Correlate metrics, traces, and logs across the stack. |
+| Container Monitoring | Monitor Kubernetes and Docker environments. |
+| Cloud Infrastructure | Monitor AWS, Azure, GCP, and hybrid clouds. |
+| Application Performance | Identify bottlenecks with distributed tracing. |
+| Log Analytics | Centralize logs for troubleshooting and compliance. |
+| Incident Management | Automate detection, response, and resolution. |
+| DevOps Automation | Integrate monitoring into CI/CD pipelines. |
+| Security Posture | Monitor cloud misconfigurations and compliance. |
 
-- [OpenAPI](openapi/datadog-openapi-original.yml)
-- [Documentation](https://docs.datadoghq.com/)
+## Solutions
 
-## Common Properties
+| Name | Description |
+|------|-------------|
+| Datadog Infrastructure | Infrastructure monitoring with 800+ integrations. |
+| Datadog APM | Application performance with tracing and profiling. |
+| Datadog Logs | Log management with indexing and analytics. |
+| Datadog Security | Cloud security posture and threat detection. |
 
-- [Products](https://www.datadoghq.com/product/)
-- [Customers](https://www.datadoghq.com/customers/)
-- [Pricing](https://www.datadoghq.com/pricing/)
-- [Integrations](https://docs.datadoghq.com/integrations/)
-- [About](https://www.datadoghq.com/about/leadership/)
-- [Blog](https://www.datadoghq.com/blog/)
-- [Login](https://app.datadoghq.com/account/login)
-- [Login](https://app.datadoghq.com/account/login)
-- [Login](https://app.datadoghq.com/account/login)
-- [SignUp](https://us5.datadoghq.com/signup)
-- [Support](https://www.datadoghq.com/support/)
-- [Certifications](https://www.datadoghq.com/certification/overview/)
-- [PrivacyPolicy](https://www.datadoghq.com/privacy/)
-- [Security](https://www.datadoghq.com/security/)
-- [Trust](https://trust.datadoghq.com/)
-- [Partners](https://www.datadoghq.com/partner/network/)
+## Artifacts
+
+### OpenAPI
+
+6 OpenAPI specs in [openapi/](openapi/).
+
+### JSON Schema
+
+61 standalone JSON Schema files in [json-schema/](json-schema/).
+
+### JSON Structure
+
+61 JSON Structure files in [json-structure/](json-structure/).
+
+### JSON-LD
+
+- [Datadog Context](json-ld/datadog-context.jsonld) — 61 types, 106 properties
+
+### Examples
+
+61 example JSON files in [examples/](examples/).
+
+## Vocabulary
+
+- [Datadog Vocabulary](vocabulary/datadog-vocabulary.yaml) — 10 resources, 2 APIs, 5 domains, 5 personas
+
+## Rules
+
+- [Datadog Spectral Rules](rules/datadog-spectral-rules.yml) — 19 rules
 
 ## Maintainers
 
-**FN:** API Evangelist
+**FN:** Kin Lane
 
-**Email:** info@apievangelist.com
-
+**Email:** kin@apievangelist.com
