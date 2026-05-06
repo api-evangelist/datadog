@@ -1,168 +1,291 @@
-naftiko: "1.0.0-alpha1"
-
+naftiko: 1.0.0-alpha2
 info:
-  label: "Datadog Log Analytics"
-  description: "Unified workflow for log analytics combining logs and events. Used by platform engineers and developers for submitting, searching, and aggregating logs alongside event correlation."
+  label: Datadog Log Analytics
+  description: Unified workflow for log analytics combining logs and events. Used by platform engineers and developers for
+    submitting, searching, and aggregating logs alongside event correlation.
   tags:
-    - Datadog
-    - Log Analytics
-    - Logs
-    - Events
-    - Search
+  - Datadog
+  - Log Analytics
+  - Logs
+  - Events
+  - Search
   personas:
-    - Platform Engineer
-    - Developer
-  created: "2026-04-18"
-  modified: "2026-04-18"
-
+  - Platform Engineer
+  - Developer
+  created: '2026-04-18'
+  modified: '2026-05-06'
 binds:
-  - namespace: env
-    keys:
-      DATADOG_API_KEY: DATADOG_API_KEY
-      DATADOG_APP_KEY: DATADOG_APP_KEY
-
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+    DATADOG_APP_KEY: DATADOG_APP_KEY
 capability:
   consumes:
-    - import: dd-logs
-      location: "./shared/logs.yaml"
-    - import: dd-events
-      location: "./shared/events.yaml"
-
+  - type: http
+    namespace: dd-logs
+    baseUri: https://api.datadoghq.com
+    description: Datadog Logs API for submitting, searching, aggregating logs, and managing log indexes.
+    authentication:
+      type: apikey
+      headers:
+        DD-API-KEY: '{{DATADOG_API_KEY}}'
+        DD-APPLICATION-KEY: '{{DATADOG_APP_KEY}}'
+    resources:
+    - name: logs-submit
+      path: /api/v2/logs
+      description: Submit log entries.
+      operations:
+      - name: submitLogs
+        method: POST
+        description: Send logs.
+        body:
+          type: json
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: logs-search
+      path: /api/v2/logs/events/search
+      description: Search log events.
+      operations:
+      - name: searchLogs
+        method: POST
+        description: Search logs.
+        body:
+          type: json
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: logs-aggregate
+      path: /api/v2/logs/analytics/aggregate
+      description: Aggregate log data.
+      operations:
+      - name: aggregateLogs
+        method: POST
+        description: Aggregate logs.
+        body:
+          type: json
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: log-indexes
+      path: /api/v1/logs/config/indexes
+      description: Log index management.
+      operations:
+      - name: listLogIndexes
+        method: GET
+        description: List log indexes.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getLogIndex
+        method: GET
+        path: /api/v1/logs/config/indexes/{name}
+        description: Get a log index.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+  - type: http
+    namespace: dd-events
+    baseUri: https://api.datadoghq.com
+    description: Datadog Events API for posting, listing, retrieving, and searching events.
+    authentication:
+      type: apikey
+      headers:
+        DD-API-KEY: '{{DATADOG_API_KEY}}'
+        DD-APPLICATION-KEY: '{{DATADOG_APP_KEY}}'
+    resources:
+    - name: events
+      path: /api/v2/events
+      description: Event collection operations.
+      operations:
+      - name: createEvent
+        method: POST
+        description: Post an event.
+        body:
+          type: json
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: listEvents
+        method: GET
+        description: Get a list of events.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: event
+      path: /api/v2/events/{event_id}
+      description: Individual event operations.
+      operations:
+      - name: getEvent
+        method: GET
+        description: Get an event.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: events-search
+      path: /api/v2/events/search
+      description: Search events with structured queries.
+      operations:
+      - name: searchEvents
+        method: POST
+        description: Search events.
+        body:
+          type: json
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
   exposes:
-    - type: rest
-      port: 8082
-      namespace: dd-log-analytics-api
-      description: "Unified REST API for log analytics workflows combining logs and events."
-      resources:
-        - path: /v1/logs
-          name: logs
-          description: "Submit logs"
-          operations:
-            - method: POST
-              name: submitLogs
-              description: "Send log entries"
-              call: "dd-logs.submitLogs"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/logs/search
-          name: logs-search
-          description: "Search logs"
-          operations:
-            - method: POST
-              name: searchLogs
-              description: "Search log events"
-              call: "dd-logs.searchLogs"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/logs/aggregate
-          name: logs-aggregate
-          description: "Aggregate logs"
-          operations:
-            - method: POST
-              name: aggregateLogs
-              description: "Aggregate log data"
-              call: "dd-logs.aggregateLogs"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/logs/indexes
-          name: log-indexes
-          description: "Log indexes"
-          operations:
-            - method: GET
-              name: listLogIndexes
-              description: "List log indexes"
-              call: "dd-logs.listLogIndexes"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/logs/indexes/{name}
-          name: log-index
-          description: "Individual log index"
-          operations:
-            - method: GET
-              name: getLogIndex
-              description: "Get a log index"
-              call: "dd-logs.getLogIndex"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/events
-          name: events
-          description: "Event correlation"
-          operations:
-            - method: GET
-              name: listEvents
-              description: "List events"
-              call: "dd-events.listEvents"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-            - method: POST
-              name: createEvent
-              description: "Post an event"
-              call: "dd-events.createEvent"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-        - path: /v1/events/search
-          name: events-search
-          description: "Search events"
-          operations:
-            - method: POST
-              name: searchEvents
-              description: "Search events"
-              call: "dd-events.searchEvents"
-              outputParameters:
-                - type: object
-                  mapping: "$."
-
-    - type: mcp
-      port: 9082
-      namespace: dd-log-analytics-mcp
-      transport: http
-      description: "MCP server for AI-assisted log analytics workflows."
-      tools:
-        - name: submit-logs
-          description: "Send log entries to Datadog"
-          call: "dd-logs.submitLogs"
-        - name: search-logs
-          description: "Search log events with query language"
-          call: "dd-logs.searchLogs"
-          hints:
-            readOnly: true
-        - name: aggregate-logs
-          description: "Compute aggregations over log events"
-          call: "dd-logs.aggregateLogs"
-          hints:
-            readOnly: true
-        - name: list-log-indexes
-          description: "List configured log indexes"
-          call: "dd-logs.listLogIndexes"
-          hints:
-            readOnly: true
-        - name: get-log-index
-          description: "Get a specific log index configuration"
-          call: "dd-logs.getLogIndex"
-          hints:
-            readOnly: true
-        - name: list-events
-          description: "List events for correlation with logs"
-          call: "dd-events.listEvents"
-          hints:
-            readOnly: true
-        - name: get-event
-          description: "Get a specific event"
-          call: "dd-events.getEvent"
-          hints:
-            readOnly: true
-        - name: create-event
-          description: "Post an event to correlate with log data"
-          call: "dd-events.createEvent"
-        - name: search-events
-          description: "Search events alongside log analysis"
-          call: "dd-events.searchEvents"
-          hints:
-            readOnly: true
+  - type: rest
+    port: 8082
+    namespace: dd-log-analytics-api
+    description: Unified REST API for log analytics workflows combining logs and events.
+    resources:
+    - path: /v1/logs
+      name: logs
+      description: Submit logs
+      operations:
+      - method: POST
+        name: submitLogs
+        description: Send log entries
+        call: dd-logs.submitLogs
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/logs/search
+      name: logs-search
+      description: Search logs
+      operations:
+      - method: POST
+        name: searchLogs
+        description: Search log events
+        call: dd-logs.searchLogs
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/logs/aggregate
+      name: logs-aggregate
+      description: Aggregate logs
+      operations:
+      - method: POST
+        name: aggregateLogs
+        description: Aggregate log data
+        call: dd-logs.aggregateLogs
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/logs/indexes
+      name: log-indexes
+      description: Log indexes
+      operations:
+      - method: GET
+        name: listLogIndexes
+        description: List log indexes
+        call: dd-logs.listLogIndexes
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/logs/indexes/{name}
+      name: log-index
+      description: Individual log index
+      operations:
+      - method: GET
+        name: getLogIndex
+        description: Get a log index
+        call: dd-logs.getLogIndex
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/events
+      name: events
+      description: Event correlation
+      operations:
+      - method: GET
+        name: listEvents
+        description: List events
+        call: dd-events.listEvents
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createEvent
+        description: Post an event
+        call: dd-events.createEvent
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/events/search
+      name: events-search
+      description: Search events
+      operations:
+      - method: POST
+        name: searchEvents
+        description: Search events
+        call: dd-events.searchEvents
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    port: 9082
+    namespace: dd-log-analytics-mcp
+    transport: http
+    description: MCP server for AI-assisted log analytics workflows.
+    tools:
+    - name: submit-logs
+      description: Send log entries to Datadog
+      call: dd-logs.submitLogs
+    - name: search-logs
+      description: Search log events with query language
+      call: dd-logs.searchLogs
+      hints:
+        readOnly: true
+    - name: aggregate-logs
+      description: Compute aggregations over log events
+      call: dd-logs.aggregateLogs
+      hints:
+        readOnly: true
+    - name: list-log-indexes
+      description: List configured log indexes
+      call: dd-logs.listLogIndexes
+      hints:
+        readOnly: true
+    - name: get-log-index
+      description: Get a specific log index configuration
+      call: dd-logs.getLogIndex
+      hints:
+        readOnly: true
+    - name: list-events
+      description: List events for correlation with logs
+      call: dd-events.listEvents
+      hints:
+        readOnly: true
+    - name: get-event
+      description: Get a specific event
+      call: dd-events.getEvent
+      hints:
+        readOnly: true
+    - name: create-event
+      description: Post an event to correlate with log data
+      call: dd-events.createEvent
+    - name: search-events
+      description: Search events alongside log analysis
+      call: dd-events.searchEvents
+      hints:
+        readOnly: true
