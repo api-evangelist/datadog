@@ -1,0 +1,154 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Convert
+  description: 'Datadog API — Convert. 3 operations. Lead operation: Datadog Convert a Rule from Json to Terraform. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Convert
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-convert
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Convert business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-rules-convert
+      path: /api/v2/security_monitoring/rules/convert
+      operations:
+      - name: convertsecuritymonitoringrulefromjsontoterraform
+        method: POST
+        description: Datadog Convert a Rule from Json to Terraform
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-rules-rule_id-convert
+      path: /api/v2/security_monitoring/rules/{rule_id}/convert
+      operations:
+      - name: convertexistingsecuritymonitoringrule
+        method: GET
+        description: Datadog Convert an Existing Rule from Json to Terraform
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-siem-historical-detections-jobs-signal_convert
+      path: /api/v2/siem-historical-detections/jobs/signal_convert
+      operations:
+      - name: convertjobresulttosignal
+        method: POST
+        description: Datadog Convert a Job Result to a Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-convert-rest
+    port: 8080
+    description: REST adapter for Datadog API — Convert. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/rules/convert
+      name: api-v2-security-monitoring-rules-convert
+      description: REST surface for api-v2-security_monitoring-rules-convert.
+      operations:
+      - method: POST
+        name: convertsecuritymonitoringrulefromjsontoterraform
+        description: Datadog Convert a Rule from Json to Terraform
+        call: datadog-convert.convertsecuritymonitoringrulefromjsontoterraform
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/rules/{rule-id}/convert
+      name: api-v2-security-monitoring-rules-rule-id-convert
+      description: REST surface for api-v2-security_monitoring-rules-rule_id-convert.
+      operations:
+      - method: GET
+        name: convertexistingsecuritymonitoringrule
+        description: Datadog Convert an Existing Rule from Json to Terraform
+        call: datadog-convert.convertexistingsecuritymonitoringrule
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/signal-convert
+      name: api-v2-siem-historical-detections-jobs-signal-convert
+      description: REST surface for api-v2-siem-historical-detections-jobs-signal_convert.
+      operations:
+      - method: POST
+        name: convertjobresulttosignal
+        description: Datadog Convert a Job Result to a Signal
+        call: datadog-convert.convertjobresulttosignal
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-convert-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Convert. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-convert-rule-json-terraform
+      description: Datadog Convert a Rule from Json to Terraform
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-convert.convertsecuritymonitoringrulefromjsontoterraform
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-convert-existing-rule-json
+      description: Datadog Convert an Existing Rule from Json to Terraform
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-convert.convertexistingsecuritymonitoringrule
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-convert-job-result-signal
+      description: Datadog Convert a Job Result to a Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-convert.convertjobresulttosignal
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

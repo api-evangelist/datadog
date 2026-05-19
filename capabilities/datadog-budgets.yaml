@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Budgets
+  description: 'Datadog API — Budgets. 1 operations. Lead operation: Datadog List Budgets. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Budgets
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-budgets
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Budgets business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost-budgets
+      path: /api/v2/cost/budgets
+      operations:
+      - name: listbudgets
+        method: GET
+        description: Datadog List Budgets
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-budgets-rest
+    port: 8080
+    description: REST adapter for Datadog API — Budgets. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cost/budgets
+      name: api-v2-cost-budgets
+      description: REST surface for api-v2-cost-budgets.
+      operations:
+      - method: GET
+        name: listbudgets
+        description: Datadog List Budgets
+        call: datadog-budgets.listbudgets
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-budgets-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Budgets. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-budgets
+      description: Datadog List Budgets
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-budgets.listbudgets
+      outputParameters:
+      - type: object
+        mapping: $.

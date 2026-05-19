@@ -1,0 +1,156 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Agents
+  description: 'Datadog API — Agents. 2 operations. Lead operation: Datadog Get All Csm Agents. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Agents
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-agents
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Agents business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-csm-onboarding-agents
+      path: /api/v2/csm/onboarding/agents
+      operations:
+      - name: listallcsmagents
+        method: GET
+        description: Datadog Get All Csm Agents
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page
+          in: query
+          type: integer
+          description: The page index for pagination (zero-based).
+        - name: size
+          in: query
+          type: integer
+          description: The number of items to include in a single page.
+        - name: query
+          in: query
+          type: string
+          description: A search query string to filter results (for example, `hostname:COMP-T2H4J27423`).
+        - name: order_direction
+          in: query
+          type: string
+          description: The sort direction for results. Use `asc` for ascending or `desc` for descending.
+    - name: api-v2-csm-onboarding-serverless-agents
+      path: /api/v2/csm/onboarding/serverless/agents
+      operations:
+      - name: listallcsmserverlessagents
+        method: GET
+        description: Datadog Get All Csm Serverless Agents
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page
+          in: query
+          type: integer
+          description: The page index for pagination (zero-based).
+        - name: size
+          in: query
+          type: integer
+          description: The number of items to include in a single page.
+        - name: query
+          in: query
+          type: string
+          description: A search query string to filter results (for example, `hostname:COMP-T2H4J27423`).
+        - name: order_direction
+          in: query
+          type: string
+          description: The sort direction for results. Use `asc` for ascending or `desc` for descending.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-agents-rest
+    port: 8080
+    description: REST adapter for Datadog API — Agents. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/csm/onboarding/agents
+      name: api-v2-csm-onboarding-agents
+      description: REST surface for api-v2-csm-onboarding-agents.
+      operations:
+      - method: GET
+        name: listallcsmagents
+        description: Datadog Get All Csm Agents
+        call: datadog-agents.listallcsmagents
+        with:
+          page: rest.page
+          size: rest.size
+          query: rest.query
+          order_direction: rest.order_direction
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/csm/onboarding/serverless/agents
+      name: api-v2-csm-onboarding-serverless-agents
+      description: REST surface for api-v2-csm-onboarding-serverless-agents.
+      operations:
+      - method: GET
+        name: listallcsmserverlessagents
+        description: Datadog Get All Csm Serverless Agents
+        call: datadog-agents.listallcsmserverlessagents
+        with:
+          page: rest.page
+          size: rest.size
+          query: rest.query
+          order_direction: rest.order_direction
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-agents-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Agents. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-csm-agents
+      description: Datadog Get All Csm Agents
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-agents.listallcsmagents
+      with:
+        page: tools.page
+        size: tools.size
+        query: tools.query
+        order_direction: tools.order_direction
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-csm-serverless
+      description: Datadog Get All Csm Serverless Agents
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-agents.listallcsmserverlessagents
+      with:
+        page: tools.page
+        size: tools.size
+        query: tools.query
+        order_direction: tools.order_direction
+      outputParameters:
+      - type: object
+        mapping: $.

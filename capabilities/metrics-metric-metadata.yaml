@@ -1,0 +1,94 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Metrics API — Metric Metadata
+  description: 'Datadog Metrics API — Metric Metadata. 1 operations. Lead operation: Datadog List Active Metrics. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Metric Metadata
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: metrics-metric-metadata
+    baseUri: https://api.datadoghq.com
+    description: Datadog Metrics API — Metric Metadata business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v1-metrics
+      path: /api/v1/metrics
+      operations:
+      - name: listactivemetrics
+        method: GET
+        description: Datadog List Active Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: from
+          in: query
+          type: integer
+          description: POSIX timestamp (seconds) indicating the start of the time window to query active metrics
+          required: true
+        - name: host
+          in: query
+          type: string
+          description: Filter metrics by the hostname that is actively reporting the metric
+        - name: tag_filter
+          in: query
+          type: string
+          description: Filter metrics by tag key or key:value pair (e.g., env:prod)
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: metrics-metric-metadata-rest
+    port: 8080
+    description: REST adapter for Datadog Metrics API — Metric Metadata. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v1/metrics
+      name: api-v1-metrics
+      description: REST surface for api-v1-metrics.
+      operations:
+      - method: GET
+        name: listactivemetrics
+        description: Datadog List Active Metrics
+        call: metrics-metric-metadata.listactivemetrics
+        with:
+          from: rest.from
+          host: rest.host
+          tag_filter: rest.tag_filter
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: metrics-metric-metadata-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Metrics API — Metric Metadata. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-list-active-metrics
+      description: Datadog List Active Metrics
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: metrics-metric-metadata.listactivemetrics
+      with:
+        from: tools.from
+        host: tools.host
+        tag_filter: tools.tag_filter
+      outputParameters:
+      - type: object
+        mapping: $.

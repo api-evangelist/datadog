@@ -1,0 +1,418 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Configuration
+  description: 'Datadog API — Configuration. 10 operations. Lead operation: Datadog Tag Configuration Cardinality Estimator.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Configuration
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-configuration
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Configuration business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-metrics-metric_name-estimate
+      path: /api/v2/metrics/{metric_name}/estimate
+      operations:
+      - name: estimatemetricsoutputseries
+        method: GET
+        description: Datadog Tag Configuration Cardinality Estimator
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[groups]
+          in: query
+          type: string
+          description: Filtered tag keys that the metric is configured to query with.
+        - name: filter[hours_ago]
+          in: query
+          type: integer
+          description: The number of hours of look back (from now) to estimate cardinality with. If unspecified, it defaults
+            to 0 hours.
+        - name: filter[num_aggregations]
+          in: query
+          type: integer
+          description: Deprecated. Number of aggregations has no impact on volume.
+        - name: filter[pct]
+          in: query
+          type: boolean
+          description: A boolean, for distribution metrics only, to estimate cardinality if the metric includes additional
+            percentile aggregators.
+        - name: filter[timespan_h]
+          in: query
+          type: integer
+          description: A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour.
+    - name: api-v2-metrics-metric_name-tags
+      path: /api/v2/metrics/{metric_name}/tags
+      operations:
+      - name: deletetagconfiguration
+        method: DELETE
+        description: Datadog Delete a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: listtagconfigurationbyname
+        method: GET
+        description: Datadog List Tag Configuration by Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updatetagconfiguration
+        method: PATCH
+        description: Datadog Update a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: createtagconfiguration
+        method: POST
+        description: Datadog Create a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-policy
+      path: /api/v2/monitor/policy
+      operations:
+      - name: listmonitorconfigpolicies
+        method: GET
+        description: Datadog Get All Monitor Configuration Policies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createmonitorconfigpolicy
+        method: POST
+        description: Datadog Create a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-policy-policy_id
+      path: /api/v2/monitor/policy/{policy_id}
+      operations:
+      - name: deletemonitorconfigpolicy
+        method: DELETE
+        description: Datadog Delete a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+      - name: getmonitorconfigpolicy
+        method: GET
+        description: Datadog Get a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+      - name: updatemonitorconfigpolicy
+        method: PATCH
+        description: Datadog Edit a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-configuration-rest
+    port: 8080
+    description: REST adapter for Datadog API — Configuration. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/metrics/{metric-name}/estimate
+      name: api-v2-metrics-metric-name-estimate
+      description: REST surface for api-v2-metrics-metric_name-estimate.
+      operations:
+      - method: GET
+        name: estimatemetricsoutputseries
+        description: Datadog Tag Configuration Cardinality Estimator
+        call: datadog-configuration.estimatemetricsoutputseries
+        with:
+          filter[groups]: rest.filter[groups]
+          filter[hours_ago]: rest.filter[hours_ago]
+          filter[num_aggregations]: rest.filter[num_aggregations]
+          filter[pct]: rest.filter[pct]
+          filter[timespan_h]: rest.filter[timespan_h]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/{metric-name}/tags
+      name: api-v2-metrics-metric-name-tags
+      description: REST surface for api-v2-metrics-metric_name-tags.
+      operations:
+      - method: DELETE
+        name: deletetagconfiguration
+        description: Datadog Delete a Tag Configuration
+        call: datadog-configuration.deletetagconfiguration
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: listtagconfigurationbyname
+        description: Datadog List Tag Configuration by Name
+        call: datadog-configuration.listtagconfigurationbyname
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatetagconfiguration
+        description: Datadog Update a Tag Configuration
+        call: datadog-configuration.updatetagconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createtagconfiguration
+        description: Datadog Create a Tag Configuration
+        call: datadog-configuration.createtagconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/policy
+      name: api-v2-monitor-policy
+      description: REST surface for api-v2-monitor-policy.
+      operations:
+      - method: GET
+        name: listmonitorconfigpolicies
+        description: Datadog Get All Monitor Configuration Policies
+        call: datadog-configuration.listmonitorconfigpolicies
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createmonitorconfigpolicy
+        description: Datadog Create a Monitor Configuration Policy
+        call: datadog-configuration.createmonitorconfigpolicy
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/policy/{policy-id}
+      name: api-v2-monitor-policy-policy-id
+      description: REST surface for api-v2-monitor-policy-policy_id.
+      operations:
+      - method: DELETE
+        name: deletemonitorconfigpolicy
+        description: Datadog Delete a Monitor Configuration Policy
+        call: datadog-configuration.deletemonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getmonitorconfigpolicy
+        description: Datadog Get a Monitor Configuration Policy
+        call: datadog-configuration.getmonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatemonitorconfigpolicy
+        description: Datadog Edit a Monitor Configuration Policy
+        call: datadog-configuration.updatemonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-configuration-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Configuration. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-tag-configuration-cardinality-estimator
+      description: Datadog Tag Configuration Cardinality Estimator
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.estimatemetricsoutputseries
+      with:
+        filter[groups]: tools.filter[groups]
+        filter[hours_ago]: tools.filter[hours_ago]
+        filter[num_aggregations]: tools.filter[num_aggregations]
+        filter[pct]: tools.filter[pct]
+        filter[timespan_h]: tools.filter[timespan_h]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-tag-configuration
+      description: Datadog Delete a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-configuration.deletetagconfiguration
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-tag-configuration-name
+      description: Datadog List Tag Configuration by Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.listtagconfigurationbyname
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-tag-configuration
+      description: Datadog Update a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.updatetagconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-tag-configuration
+      description: Datadog Create a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-configuration.createtagconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-monitor-configuration
+      description: Datadog Get All Monitor Configuration Policies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.listmonitorconfigpolicies
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-monitor-configuration-policy
+      description: Datadog Create a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-configuration.createmonitorconfigpolicy
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-monitor-configuration-policy
+      description: Datadog Delete a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-configuration.deletemonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-monitor-configuration-policy
+      description: Datadog Get a Monitor Configuration Policy
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.getmonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-edit-monitor-configuration-policy
+      description: Datadog Edit a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-configuration.updatemonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

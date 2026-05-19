@@ -1,0 +1,248 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Aggregate
+  description: 'Datadog API — Aggregate. 5 operations. Lead operation: Datadog Aggregate Pipelines Events. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Aggregate
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-aggregate
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Aggregate business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-ci-pipelines-analytics-aggregate
+      path: /api/v2/ci/pipelines/analytics/aggregate
+      operations:
+      - name: aggregateciapppipelineevents
+        method: POST
+        description: Datadog Aggregate Pipelines Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-ci-tests-analytics-aggregate
+      path: /api/v2/ci/tests/analytics/aggregate
+      operations:
+      - name: aggregateciapptestevents
+        method: POST
+        description: Datadog Aggregate Tests Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-logs-analytics-aggregate
+      path: /api/v2/logs/analytics/aggregate
+      operations:
+      - name: aggregatelogs
+        method: POST
+        description: Datadog Aggregate Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-rum-analytics-aggregate
+      path: /api/v2/rum/analytics/aggregate
+      operations:
+      - name: aggregaterumevents
+        method: POST
+        description: Datadog Aggregate Rum Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-spans-analytics-aggregate
+      path: /api/v2/spans/analytics/aggregate
+      operations:
+      - name: aggregatespans
+        method: POST
+        description: Datadog Aggregate Spans
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-aggregate-rest
+    port: 8080
+    description: REST adapter for Datadog API — Aggregate. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/ci/pipelines/analytics/aggregate
+      name: api-v2-ci-pipelines-analytics-aggregate
+      description: REST surface for api-v2-ci-pipelines-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregateciapppipelineevents
+        description: Datadog Aggregate Pipelines Events
+        call: datadog-aggregate.aggregateciapppipelineevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/ci/tests/analytics/aggregate
+      name: api-v2-ci-tests-analytics-aggregate
+      description: REST surface for api-v2-ci-tests-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregateciapptestevents
+        description: Datadog Aggregate Tests Events
+        call: datadog-aggregate.aggregateciapptestevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/analytics/aggregate
+      name: api-v2-logs-analytics-aggregate
+      description: REST surface for api-v2-logs-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregatelogs
+        description: Datadog Aggregate Events
+        call: datadog-aggregate.aggregatelogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/rum/analytics/aggregate
+      name: api-v2-rum-analytics-aggregate
+      description: REST surface for api-v2-rum-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregaterumevents
+        description: Datadog Aggregate Rum Events
+        call: datadog-aggregate.aggregaterumevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/spans/analytics/aggregate
+      name: api-v2-spans-analytics-aggregate
+      description: REST surface for api-v2-spans-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregatespans
+        description: Datadog Aggregate Spans
+        call: datadog-aggregate.aggregatespans
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-aggregate-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Aggregate. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-aggregate-pipelines-events
+      description: Datadog Aggregate Pipelines Events
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-aggregate.aggregateciapppipelineevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-aggregate-tests-events
+      description: Datadog Aggregate Tests Events
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-aggregate.aggregateciapptestevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-aggregate-events
+      description: Datadog Aggregate Events
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-aggregate.aggregatelogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-aggregate-rum-events
+      description: Datadog Aggregate Rum Events
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-aggregate.aggregaterumevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-aggregate-spans
+      description: Datadog Aggregate Spans
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-aggregate.aggregatespans
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

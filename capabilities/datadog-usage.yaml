@@ -1,0 +1,325 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Usage
+  description: 'Datadog API — Usage. 5 operations. Lead operation: Datadog Get Hourly Usage for Application Security. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Usage
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-usage
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Usage business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-usage-application_security
+      path: /api/v2/usage/application_security
+      operations:
+      - name: getusageapplicationsecuritymonitoring
+        method: GET
+        description: Datadog Get Hourly Usage for Application Security
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    - name: api-v2-usage-billing_dimension_mapping
+      path: /api/v2/usage/billing_dimension_mapping
+      operations:
+      - name: getbillingdimensionmapping
+        method: GET
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[month]
+          in: query
+          type: string
+          description: Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month.
+        - name: filter[view]
+          in: query
+          type: string
+          description: String to specify whether to retrieve active billing dimension mappings for the contract or for all
+            available mappings. Allowed views have the string `active` o
+    - name: api-v2-usage-hourly_usage
+      path: /api/v2/usage/hourly_usage
+      operations:
+      - name: gethourlyusage
+        method: GET
+        description: Datadog Get Hourly Usage by Product Family
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[timestamp][start]
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage beginning at this hour.'
+          required: true
+        - name: filter[timestamp][end]
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage ending **before** this
+            hour.'
+        - name: filter[product_families]
+          in: query
+          type: string
+          description: Comma separated list of product families to retrieve. Available families are `all`, `analyzed_logs`,
+          required: true
+        - name: filter[include_descendants]
+          in: query
+          type: boolean
+          description: Include child org usage in the response. Defaults to false.
+        - name: filter[include_connected_accounts]
+          in: query
+          type: boolean
+          description: Boolean to specify whether to include accounts connected to the current account as partner customers
+            in the Datadog partner network program. Defaults to false.
+        - name: filter[include_breakdown]
+          in: query
+          type: boolean
+          description: Include breakdown of usage by subcategories where applicable (for product family logs only). Defaults
+            to false.
+        - name: filter[versions]
+          in: query
+          type: string
+          description: Comma separated list of product family versions to use in the format `product_family:version`. For
+            example,
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of results to return (between 1 and 500) - defaults to 500 if limit not specified.
+        - name: page[next_record_id]
+          in: query
+          type: string
+          description: List following results with a next_record_id provided in the previous query.
+    - name: api-v2-usage-lambda_traced_invocations
+      path: /api/v2/usage/lambda_traced_invocations
+      operations:
+      - name: getusagelambdatracedinvocations
+        method: GET
+        description: Datadog Get Hourly Usage for Lambda Traced Invocations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    - name: api-v2-usage-observability_pipelines
+      path: /api/v2/usage/observability_pipelines
+      operations:
+      - name: getusageobservabilitypipelines
+        method: GET
+        description: Datadog Get Hourly Usage for Observability Pipelines
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-usage-rest
+    port: 8080
+    description: REST adapter for Datadog API — Usage. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/usage/application-security
+      name: api-v2-usage-application-security
+      description: REST surface for api-v2-usage-application_security.
+      operations:
+      - method: GET
+        name: getusageapplicationsecuritymonitoring
+        description: Datadog Get Hourly Usage for Application Security
+        call: datadog-usage.getusageapplicationsecuritymonitoring
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/billing-dimension-mapping
+      name: api-v2-usage-billing-dimension-mapping
+      description: REST surface for api-v2-usage-billing_dimension_mapping.
+      operations:
+      - method: GET
+        name: getbillingdimensionmapping
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        call: datadog-usage.getbillingdimensionmapping
+        with:
+          filter[month]: rest.filter[month]
+          filter[view]: rest.filter[view]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/hourly-usage
+      name: api-v2-usage-hourly-usage
+      description: REST surface for api-v2-usage-hourly_usage.
+      operations:
+      - method: GET
+        name: gethourlyusage
+        description: Datadog Get Hourly Usage by Product Family
+        call: datadog-usage.gethourlyusage
+        with:
+          filter[timestamp][start]: rest.filter[timestamp][start]
+          filter[timestamp][end]: rest.filter[timestamp][end]
+          filter[product_families]: rest.filter[product_families]
+          filter[include_descendants]: rest.filter[include_descendants]
+          filter[include_connected_accounts]: rest.filter[include_connected_accounts]
+          filter[include_breakdown]: rest.filter[include_breakdown]
+          filter[versions]: rest.filter[versions]
+          page[limit]: rest.page[limit]
+          page[next_record_id]: rest.page[next_record_id]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/lambda-traced-invocations
+      name: api-v2-usage-lambda-traced-invocations
+      description: REST surface for api-v2-usage-lambda_traced_invocations.
+      operations:
+      - method: GET
+        name: getusagelambdatracedinvocations
+        description: Datadog Get Hourly Usage for Lambda Traced Invocations
+        call: datadog-usage.getusagelambdatracedinvocations
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/observability-pipelines
+      name: api-v2-usage-observability-pipelines
+      description: REST surface for api-v2-usage-observability_pipelines.
+      operations:
+      - method: GET
+        name: getusageobservabilitypipelines
+        description: Datadog Get Hourly Usage for Observability Pipelines
+        call: datadog-usage.getusageobservabilitypipelines
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-usage-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Usage. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-hourly-usage-application
+      description: Datadog Get Hourly Usage for Application Security
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-usage.getusageapplicationsecuritymonitoring
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-billing-dimension-mapping
+      description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-usage.getbillingdimensionmapping
+      with:
+        filter[month]: tools.filter[month]
+        filter[view]: tools.filter[view]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-hourly-usage-product
+      description: Datadog Get Hourly Usage by Product Family
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-usage.gethourlyusage
+      with:
+        filter[timestamp][start]: tools.filter[timestamp][start]
+        filter[timestamp][end]: tools.filter[timestamp][end]
+        filter[product_families]: tools.filter[product_families]
+        filter[include_descendants]: tools.filter[include_descendants]
+        filter[include_connected_accounts]: tools.filter[include_connected_accounts]
+        filter[include_breakdown]: tools.filter[include_breakdown]
+        filter[versions]: tools.filter[versions]
+        page[limit]: tools.page[limit]
+        page[next_record_id]: tools.page[next_record_id]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-hourly-usage-lambda
+      description: Datadog Get Hourly Usage for Lambda Traced Invocations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-usage.getusagelambdatracedinvocations
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-hourly-usage-observability
+      description: Datadog Get Hourly Usage for Observability Pipelines
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-usage.getusageobservabilitypipelines
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.

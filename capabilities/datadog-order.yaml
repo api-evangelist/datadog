@@ -1,0 +1,147 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Order
+  description: 'Datadog API — Order. 3 operations. Lead operation: Datadog Get Archive Order. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Order
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-order
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Order business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-logs-config-archive-order
+      path: /api/v2/logs/config/archive-order
+      operations:
+      - name: getlogsarchiveorder
+        method: GET
+        description: Datadog Get Archive Order
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updatelogsarchiveorder
+        method: PUT
+        description: Datadog Update Archive Order
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-rum-applications-app_id-relationships-retention_filters
+      path: /api/v2/rum/applications/{app_id}/relationships/retention_filters
+      operations:
+      - name: orderretentionfilters
+        method: PATCH
+        description: Datadog Order Rum Retention Filters
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-order-rest
+    port: 8080
+    description: REST adapter for Datadog API — Order. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/logs/config/archive-order
+      name: api-v2-logs-config-archive-order
+      description: REST surface for api-v2-logs-config-archive-order.
+      operations:
+      - method: GET
+        name: getlogsarchiveorder
+        description: Datadog Get Archive Order
+        call: datadog-order.getlogsarchiveorder
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updatelogsarchiveorder
+        description: Datadog Update Archive Order
+        call: datadog-order.updatelogsarchiveorder
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/rum/applications/{app-id}/relationships/retention-filters
+      name: api-v2-rum-applications-app-id-relationships-retention-filters
+      description: REST surface for api-v2-rum-applications-app_id-relationships-retention_filters.
+      operations:
+      - method: PATCH
+        name: orderretentionfilters
+        description: Datadog Order Rum Retention Filters
+        call: datadog-order.orderretentionfilters
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-order-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Order. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-archive-order
+      description: Datadog Get Archive Order
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-order.getlogsarchiveorder
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-archive-order
+      description: Datadog Update Archive Order
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-order.updatelogsarchiveorder
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-order-rum-retention-filters
+      description: Datadog Order Rum Retention Filters
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-order.orderretentionfilters
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

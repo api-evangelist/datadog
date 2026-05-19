@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Upload
+  description: 'Datadog API — Upload. 2 operations. Lead operation: Datadog Upload Custom Costs File. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Upload
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-upload
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Upload business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost-custom_costs
+      path: /api/v2/cost/custom_costs
+      operations:
+      - name: uploadcustomcostsfile
+        method: PUT
+        description: Datadog Upload Custom Costs File
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-saml_configurations-idp_metadata
+      path: /api/v2/saml_configurations/idp_metadata
+      operations:
+      - name: uploadidpmetadata
+        method: POST
+        description: Datadog Upload Idp Metadata
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-upload-rest
+    port: 8080
+    description: REST adapter for Datadog API — Upload. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/cost/custom-costs
+      name: api-v2-cost-custom-costs
+      description: REST surface for api-v2-cost-custom_costs.
+      operations:
+      - method: PUT
+        name: uploadcustomcostsfile
+        description: Datadog Upload Custom Costs File
+        call: datadog-upload.uploadcustomcostsfile
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/saml-configurations/idp-metadata
+      name: api-v2-saml-configurations-idp-metadata
+      description: REST surface for api-v2-saml_configurations-idp_metadata.
+      operations:
+      - method: POST
+        name: uploadidpmetadata
+        description: Datadog Upload Idp Metadata
+        call: datadog-upload.uploadidpmetadata
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-upload-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Upload. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-upload-custom-costs-file
+      description: Datadog Upload Custom Costs File
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-upload.uploadcustomcostsfile
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-upload-idp-metadata
+      description: Datadog Upload Idp Metadata
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-upload.uploadidpmetadata
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

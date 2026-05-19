@@ -1,0 +1,214 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Historical
+  description: 'Datadog API — Historical. 4 operations. Lead operation: Datadog List Historical Jobs. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Historical
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-historical
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Historical business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-siem-historical-detections-jobs
+      path: /api/v2/siem-historical-detections/jobs
+      operations:
+      - name: listhistoricaljobs
+        method: GET
+        description: Datadog List Historical Jobs
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: sort
+          in: query
+          type: string
+          description: The order of the jobs in results.
+        - name: filter[query]
+          in: query
+          type: string
+          description: Query used to filter items from the fetched list.
+      - name: runhistoricaljob
+        method: POST
+        description: Datadog Run a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-siem-historical-detections-jobs-job_id-cancel
+      path: /api/v2/siem-historical-detections/jobs/{job_id}/cancel
+      operations:
+      - name: cancelhistoricaljob
+        method: PATCH
+        description: Datadog Cancel a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-usage-historical_cost
+      path: /api/v2/usage/historical_cost
+      operations:
+      - name: gethistoricalcostbyorg
+        method: GET
+        description: Datadog Get Historical Cost Across Your Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: view
+          in: query
+          type: string
+          description: String to specify whether cost is broken down at a parent-org level or at the sub-org level. Available
+            views are `summary` and `sub-org`.  Defaults to `summary`
+        - name: start_month
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning this month.'
+          required: true
+        - name: end_month
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month.'
+        - name: include_connected_accounts
+          in: query
+          type: boolean
+          description: Boolean to specify whether to include accounts connected to the current account as partner customers
+            in the Datadog partner network program. Defaults to `false`
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-historical-rest
+    port: 8080
+    description: REST adapter for Datadog API — Historical. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/siem-historical-detections/jobs
+      name: api-v2-siem-historical-detections-jobs
+      description: REST surface for api-v2-siem-historical-detections-jobs.
+      operations:
+      - method: GET
+        name: listhistoricaljobs
+        description: Datadog List Historical Jobs
+        call: datadog-historical.listhistoricaljobs
+        with:
+          sort: rest.sort
+          filter[query]: rest.filter[query]
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: runhistoricaljob
+        description: Datadog Run a Historical Job
+        call: datadog-historical.runhistoricaljob
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/{job-id}/cancel
+      name: api-v2-siem-historical-detections-jobs-job-id-cancel
+      description: REST surface for api-v2-siem-historical-detections-jobs-job_id-cancel.
+      operations:
+      - method: PATCH
+        name: cancelhistoricaljob
+        description: Datadog Cancel a Historical Job
+        call: datadog-historical.cancelhistoricaljob
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/historical-cost
+      name: api-v2-usage-historical-cost
+      description: REST surface for api-v2-usage-historical_cost.
+      operations:
+      - method: GET
+        name: gethistoricalcostbyorg
+        description: Datadog Get Historical Cost Across Your Account
+        call: datadog-historical.gethistoricalcostbyorg
+        with:
+          view: rest.view
+          start_month: rest.start_month
+          end_month: rest.end_month
+          include_connected_accounts: rest.include_connected_accounts
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-historical-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Historical. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-historical-jobs
+      description: Datadog List Historical Jobs
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-historical.listhistoricaljobs
+      with:
+        sort: tools.sort
+        filter[query]: tools.filter[query]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-run-historical-job
+      description: Datadog Run a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-historical.runhistoricaljob
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-cancel-historical-job
+      description: Datadog Cancel a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-historical.cancelhistoricaljob
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-historical-cost-across
+      description: Datadog Get Historical Cost Across Your Account
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-historical.gethistoricalcostbyorg
+      with:
+        view: tools.view
+        start_month: tools.start_month
+        end_month: tools.end_month
+        include_connected_accounts: tools.include_connected_accounts
+      outputParameters:
+      - type: object
+        mapping: $.

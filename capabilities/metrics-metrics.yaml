@@ -1,0 +1,166 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Metrics API — Metrics
+  description: 'Datadog Metrics API — Metrics. 3 operations. Lead operation: Datadog Query Scalar Data. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Metrics
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: metrics-metrics
+    baseUri: https://api.datadoghq.com
+    description: Datadog Metrics API — Metrics business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-query-scalar
+      path: /api/v2/query/scalar
+      operations:
+      - name: querymetricsscalar
+        method: POST
+        description: Datadog Query Scalar Data
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-query-timeseries
+      path: /api/v2/query/timeseries
+      operations:
+      - name: querymetricstimeseries
+        method: POST
+        description: Datadog Query Timeseries Data
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-series
+      path: /api/v2/series
+      operations:
+      - name: submitmetrics
+        method: POST
+        description: Datadog Submit Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: metrics-metrics-rest
+    port: 8080
+    description: REST adapter for Datadog Metrics API — Metrics. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/query/scalar
+      name: api-v2-query-scalar
+      description: REST surface for api-v2-query-scalar.
+      operations:
+      - method: POST
+        name: querymetricsscalar
+        description: Datadog Query Scalar Data
+        call: metrics-metrics.querymetricsscalar
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/query/timeseries
+      name: api-v2-query-timeseries
+      description: REST surface for api-v2-query-timeseries.
+      operations:
+      - method: POST
+        name: querymetricstimeseries
+        description: Datadog Query Timeseries Data
+        call: metrics-metrics.querymetricstimeseries
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/series
+      name: api-v2-series
+      description: REST surface for api-v2-series.
+      operations:
+      - method: POST
+        name: submitmetrics
+        description: Datadog Submit Metrics
+        call: metrics-metrics.submitmetrics
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: metrics-metrics-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Metrics API — Metrics. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-query-scalar-data
+      description: Datadog Query Scalar Data
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: metrics-metrics.querymetricsscalar
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-query-timeseries-data
+      description: Datadog Query Timeseries Data
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: metrics-metrics.querymetricstimeseries
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-submit-metrics
+      description: Datadog Submit Metrics
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: metrics-metrics.submitmetrics
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,167 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Metrics API — Metric Tags
+  description: 'Datadog Metrics API — Metric Tags. 4 operations. Lead operation: Datadog List Tags by Metric Name. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Metric Tags
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: metrics-metric-tags
+    baseUri: https://api.datadoghq.com
+    description: Datadog Metrics API — Metric Tags business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-metrics-metric_name-tags
+      path: /api/v2/metrics/{metric_name}/tags
+      operations:
+      - name: getmetrictagconfiguration
+        method: GET
+        description: Datadog List Tags by Metric Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createmetrictagconfiguration
+        method: POST
+        description: Datadog Create a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: updatemetrictagconfiguration
+        method: PATCH
+        description: Datadog Update a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: deletemetrictagconfiguration
+        method: DELETE
+        description: Datadog Delete a Tag Configuration
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: metrics-metric-tags-rest
+    port: 8080
+    description: REST adapter for Datadog Metrics API — Metric Tags. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v2/metrics/{metric-name}/tags
+      name: api-v2-metrics-metric-name-tags
+      description: REST surface for api-v2-metrics-metric_name-tags.
+      operations:
+      - method: GET
+        name: getmetrictagconfiguration
+        description: Datadog List Tags by Metric Name
+        call: metrics-metric-tags.getmetrictagconfiguration
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createmetrictagconfiguration
+        description: Datadog Create a Tag Configuration
+        call: metrics-metric-tags.createmetrictagconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatemetrictagconfiguration
+        description: Datadog Update a Tag Configuration
+        call: metrics-metric-tags.updatemetrictagconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deletemetrictagconfiguration
+        description: Datadog Delete a Tag Configuration
+        call: metrics-metric-tags.deletemetrictagconfiguration
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: metrics-metric-tags-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Metrics API — Metric Tags. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-list-tags-metric-name
+      description: Datadog List Tags by Metric Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: metrics-metric-tags.getmetrictagconfiguration
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-tag-configuration
+      description: Datadog Create a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: metrics-metric-tags.createmetrictagconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-tag-configuration
+      description: Datadog Update a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: metrics-metric-tags.updatemetrictagconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-tag-configuration
+      description: Datadog Delete a Tag Configuration
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: metrics-metric-tags.deletemetrictagconfiguration
+      outputParameters:
+      - type: object
+        mapping: $.

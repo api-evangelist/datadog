@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Mute
+  description: 'Datadog API — Mute. 1 operations. Lead operation: Datadog Mute or Unmute a Batch of Findings. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Mute
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-mute
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Mute business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-posture_management-findings
+      path: /api/v2/posture_management/findings
+      operations:
+      - name: mutefindings
+        method: PATCH
+        description: Datadog Mute or Unmute a Batch of Findings
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-mute-rest
+    port: 8080
+    description: REST adapter for Datadog API — Mute. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/posture-management/findings
+      name: api-v2-posture-management-findings
+      description: REST surface for api-v2-posture_management-findings.
+      operations:
+      - method: PATCH
+        name: mutefindings
+        description: Datadog Mute or Unmute a Batch of Findings
+        call: datadog-mute.mutefindings
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-mute-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Mute. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-mute-unmute-batch-findings
+      description: Datadog Mute or Unmute a Batch of Findings
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-mute.mutefindings
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

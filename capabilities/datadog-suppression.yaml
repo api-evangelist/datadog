@@ -1,0 +1,197 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Suppression
+  description: 'Datadog API — Suppression. 5 operations. Lead operation: Datadog Get All Suppression Rules. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Suppression
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-suppression
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Suppression business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-configuration-suppressions
+      path: /api/v2/security_monitoring/configuration/suppressions
+      operations:
+      - name: listsecuritymonitoringsuppressions
+        method: GET
+        description: Datadog Get All Suppression Rules
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createsecuritymonitoringsuppression
+        method: POST
+        description: Datadog Create a Suppression Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-configuration-suppressions-suppression_id
+      path: /api/v2/security_monitoring/configuration/suppressions/{suppression_id}
+      operations:
+      - name: deletesecuritymonitoringsuppression
+        method: DELETE
+        description: Datadog Delete a Suppression Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getsecuritymonitoringsuppression
+        method: GET
+        description: Datadog Get a Suppression Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updatesecuritymonitoringsuppression
+        method: PATCH
+        description: Datadog Update a Suppression Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-suppression-rest
+    port: 8080
+    description: REST adapter for Datadog API — Suppression. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/configuration/suppressions
+      name: api-v2-security-monitoring-configuration-suppressions
+      description: REST surface for api-v2-security_monitoring-configuration-suppressions.
+      operations:
+      - method: GET
+        name: listsecuritymonitoringsuppressions
+        description: Datadog Get All Suppression Rules
+        call: datadog-suppression.listsecuritymonitoringsuppressions
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createsecuritymonitoringsuppression
+        description: Datadog Create a Suppression Rule
+        call: datadog-suppression.createsecuritymonitoringsuppression
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/configuration/suppressions/{suppression-id}
+      name: api-v2-security-monitoring-configuration-suppressions-suppression-id
+      description: REST surface for api-v2-security_monitoring-configuration-suppressions-suppression_id.
+      operations:
+      - method: DELETE
+        name: deletesecuritymonitoringsuppression
+        description: Datadog Delete a Suppression Rule
+        call: datadog-suppression.deletesecuritymonitoringsuppression
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getsecuritymonitoringsuppression
+        description: Datadog Get a Suppression Rule
+        call: datadog-suppression.getsecuritymonitoringsuppression
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatesecuritymonitoringsuppression
+        description: Datadog Update a Suppression Rule
+        call: datadog-suppression.updatesecuritymonitoringsuppression
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-suppression-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Suppression. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-suppression-rules
+      description: Datadog Get All Suppression Rules
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-suppression.listsecuritymonitoringsuppressions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-suppression-rule
+      description: Datadog Create a Suppression Rule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-suppression.createsecuritymonitoringsuppression
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-suppression-rule
+      description: Datadog Delete a Suppression Rule
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-suppression.deletesecuritymonitoringsuppression
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-suppression-rule
+      description: Datadog Get a Suppression Rule
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-suppression.getsecuritymonitoringsuppression
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-suppression-rule
+      description: Datadog Update a Suppression Rule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-suppression.updatesecuritymonitoringsuppression
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

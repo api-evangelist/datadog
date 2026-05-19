@@ -1,0 +1,86 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Finding
+  description: 'Datadog API — Finding. 1 operations. Lead operation: Datadog Get a Finding. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Finding
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-finding
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Finding business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-posture_management-findings-finding_id
+      path: /api/v2/posture_management/findings/{finding_id}
+      operations:
+      - name: getfinding
+        method: GET
+        description: Datadog Get a Finding
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: finding_id
+          in: path
+          type: string
+          description: The ID of the finding.
+          required: true
+        - name: snapshot_timestamp
+          in: query
+          type: integer
+          description: Return the finding for a given snapshot of time (Unix ms).
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-finding-rest
+    port: 8080
+    description: REST adapter for Datadog API — Finding. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/posture-management/findings/{finding-id}
+      name: api-v2-posture-management-findings-finding-id
+      description: REST surface for api-v2-posture_management-findings-finding_id.
+      operations:
+      - method: GET
+        name: getfinding
+        description: Datadog Get a Finding
+        call: datadog-finding.getfinding
+        with:
+          finding_id: rest.finding_id
+          snapshot_timestamp: rest.snapshot_timestamp
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-finding-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Finding. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-finding
+      description: Datadog Get a Finding
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-finding.getfinding
+      with:
+        finding_id: tools.finding_id
+        snapshot_timestamp: tools.snapshot_timestamp
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,144 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Reports
+  description: 'Datadog API — Reports. 3 operations. Lead operation: Datadog Create a New Slo Report. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Reports
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-reports
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Reports business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-slo-report
+      path: /api/v2/slo/report
+      operations:
+      - name: createsloreportjob
+        method: POST
+        description: Datadog Create a New Slo Report
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-slo-report-report_id-download
+      path: /api/v2/slo/report/{report_id}/download
+      operations:
+      - name: getsloreport
+        method: GET
+        description: Datadog Get Slo Report
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-slo-report-report_id-status
+      path: /api/v2/slo/report/{report_id}/status
+      operations:
+      - name: getsloreportjobstatus
+        method: GET
+        description: Datadog Get Slo Report Status
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-reports-rest
+    port: 8080
+    description: REST adapter for Datadog API — Reports. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/slo/report
+      name: api-v2-slo-report
+      description: REST surface for api-v2-slo-report.
+      operations:
+      - method: POST
+        name: createsloreportjob
+        description: Datadog Create a New Slo Report
+        call: datadog-reports.createsloreportjob
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/slo/report/{report-id}/download
+      name: api-v2-slo-report-report-id-download
+      description: REST surface for api-v2-slo-report-report_id-download.
+      operations:
+      - method: GET
+        name: getsloreport
+        description: Datadog Get Slo Report
+        call: datadog-reports.getsloreport
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/slo/report/{report-id}/status
+      name: api-v2-slo-report-report-id-status
+      description: REST surface for api-v2-slo-report-report_id-status.
+      operations:
+      - method: GET
+        name: getsloreportjobstatus
+        description: Datadog Get Slo Report Status
+        call: datadog-reports.getsloreportjobstatus
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-reports-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Reports. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-new-slo-report
+      description: Datadog Create a New Slo Report
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-reports.createsloreportjob
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-slo-report
+      description: Datadog Get Slo Report
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-reports.getsloreport
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-slo-report-status
+      description: Datadog Get Slo Report Status
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-reports.getsloreportjobstatus
+      outputParameters:
+      - type: object
+        mapping: $.

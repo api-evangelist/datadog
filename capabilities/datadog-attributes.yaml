@@ -1,0 +1,94 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Attributes
+  description: 'Datadog API — Attributes. 1 operations. Lead operation: Datadog Update a User''s Membership Attributes on
+    a Team. Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Attributes
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-attributes
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Attributes business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-team-team_id-memberships-user_id
+      path: /api/v2/team/{team_id}/memberships/{user_id}
+      operations:
+      - name: updateteammembership
+        method: PATCH
+        description: Datadog Update a User's Membership Attributes on a Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: user_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-attributes-rest
+    port: 8080
+    description: REST adapter for Datadog API — Attributes. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/team/{team-id}/memberships/{user-id}
+      name: api-v2-team-team-id-memberships-user-id
+      description: REST surface for api-v2-team-team_id-memberships-user_id.
+      operations:
+      - method: PATCH
+        name: updateteammembership
+        description: Datadog Update a User's Membership Attributes on a Team
+        call: datadog-attributes.updateteammembership
+        with:
+          team_id: rest.team_id
+          user_id: rest.user_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-attributes-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Attributes. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-update-user-s-membership-attributes
+      description: Datadog Update a User's Membership Attributes on a Team
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-attributes.updateteammembership
+      with:
+        team_id: tools.team_id
+        user_id: tools.user_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

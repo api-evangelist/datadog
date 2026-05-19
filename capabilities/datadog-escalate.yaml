@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Escalate
+  description: 'Datadog API — Escalate. 1 operations. Lead operation: Datadog Escalate On-call Page. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Escalate
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-escalate
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Escalate business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-on-call-pages-page_id-escalate
+      path: /api/v2/on-call/pages/{page_id}/escalate
+      operations:
+      - name: escalateoncallpage
+        method: POST
+        description: Datadog Escalate On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page_id
+          in: path
+          type: string
+          description: The page ID.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-escalate-rest
+    port: 8080
+    description: REST adapter for Datadog API — Escalate. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/on-call/pages/{page-id}/escalate
+      name: api-v2-on-call-pages-page-id-escalate
+      description: REST surface for api-v2-on-call-pages-page_id-escalate.
+      operations:
+      - method: POST
+        name: escalateoncallpage
+        description: Datadog Escalate On-call Page
+        call: datadog-escalate.escalateoncallpage
+        with:
+          page_id: rest.page_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-escalate-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Escalate. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-escalate-call-page
+      description: Datadog Escalate On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-escalate.escalateoncallpage
+      with:
+        page_id: tools.page_id
+      outputParameters:
+      - type: object
+        mapping: $.

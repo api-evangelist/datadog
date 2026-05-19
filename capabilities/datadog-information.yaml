@@ -1,0 +1,134 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Information
+  description: 'Datadog API — Information. 3 operations. Lead operation: Datadog Get Channel Information by Name. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Information
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-information
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Information business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-ms-teams-configuration-channel-tenant_name-team_name-channel_
+      path: /api/v2/integration/ms-teams/configuration/channel/{tenant_name}/{team_name}/{channel_name}
+      operations:
+      - name: getchannelbyname
+        method: GET
+        description: Datadog Get Channel Information by Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-integration-ms-teams-configuration-tenant-based-handles-handle_id
+      path: /api/v2/integration/ms-teams/configuration/tenant-based-handles/{handle_id}
+      operations:
+      - name: gettenantbasedhandle
+        method: GET
+        description: Datadog Get Tenant-based Handle Information
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle_id
+      path: /api/v2/integration/ms-teams/configuration/workflows-webhook-handles/{handle_id}
+      operations:
+      - name: getworkflowswebhookhandle
+        method: GET
+        description: Datadog Get Workflows Webhook Handle Information
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-information-rest
+    port: 8080
+    description: REST adapter for Datadog API — Information. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/ms-teams/configuration/channel/{tenant-name}/{team-name}/{channel-name}
+      name: api-v2-integration-ms-teams-configuration-channel-tenant-name-team-name-channel
+      description: REST surface for api-v2-integration-ms-teams-configuration-channel-tenant_name-team_name-channel_.
+      operations:
+      - method: GET
+        name: getchannelbyname
+        description: Datadog Get Channel Information by Name
+        call: datadog-information.getchannelbyname
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integration/ms-teams/configuration/tenant-based-handles/{handle-id}
+      name: api-v2-integration-ms-teams-configuration-tenant-based-handles-handle-id
+      description: REST surface for api-v2-integration-ms-teams-configuration-tenant-based-handles-handle_id.
+      operations:
+      - method: GET
+        name: gettenantbasedhandle
+        description: Datadog Get Tenant-based Handle Information
+        call: datadog-information.gettenantbasedhandle
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integration/ms-teams/configuration/workflows-webhook-handles/{handle-id}
+      name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle-id
+      description: REST surface for api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle_id.
+      operations:
+      - method: GET
+        name: getworkflowswebhookhandle
+        description: Datadog Get Workflows Webhook Handle Information
+        call: datadog-information.getworkflowswebhookhandle
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-information-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Information. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-channel-information-name
+      description: Datadog Get Channel Information by Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-information.getchannelbyname
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-tenant-based-handle
+      description: Datadog Get Tenant-based Handle Information
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-information.gettenantbasedhandle
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-workflows-webhook-handle
+      description: Datadog Get Workflows Webhook Handle Information
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-information.getworkflowswebhookhandle
+      outputParameters:
+      - type: object
+        mapping: $.

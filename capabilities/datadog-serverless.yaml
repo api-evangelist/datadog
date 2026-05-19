@@ -1,0 +1,129 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Serverless
+  description: 'Datadog API — Serverless. 2 operations. Lead operation: Datadog Get the Csm Serverless Coverage Analysis.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Serverless
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-serverless
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Serverless business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-csm-onboarding-coverage_analysis-serverless
+      path: /api/v2/csm/onboarding/coverage_analysis/serverless
+      operations:
+      - name: getcsmserverlesscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Serverless Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-csm-onboarding-serverless-agents
+      path: /api/v2/csm/onboarding/serverless/agents
+      operations:
+      - name: listallcsmserverlessagents
+        method: GET
+        description: Datadog Get All Csm Serverless Agents
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page
+          in: query
+          type: integer
+          description: The page index for pagination (zero-based).
+        - name: size
+          in: query
+          type: integer
+          description: The number of items to include in a single page.
+        - name: query
+          in: query
+          type: string
+          description: A search query string to filter results (for example, `hostname:COMP-T2H4J27423`).
+        - name: order_direction
+          in: query
+          type: string
+          description: The sort direction for results. Use `asc` for ascending or `desc` for descending.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-serverless-rest
+    port: 8080
+    description: REST adapter for Datadog API — Serverless. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/serverless
+      name: api-v2-csm-onboarding-coverage-analysis-serverless
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-serverless.
+      operations:
+      - method: GET
+        name: getcsmserverlesscoverageanalysis
+        description: Datadog Get the Csm Serverless Coverage Analysis
+        call: datadog-serverless.getcsmserverlesscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/csm/onboarding/serverless/agents
+      name: api-v2-csm-onboarding-serverless-agents
+      description: REST surface for api-v2-csm-onboarding-serverless-agents.
+      operations:
+      - method: GET
+        name: listallcsmserverlessagents
+        description: Datadog Get All Csm Serverless Agents
+        call: datadog-serverless.listallcsmserverlessagents
+        with:
+          page: rest.page
+          size: rest.size
+          query: rest.query
+          order_direction: rest.order_direction
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-serverless-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Serverless. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-csm-serverless-coverage
+      description: Datadog Get the Csm Serverless Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-serverless.getcsmserverlesscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-csm-serverless
+      description: Datadog Get All Csm Serverless Agents
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-serverless.listallcsmserverlessagents
+      with:
+        page: tools.page
+        size: tools.size
+        query: tools.query
+        order_direction: tools.order_direction
+      outputParameters:
+      - type: object
+        mapping: $.

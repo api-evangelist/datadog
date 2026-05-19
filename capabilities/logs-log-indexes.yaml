@@ -1,0 +1,104 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Logs API — Log Indexes
+  description: 'Datadog Logs API — Log Indexes. 2 operations. Lead operation: Datadog List Log Indexes. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Log Indexes
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: logs-log-indexes
+    baseUri: https://api.datadoghq.com
+    description: Datadog Logs API — Log Indexes business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v1-logs-config-indexes
+      path: /api/v1/logs/config/indexes
+      operations:
+      - name: listlogindexes
+        method: GET
+        description: Datadog List Log Indexes
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v1-logs-config-indexes-name
+      path: /api/v1/logs/config/indexes/{name}
+      operations:
+      - name: getlogindex
+        method: GET
+        description: Datadog Get a Log Index
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: logs-log-indexes-rest
+    port: 8080
+    description: REST adapter for Datadog Logs API — Log Indexes. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v1/logs/config/indexes
+      name: api-v1-logs-config-indexes
+      description: REST surface for api-v1-logs-config-indexes.
+      operations:
+      - method: GET
+        name: listlogindexes
+        description: Datadog List Log Indexes
+        call: logs-log-indexes.listlogindexes
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v1/logs/config/indexes/{name}
+      name: api-v1-logs-config-indexes-name
+      description: REST surface for api-v1-logs-config-indexes-name.
+      operations:
+      - method: GET
+        name: getlogindex
+        description: Datadog Get a Log Index
+        call: logs-log-indexes.getlogindex
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: logs-log-indexes-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Logs API — Log Indexes. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-list-log-indexes
+      description: Datadog List Log Indexes
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: logs-log-indexes.listlogindexes
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-log-index
+      description: Datadog Get a Log Index
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: logs-log-indexes.getlogindex
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,224 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Cloudflare
+  description: 'Datadog API — Cloudflare. 5 operations. Lead operation: Datadog List Cloudflare Accounts. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Cloudflare
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-cloudflare
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Cloudflare business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integrations-cloudflare-accounts
+      path: /api/v2/integrations/cloudflare/accounts
+      operations:
+      - name: listcloudflareaccounts
+        method: GET
+        description: Datadog List Cloudflare Accounts
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createcloudflareaccount
+        method: POST
+        description: Datadog Add Cloudflare Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-integrations-cloudflare-accounts-account_id
+      path: /api/v2/integrations/cloudflare/accounts/{account_id}
+      operations:
+      - name: deletecloudflareaccount
+        method: DELETE
+        description: Datadog Delete Cloudflare Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: account_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: getcloudflareaccount
+        method: GET
+        description: Datadog Get Cloudflare Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: account_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: updatecloudflareaccount
+        method: PATCH
+        description: Datadog Update Cloudflare Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: account_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-cloudflare-rest
+    port: 8080
+    description: REST adapter for Datadog API — Cloudflare. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integrations/cloudflare/accounts
+      name: api-v2-integrations-cloudflare-accounts
+      description: REST surface for api-v2-integrations-cloudflare-accounts.
+      operations:
+      - method: GET
+        name: listcloudflareaccounts
+        description: Datadog List Cloudflare Accounts
+        call: datadog-cloudflare.listcloudflareaccounts
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createcloudflareaccount
+        description: Datadog Add Cloudflare Account
+        call: datadog-cloudflare.createcloudflareaccount
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integrations/cloudflare/accounts/{account-id}
+      name: api-v2-integrations-cloudflare-accounts-account-id
+      description: REST surface for api-v2-integrations-cloudflare-accounts-account_id.
+      operations:
+      - method: DELETE
+        name: deletecloudflareaccount
+        description: Datadog Delete Cloudflare Account
+        call: datadog-cloudflare.deletecloudflareaccount
+        with:
+          account_id: rest.account_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getcloudflareaccount
+        description: Datadog Get Cloudflare Account
+        call: datadog-cloudflare.getcloudflareaccount
+        with:
+          account_id: rest.account_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatecloudflareaccount
+        description: Datadog Update Cloudflare Account
+        call: datadog-cloudflare.updatecloudflareaccount
+        with:
+          account_id: rest.account_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-cloudflare-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Cloudflare. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-cloudflare-accounts
+      description: Datadog List Cloudflare Accounts
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-cloudflare.listcloudflareaccounts
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-add-cloudflare-account
+      description: Datadog Add Cloudflare Account
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-cloudflare.createcloudflareaccount
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-cloudflare-account
+      description: Datadog Delete Cloudflare Account
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-cloudflare.deletecloudflareaccount
+      with:
+        account_id: tools.account_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-cloudflare-account
+      description: Datadog Get Cloudflare Account
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-cloudflare.getcloudflareaccount
+      with:
+        account_id: tools.account_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-cloudflare-account
+      description: Datadog Update Cloudflare Account
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-cloudflare.updatecloudflareaccount
+      with:
+        account_id: tools.account_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

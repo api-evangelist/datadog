@@ -1,0 +1,79 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Aggregations
+  description: 'Datadog API — Aggregations. 1 operations. Lead operation: Datadog List Active Tags and Aggregations. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Aggregations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-aggregations
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Aggregations business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-metrics-metric_name-active-configurations
+      path: /api/v2/metrics/{metric_name}/active-configurations
+      operations:
+      - name: listactivemetricconfigurations
+        method: GET
+        description: Datadog List Active Tags and Aggregations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: window[seconds]
+          in: query
+          type: integer
+          description: The number of seconds of look back (from now).
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-aggregations-rest
+    port: 8080
+    description: REST adapter for Datadog API — Aggregations. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/metrics/{metric-name}/active-configurations
+      name: api-v2-metrics-metric-name-active-configurations
+      description: REST surface for api-v2-metrics-metric_name-active-configurations.
+      operations:
+      - method: GET
+        name: listactivemetricconfigurations
+        description: Datadog List Active Tags and Aggregations
+        call: datadog-aggregations.listactivemetricconfigurations
+        with:
+          window[seconds]: rest.window[seconds]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-aggregations-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Aggregations. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-active-tags-and
+      description: Datadog List Active Tags and Aggregations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-aggregations.listactivemetricconfigurations
+      with:
+        window[seconds]: tools.window[seconds]
+      outputParameters:
+      - type: object
+        mapping: $.

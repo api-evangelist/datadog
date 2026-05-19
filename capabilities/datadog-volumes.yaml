@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Volumes
+  description: 'Datadog API — Volumes. 1 operations. Lead operation: Datadog List Distinct Metric Volumes by Metric Name.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Volumes
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-volumes
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Volumes business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-metrics-metric_name-volumes
+      path: /api/v2/metrics/{metric_name}/volumes
+      operations:
+      - name: listvolumesbymetricname
+        method: GET
+        description: Datadog List Distinct Metric Volumes by Metric Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-volumes-rest
+    port: 8080
+    description: REST adapter for Datadog API — Volumes. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/metrics/{metric-name}/volumes
+      name: api-v2-metrics-metric-name-volumes
+      description: REST surface for api-v2-metrics-metric_name-volumes.
+      operations:
+      - method: GET
+        name: listvolumesbymetricname
+        description: Datadog List Distinct Metric Volumes by Metric Name
+        call: datadog-volumes.listvolumesbymetricname
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-volumes-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Volumes. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-distinct-metric-volumes
+      description: Datadog List Distinct Metric Volumes by Metric Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-volumes.listvolumesbymetricname
+      outputParameters:
+      - type: object
+        mapping: $.

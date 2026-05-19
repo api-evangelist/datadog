@@ -1,0 +1,86 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Invocations
+  description: 'Datadog API — Invocations. 1 operations. Lead operation: Datadog Get Hourly Usage for Lambda Traced Invocations.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Invocations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-invocations
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Invocations business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-usage-lambda_traced_invocations
+      path: /api/v2/usage/lambda_traced_invocations
+      operations:
+      - name: getusagelambdatracedinvocations
+        method: GET
+        description: Datadog Get Hourly Usage for Lambda Traced Invocations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-invocations-rest
+    port: 8080
+    description: REST adapter for Datadog API — Invocations. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/usage/lambda-traced-invocations
+      name: api-v2-usage-lambda-traced-invocations
+      description: REST surface for api-v2-usage-lambda_traced_invocations.
+      operations:
+      - method: GET
+        name: getusagelambdatracedinvocations
+        description: Datadog Get Hourly Usage for Lambda Traced Invocations
+        call: datadog-invocations.getusagelambdatracedinvocations
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-invocations-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Invocations. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-hourly-usage-lambda
+      description: Datadog Get Hourly Usage for Lambda Traced Invocations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-invocations.getusagelambdatracedinvocations
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.

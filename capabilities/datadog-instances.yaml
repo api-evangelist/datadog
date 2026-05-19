@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Instances
+  description: 'Datadog API — Instances. 1 operations. Lead operation: Datadog List Workflow Instances. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Instances
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-instances
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Instances business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-workflows-workflow_id-instances
+      path: /api/v2/workflows/{workflow_id}/instances
+      operations:
+      - name: listworkflowinstances
+        method: GET
+        description: Datadog List Workflow Instances
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-instances-rest
+    port: 8080
+    description: REST adapter for Datadog API — Instances. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/workflows/{workflow-id}/instances
+      name: api-v2-workflows-workflow-id-instances
+      description: REST surface for api-v2-workflows-workflow_id-instances.
+      operations:
+      - method: GET
+        name: listworkflowinstances
+        description: Datadog List Workflow Instances
+        call: datadog-instances.listworkflowinstances
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-instances-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Instances. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-workflow-instances
+      description: Datadog List Workflow Instances
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-instances.listworkflowinstances
+      outputParameters:
+      - type: object
+        mapping: $.

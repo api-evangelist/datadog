@@ -1,0 +1,206 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Signal
+  description: 'Datadog API — Signal. 4 operations. Lead operation: Datadog Modify the Triage Assignee of a Security Signal.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Signal
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-signal
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Signal business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-signals-signal_id-assignee
+      path: /api/v2/security_monitoring/signals/{signal_id}/assignee
+      operations:
+      - name: editsecuritymonitoringsignalassignee
+        method: PATCH
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-signals-signal_id-incidents
+      path: /api/v2/security_monitoring/signals/{signal_id}/incidents
+      operations:
+      - name: editsecuritymonitoringsignalincidents
+        method: PATCH
+        description: Datadog Change the Related Incidents of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-signals-signal_id-state
+      path: /api/v2/security_monitoring/signals/{signal_id}/state
+      operations:
+      - name: editsecuritymonitoringsignalstate
+        method: PATCH
+        description: Datadog Change the Triage State of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-siem-historical-detections-jobs-signal_convert
+      path: /api/v2/siem-historical-detections/jobs/signal_convert
+      operations:
+      - name: convertjobresulttosignal
+        method: POST
+        description: Datadog Convert a Job Result to a Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-signal-rest
+    port: 8080
+    description: REST adapter for Datadog API — Signal. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/assignee
+      name: api-v2-security-monitoring-signals-signal-id-assignee
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-assignee.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalassignee
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        call: datadog-signal.editsecuritymonitoringsignalassignee
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/incidents
+      name: api-v2-security-monitoring-signals-signal-id-incidents
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-incidents.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalincidents
+        description: Datadog Change the Related Incidents of a Security Signal
+        call: datadog-signal.editsecuritymonitoringsignalincidents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/state
+      name: api-v2-security-monitoring-signals-signal-id-state
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-state.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalstate
+        description: Datadog Change the Triage State of a Security Signal
+        call: datadog-signal.editsecuritymonitoringsignalstate
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/signal-convert
+      name: api-v2-siem-historical-detections-jobs-signal-convert
+      description: REST surface for api-v2-siem-historical-detections-jobs-signal_convert.
+      operations:
+      - method: POST
+        name: convertjobresulttosignal
+        description: Datadog Convert a Job Result to a Signal
+        call: datadog-signal.convertjobresulttosignal
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-signal-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Signal. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-modify-triage-assignee-security
+      description: Datadog Modify the Triage Assignee of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-signal.editsecuritymonitoringsignalassignee
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-change-related-incidents-security
+      description: Datadog Change the Related Incidents of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-signal.editsecuritymonitoringsignalincidents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-change-triage-state-security
+      description: Datadog Change the Triage State of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-signal.editsecuritymonitoringsignalstate
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-convert-job-result-signal
+      description: Datadog Convert a Job Result to a Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-signal.convertjobresulttosignal
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

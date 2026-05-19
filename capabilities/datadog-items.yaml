@@ -1,0 +1,206 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Items
+  description: 'Datadog API — Items. 4 operations. Lead operation: Datadog Delete Items from a Dashboard List. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Items
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-items
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Items business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-dashboard-lists-manual-dashboard_list_id-dashboards
+      path: /api/v2/dashboard/lists/manual/{dashboard_list_id}/dashboards
+      operations:
+      - name: deletedashboardlistitems
+        method: DELETE
+        description: Datadog Delete Items from a Dashboard List
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: dashboard_list_id
+          in: path
+          type: integer
+          description: ID of the dashboard list to delete items from.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: getdashboardlistitems
+        method: GET
+        description: Datadog Get Items of a Dashboard List
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: dashboard_list_id
+          in: path
+          type: integer
+          description: ID of the dashboard list to get items from.
+          required: true
+      - name: createdashboardlistitems
+        method: POST
+        description: Datadog Add Items to a Dashboard List
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: dashboard_list_id
+          in: path
+          type: integer
+          description: ID of the dashboard list to add items to.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: updatedashboardlistitems
+        method: PUT
+        description: Datadog Update Items of a Dashboard List
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: dashboard_list_id
+          in: path
+          type: integer
+          description: ID of the dashboard list to update items from.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-items-rest
+    port: 8080
+    description: REST adapter for Datadog API — Items. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/dashboard/lists/manual/{dashboard-list-id}/dashboards
+      name: api-v2-dashboard-lists-manual-dashboard-list-id-dashboards
+      description: REST surface for api-v2-dashboard-lists-manual-dashboard_list_id-dashboards.
+      operations:
+      - method: DELETE
+        name: deletedashboardlistitems
+        description: Datadog Delete Items from a Dashboard List
+        call: datadog-items.deletedashboardlistitems
+        with:
+          dashboard_list_id: rest.dashboard_list_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getdashboardlistitems
+        description: Datadog Get Items of a Dashboard List
+        call: datadog-items.getdashboardlistitems
+        with:
+          dashboard_list_id: rest.dashboard_list_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createdashboardlistitems
+        description: Datadog Add Items to a Dashboard List
+        call: datadog-items.createdashboardlistitems
+        with:
+          dashboard_list_id: rest.dashboard_list_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updatedashboardlistitems
+        description: Datadog Update Items of a Dashboard List
+        call: datadog-items.updatedashboardlistitems
+        with:
+          dashboard_list_id: rest.dashboard_list_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-items-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Items. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-delete-items-dashboard-list
+      description: Datadog Delete Items from a Dashboard List
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-items.deletedashboardlistitems
+      with:
+        dashboard_list_id: tools.dashboard_list_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-items-dashboard-list
+      description: Datadog Get Items of a Dashboard List
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-items.getdashboardlistitems
+      with:
+        dashboard_list_id: tools.dashboard_list_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-add-items-dashboard-list
+      description: Datadog Add Items to a Dashboard List
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-items.createdashboardlistitems
+      with:
+        dashboard_list_id: tools.dashboard_list_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-items-dashboard-list
+      description: Datadog Update Items of a Dashboard List
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-items.updatedashboardlistitems
+      with:
+        dashboard_list_id: tools.dashboard_list_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

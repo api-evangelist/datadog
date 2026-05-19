@@ -1,0 +1,227 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Link
+  description: 'Datadog API — Link. 4 operations. Lead operation: Datadog Create a Team Link. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Link
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-link
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Link business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-team-team_id-links
+      path: /api/v2/team/{team_id}/links
+      operations:
+      - name: createteamlink
+        method: POST
+        description: Datadog Create a Team Link
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-team-team_id-links-link_id
+      path: /api/v2/team/{team_id}/links/{link_id}
+      operations:
+      - name: deleteteamlink
+        method: DELETE
+        description: Datadog Remove a Team Link
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: link_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: getteamlink
+        method: GET
+        description: Datadog Get a Team Link
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: link_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: updateteamlink
+        method: PATCH
+        description: Datadog Update a Team Link
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: link_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-link-rest
+    port: 8080
+    description: REST adapter for Datadog API — Link. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/team/{team-id}/links
+      name: api-v2-team-team-id-links
+      description: REST surface for api-v2-team-team_id-links.
+      operations:
+      - method: POST
+        name: createteamlink
+        description: Datadog Create a Team Link
+        call: datadog-link.createteamlink
+        with:
+          team_id: rest.team_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}/links/{link-id}
+      name: api-v2-team-team-id-links-link-id
+      description: REST surface for api-v2-team-team_id-links-link_id.
+      operations:
+      - method: DELETE
+        name: deleteteamlink
+        description: Datadog Remove a Team Link
+        call: datadog-link.deleteteamlink
+        with:
+          team_id: rest.team_id
+          link_id: rest.link_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getteamlink
+        description: Datadog Get a Team Link
+        call: datadog-link.getteamlink
+        with:
+          team_id: rest.team_id
+          link_id: rest.link_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateteamlink
+        description: Datadog Update a Team Link
+        call: datadog-link.updateteamlink
+        with:
+          team_id: rest.team_id
+          link_id: rest.link_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-link-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Link. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-team-link
+      description: Datadog Create a Team Link
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-link.createteamlink
+      with:
+        team_id: tools.team_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-team-link
+      description: Datadog Remove a Team Link
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-link.deleteteamlink
+      with:
+        team_id: tools.team_id
+        link_id: tools.link_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-team-link
+      description: Datadog Get a Team Link
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-link.getteamlink
+      with:
+        team_id: tools.team_id
+        link_id: tools.link_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-team-link
+      description: Datadog Update a Team Link
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-link.updateteamlink
+      with:
+        team_id: tools.team_id
+        link_id: tools.link_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

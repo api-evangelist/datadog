@@ -1,0 +1,162 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Projects
+  description: 'Datadog API — Projects. 4 operations. Lead operation: Datadog Get All Projects. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Projects
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-projects
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Projects business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases-projects
+      path: /api/v2/cases/projects
+      operations:
+      - name: getprojects
+        method: GET
+        description: Datadog Get All Projects
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createproject
+        method: POST
+        description: Datadog Create a Project
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-cases-projects-project_id
+      path: /api/v2/cases/projects/{project_id}
+      operations:
+      - name: deleteproject
+        method: DELETE
+        description: Datadog Remove a Project
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getproject
+        method: GET
+        description: Datadog Get the Details of a Project
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-projects-rest
+    port: 8080
+    description: REST adapter for Datadog API — Projects. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cases/projects
+      name: api-v2-cases-projects
+      description: REST surface for api-v2-cases-projects.
+      operations:
+      - method: GET
+        name: getprojects
+        description: Datadog Get All Projects
+        call: datadog-projects.getprojects
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createproject
+        description: Datadog Create a Project
+        call: datadog-projects.createproject
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/cases/projects/{project-id}
+      name: api-v2-cases-projects-project-id
+      description: REST surface for api-v2-cases-projects-project_id.
+      operations:
+      - method: DELETE
+        name: deleteproject
+        description: Datadog Remove a Project
+        call: datadog-projects.deleteproject
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getproject
+        description: Datadog Get the Details of a Project
+        call: datadog-projects.getproject
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-projects-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Projects. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-projects
+      description: Datadog Get All Projects
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-projects.getprojects
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-project
+      description: Datadog Create a Project
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-projects.createproject
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-project
+      description: Datadog Remove a Project
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-projects.deleteproject
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-details-project
+      description: Datadog Get the Details of a Project
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-projects.getproject
+      outputParameters:
+      - type: object
+        mapping: $.

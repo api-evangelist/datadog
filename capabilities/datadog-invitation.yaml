@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Invitation
+  description: 'Datadog API — Invitation. 2 operations. Lead operation: Datadog Send Invitation Emails. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Invitation
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-invitation
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Invitation business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-user_invitations
+      path: /api/v2/user_invitations
+      operations:
+      - name: sendinvitations
+        method: POST
+        description: Datadog Send Invitation Emails
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-user_invitations-user_invitation_uuid
+      path: /api/v2/user_invitations/{user_invitation_uuid}
+      operations:
+      - name: getinvitation
+        method: GET
+        description: Datadog Get a User Invitation
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: user_invitation_uuid
+          in: path
+          type: string
+          description: The UUID of the user invitation.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-invitation-rest
+    port: 8080
+    description: REST adapter for Datadog API — Invitation. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/user-invitations
+      name: api-v2-user-invitations
+      description: REST surface for api-v2-user_invitations.
+      operations:
+      - method: POST
+        name: sendinvitations
+        description: Datadog Send Invitation Emails
+        call: datadog-invitation.sendinvitations
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/user-invitations/{user-invitation-uuid}
+      name: api-v2-user-invitations-user-invitation-uuid
+      description: REST surface for api-v2-user_invitations-user_invitation_uuid.
+      operations:
+      - method: GET
+        name: getinvitation
+        description: Datadog Get a User Invitation
+        call: datadog-invitation.getinvitation
+        with:
+          user_invitation_uuid: rest.user_invitation_uuid
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-invitation-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Invitation. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-send-invitation-emails
+      description: Datadog Send Invitation Emails
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-invitation.sendinvitations
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-user-invitation
+      description: Datadog Get a User Invitation
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-invitation.getinvitation
+      with:
+        user_invitation_uuid: tools.user_invitation_uuid
+      outputParameters:
+      - type: object
+        mapping: $.

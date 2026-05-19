@@ -1,0 +1,79 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Integrations
+  description: 'Datadog API — Integrations. 1 operations. Lead operation: Datadog List All Aws Integrations. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Integrations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-integrations
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Integrations business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-aws-accounts
+      path: /api/v2/integration/aws/accounts
+      operations:
+      - name: listawsaccounts
+        method: GET
+        description: Datadog List All Aws Integrations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: aws_account_id
+          in: query
+          type: string
+          description: Optional query parameter to filter accounts by AWS Account ID. If not provided, all accounts are returned.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-integrations-rest
+    port: 8080
+    description: REST adapter for Datadog API — Integrations. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/aws/accounts
+      name: api-v2-integration-aws-accounts
+      description: REST surface for api-v2-integration-aws-accounts.
+      operations:
+      - method: GET
+        name: listawsaccounts
+        description: Datadog List All Aws Integrations
+        call: datadog-integrations.listawsaccounts
+        with:
+          aws_account_id: rest.aws_account_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-integrations-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Integrations. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-all-aws-integrations
+      description: Datadog List All Aws Integrations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-integrations.listawsaccounts
+      with:
+        aws_account_id: tools.aws_account_id
+      outputParameters:
+      - type: object
+        mapping: $.

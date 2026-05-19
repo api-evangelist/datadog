@@ -1,0 +1,133 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Family
+  description: 'Datadog API — Family. 1 operations. Lead operation: Datadog Get Hourly Usage by Product Family. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Family
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-family
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Family business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-usage-hourly_usage
+      path: /api/v2/usage/hourly_usage
+      operations:
+      - name: gethourlyusage
+        method: GET
+        description: Datadog Get Hourly Usage by Product Family
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[timestamp][start]
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage beginning at this hour.'
+          required: true
+        - name: filter[timestamp][end]
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage ending **before** this
+            hour.'
+        - name: filter[product_families]
+          in: query
+          type: string
+          description: Comma separated list of product families to retrieve. Available families are `all`, `analyzed_logs`,
+          required: true
+        - name: filter[include_descendants]
+          in: query
+          type: boolean
+          description: Include child org usage in the response. Defaults to false.
+        - name: filter[include_connected_accounts]
+          in: query
+          type: boolean
+          description: Boolean to specify whether to include accounts connected to the current account as partner customers
+            in the Datadog partner network program. Defaults to false.
+        - name: filter[include_breakdown]
+          in: query
+          type: boolean
+          description: Include breakdown of usage by subcategories where applicable (for product family logs only). Defaults
+            to false.
+        - name: filter[versions]
+          in: query
+          type: string
+          description: Comma separated list of product family versions to use in the format `product_family:version`. For
+            example,
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of results to return (between 1 and 500) - defaults to 500 if limit not specified.
+        - name: page[next_record_id]
+          in: query
+          type: string
+          description: List following results with a next_record_id provided in the previous query.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-family-rest
+    port: 8080
+    description: REST adapter for Datadog API — Family. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/usage/hourly-usage
+      name: api-v2-usage-hourly-usage
+      description: REST surface for api-v2-usage-hourly_usage.
+      operations:
+      - method: GET
+        name: gethourlyusage
+        description: Datadog Get Hourly Usage by Product Family
+        call: datadog-family.gethourlyusage
+        with:
+          filter[timestamp][start]: rest.filter[timestamp][start]
+          filter[timestamp][end]: rest.filter[timestamp][end]
+          filter[product_families]: rest.filter[product_families]
+          filter[include_descendants]: rest.filter[include_descendants]
+          filter[include_connected_accounts]: rest.filter[include_connected_accounts]
+          filter[include_breakdown]: rest.filter[include_breakdown]
+          filter[versions]: rest.filter[versions]
+          page[limit]: rest.page[limit]
+          page[next_record_id]: rest.page[next_record_id]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-family-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Family. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-hourly-usage-product
+      description: Datadog Get Hourly Usage by Product Family
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-family.gethourlyusage
+      with:
+        filter[timestamp][start]: tools.filter[timestamp][start]
+        filter[timestamp][end]: tools.filter[timestamp][end]
+        filter[product_families]: tools.filter[product_families]
+        filter[include_descendants]: tools.filter[include_descendants]
+        filter[include_connected_accounts]: tools.filter[include_connected_accounts]
+        filter[include_breakdown]: tools.filter[include_breakdown]
+        filter[versions]: tools.filter[versions]
+        page[limit]: tools.page[limit]
+        page[next_record_id]: tools.page[next_record_id]
+      outputParameters:
+      - type: object
+        mapping: $.

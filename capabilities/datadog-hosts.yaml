@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Hosts
+  description: 'Datadog API — Hosts. 1 operations. Lead operation: Datadog Get the Csm Hosts and Containers Coverage Analysis.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Hosts
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-hosts
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Hosts business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-csm-onboarding-coverage_analysis-hosts_and_containers
+      path: /api/v2/csm/onboarding/coverage_analysis/hosts_and_containers
+      operations:
+      - name: getcsmhostsandcontainerscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-hosts-rest
+    port: 8080
+    description: REST adapter for Datadog API — Hosts. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/hosts-and-containers
+      name: api-v2-csm-onboarding-coverage-analysis-hosts-and-containers
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-hosts_and_containers.
+      operations:
+      - method: GET
+        name: getcsmhostsandcontainerscoverageanalysis
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        call: datadog-hosts.getcsmhostsandcontainerscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-hosts-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Hosts. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-csm-hosts-and
+      description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-hosts.getcsmhostsandcontainerscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.

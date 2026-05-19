@@ -1,0 +1,202 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Assets
+  description: 'Datadog API — Assets. 2 operations. Lead operation: Datadog Related Assets to a Metric. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Assets
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-assets
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Assets business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-metrics-metric_name-assets
+      path: /api/v2/metrics/{metric_name}/assets
+      operations:
+      - name: listmetricassets
+        method: GET
+        description: Datadog Related Assets to a Metric
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-security-assets
+      path: /api/v2/security/assets
+      operations:
+      - name: listvulnerableassets
+        method: GET
+        description: Datadog List Vulnerable Assets
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page[token]
+          in: query
+          type: string
+          description: Its value must come from the `links` section of the response of the first request. Do not manually
+            edit it.
+        - name: page[number]
+          in: query
+          type: integer
+          description: The page number to be retrieved. It should be equal or greater than `1`
+        - name: filter[name]
+          in: query
+          type: string
+          description: Filter by name.
+        - name: filter[type]
+          in: query
+          type: string
+          description: Filter by type.
+        - name: filter[version.first]
+          in: query
+          type: string
+          description: Filter by the first version of the asset since it has been vulnerable.
+        - name: filter[version.last]
+          in: query
+          type: string
+          description: Filter by the last detected version of the asset.
+        - name: filter[repository_url]
+          in: query
+          type: string
+          description: Filter by the repository url associated to the asset.
+        - name: filter[risks.in_production]
+          in: query
+          type: boolean
+          description: Filter whether the asset is in production or not.
+        - name: filter[risks.under_attack]
+          in: query
+          type: boolean
+          description: Filter whether the asset (Service) is under attack or not.
+        - name: filter[risks.is_publicly_accessible]
+          in: query
+          type: boolean
+          description: Filter whether the asset (Host) is publicly accessible or not.
+        - name: filter[risks.has_privileged_access]
+          in: query
+          type: boolean
+          description: Filter whether the asset (Host) has privileged access or not.
+        - name: filter[risks.has_access_to_sensitive_data]
+          in: query
+          type: boolean
+          description: Filter whether the asset (Host)  has access to sensitive data or not.
+        - name: filter[environments]
+          in: query
+          type: string
+          description: Filter by environment.
+        - name: filter[arch]
+          in: query
+          type: string
+          description: Filter by architecture.
+        - name: filter[operating_system.name]
+          in: query
+          type: string
+          description: Filter by operating system name.
+        - name: filter[operating_system.version]
+          in: query
+          type: string
+          description: Filter by operating system version.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-assets-rest
+    port: 8080
+    description: REST adapter for Datadog API — Assets. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/metrics/{metric-name}/assets
+      name: api-v2-metrics-metric-name-assets
+      description: REST surface for api-v2-metrics-metric_name-assets.
+      operations:
+      - method: GET
+        name: listmetricassets
+        description: Datadog Related Assets to a Metric
+        call: datadog-assets.listmetricassets
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security/assets
+      name: api-v2-security-assets
+      description: REST surface for api-v2-security-assets.
+      operations:
+      - method: GET
+        name: listvulnerableassets
+        description: Datadog List Vulnerable Assets
+        call: datadog-assets.listvulnerableassets
+        with:
+          page[token]: rest.page[token]
+          page[number]: rest.page[number]
+          filter[name]: rest.filter[name]
+          filter[type]: rest.filter[type]
+          filter[version.first]: rest.filter[version.first]
+          filter[version.last]: rest.filter[version.last]
+          filter[repository_url]: rest.filter[repository_url]
+          filter[risks.in_production]: rest.filter[risks.in_production]
+          filter[risks.under_attack]: rest.filter[risks.under_attack]
+          filter[risks.is_publicly_accessible]: rest.filter[risks.is_publicly_accessible]
+          filter[risks.has_privileged_access]: rest.filter[risks.has_privileged_access]
+          filter[risks.has_access_to_sensitive_data]: rest.filter[risks.has_access_to_sensitive_data]
+          filter[environments]: rest.filter[environments]
+          filter[arch]: rest.filter[arch]
+          filter[operating_system.name]: rest.filter[operating_system.name]
+          filter[operating_system.version]: rest.filter[operating_system.version]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-assets-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Assets. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-related-assets-metric
+      description: Datadog Related Assets to a Metric
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-assets.listmetricassets
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-vulnerable-assets
+      description: Datadog List Vulnerable Assets
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-assets.listvulnerableassets
+      with:
+        page[token]: tools.page[token]
+        page[number]: tools.page[number]
+        filter[name]: tools.filter[name]
+        filter[type]: tools.filter[type]
+        filter[version.first]: tools.filter[version.first]
+        filter[version.last]: tools.filter[version.last]
+        filter[repository_url]: tools.filter[repository_url]
+        filter[risks.in_production]: tools.filter[risks.in_production]
+        filter[risks.under_attack]: tools.filter[risks.under_attack]
+        filter[risks.is_publicly_accessible]: tools.filter[risks.is_publicly_accessible]
+        filter[risks.has_privileged_access]: tools.filter[risks.has_privileged_access]
+        filter[risks.has_access_to_sensitive_data]: tools.filter[risks.has_access_to_sensitive_data]
+        filter[environments]: tools.filter[environments]
+        filter[arch]: tools.filter[arch]
+        filter[operating_system.name]: tools.filter[operating_system.name]
+        filter[operating_system.version]: tools.filter[operating_system.version]
+      outputParameters:
+      - type: object
+        mapping: $.

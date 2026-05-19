@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — State
+  description: 'Datadog API — State. 1 operations. Lead operation: Datadog Change the Triage State of a Security Signal. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - State
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-state
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — State business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-signals-signal_id-state
+      path: /api/v2/security_monitoring/signals/{signal_id}/state
+      operations:
+      - name: editsecuritymonitoringsignalstate
+        method: PATCH
+        description: Datadog Change the Triage State of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-state-rest
+    port: 8080
+    description: REST adapter for Datadog API — State. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/state
+      name: api-v2-security-monitoring-signals-signal-id-state
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-state.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalstate
+        description: Datadog Change the Triage State of a Security Signal
+        call: datadog-state.editsecuritymonitoringsignalstate
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-state-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — State. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-change-triage-state-security
+      description: Datadog Change the Triage State of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-state.editsecuritymonitoringsignalstate
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

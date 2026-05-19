@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Unassign
+  description: 'Datadog API — Unassign. 1 operations. Lead operation: Datadog Unassign Case. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Unassign
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-unassign
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Unassign business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases-case_id-unassign
+      path: /api/v2/cases/{case_id}/unassign
+      operations:
+      - name: unassigncase
+        method: POST
+        description: Datadog Unassign Case
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-unassign-rest
+    port: 8080
+    description: REST adapter for Datadog API — Unassign. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cases/{case-id}/unassign
+      name: api-v2-cases-case-id-unassign
+      description: REST surface for api-v2-cases-case_id-unassign.
+      operations:
+      - method: POST
+        name: unassigncase
+        description: Datadog Unassign Case
+        call: datadog-unassign.unassigncase
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-unassign-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Unassign. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-unassign-case
+      description: Datadog Unassign Case
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-unassign.unassigncase
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

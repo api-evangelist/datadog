@@ -1,0 +1,111 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Entity
+  description: 'Datadog API — Entity. 2 operations. Lead operation: Datadog Delete a Single Entity. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Entity
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-entity
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Entity business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-catalog-entity-entity_id
+      path: /api/v2/catalog/entity/{entity_id}
+      operations:
+      - name: deletecatalogentity
+        method: DELETE
+        description: Datadog Delete a Single Entity
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-catalog-relation
+      path: /api/v2/catalog/relation
+      operations:
+      - name: listcatalogrelation
+        method: GET
+        description: Datadog Get a List of Entity Relations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of relations in the response.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-entity-rest
+    port: 8080
+    description: REST adapter for Datadog API — Entity. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/catalog/entity/{entity-id}
+      name: api-v2-catalog-entity-entity-id
+      description: REST surface for api-v2-catalog-entity-entity_id.
+      operations:
+      - method: DELETE
+        name: deletecatalogentity
+        description: Datadog Delete a Single Entity
+        call: datadog-entity.deletecatalogentity
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/catalog/relation
+      name: api-v2-catalog-relation
+      description: REST surface for api-v2-catalog-relation.
+      operations:
+      - method: GET
+        name: listcatalogrelation
+        description: Datadog Get a List of Entity Relations
+        call: datadog-entity.listcatalogrelation
+        with:
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-entity-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Entity. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-delete-single-entity
+      description: Datadog Delete a Single Entity
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-entity.deletecatalogentity
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-list-entity-relations
+      description: Datadog Get a List of Entity Relations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-entity.listcatalogrelation
+      with:
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.

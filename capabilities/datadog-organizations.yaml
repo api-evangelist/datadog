@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Organizations
+  description: 'Datadog API — Organizations. 1 operations. Lead operation: Datadog Get a User Organization. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Organizations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-organizations
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Organizations business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-users-user_id-orgs
+      path: /api/v2/users/{user_id}/orgs
+      operations:
+      - name: listuserorganizations
+        method: GET
+        description: Datadog Get a User Organization
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-organizations-rest
+    port: 8080
+    description: REST adapter for Datadog API — Organizations. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/users/{user-id}/orgs
+      name: api-v2-users-user-id-orgs
+      description: REST surface for api-v2-users-user_id-orgs.
+      operations:
+      - method: GET
+        name: listuserorganizations
+        description: Datadog Get a User Organization
+        call: datadog-organizations.listuserorganizations
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-organizations-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Organizations. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-get-user-organization
+      description: Datadog Get a User Organization
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-organizations.listuserorganizations
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,112 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Terraform
+  description: 'Datadog API — Terraform. 2 operations. Lead operation: Datadog Convert a Rule from Json to Terraform. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Terraform
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-terraform
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Terraform business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-rules-convert
+      path: /api/v2/security_monitoring/rules/convert
+      operations:
+      - name: convertsecuritymonitoringrulefromjsontoterraform
+        method: POST
+        description: Datadog Convert a Rule from Json to Terraform
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-rules-rule_id-convert
+      path: /api/v2/security_monitoring/rules/{rule_id}/convert
+      operations:
+      - name: convertexistingsecuritymonitoringrule
+        method: GET
+        description: Datadog Convert an Existing Rule from Json to Terraform
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-terraform-rest
+    port: 8080
+    description: REST adapter for Datadog API — Terraform. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/rules/convert
+      name: api-v2-security-monitoring-rules-convert
+      description: REST surface for api-v2-security_monitoring-rules-convert.
+      operations:
+      - method: POST
+        name: convertsecuritymonitoringrulefromjsontoterraform
+        description: Datadog Convert a Rule from Json to Terraform
+        call: datadog-terraform.convertsecuritymonitoringrulefromjsontoterraform
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/rules/{rule-id}/convert
+      name: api-v2-security-monitoring-rules-rule-id-convert
+      description: REST surface for api-v2-security_monitoring-rules-rule_id-convert.
+      operations:
+      - method: GET
+        name: convertexistingsecuritymonitoringrule
+        description: Datadog Convert an Existing Rule from Json to Terraform
+        call: datadog-terraform.convertexistingsecuritymonitoringrule
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-terraform-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Terraform. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-convert-rule-json-terraform
+      description: Datadog Convert a Rule from Json to Terraform
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-terraform.convertsecuritymonitoringrulefromjsontoterraform
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-convert-existing-rule-json
+      description: Datadog Convert an Existing Rule from Json to Terraform
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-terraform.convertexistingsecuritymonitoringrule
+      outputParameters:
+      - type: object
+        mapping: $.

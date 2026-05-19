@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — History
+  description: 'Datadog API — History. 1 operations. Lead operation: Datadog Get a Rule''s Version History. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - History
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-history
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — History business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-rules-rule_id-version_history
+      path: /api/v2/security_monitoring/rules/{rule_id}/version_history
+      operations:
+      - name: getruleversionhistory
+        method: GET
+        description: Datadog Get a Rule's Version History
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-history-rest
+    port: 8080
+    description: REST adapter for Datadog API — History. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/rules/{rule-id}/version-history
+      name: api-v2-security-monitoring-rules-rule-id-version-history
+      description: REST surface for api-v2-security_monitoring-rules-rule_id-version_history.
+      operations:
+      - method: GET
+        name: getruleversionhistory
+        description: Datadog Get a Rule's Version History
+        call: datadog-history.getruleversionhistory
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-history-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — History. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-rule-s-version-history
+      description: Datadog Get a Rule's Version History
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-history.getruleversionhistory
+      outputParameters:
+      - type: object
+        mapping: $.

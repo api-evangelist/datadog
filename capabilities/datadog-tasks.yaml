@@ -1,0 +1,137 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Tasks
+  description: 'Datadog API — Tasks. 3 operations. Lead operation: Datadog Get Aws on Demand Tasks. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Tasks
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-tasks
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Tasks business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-agentless_scanning-ondemand-aws
+      path: /api/v2/agentless_scanning/ondemand/aws
+      operations:
+      - name: listawsondemandtasks
+        method: GET
+        description: Datadog Get Aws on Demand Tasks
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createawsondemandtask
+        method: POST
+        description: Datadog Post an Aws on Demand Task
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-agentless_scanning-ondemand-aws-task_id
+      path: /api/v2/agentless_scanning/ondemand/aws/{task_id}
+      operations:
+      - name: getawsondemandtask
+        method: GET
+        description: Datadog Get Aws on Demand Task by Id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-tasks-rest
+    port: 8080
+    description: REST adapter for Datadog API — Tasks. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/agentless-scanning/ondemand/aws
+      name: api-v2-agentless-scanning-ondemand-aws
+      description: REST surface for api-v2-agentless_scanning-ondemand-aws.
+      operations:
+      - method: GET
+        name: listawsondemandtasks
+        description: Datadog Get Aws on Demand Tasks
+        call: datadog-tasks.listawsondemandtasks
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createawsondemandtask
+        description: Datadog Post an Aws on Demand Task
+        call: datadog-tasks.createawsondemandtask
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/agentless-scanning/ondemand/aws/{task-id}
+      name: api-v2-agentless-scanning-ondemand-aws-task-id
+      description: REST surface for api-v2-agentless_scanning-ondemand-aws-task_id.
+      operations:
+      - method: GET
+        name: getawsondemandtask
+        description: Datadog Get Aws on Demand Task by Id
+        call: datadog-tasks.getawsondemandtask
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-tasks-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Tasks. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-aws-demand-tasks
+      description: Datadog Get Aws on Demand Tasks
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-tasks.listawsondemandtasks
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-post-aws-demand-task
+      description: Datadog Post an Aws on Demand Task
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-tasks.createawsondemandtask
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-aws-demand-task
+      description: Datadog Get Aws on Demand Task by Id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-tasks.getawsondemandtask
+      outputParameters:
+      - type: object
+        mapping: $.

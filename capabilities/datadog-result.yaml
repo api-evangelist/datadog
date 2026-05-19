@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Result
+  description: 'Datadog API — Result. 1 operations. Lead operation: Datadog Convert a Job Result to a Signal. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Result
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-result
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Result business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-siem-historical-detections-jobs-signal_convert
+      path: /api/v2/siem-historical-detections/jobs/signal_convert
+      operations:
+      - name: convertjobresulttosignal
+        method: POST
+        description: Datadog Convert a Job Result to a Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-result-rest
+    port: 8080
+    description: REST adapter for Datadog API — Result. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/siem-historical-detections/jobs/signal-convert
+      name: api-v2-siem-historical-detections-jobs-signal-convert
+      description: REST surface for api-v2-siem-historical-detections-jobs-signal_convert.
+      operations:
+      - method: POST
+        name: convertjobresulttosignal
+        description: Datadog Convert a Job Result to a Signal
+        call: datadog-result.convertjobresulttosignal
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-result-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Result. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-convert-job-result-signal
+      description: Datadog Convert a Job Result to a Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-result.convertjobresulttosignal
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

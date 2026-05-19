@@ -1,0 +1,276 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Monitors API — Monitors
+  description: 'Datadog Monitors API — Monitors. 5 operations. Lead operation: Datadog Create a Monitor. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Monitors
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: monitors-monitors
+    baseUri: https://api.datadoghq.com
+    description: Datadog Monitors API — Monitors business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v1-monitor
+      path: /api/v1/monitor
+      operations:
+      - name: createmonitor
+        method: POST
+        description: Datadog Create a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: listmonitors
+        method: GET
+        description: Datadog List All Monitors
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_states
+          in: query
+          type: string
+          description: Comma-separated list of group states to filter monitors by (alert, ignored, no data, ok, skipped, unknown,
+            warn)
+        - name: name
+          in: query
+          type: string
+          description: Filter monitors by name substring match
+        - name: tags
+          in: query
+          type: string
+          description: Comma-separated list of tags to filter monitors by
+        - name: monitor_tags
+          in: query
+          type: string
+          description: Comma-separated list of monitor-specific tags to filter by
+        - name: with_downtimes
+          in: query
+          type: boolean
+          description: When true, includes downtime information in the response
+        - name: id_offset
+          in: query
+          type: integer
+          description: Monitor ID to start paginating from (for cursor-based pagination)
+        - name: page
+          in: query
+          type: integer
+          description: The page number to retrieve (zero-indexed, for offset-based pagination)
+        - name: page_size
+          in: query
+          type: integer
+          description: The number of monitors to return per page (default 100, max 1000)
+    - name: api-v1-monitor-monitor_id
+      path: /api/v1/monitor/{monitor_id}
+      operations:
+      - name: getmonitor
+        method: GET
+        description: Datadog Get a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_states
+          in: query
+          type: string
+          description: Comma-separated group states to include in the response (alert, ignored, no data, ok, skipped, unknown,
+            warn)
+        - name: with_downtimes
+          in: query
+          type: boolean
+          description: When true, includes active downtime information in the response
+      - name: updatemonitor
+        method: PUT
+        description: Datadog Edit a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: deletemonitor
+        method: DELETE
+        description: Datadog Delete a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: force
+          in: query
+          type: string
+          description: When true, forcefully deletes the monitor even if it is referenced by SLOs or composite monitors
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: monitors-monitors-rest
+    port: 8080
+    description: REST adapter for Datadog Monitors API — Monitors. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v1/monitor
+      name: api-v1-monitor
+      description: REST surface for api-v1-monitor.
+      operations:
+      - method: POST
+        name: createmonitor
+        description: Datadog Create a Monitor
+        call: monitors-monitors.createmonitor
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: listmonitors
+        description: Datadog List All Monitors
+        call: monitors-monitors.listmonitors
+        with:
+          group_states: rest.group_states
+          name: rest.name
+          tags: rest.tags
+          monitor_tags: rest.monitor_tags
+          with_downtimes: rest.with_downtimes
+          id_offset: rest.id_offset
+          page: rest.page
+          page_size: rest.page_size
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v1/monitor/{monitor-id}
+      name: api-v1-monitor-monitor-id
+      description: REST surface for api-v1-monitor-monitor_id.
+      operations:
+      - method: GET
+        name: getmonitor
+        description: Datadog Get a Monitor
+        call: monitors-monitors.getmonitor
+        with:
+          group_states: rest.group_states
+          with_downtimes: rest.with_downtimes
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updatemonitor
+        description: Datadog Edit a Monitor
+        call: monitors-monitors.updatemonitor
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deletemonitor
+        description: Datadog Delete a Monitor
+        call: monitors-monitors.deletemonitor
+        with:
+          force: rest.force
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: monitors-monitors-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Monitors API — Monitors. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-create-monitor
+      description: Datadog Create a Monitor
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: monitors-monitors.createmonitor
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-all-monitors
+      description: Datadog List All Monitors
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: monitors-monitors.listmonitors
+      with:
+        group_states: tools.group_states
+        name: tools.name
+        tags: tools.tags
+        monitor_tags: tools.monitor_tags
+        with_downtimes: tools.with_downtimes
+        id_offset: tools.id_offset
+        page: tools.page
+        page_size: tools.page_size
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-monitor
+      description: Datadog Get a Monitor
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: monitors-monitors.getmonitor
+      with:
+        group_states: tools.group_states
+        with_downtimes: tools.with_downtimes
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-edit-monitor
+      description: Datadog Edit a Monitor
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: monitors-monitors.updatemonitor
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-monitor
+      description: Datadog Delete a Monitor
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: monitors-monitors.deletemonitor
+      with:
+        force: tools.force
+      outputParameters:
+      - type: object
+        mapping: $.

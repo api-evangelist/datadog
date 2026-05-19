@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Definitions
+  description: 'Datadog API — Definitions. 1 operations. Lead operation: Datadog Get All Service Definitions. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Definitions
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-definitions
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Definitions business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-services-definitions
+      path: /api/v2/services/definitions
+      operations:
+      - name: listservicedefinitions
+        method: GET
+        description: Datadog Get All Service Definitions
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-definitions-rest
+    port: 8080
+    description: REST adapter for Datadog API — Definitions. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/services/definitions
+      name: api-v2-services-definitions
+      description: REST surface for api-v2-services-definitions.
+      operations:
+      - method: GET
+        name: listservicedefinitions
+        description: Datadog Get All Service Definitions
+        call: datadog-definitions.listservicedefinitions
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-definitions-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Definitions. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-service-definitions
+      description: Datadog Get All Service Definitions
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-definitions.listservicedefinitions
+      outputParameters:
+      - type: object
+        mapping: $.

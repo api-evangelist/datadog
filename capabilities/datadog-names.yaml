@@ -1,0 +1,166 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Names
+  description: 'Datadog API — Names. 4 operations. Lead operation: Datadog Get Channel Information by Name. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Names
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-names
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Names business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-ms-teams-configuration-channel-tenant_name-team_name-channel_
+      path: /api/v2/integration/ms-teams/configuration/channel/{tenant_name}/{team_name}/{channel_name}
+      operations:
+      - name: getchannelbyname
+        method: GET
+        description: Datadog Get Channel Information by Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-metrics-metric_name-all-tags
+      path: /api/v2/metrics/{metric_name}/all-tags
+      operations:
+      - name: listtagsbymetricname
+        method: GET
+        description: Datadog List Tags by Metric Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-metrics-metric_name-tags
+      path: /api/v2/metrics/{metric_name}/tags
+      operations:
+      - name: listtagconfigurationbyname
+        method: GET
+        description: Datadog List Tag Configuration by Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-metrics-metric_name-volumes
+      path: /api/v2/metrics/{metric_name}/volumes
+      operations:
+      - name: listvolumesbymetricname
+        method: GET
+        description: Datadog List Distinct Metric Volumes by Metric Name
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-names-rest
+    port: 8080
+    description: REST adapter for Datadog API — Names. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/integration/ms-teams/configuration/channel/{tenant-name}/{team-name}/{channel-name}
+      name: api-v2-integration-ms-teams-configuration-channel-tenant-name-team-name-channel
+      description: REST surface for api-v2-integration-ms-teams-configuration-channel-tenant_name-team_name-channel_.
+      operations:
+      - method: GET
+        name: getchannelbyname
+        description: Datadog Get Channel Information by Name
+        call: datadog-names.getchannelbyname
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/{metric-name}/all-tags
+      name: api-v2-metrics-metric-name-all-tags
+      description: REST surface for api-v2-metrics-metric_name-all-tags.
+      operations:
+      - method: GET
+        name: listtagsbymetricname
+        description: Datadog List Tags by Metric Name
+        call: datadog-names.listtagsbymetricname
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/{metric-name}/tags
+      name: api-v2-metrics-metric-name-tags
+      description: REST surface for api-v2-metrics-metric_name-tags.
+      operations:
+      - method: GET
+        name: listtagconfigurationbyname
+        description: Datadog List Tag Configuration by Name
+        call: datadog-names.listtagconfigurationbyname
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/{metric-name}/volumes
+      name: api-v2-metrics-metric-name-volumes
+      description: REST surface for api-v2-metrics-metric_name-volumes.
+      operations:
+      - method: GET
+        name: listvolumesbymetricname
+        description: Datadog List Distinct Metric Volumes by Metric Name
+        call: datadog-names.listvolumesbymetricname
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-names-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Names. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-channel-information-name
+      description: Datadog Get Channel Information by Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-names.getchannelbyname
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-tags-metric-name
+      description: Datadog List Tags by Metric Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-names.listtagsbymetricname
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-tag-configuration-name
+      description: Datadog List Tag Configuration by Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-names.listtagconfigurationbyname
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-distinct-metric-volumes
+      description: Datadog List Distinct Metric Volumes by Metric Name
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-names.listvolumesbymetricname
+      outputParameters:
+      - type: object
+        mapping: $.

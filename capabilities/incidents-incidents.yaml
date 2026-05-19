@@ -1,0 +1,253 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Incidents API — Incidents
+  description: 'Datadog Incidents API — Incidents. 5 operations. Lead operation: Datadog Create an Incident. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Incidents
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: incidents-incidents
+    baseUri: https://api.datadoghq.com
+    description: Datadog Incidents API — Incidents business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-incidents
+      path: /api/v2/incidents
+      operations:
+      - name: createincident
+        method: POST
+        description: Datadog Create an Incident
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of related resources to include in the response (e.g., attachments, responders)
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: listincidents
+        method: GET
+        description: Datadog List Incidents
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of related resources to include (e.g., attachments, responders, commander)
+        - name: page[size]
+          in: query
+          type: integer
+          description: The number of incidents to return per page (default 10, max 100)
+        - name: page[offset]
+          in: query
+          type: integer
+          description: The offset for pagination (number of records to skip)
+        - name: filter[state]
+          in: query
+          type: string
+          description: Filter incidents by their current state
+        - name: filter[severity]
+          in: query
+          type: string
+          description: Filter incidents by severity level (SEV-1 to SEV-5)
+    - name: api-v2-incidents-incident_id
+      path: /api/v2/incidents/{incident_id}
+      operations:
+      - name: getincident
+        method: GET
+        description: Datadog Get the Details of an Incident
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of related resources to include in the response
+      - name: updateincident
+        method: PATCH
+        description: Datadog Update an Existing Incident
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of related resources to include in the response
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: deleteincident
+        method: DELETE
+        description: Datadog Delete an Existing Incident
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: incidents-incidents-rest
+    port: 8080
+    description: REST adapter for Datadog Incidents API — Incidents. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v2/incidents
+      name: api-v2-incidents
+      description: REST surface for api-v2-incidents.
+      operations:
+      - method: POST
+        name: createincident
+        description: Datadog Create an Incident
+        call: incidents-incidents.createincident
+        with:
+          include: rest.include
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: listincidents
+        description: Datadog List Incidents
+        call: incidents-incidents.listincidents
+        with:
+          include: rest.include
+          page[size]: rest.page[size]
+          page[offset]: rest.page[offset]
+          filter[state]: rest.filter[state]
+          filter[severity]: rest.filter[severity]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/incidents/{incident-id}
+      name: api-v2-incidents-incident-id
+      description: REST surface for api-v2-incidents-incident_id.
+      operations:
+      - method: GET
+        name: getincident
+        description: Datadog Get the Details of an Incident
+        call: incidents-incidents.getincident
+        with:
+          include: rest.include
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateincident
+        description: Datadog Update an Existing Incident
+        call: incidents-incidents.updateincident
+        with:
+          include: rest.include
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deleteincident
+        description: Datadog Delete an Existing Incident
+        call: incidents-incidents.deleteincident
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: incidents-incidents-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Incidents API — Incidents. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-create-incident
+      description: Datadog Create an Incident
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: incidents-incidents.createincident
+      with:
+        include: tools.include
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-incidents
+      description: Datadog List Incidents
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: incidents-incidents.listincidents
+      with:
+        include: tools.include
+        page[size]: tools.page[size]
+        page[offset]: tools.page[offset]
+        filter[state]: tools.filter[state]
+        filter[severity]: tools.filter[severity]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-details-incident
+      description: Datadog Get the Details of an Incident
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: incidents-incidents.getincident
+      with:
+        include: tools.include
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-existing-incident
+      description: Datadog Update an Existing Incident
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: incidents-incidents.updateincident
+      with:
+        include: tools.include
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-existing-incident
+      description: Datadog Delete an Existing Incident
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: incidents-incidents.deleteincident
+      outputParameters:
+      - type: object
+        mapping: $.

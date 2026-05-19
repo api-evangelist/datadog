@@ -1,0 +1,114 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Entities
+  description: 'Datadog API — Entities. 2 operations. Lead operation: Datadog Get a List of Entities. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Entities
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-entities
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Entities business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-catalog-entity
+      path: /api/v2/catalog/entity
+      operations:
+      - name: listcatalogentity
+        method: GET
+        description: Datadog Get a List of Entities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of entities in the response.
+      - name: upsertcatalogentity
+        method: POST
+        description: Datadog Create or Update Entities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-entities-rest
+    port: 8080
+    description: REST adapter for Datadog API — Entities. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/catalog/entity
+      name: api-v2-catalog-entity
+      description: REST surface for api-v2-catalog-entity.
+      operations:
+      - method: GET
+        name: listcatalogentity
+        description: Datadog Get a List of Entities
+        call: datadog-entities.listcatalogentity
+        with:
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: upsertcatalogentity
+        description: Datadog Create or Update Entities
+        call: datadog-entities.upsertcatalogentity
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-entities-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Entities. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-list-entities
+      description: Datadog Get a List of Entities
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-entities.listcatalogentity
+      with:
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-update-entities
+      description: Datadog Create or Update Entities
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-entities.upsertcatalogentity
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,147 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Specific
+  description: 'Datadog API — Specific. 3 operations. Lead operation: Datadog Get a Specific Org Config Value. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Specific
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-specific
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Specific business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-org_configs-org_config_name
+      path: /api/v2/org_configs/{org_config_name}
+      operations:
+      - name: getorgconfig
+        method: GET
+        description: Datadog Get a Specific Org Config Value
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateorgconfig
+        method: PATCH
+        description: Datadog Update a Specific Org Config
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-remote_config-products-obs_pipelines-pipelines-pipeline_id
+      path: /api/v2/remote_config/products/obs_pipelines/pipelines/{pipeline_id}
+      operations:
+      - name: getpipeline
+        method: GET
+        description: Datadog Get a Specific Pipeline
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: pipeline_id
+          in: path
+          type: string
+          description: The ID of the pipeline to retrieve.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-specific-rest
+    port: 8080
+    description: REST adapter for Datadog API — Specific. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/org-configs/{org-config-name}
+      name: api-v2-org-configs-org-config-name
+      description: REST surface for api-v2-org_configs-org_config_name.
+      operations:
+      - method: GET
+        name: getorgconfig
+        description: Datadog Get a Specific Org Config Value
+        call: datadog-specific.getorgconfig
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateorgconfig
+        description: Datadog Update a Specific Org Config
+        call: datadog-specific.updateorgconfig
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/remote-config/products/obs-pipelines/pipelines/{pipeline-id}
+      name: api-v2-remote-config-products-obs-pipelines-pipelines-pipeline-id
+      description: REST surface for api-v2-remote_config-products-obs_pipelines-pipelines-pipeline_id.
+      operations:
+      - method: GET
+        name: getpipeline
+        description: Datadog Get a Specific Pipeline
+        call: datadog-specific.getpipeline
+        with:
+          pipeline_id: rest.pipeline_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-specific-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Specific. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-specific-org-config
+      description: Datadog Get a Specific Org Config Value
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-specific.getorgconfig
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-specific-org-config
+      description: Datadog Update a Specific Org Config
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-specific.updateorgconfig
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-specific-pipeline
+      description: Datadog Get a Specific Pipeline
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-specific.getpipeline
+      with:
+        pipeline_id: tools.pipeline_id
+      outputParameters:
+      - type: object
+        mapping: $.

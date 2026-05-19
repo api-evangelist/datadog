@@ -1,0 +1,220 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Incidents API — Incident Teams
+  description: 'Datadog Incidents API — Incident Teams. 5 operations. Lead operation: Datadog Create a New Incident Team.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Incident Teams
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: incidents-incident-teams
+    baseUri: https://api.datadoghq.com
+    description: Datadog Incidents API — Incident Teams business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-teams
+      path: /api/v2/teams
+      operations:
+      - name: createincidentteam
+        method: POST
+        description: Datadog Create a New Incident Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: listincidentteams
+        method: GET
+        description: Datadog Get a List of Incident Teams
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[query]
+          in: query
+          type: string
+          description: Filter teams by name using a substring search
+        - name: page[size]
+          in: query
+          type: integer
+          description: The number of teams to return per page
+        - name: page[offset]
+          in: query
+          type: integer
+          description: The number of records to skip for pagination
+    - name: api-v2-teams-team_id
+      path: /api/v2/teams/{team_id}
+      operations:
+      - name: getincidentteam
+        method: GET
+        description: Datadog Get Details of an Incident Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateincidentteam
+        method: PATCH
+        description: Datadog Update an Existing Incident Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: deleteincidentteam
+        method: DELETE
+        description: Datadog Delete an Existing Incident Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: incidents-incident-teams-rest
+    port: 8080
+    description: REST adapter for Datadog Incidents API — Incident Teams. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v2/teams
+      name: api-v2-teams
+      description: REST surface for api-v2-teams.
+      operations:
+      - method: POST
+        name: createincidentteam
+        description: Datadog Create a New Incident Team
+        call: incidents-incident-teams.createincidentteam
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: listincidentteams
+        description: Datadog Get a List of Incident Teams
+        call: incidents-incident-teams.listincidentteams
+        with:
+          filter[query]: rest.filter[query]
+          page[size]: rest.page[size]
+          page[offset]: rest.page[offset]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/teams/{team-id}
+      name: api-v2-teams-team-id
+      description: REST surface for api-v2-teams-team_id.
+      operations:
+      - method: GET
+        name: getincidentteam
+        description: Datadog Get Details of an Incident Team
+        call: incidents-incident-teams.getincidentteam
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateincidentteam
+        description: Datadog Update an Existing Incident Team
+        call: incidents-incident-teams.updateincidentteam
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deleteincidentteam
+        description: Datadog Delete an Existing Incident Team
+        call: incidents-incident-teams.deleteincidentteam
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: incidents-incident-teams-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Incidents API — Incident Teams. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-create-new-incident-team
+      description: Datadog Create a New Incident Team
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: incidents-incident-teams.createincidentteam
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-list-incident-teams
+      description: Datadog Get a List of Incident Teams
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: incidents-incident-teams.listincidentteams
+      with:
+        filter[query]: tools.filter[query]
+        page[size]: tools.page[size]
+        page[offset]: tools.page[offset]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-details-incident-team
+      description: Datadog Get Details of an Incident Team
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: incidents-incident-teams.getincidentteam
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-existing-incident-team
+      description: Datadog Update an Existing Incident Team
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: incidents-incident-teams.updateincidentteam
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-existing-incident-team
+      description: Datadog Delete an Existing Incident Team
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: incidents-incident-teams.deleteincidentteam
+      outputParameters:
+      - type: object
+        mapping: $.

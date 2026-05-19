@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Priority
+  description: 'Datadog API — Priority. 1 operations. Lead operation: Datadog Update Case Priority. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Priority
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-priority
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Priority business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases-case_id-priority
+      path: /api/v2/cases/{case_id}/priority
+      operations:
+      - name: updatepriority
+        method: POST
+        description: Datadog Update Case Priority
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-priority-rest
+    port: 8080
+    description: REST adapter for Datadog API — Priority. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cases/{case-id}/priority
+      name: api-v2-cases-case-id-priority
+      description: REST surface for api-v2-cases-case_id-priority.
+      operations:
+      - method: POST
+        name: updatepriority
+        description: Datadog Update Case Priority
+        call: datadog-priority.updatepriority
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-priority-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Priority. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-update-case-priority
+      description: Datadog Update Case Priority
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-priority.updatepriority
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

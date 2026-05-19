@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Validate
+  description: 'Datadog API — Validate. 2 operations. Lead operation: Datadog Validate an Observability Pipeline. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Validate
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-validate
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Validate business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-remote_config-products-obs_pipelines-pipelines-validate
+      path: /api/v2/remote_config/products/obs_pipelines/pipelines/validate
+      operations:
+      - name: validatepipeline
+        method: POST
+        description: Datadog Validate an Observability Pipeline
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-rules-validation
+      path: /api/v2/security_monitoring/rules/validation
+      operations:
+      - name: validatesecuritymonitoringrule
+        method: POST
+        description: Datadog Validate a Detection Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-validate-rest
+    port: 8080
+    description: REST adapter for Datadog API — Validate. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/remote-config/products/obs-pipelines/pipelines/validate
+      name: api-v2-remote-config-products-obs-pipelines-pipelines-validate
+      description: REST surface for api-v2-remote_config-products-obs_pipelines-pipelines-validate.
+      operations:
+      - method: POST
+        name: validatepipeline
+        description: Datadog Validate an Observability Pipeline
+        call: datadog-validate.validatepipeline
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/rules/validation
+      name: api-v2-security-monitoring-rules-validation
+      description: REST surface for api-v2-security_monitoring-rules-validation.
+      operations:
+      - method: POST
+        name: validatesecuritymonitoringrule
+        description: Datadog Validate a Detection Rule
+        call: datadog-validate.validatesecuritymonitoringrule
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-validate-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Validate. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-validate-observability-pipeline
+      description: Datadog Validate an Observability Pipeline
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-validate.validatepipeline
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-validate-detection-rule
+      description: Datadog Validate a Detection Rule
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-validate.validatesecuritymonitoringrule
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

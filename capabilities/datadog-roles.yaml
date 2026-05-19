@@ -1,0 +1,155 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Roles
+  description: 'Datadog API — Roles. 3 operations. Lead operation: Datadog List Read Roles for an Archive. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Roles
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-roles
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Roles business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-logs-config-archives-archive_id-readers
+      path: /api/v2/logs/config/archives/{archive_id}/readers
+      operations:
+      - name: listarchivereadroles
+        method: GET
+        description: Datadog List Read Roles for an Archive
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-logs-config-restriction_queries-restriction_query_id-roles
+      path: /api/v2/logs/config/restriction_queries/{restriction_query_id}/roles
+      operations:
+      - name: listrestrictionqueryroles
+        method: GET
+        description: Datadog List Roles for a Restriction Query
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-roles
+      path: /api/v2/roles
+      operations:
+      - name: listroles
+        method: GET
+        description: Datadog List Roles
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: sort
+          in: query
+          type: string
+          description: Sort roles depending on the given field. Sort order is **ascending** by default.
+        - name: filter
+          in: query
+          type: string
+          description: Filter all roles by the given string.
+        - name: filter[id]
+          in: query
+          type: string
+          description: Filter all roles by the given list of role IDs.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-roles-rest
+    port: 8080
+    description: REST adapter for Datadog API — Roles. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/logs/config/archives/{archive-id}/readers
+      name: api-v2-logs-config-archives-archive-id-readers
+      description: REST surface for api-v2-logs-config-archives-archive_id-readers.
+      operations:
+      - method: GET
+        name: listarchivereadroles
+        description: Datadog List Read Roles for an Archive
+        call: datadog-roles.listarchivereadroles
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/config/restriction-queries/{restriction-query-id}/roles
+      name: api-v2-logs-config-restriction-queries-restriction-query-id-roles
+      description: REST surface for api-v2-logs-config-restriction_queries-restriction_query_id-roles.
+      operations:
+      - method: GET
+        name: listrestrictionqueryroles
+        description: Datadog List Roles for a Restriction Query
+        call: datadog-roles.listrestrictionqueryroles
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/roles
+      name: api-v2-roles
+      description: REST surface for api-v2-roles.
+      operations:
+      - method: GET
+        name: listroles
+        description: Datadog List Roles
+        call: datadog-roles.listroles
+        with:
+          sort: rest.sort
+          filter: rest.filter
+          filter[id]: rest.filter[id]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-roles-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Roles. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-read-roles-archive
+      description: Datadog List Read Roles for an Archive
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-roles.listarchivereadroles
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-roles-restriction-query
+      description: Datadog List Roles for a Restriction Query
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-roles.listrestrictionqueryroles
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-roles
+      description: Datadog List Roles
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-roles.listroles
+      with:
+        sort: tools.sort
+        filter: tools.filter
+        filter[id]: tools.filter[id]
+      outputParameters:
+      - type: object
+        mapping: $.

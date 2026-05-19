@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Entry
+  description: 'Datadog API — Entry. 1 operations. Lead operation: Datadog Create a New Entry for Your Service Account. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Entry
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-entry
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Entry business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-gcp-accounts
+      path: /api/v2/integration/gcp/accounts
+      operations:
+      - name: creategcpstsaccount
+        method: POST
+        description: Datadog Create a New Entry for Your Service Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-entry-rest
+    port: 8080
+    description: REST adapter for Datadog API — Entry. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/integration/gcp/accounts
+      name: api-v2-integration-gcp-accounts
+      description: REST surface for api-v2-integration-gcp-accounts.
+      operations:
+      - method: POST
+        name: creategcpstsaccount
+        description: Datadog Create a New Entry for Your Service Account
+        call: datadog-entry.creategcpstsaccount
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-entry-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Entry. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-new-entry-your
+      description: Datadog Create a New Entry for Your Service Account
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-entry.creategcpstsaccount
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

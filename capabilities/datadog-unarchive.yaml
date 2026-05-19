@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Unarchive
+  description: 'Datadog API — Unarchive. 1 operations. Lead operation: Datadog Unarchive Case. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Unarchive
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-unarchive
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Unarchive business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases-case_id-unarchive
+      path: /api/v2/cases/{case_id}/unarchive
+      operations:
+      - name: unarchivecase
+        method: POST
+        description: Datadog Unarchive Case
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-unarchive-rest
+    port: 8080
+    description: REST adapter for Datadog API — Unarchive. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cases/{case-id}/unarchive
+      name: api-v2-cases-case-id-unarchive
+      description: REST surface for api-v2-cases-case_id-unarchive.
+      operations:
+      - method: POST
+        name: unarchivecase
+        description: Datadog Unarchive Case
+        call: datadog-unarchive.unarchivecase
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-unarchive-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Unarchive. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-unarchive-case
+      description: Datadog Unarchive Case
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-unarchive.unarchivecase
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

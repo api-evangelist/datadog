@@ -1,0 +1,134 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Given
+  description: 'Datadog API — Given. 3 operations. Lead operation: Datadog Get a Given Apm Retention Filter. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Given
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-given
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Given business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-apm-config-retention-filters-filter_id
+      path: /api/v2/apm/config/retention-filters/{filter_id}
+      operations:
+      - name: getapmretentionfilter
+        method: GET
+        description: Datadog Get a Given Apm Retention Filter
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-logs-config-restriction_queries-role-role_id
+      path: /api/v2/logs/config/restriction_queries/role/{role_id}
+      operations:
+      - name: getrolerestrictionquery
+        method: GET
+        description: Datadog Get Restriction Query for a Given Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-logs-config-restriction_queries-user-user_id
+      path: /api/v2/logs/config/restriction_queries/user/{user_id}
+      operations:
+      - name: listuserrestrictionqueries
+        method: GET
+        description: Datadog Get All Restriction Queries for a Given User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-given-rest
+    port: 8080
+    description: REST adapter for Datadog API — Given. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/apm/config/retention-filters/{filter-id}
+      name: api-v2-apm-config-retention-filters-filter-id
+      description: REST surface for api-v2-apm-config-retention-filters-filter_id.
+      operations:
+      - method: GET
+        name: getapmretentionfilter
+        description: Datadog Get a Given Apm Retention Filter
+        call: datadog-given.getapmretentionfilter
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/config/restriction-queries/role/{role-id}
+      name: api-v2-logs-config-restriction-queries-role-role-id
+      description: REST surface for api-v2-logs-config-restriction_queries-role-role_id.
+      operations:
+      - method: GET
+        name: getrolerestrictionquery
+        description: Datadog Get Restriction Query for a Given Role
+        call: datadog-given.getrolerestrictionquery
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/config/restriction-queries/user/{user-id}
+      name: api-v2-logs-config-restriction-queries-user-user-id
+      description: REST surface for api-v2-logs-config-restriction_queries-user-user_id.
+      operations:
+      - method: GET
+        name: listuserrestrictionqueries
+        description: Datadog Get All Restriction Queries for a Given User
+        call: datadog-given.listuserrestrictionqueries
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-given-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Given. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-given-apm-retention
+      description: Datadog Get a Given Apm Retention Filter
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-given.getapmretentionfilter
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-restriction-query-given
+      description: Datadog Get Restriction Query for a Given Role
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-given.getrolerestrictionquery
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-restriction-queries
+      description: Datadog Get All Restriction Queries for a Given User
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-given.listuserrestrictionqueries
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,219 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Single
+  description: 'Datadog API — Single. 6 operations. Lead operation: Datadog Delete a Single Entity. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Single
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-single
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Single business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-catalog-entity-entity_id
+      path: /api/v2/catalog/entity/{entity_id}
+      operations:
+      - name: deletecatalogentity
+        method: DELETE
+        description: Datadog Delete a Single Entity
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-integration-opsgenie-services-integration_service_id
+      path: /api/v2/integration/opsgenie/services/{integration_service_id}
+      operations:
+      - name: deleteopsgenieservice
+        method: DELETE
+        description: Datadog Delete a Single Service Object
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getopsgenieservice
+        method: GET
+        description: Datadog Get a Single Service Object
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateopsgenieservice
+        method: PATCH
+        description: Datadog Update a Single Service Object
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-services-definitions-service_name
+      path: /api/v2/services/definitions/{service_name}
+      operations:
+      - name: deleteservicedefinition
+        method: DELETE
+        description: Datadog Delete a Single Service Definition
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getservicedefinition
+        method: GET
+        description: Datadog Get a Single Service Definition
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-single-rest
+    port: 8080
+    description: REST adapter for Datadog API — Single. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/catalog/entity/{entity-id}
+      name: api-v2-catalog-entity-entity-id
+      description: REST surface for api-v2-catalog-entity-entity_id.
+      operations:
+      - method: DELETE
+        name: deletecatalogentity
+        description: Datadog Delete a Single Entity
+        call: datadog-single.deletecatalogentity
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integration/opsgenie/services/{integration-service-id}
+      name: api-v2-integration-opsgenie-services-integration-service-id
+      description: REST surface for api-v2-integration-opsgenie-services-integration_service_id.
+      operations:
+      - method: DELETE
+        name: deleteopsgenieservice
+        description: Datadog Delete a Single Service Object
+        call: datadog-single.deleteopsgenieservice
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getopsgenieservice
+        description: Datadog Get a Single Service Object
+        call: datadog-single.getopsgenieservice
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateopsgenieservice
+        description: Datadog Update a Single Service Object
+        call: datadog-single.updateopsgenieservice
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/services/definitions/{service-name}
+      name: api-v2-services-definitions-service-name
+      description: REST surface for api-v2-services-definitions-service_name.
+      operations:
+      - method: DELETE
+        name: deleteservicedefinition
+        description: Datadog Delete a Single Service Definition
+        call: datadog-single.deleteservicedefinition
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getservicedefinition
+        description: Datadog Get a Single Service Definition
+        call: datadog-single.getservicedefinition
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-single-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Single. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-delete-single-entity
+      description: Datadog Delete a Single Entity
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-single.deletecatalogentity
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-single-service-object
+      description: Datadog Delete a Single Service Object
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-single.deleteopsgenieservice
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-single-service-object
+      description: Datadog Get a Single Service Object
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-single.getopsgenieservice
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-single-service-object
+      description: Datadog Update a Single Service Object
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-single.updateopsgenieservice
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-single-service-definition
+      description: Datadog Delete a Single Service Definition
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-single.deleteservicedefinition
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-single-service-definition
+      description: Datadog Get a Single Service Definition
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-single.getservicedefinition
+      outputParameters:
+      - type: object
+        mapping: $.

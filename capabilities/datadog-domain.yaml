@@ -1,0 +1,105 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Domain
+  description: 'Datadog API — Domain. 2 operations. Lead operation: Datadog Get Domain Allowlist. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Domain
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-domain
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Domain business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-domain_allowlist
+      path: /api/v2/domain_allowlist
+      operations:
+      - name: getdomainallowlist
+        method: GET
+        description: Datadog Get Domain Allowlist
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: patchdomainallowlist
+        method: PATCH
+        description: Datadog Sets Domain Allowlist
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-domain-rest
+    port: 8080
+    description: REST adapter for Datadog API — Domain. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/domain-allowlist
+      name: api-v2-domain-allowlist
+      description: REST surface for api-v2-domain_allowlist.
+      operations:
+      - method: GET
+        name: getdomainallowlist
+        description: Datadog Get Domain Allowlist
+        call: datadog-domain.getdomainallowlist
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patchdomainallowlist
+        description: Datadog Sets Domain Allowlist
+        call: datadog-domain.patchdomainallowlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-domain-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Domain. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-domain-allowlist
+      description: Datadog Get Domain Allowlist
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-domain.getdomainallowlist
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-sets-domain-allowlist
+      description: Datadog Sets Domain Allowlist
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-domain.patchdomainallowlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

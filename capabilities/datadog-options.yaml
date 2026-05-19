@@ -1,0 +1,172 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Options
+  description: 'Datadog API — Options. 4 operations. Lead operation: Datadog Get Aws Scan Options. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Options
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-options
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Options business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-agentless_scanning-accounts-aws
+      path: /api/v2/agentless_scanning/accounts/aws
+      operations:
+      - name: listawsscanoptions
+        method: GET
+        description: Datadog Get Aws Scan Options
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createawsscanoptions
+        method: POST
+        description: Datadog Post Aws Scan Options
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-agentless_scanning-accounts-aws-account_id
+      path: /api/v2/agentless_scanning/accounts/aws/{account_id}
+      operations:
+      - name: deleteawsscanoptions
+        method: DELETE
+        description: Datadog Delete Aws Scan Options
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateawsscanoptions
+        method: PATCH
+        description: Datadog Patch Aws Scan Options
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-options-rest
+    port: 8080
+    description: REST adapter for Datadog API — Options. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/agentless-scanning/accounts/aws
+      name: api-v2-agentless-scanning-accounts-aws
+      description: REST surface for api-v2-agentless_scanning-accounts-aws.
+      operations:
+      - method: GET
+        name: listawsscanoptions
+        description: Datadog Get Aws Scan Options
+        call: datadog-options.listawsscanoptions
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createawsscanoptions
+        description: Datadog Post Aws Scan Options
+        call: datadog-options.createawsscanoptions
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/agentless-scanning/accounts/aws/{account-id}
+      name: api-v2-agentless-scanning-accounts-aws-account-id
+      description: REST surface for api-v2-agentless_scanning-accounts-aws-account_id.
+      operations:
+      - method: DELETE
+        name: deleteawsscanoptions
+        description: Datadog Delete Aws Scan Options
+        call: datadog-options.deleteawsscanoptions
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateawsscanoptions
+        description: Datadog Patch Aws Scan Options
+        call: datadog-options.updateawsscanoptions
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-options-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Options. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-aws-scan-options
+      description: Datadog Get Aws Scan Options
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-options.listawsscanoptions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-post-aws-scan-options
+      description: Datadog Post Aws Scan Options
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-options.createawsscanoptions
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-aws-scan-options
+      description: Datadog Delete Aws Scan Options
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-options.deleteawsscanoptions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-patch-aws-scan-options
+      description: Datadog Patch Aws Scan Options
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-options.updateawsscanoptions
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

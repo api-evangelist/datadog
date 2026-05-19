@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Enabled
+  description: 'Datadog API — Enabled. 1 operations. Lead operation: Datadog Delete an Sts Enabled Gcp Account. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Enabled
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-enabled
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Enabled business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-gcp-accounts-account_id
+      path: /api/v2/integration/gcp/accounts/{account_id}
+      operations:
+      - name: deletegcpstsaccount
+        method: DELETE
+        description: Datadog Delete an Sts Enabled Gcp Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-enabled-rest
+    port: 8080
+    description: REST adapter for Datadog API — Enabled. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/gcp/accounts/{account-id}
+      name: api-v2-integration-gcp-accounts-account-id
+      description: REST surface for api-v2-integration-gcp-accounts-account_id.
+      operations:
+      - method: DELETE
+        name: deletegcpstsaccount
+        description: Datadog Delete an Sts Enabled Gcp Account
+        call: datadog-enabled.deletegcpstsaccount
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-enabled-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Enabled. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-delete-sts-enabled-gcp
+      description: Datadog Delete an Sts Enabled Gcp Account
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-enabled.deletegcpstsaccount
+      outputParameters:
+      - type: object
+        mapping: $.

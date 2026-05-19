@@ -1,0 +1,494 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Search
+  description: 'Datadog API — Search. 10 operations. Lead operation: Datadog Search Audit Logs Events. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Search
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-search
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Search business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-audit-events-search
+      path: /api/v2/audit/events/search
+      operations:
+      - name: searchauditlogs
+        method: POST
+        description: Datadog Search Audit Logs Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-cases
+      path: /api/v2/cases
+      operations:
+      - name: searchcases
+        method: GET
+        description: Datadog Search Cases
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter
+          in: query
+          type: string
+          description: Search query
+        - name: sort[asc]
+          in: query
+          type: boolean
+          description: Specify if order is ascending or not
+    - name: api-v2-ci-pipelines-events-search
+      path: /api/v2/ci/pipelines/events/search
+      operations:
+      - name: searchciapppipelineevents
+        method: POST
+        description: Datadog Search Pipelines Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-ci-tests-events-search
+      path: /api/v2/ci/tests/events/search
+      operations:
+      - name: searchciapptestevents
+        method: POST
+        description: Datadog Search Tests Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-events-search
+      path: /api/v2/events/search
+      operations:
+      - name: searchevents
+        method: POST
+        description: Datadog Search Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-incidents-search
+      path: /api/v2/incidents/search
+      operations:
+      - name: searchincidents
+        method: GET
+        description: Datadog Search for Incidents
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-logs-events
+      path: /api/v2/logs/events
+      operations:
+      - name: listlogsget
+        method: GET
+        description: Datadog Search Logs (get)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[query]
+          in: query
+          type: string
+          description: Search query following logs syntax.
+        - name: filter[indexes]
+          in: query
+          type: array
+          description: For customers with multiple indexes, the indexes to search.
+        - name: filter[from]
+          in: query
+          type: string
+          description: Minimum timestamp for requested logs.
+        - name: filter[to]
+          in: query
+          type: string
+          description: Maximum timestamp for requested logs.
+        - name: filter[storage_tier]
+          in: query
+          type: string
+          description: Specifies the storage type to be used
+        - name: sort
+          in: query
+          type: string
+          description: Order of logs in results.
+        - name: page[cursor]
+          in: query
+          type: string
+          description: List following results with a cursor provided in the previous query.
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of logs in the response.
+    - name: api-v2-logs-events-search
+      path: /api/v2/logs/events/search
+      operations:
+      - name: listlogs
+        method: POST
+        description: Datadog Search Logs (post)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-rum-events-search
+      path: /api/v2/rum/events/search
+      operations:
+      - name: searchrumevents
+        method: POST
+        description: Datadog Search Rum Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-spans-events-search
+      path: /api/v2/spans/events/search
+      operations:
+      - name: listspans
+        method: POST
+        description: Datadog Search Spans
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-search-rest
+    port: 8080
+    description: REST adapter for Datadog API — Search. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/audit/events/search
+      name: api-v2-audit-events-search
+      description: REST surface for api-v2-audit-events-search.
+      operations:
+      - method: POST
+        name: searchauditlogs
+        description: Datadog Search Audit Logs Events
+        call: datadog-search.searchauditlogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/cases
+      name: api-v2-cases
+      description: REST surface for api-v2-cases.
+      operations:
+      - method: GET
+        name: searchcases
+        description: Datadog Search Cases
+        call: datadog-search.searchcases
+        with:
+          filter: rest.filter
+          sort[asc]: rest.sort[asc]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/ci/pipelines/events/search
+      name: api-v2-ci-pipelines-events-search
+      description: REST surface for api-v2-ci-pipelines-events-search.
+      operations:
+      - method: POST
+        name: searchciapppipelineevents
+        description: Datadog Search Pipelines Events
+        call: datadog-search.searchciapppipelineevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/ci/tests/events/search
+      name: api-v2-ci-tests-events-search
+      description: REST surface for api-v2-ci-tests-events-search.
+      operations:
+      - method: POST
+        name: searchciapptestevents
+        description: Datadog Search Tests Events
+        call: datadog-search.searchciapptestevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/events/search
+      name: api-v2-events-search
+      description: REST surface for api-v2-events-search.
+      operations:
+      - method: POST
+        name: searchevents
+        description: Datadog Search Events
+        call: datadog-search.searchevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/incidents/search
+      name: api-v2-incidents-search
+      description: REST surface for api-v2-incidents-search.
+      operations:
+      - method: GET
+        name: searchincidents
+        description: Datadog Search for Incidents
+        call: datadog-search.searchincidents
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/events
+      name: api-v2-logs-events
+      description: REST surface for api-v2-logs-events.
+      operations:
+      - method: GET
+        name: listlogsget
+        description: Datadog Search Logs (get)
+        call: datadog-search.listlogsget
+        with:
+          filter[query]: rest.filter[query]
+          filter[indexes]: rest.filter[indexes]
+          filter[from]: rest.filter[from]
+          filter[to]: rest.filter[to]
+          filter[storage_tier]: rest.filter[storage_tier]
+          sort: rest.sort
+          page[cursor]: rest.page[cursor]
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/events/search
+      name: api-v2-logs-events-search
+      description: REST surface for api-v2-logs-events-search.
+      operations:
+      - method: POST
+        name: listlogs
+        description: Datadog Search Logs (post)
+        call: datadog-search.listlogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/rum/events/search
+      name: api-v2-rum-events-search
+      description: REST surface for api-v2-rum-events-search.
+      operations:
+      - method: POST
+        name: searchrumevents
+        description: Datadog Search Rum Events
+        call: datadog-search.searchrumevents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/spans/events/search
+      name: api-v2-spans-events-search
+      description: REST surface for api-v2-spans-events-search.
+      operations:
+      - method: POST
+        name: listspans
+        description: Datadog Search Spans
+        call: datadog-search.listspans
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-search-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Search. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-search-audit-logs-events
+      description: Datadog Search Audit Logs Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.searchauditlogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-cases
+      description: Datadog Search Cases
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-search.searchcases
+      with:
+        filter: tools.filter
+        sort[asc]: tools.sort[asc]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-pipelines-events
+      description: Datadog Search Pipelines Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.searchciapppipelineevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-tests-events
+      description: Datadog Search Tests Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.searchciapptestevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-events
+      description: Datadog Search Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.searchevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-incidents
+      description: Datadog Search for Incidents
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-search.searchincidents
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-logs-get
+      description: Datadog Search Logs (get)
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-search.listlogsget
+      with:
+        filter[query]: tools.filter[query]
+        filter[indexes]: tools.filter[indexes]
+        filter[from]: tools.filter[from]
+        filter[to]: tools.filter[to]
+        filter[storage_tier]: tools.filter[storage_tier]
+        sort: tools.sort
+        page[cursor]: tools.page[cursor]
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-logs-post
+      description: Datadog Search Logs (post)
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.listlogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-rum-events
+      description: Datadog Search Rum Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.searchrumevents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-spans
+      description: Datadog Search Spans
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-search.listspans
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

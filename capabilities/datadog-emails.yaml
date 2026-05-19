@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Emails
+  description: 'Datadog API — Emails. 1 operations. Lead operation: Datadog Send Invitation Emails. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Emails
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-emails
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Emails business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-user_invitations
+      path: /api/v2/user_invitations
+      operations:
+      - name: sendinvitations
+        method: POST
+        description: Datadog Send Invitation Emails
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-emails-rest
+    port: 8080
+    description: REST adapter for Datadog API — Emails. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/user-invitations
+      name: api-v2-user-invitations
+      description: REST surface for api-v2-user_invitations.
+      operations:
+      - method: POST
+        name: sendinvitations
+        description: Datadog Send Invitation Emails
+        call: datadog-emails.sendinvitations
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-emails-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Emails. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-send-invitation-emails
+      description: Datadog Send Invitation Emails
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-emails.sendinvitations
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,159 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Active
+  description: 'Datadog API — Active. 3 operations. Lead operation: Datadog Get Active Billing Dimensions for Cost Attribution.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Active
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-active
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Active business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost_by_tag-active_billing_dimensions
+      path: /api/v2/cost_by_tag/active_billing_dimensions
+      operations:
+      - name: getactivebillingdimensions
+        method: GET
+        description: Datadog Get Active Billing Dimensions for Cost Attribution
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-metrics-metric_name-active-configurations
+      path: /api/v2/metrics/{metric_name}/active-configurations
+      operations:
+      - name: listactivemetricconfigurations
+        method: GET
+        description: Datadog List Active Tags and Aggregations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: window[seconds]
+          in: query
+          type: integer
+          description: The number of seconds of look back (from now).
+    - name: api-v2-monitor-monitor_id-downtime_matches
+      path: /api/v2/monitor/{monitor_id}/downtime_matches
+      operations:
+      - name: listmonitordowntimes
+        method: GET
+        description: Datadog Get Active Downtimes for a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: monitor_id
+          in: path
+          type: integer
+          description: The id of the monitor.
+          required: true
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of downtimes in the response.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-active-rest
+    port: 8080
+    description: REST adapter for Datadog API — Active. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/cost-by-tag/active-billing-dimensions
+      name: api-v2-cost-by-tag-active-billing-dimensions
+      description: REST surface for api-v2-cost_by_tag-active_billing_dimensions.
+      operations:
+      - method: GET
+        name: getactivebillingdimensions
+        description: Datadog Get Active Billing Dimensions for Cost Attribution
+        call: datadog-active.getactivebillingdimensions
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/{metric-name}/active-configurations
+      name: api-v2-metrics-metric-name-active-configurations
+      description: REST surface for api-v2-metrics-metric_name-active-configurations.
+      operations:
+      - method: GET
+        name: listactivemetricconfigurations
+        description: Datadog List Active Tags and Aggregations
+        call: datadog-active.listactivemetricconfigurations
+        with:
+          window[seconds]: rest.window[seconds]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/{monitor-id}/downtime-matches
+      name: api-v2-monitor-monitor-id-downtime-matches
+      description: REST surface for api-v2-monitor-monitor_id-downtime_matches.
+      operations:
+      - method: GET
+        name: listmonitordowntimes
+        description: Datadog Get Active Downtimes for a Monitor
+        call: datadog-active.listmonitordowntimes
+        with:
+          monitor_id: rest.monitor_id
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-active-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Active. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-active-billing-dimensions
+      description: Datadog Get Active Billing Dimensions for Cost Attribution
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-active.getactivebillingdimensions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-active-tags-and
+      description: Datadog List Active Tags and Aggregations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-active.listactivemetricconfigurations
+      with:
+        window[seconds]: tools.window[seconds]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-active-downtimes-monitor
+      description: Datadog Get Active Downtimes for a Monitor
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-active.listmonitordowntimes
+      with:
+        monitor_id: tools.monitor_id
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.

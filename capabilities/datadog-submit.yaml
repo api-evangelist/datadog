@@ -1,0 +1,86 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Submit
+  description: 'Datadog API — Submit. 1 operations. Lead operation: Datadog Submit Metrics. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Submit
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-submit
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Submit business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-series
+      path: /api/v2/series
+      operations:
+      - name: submitmetrics
+        method: POST
+        description: Datadog Submit Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: Content-Encoding
+          in: header
+          type: string
+          description: HTTP header used to compress the media-type.
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-submit-rest
+    port: 8080
+    description: REST adapter for Datadog API — Submit. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/series
+      name: api-v2-series
+      description: REST surface for api-v2-series.
+      operations:
+      - method: POST
+        name: submitmetrics
+        description: Datadog Submit Metrics
+        call: datadog-submit.submitmetrics
+        with:
+          Content-Encoding: rest.Content-Encoding
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-submit-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Submit. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-submit-metrics
+      description: Datadog Submit Metrics
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-submit.submitmetrics
+      with:
+        Content-Encoding: tools.Content-Encoding
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

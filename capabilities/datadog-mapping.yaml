@@ -1,0 +1,220 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Mapping
+  description: 'Datadog API — Mapping. 5 operations. Lead operation: Datadog Create an Authn Mapping. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Mapping
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-mapping
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Mapping business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-authn_mappings
+      path: /api/v2/authn_mappings
+      operations:
+      - name: createauthnmapping
+        method: POST
+        description: Datadog Create an Authn Mapping
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-authn_mappings-authn_mapping_id
+      path: /api/v2/authn_mappings/{authn_mapping_id}
+      operations:
+      - name: deleteauthnmapping
+        method: DELETE
+        description: Datadog Delete an Authn Mapping
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getauthnmapping
+        method: GET
+        description: Datadog Get an Authn Mapping by Uuid
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateauthnmapping
+        method: PATCH
+        description: Datadog Edit an Authn Mapping
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-usage-billing_dimension_mapping
+      path: /api/v2/usage/billing_dimension_mapping
+      operations:
+      - name: getbillingdimensionmapping
+        method: GET
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[month]
+          in: query
+          type: string
+          description: Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month.
+        - name: filter[view]
+          in: query
+          type: string
+          description: String to specify whether to retrieve active billing dimension mappings for the contract or for all
+            available mappings. Allowed views have the string `active` o
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-mapping-rest
+    port: 8080
+    description: REST adapter for Datadog API — Mapping. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/authn-mappings
+      name: api-v2-authn-mappings
+      description: REST surface for api-v2-authn_mappings.
+      operations:
+      - method: POST
+        name: createauthnmapping
+        description: Datadog Create an Authn Mapping
+        call: datadog-mapping.createauthnmapping
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/authn-mappings/{authn-mapping-id}
+      name: api-v2-authn-mappings-authn-mapping-id
+      description: REST surface for api-v2-authn_mappings-authn_mapping_id.
+      operations:
+      - method: DELETE
+        name: deleteauthnmapping
+        description: Datadog Delete an Authn Mapping
+        call: datadog-mapping.deleteauthnmapping
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getauthnmapping
+        description: Datadog Get an Authn Mapping by Uuid
+        call: datadog-mapping.getauthnmapping
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateauthnmapping
+        description: Datadog Edit an Authn Mapping
+        call: datadog-mapping.updateauthnmapping
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/billing-dimension-mapping
+      name: api-v2-usage-billing-dimension-mapping
+      description: REST surface for api-v2-usage-billing_dimension_mapping.
+      operations:
+      - method: GET
+        name: getbillingdimensionmapping
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        call: datadog-mapping.getbillingdimensionmapping
+        with:
+          filter[month]: rest.filter[month]
+          filter[view]: rest.filter[view]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-mapping-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Mapping. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-authn-mapping
+      description: Datadog Create an Authn Mapping
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-mapping.createauthnmapping
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-authn-mapping
+      description: Datadog Delete an Authn Mapping
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-mapping.deleteauthnmapping
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-authn-mapping-uuid
+      description: Datadog Get an Authn Mapping by Uuid
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-mapping.getauthnmapping
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-edit-authn-mapping
+      description: Datadog Edit an Authn Mapping
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-mapping.updateauthnmapping
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-billing-dimension-mapping
+      description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-mapping.getbillingdimensionmapping
+      with:
+        filter[month]: tools.filter[month]
+        filter[view]: tools.filter[view]
+      outputParameters:
+      - type: object
+        mapping: $.

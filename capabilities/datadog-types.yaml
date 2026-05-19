@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Types
+  description: 'Datadog API — Types. 1 operations. Lead operation: Datadog Get a List of Incident Types. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Types
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-types
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Types business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-incidents-config-types
+      path: /api/v2/incidents/config/types
+      operations:
+      - name: listincidenttypes
+        method: GET
+        description: Datadog Get a List of Incident Types
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-types-rest
+    port: 8080
+    description: REST adapter for Datadog API — Types. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/incidents/config/types
+      name: api-v2-incidents-config-types
+      description: REST surface for api-v2-incidents-config-types.
+      operations:
+      - method: GET
+        name: listincidenttypes
+        description: Datadog Get a List of Incident Types
+        call: datadog-types.listincidenttypes
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-types-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Types. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-list-incident-types
+      description: Datadog Get a List of Incident Types
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-types.listincidenttypes
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,144 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Cancel
+  description: 'Datadog API — Cancel. 3 operations. Lead operation: Datadog Cancel a Downtime. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Cancel
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-cancel
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Cancel business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-downtime-downtime_id
+      path: /api/v2/downtime/{downtime_id}
+      operations:
+      - name: canceldowntime
+        method: DELETE
+        description: Datadog Cancel a Downtime
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: downtime_id
+          in: path
+          type: string
+          description: ID of the downtime to cancel.
+          required: true
+    - name: api-v2-siem-historical-detections-jobs-job_id-cancel
+      path: /api/v2/siem-historical-detections/jobs/{job_id}/cancel
+      operations:
+      - name: cancelhistoricaljob
+        method: PATCH
+        description: Datadog Cancel a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-workflows-workflow_id-instances-instance_id-cancel
+      path: /api/v2/workflows/{workflow_id}/instances/{instance_id}/cancel
+      operations:
+      - name: cancelworkflowinstance
+        method: PUT
+        description: Datadog Cancel a Workflow Instance
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-cancel-rest
+    port: 8080
+    description: REST adapter for Datadog API — Cancel. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/downtime/{downtime-id}
+      name: api-v2-downtime-downtime-id
+      description: REST surface for api-v2-downtime-downtime_id.
+      operations:
+      - method: DELETE
+        name: canceldowntime
+        description: Datadog Cancel a Downtime
+        call: datadog-cancel.canceldowntime
+        with:
+          downtime_id: rest.downtime_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/{job-id}/cancel
+      name: api-v2-siem-historical-detections-jobs-job-id-cancel
+      description: REST surface for api-v2-siem-historical-detections-jobs-job_id-cancel.
+      operations:
+      - method: PATCH
+        name: cancelhistoricaljob
+        description: Datadog Cancel a Historical Job
+        call: datadog-cancel.cancelhistoricaljob
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/workflows/{workflow-id}/instances/{instance-id}/cancel
+      name: api-v2-workflows-workflow-id-instances-instance-id-cancel
+      description: REST surface for api-v2-workflows-workflow_id-instances-instance_id-cancel.
+      operations:
+      - method: PUT
+        name: cancelworkflowinstance
+        description: Datadog Cancel a Workflow Instance
+        call: datadog-cancel.cancelworkflowinstance
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-cancel-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Cancel. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-cancel-downtime
+      description: Datadog Cancel a Downtime
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-cancel.canceldowntime
+      with:
+        downtime_id: tools.downtime_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-cancel-historical-job
+      description: Datadog Cancel a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-cancel.cancelhistoricaljob
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-cancel-workflow-instance
+      description: Datadog Cancel a Workflow Instance
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-cancel.cancelworkflowinstance
+      outputParameters:
+      - type: object
+        mapping: $.

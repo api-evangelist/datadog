@@ -1,0 +1,239 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Resource
+  description: 'Datadog API — Resource. 6 operations. Lead operation: Datadog List Resource Filters. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Resource
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-resource
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Resource business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cloud_security_management-resource_filters
+      path: /api/v2/cloud_security_management/resource_filters
+      operations:
+      - name: getresourceevaluationfilters
+        method: GET
+        description: Datadog List Resource Filters
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateresourceevaluationfilters
+        method: PUT
+        description: Datadog Update Resource Filters
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-integrations-confluent-cloud-accounts-account_id-resources
+      path: /api/v2/integrations/confluent-cloud/accounts/{account_id}/resources
+      operations:
+      - name: createconfluentresource
+        method: POST
+        description: Datadog Add Resource to Confluent Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-integrations-confluent-cloud-accounts-account_id-resources-resource_id
+      path: /api/v2/integrations/confluent-cloud/accounts/{account_id}/resources/{resource_id}
+      operations:
+      - name: deleteconfluentresource
+        method: DELETE
+        description: Datadog Delete Resource from Confluent Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getconfluentresource
+        method: GET
+        description: Datadog Get Resource from Confluent Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateconfluentresource
+        method: PATCH
+        description: Datadog Update Resource in Confluent Account
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-resource-rest
+    port: 8080
+    description: REST adapter for Datadog API — Resource. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cloud-security-management/resource-filters
+      name: api-v2-cloud-security-management-resource-filters
+      description: REST surface for api-v2-cloud_security_management-resource_filters.
+      operations:
+      - method: GET
+        name: getresourceevaluationfilters
+        description: Datadog List Resource Filters
+        call: datadog-resource.getresourceevaluationfilters
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updateresourceevaluationfilters
+        description: Datadog Update Resource Filters
+        call: datadog-resource.updateresourceevaluationfilters
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integrations/confluent-cloud/accounts/{account-id}/resources
+      name: api-v2-integrations-confluent-cloud-accounts-account-id-resources
+      description: REST surface for api-v2-integrations-confluent-cloud-accounts-account_id-resources.
+      operations:
+      - method: POST
+        name: createconfluentresource
+        description: Datadog Add Resource to Confluent Account
+        call: datadog-resource.createconfluentresource
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integrations/confluent-cloud/accounts/{account-id}/resources/{resource-id}
+      name: api-v2-integrations-confluent-cloud-accounts-account-id-resources-resource-id
+      description: REST surface for api-v2-integrations-confluent-cloud-accounts-account_id-resources-resource_id.
+      operations:
+      - method: DELETE
+        name: deleteconfluentresource
+        description: Datadog Delete Resource from Confluent Account
+        call: datadog-resource.deleteconfluentresource
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getconfluentresource
+        description: Datadog Get Resource from Confluent Account
+        call: datadog-resource.getconfluentresource
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateconfluentresource
+        description: Datadog Update Resource in Confluent Account
+        call: datadog-resource.updateconfluentresource
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-resource-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Resource. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-resource-filters
+      description: Datadog List Resource Filters
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-resource.getresourceevaluationfilters
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-resource-filters
+      description: Datadog Update Resource Filters
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-resource.updateresourceevaluationfilters
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-add-resource-confluent-account
+      description: Datadog Add Resource to Confluent Account
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-resource.createconfluentresource
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-resource-confluent-account
+      description: Datadog Delete Resource from Confluent Account
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-resource.deleteconfluentresource
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-resource-confluent-account
+      description: Datadog Get Resource from Confluent Account
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-resource.getconfluentresource
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-resource-confluent-account
+      description: Datadog Update Resource in Confluent Account
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-resource.updateconfluentresource
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

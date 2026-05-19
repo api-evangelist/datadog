@@ -1,0 +1,82 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Monitors API — Monitor Validation
+  description: 'Datadog Monitors API — Monitor Validation. 1 operations. Lead operation: Datadog Validate a Monitor. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Monitor Validation
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: monitors-monitor-validation
+    baseUri: https://api.datadoghq.com
+    description: Datadog Monitors API — Monitor Validation business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v1-monitor-validate
+      path: /api/v1/monitor/validate
+      operations:
+      - name: validatemonitor
+        method: POST
+        description: Datadog Validate a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: monitors-monitor-validation-rest
+    port: 8080
+    description: REST adapter for Datadog Monitors API — Monitor Validation. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/api/v1/monitor/validate
+      name: api-v1-monitor-validate
+      description: REST surface for api-v1-monitor-validate.
+      operations:
+      - method: POST
+        name: validatemonitor
+        description: Datadog Validate a Monitor
+        call: monitors-monitor-validation.validatemonitor
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: monitors-monitor-validation-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Monitors API — Monitor Validation. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: datadog-validate-monitor
+      description: Datadog Validate a Monitor
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: monitors-monitor-validation.validatemonitor
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

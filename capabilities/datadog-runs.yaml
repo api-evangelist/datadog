@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Runs
+  description: 'Datadog API — Runs. 1 operations. Lead operation: Datadog Run a Historical Job. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Runs
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-runs
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Runs business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-siem-historical-detections-jobs
+      path: /api/v2/siem-historical-detections/jobs
+      operations:
+      - name: runhistoricaljob
+        method: POST
+        description: Datadog Run a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-runs-rest
+    port: 8080
+    description: REST adapter for Datadog API — Runs. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/siem-historical-detections/jobs
+      name: api-v2-siem-historical-detections-jobs
+      description: REST surface for api-v2-siem-historical-detections-jobs.
+      operations:
+      - method: POST
+        name: runhistoricaljob
+        description: Datadog Run a Historical Job
+        call: datadog-runs.runhistoricaljob
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-runs-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Runs. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-run-historical-job
+      description: Datadog Run a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-runs.runhistoricaljob
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

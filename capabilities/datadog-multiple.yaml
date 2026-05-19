@@ -1,0 +1,241 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Multiple
+  description: 'Datadog API — Multiple. 5 operations. Lead operation: Datadog Delete Multiple Apps. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Multiple
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-multiple
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Multiple business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-app-builder-apps
+      path: /api/v2/app-builder/apps
+      operations:
+      - name: deleteapps
+        method: DELETE
+        description: Datadog Delete Multiple Apps
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-metrics-config-bulk-tags
+      path: /api/v2/metrics/config/bulk-tags
+      operations:
+      - name: deletebulktagsmetricsconfiguration
+        method: DELETE
+        description: Datadog Delete Tags for Multiple Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: createbulktagsmetricsconfiguration
+        method: POST
+        description: Datadog Configure Tags for Multiple Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-query-scalar
+      path: /api/v2/query/scalar
+      operations:
+      - name: queryscalardata
+        method: POST
+        description: Datadog Query Scalar Data Across Multiple Products
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-query-timeseries
+      path: /api/v2/query/timeseries
+      operations:
+      - name: querytimeseriesdata
+        method: POST
+        description: Datadog Query Timeseries Data Across Multiple Products
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-multiple-rest
+    port: 8080
+    description: REST adapter for Datadog API — Multiple. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/app-builder/apps
+      name: api-v2-app-builder-apps
+      description: REST surface for api-v2-app-builder-apps.
+      operations:
+      - method: DELETE
+        name: deleteapps
+        description: Datadog Delete Multiple Apps
+        call: datadog-multiple.deleteapps
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/metrics/config/bulk-tags
+      name: api-v2-metrics-config-bulk-tags
+      description: REST surface for api-v2-metrics-config-bulk-tags.
+      operations:
+      - method: DELETE
+        name: deletebulktagsmetricsconfiguration
+        description: Datadog Delete Tags for Multiple Metrics
+        call: datadog-multiple.deletebulktagsmetricsconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createbulktagsmetricsconfiguration
+        description: Datadog Configure Tags for Multiple Metrics
+        call: datadog-multiple.createbulktagsmetricsconfiguration
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/query/scalar
+      name: api-v2-query-scalar
+      description: REST surface for api-v2-query-scalar.
+      operations:
+      - method: POST
+        name: queryscalardata
+        description: Datadog Query Scalar Data Across Multiple Products
+        call: datadog-multiple.queryscalardata
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/query/timeseries
+      name: api-v2-query-timeseries
+      description: REST surface for api-v2-query-timeseries.
+      operations:
+      - method: POST
+        name: querytimeseriesdata
+        description: Datadog Query Timeseries Data Across Multiple Products
+        call: datadog-multiple.querytimeseriesdata
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-multiple-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Multiple. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-delete-multiple-apps
+      description: Datadog Delete Multiple Apps
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-multiple.deleteapps
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-tags-multiple-metrics
+      description: Datadog Delete Tags for Multiple Metrics
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-multiple.deletebulktagsmetricsconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-configure-tags-multiple-metrics
+      description: Datadog Configure Tags for Multiple Metrics
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-multiple.createbulktagsmetricsconfiguration
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-query-scalar-data-across
+      description: Datadog Query Scalar Data Across Multiple Products
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-multiple.queryscalardata
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-query-timeseries-data-across
+      description: Datadog Query Timeseries Data Across Multiple Products
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-multiple.querytimeseriesdata
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

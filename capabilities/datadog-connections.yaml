@@ -1,0 +1,105 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Connections
+  description: 'Datadog API — Connections. 1 operations. Lead operation: Datadog Get All Aggregated Connections. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Connections
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-connections
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Connections business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-network-connections-aggregate
+      path: /api/v2/network/connections/aggregate
+      operations:
+      - name: getaggregatedconnections
+        method: GET
+        description: Datadog Get All Aggregated Connections
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: from
+          in: query
+          type: integer
+          description: Unix timestamp (number of seconds since epoch) of the start of the query window. If not provided, the
+            start of the query window is 15 minutes before the `to` ti
+        - name: to
+          in: query
+          type: integer
+          description: Unix timestamp (number of seconds since epoch) of the end of the query window. If not provided, the
+            end of the query window is the current time. If neither `fro
+        - name: group_by
+          in: query
+          type: string
+          description: Comma-separated list of fields to group connections by.
+        - name: tags
+          in: query
+          type: string
+          description: Comma-separated list of tags to filter connections by.
+        - name: limit
+          in: query
+          type: integer
+          description: The number of connections to be returned. The maximum value is 5000.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-connections-rest
+    port: 8080
+    description: REST adapter for Datadog API — Connections. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/network/connections/aggregate
+      name: api-v2-network-connections-aggregate
+      description: REST surface for api-v2-network-connections-aggregate.
+      operations:
+      - method: GET
+        name: getaggregatedconnections
+        description: Datadog Get All Aggregated Connections
+        call: datadog-connections.getaggregatedconnections
+        with:
+          from: rest.from
+          to: rest.to
+          group_by: rest.group_by
+          tags: rest.tags
+          limit: rest.limit
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-connections-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Connections. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-aggregated-connections
+      description: Datadog Get All Aggregated Connections
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-connections.getaggregatedconnections
+      with:
+        from: tools.from
+        to: tools.to
+        group_by: tools.group_by
+        tags: tools.tags
+        limit: tools.limit
+      outputParameters:
+      - type: object
+        mapping: $.

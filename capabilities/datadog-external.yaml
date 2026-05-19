@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — External
+  description: 'Datadog API — External. 1 operations. Lead operation: Datadog Generate a New External Id. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - External
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-external
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — External business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-aws-generate_new_external_id
+      path: /api/v2/integration/aws/generate_new_external_id
+      operations:
+      - name: createnewawsexternalid
+        method: POST
+        description: Datadog Generate a New External Id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-external-rest
+    port: 8080
+    description: REST adapter for Datadog API — External. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/aws/generate-new-external-id
+      name: api-v2-integration-aws-generate-new-external-id
+      description: REST surface for api-v2-integration-aws-generate_new_external_id.
+      operations:
+      - method: POST
+        name: createnewawsexternalid
+        description: Datadog Generate a New External Id
+        call: datadog-external.createnewawsexternalid
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-external-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — External. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-generate-new-external-id
+      description: Datadog Generate a New External Id
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-external.createnewawsexternalid
+      outputParameters:
+      - type: object
+        mapping: $.

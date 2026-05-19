@@ -1,0 +1,164 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Grants
+  description: 'Datadog API — Grants. 3 operations. Lead operation: Datadog Grant Role to an Archive. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Grants
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-grants
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Grants business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-logs-config-archives-archive_id-readers
+      path: /api/v2/logs/config/archives/{archive_id}/readers
+      operations:
+      - name: addreadroletoarchive
+        method: POST
+        description: Datadog Grant Role to an Archive
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-logs-config-restriction_queries-restriction_query_id-roles
+      path: /api/v2/logs/config/restriction_queries/{restriction_query_id}/roles
+      operations:
+      - name: addroletorestrictionquery
+        method: POST
+        description: Datadog Grant Role to a Restriction Query
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-roles-role_id-permissions
+      path: /api/v2/roles/{role_id}/permissions
+      operations:
+      - name: addpermissiontorole
+        method: POST
+        description: Datadog Grant Permission to a Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-grants-rest
+    port: 8080
+    description: REST adapter for Datadog API — Grants. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/logs/config/archives/{archive-id}/readers
+      name: api-v2-logs-config-archives-archive-id-readers
+      description: REST surface for api-v2-logs-config-archives-archive_id-readers.
+      operations:
+      - method: POST
+        name: addreadroletoarchive
+        description: Datadog Grant Role to an Archive
+        call: datadog-grants.addreadroletoarchive
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/config/restriction-queries/{restriction-query-id}/roles
+      name: api-v2-logs-config-restriction-queries-restriction-query-id-roles
+      description: REST surface for api-v2-logs-config-restriction_queries-restriction_query_id-roles.
+      operations:
+      - method: POST
+        name: addroletorestrictionquery
+        description: Datadog Grant Role to a Restriction Query
+        call: datadog-grants.addroletorestrictionquery
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/roles/{role-id}/permissions
+      name: api-v2-roles-role-id-permissions
+      description: REST surface for api-v2-roles-role_id-permissions.
+      operations:
+      - method: POST
+        name: addpermissiontorole
+        description: Datadog Grant Permission to a Role
+        call: datadog-grants.addpermissiontorole
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-grants-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Grants. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-grant-role-archive
+      description: Datadog Grant Role to an Archive
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-grants.addreadroletoarchive
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-grant-role-restriction-query
+      description: Datadog Grant Role to a Restriction Query
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-grants.addroletorestrictionquery
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-grant-permission-role
+      description: Datadog Grant Permission to a Role
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-grants.addpermissiontorole
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

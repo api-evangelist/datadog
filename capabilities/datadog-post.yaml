@@ -1,0 +1,206 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Post
+  description: 'Datadog API — Post. 4 operations. Lead operation: Datadog Post Aws Scan Options. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Post
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-post
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Post business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-agentless_scanning-accounts-aws
+      path: /api/v2/agentless_scanning/accounts/aws
+      operations:
+      - name: createawsscanoptions
+        method: POST
+        description: Datadog Post Aws Scan Options
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-agentless_scanning-ondemand-aws
+      path: /api/v2/agentless_scanning/ondemand/aws
+      operations:
+      - name: createawsondemandtask
+        method: POST
+        description: Datadog Post an Aws on Demand Task
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-events
+      path: /api/v2/events
+      operations:
+      - name: createevent
+        method: POST
+        description: Datadog Post an Event
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-logs-events-search
+      path: /api/v2/logs/events/search
+      operations:
+      - name: listlogs
+        method: POST
+        description: Datadog Search Logs (post)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-post-rest
+    port: 8080
+    description: REST adapter for Datadog API — Post. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/agentless-scanning/accounts/aws
+      name: api-v2-agentless-scanning-accounts-aws
+      description: REST surface for api-v2-agentless_scanning-accounts-aws.
+      operations:
+      - method: POST
+        name: createawsscanoptions
+        description: Datadog Post Aws Scan Options
+        call: datadog-post.createawsscanoptions
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/agentless-scanning/ondemand/aws
+      name: api-v2-agentless-scanning-ondemand-aws
+      description: REST surface for api-v2-agentless_scanning-ondemand-aws.
+      operations:
+      - method: POST
+        name: createawsondemandtask
+        description: Datadog Post an Aws on Demand Task
+        call: datadog-post.createawsondemandtask
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/events
+      name: api-v2-events
+      description: REST surface for api-v2-events.
+      operations:
+      - method: POST
+        name: createevent
+        description: Datadog Post an Event
+        call: datadog-post.createevent
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/logs/events/search
+      name: api-v2-logs-events-search
+      description: REST surface for api-v2-logs-events-search.
+      operations:
+      - method: POST
+        name: listlogs
+        description: Datadog Search Logs (post)
+        call: datadog-post.listlogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-post-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Post. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-post-aws-scan-options
+      description: Datadog Post Aws Scan Options
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-post.createawsscanoptions
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-post-aws-demand-task
+      description: Datadog Post an Aws on Demand Task
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-post.createawsondemandtask
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-post-event
+      description: Datadog Post an Event
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-post.createevent
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-logs-post
+      description: Datadog Search Logs (post)
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-post.listlogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

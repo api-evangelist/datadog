@@ -1,0 +1,125 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Monthly
+  description: 'Datadog API — Monthly. 1 operations. Lead operation: Datadog Get Monthly Cost Attribution. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Monthly
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-monthly
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Monthly business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost_by_tag-monthly_cost_attribution
+      path: /api/v2/cost_by_tag/monthly_cost_attribution
+      operations:
+      - name: getmonthlycostattribution
+        method: GET
+        description: Datadog Get Monthly Cost Attribution
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_month
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning in this month.'
+          required: true
+        - name: end_month
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month.'
+        - name: fields
+          in: query
+          type: string
+          description: 'Comma-separated list specifying cost types (e.g., `<billing_dimension>_on_demand_cost`, `<billing_dimension>_committed_cost`,
+            `<billing_dimension>_total_cost`) '
+          required: true
+        - name: sort_direction
+          in: query
+          type: string
+          description: 'The direction to sort by: `[desc, asc]`.'
+        - name: sort_name
+          in: query
+          type: string
+          description: 'The billing dimension to sort by. Always sorted by total cost. Example: `infra_host`.'
+        - name: tag_breakdown_keys
+          in: query
+          type: string
+          description: Comma separated list of tag keys used to group cost. If no value is provided the cost will not be broken
+            down by tags.
+        - name: next_record_id
+          in: query
+          type: string
+          description: List following results with a next_record_id provided in the previous query.
+        - name: include_descendants
+          in: query
+          type: boolean
+          description: Include child org cost in the response. Defaults to `true`.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-monthly-rest
+    port: 8080
+    description: REST adapter for Datadog API — Monthly. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cost-by-tag/monthly-cost-attribution
+      name: api-v2-cost-by-tag-monthly-cost-attribution
+      description: REST surface for api-v2-cost_by_tag-monthly_cost_attribution.
+      operations:
+      - method: GET
+        name: getmonthlycostattribution
+        description: Datadog Get Monthly Cost Attribution
+        call: datadog-monthly.getmonthlycostattribution
+        with:
+          start_month: rest.start_month
+          end_month: rest.end_month
+          fields: rest.fields
+          sort_direction: rest.sort_direction
+          sort_name: rest.sort_name
+          tag_breakdown_keys: rest.tag_breakdown_keys
+          next_record_id: rest.next_record_id
+          include_descendants: rest.include_descendants
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-monthly-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Monthly. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-monthly-cost-attribution
+      description: Datadog Get Monthly Cost Attribution
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monthly.getmonthlycostattribution
+      with:
+        start_month: tools.start_month
+        end_month: tools.end_month
+        fields: tools.fields
+        sort_direction: tools.sort_direction
+        sort_name: tools.sort_name
+        tag_breakdown_keys: tools.tag_breakdown_keys
+        next_record_id: tools.next_record_id
+        include_descendants: tools.include_descendants
+      outputParameters:
+      - type: object
+        mapping: $.

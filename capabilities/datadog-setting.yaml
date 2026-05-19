@@ -1,0 +1,94 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Setting
+  description: 'Datadog API — Setting. 1 operations. Lead operation: Datadog Update Permission Setting for Team. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Setting
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-setting
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Setting business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-team-team_id-permission-settings-action
+      path: /api/v2/team/{team_id}/permission-settings/{action}
+      operations:
+      - name: updateteampermissionsetting
+        method: PUT
+        description: Datadog Update Permission Setting for Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: action
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-setting-rest
+    port: 8080
+    description: REST adapter for Datadog API — Setting. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/team/{team-id}/permission-settings/{action}
+      name: api-v2-team-team-id-permission-settings-action
+      description: REST surface for api-v2-team-team_id-permission-settings-action.
+      operations:
+      - method: PUT
+        name: updateteampermissionsetting
+        description: Datadog Update Permission Setting for Team
+        call: datadog-setting.updateteampermissionsetting
+        with:
+          team_id: rest.team_id
+          action: rest.action
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-setting-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Setting. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-update-permission-setting-team
+      description: Datadog Update Permission Setting for Team
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-setting.updateteampermissionsetting
+      with:
+        team_id: tools.team_id
+        action: tools.action
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

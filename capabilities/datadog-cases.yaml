@@ -1,0 +1,85 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Cases
+  description: 'Datadog API — Cases. 1 operations. Lead operation: Datadog Search Cases. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Cases
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-cases
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Cases business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases
+      path: /api/v2/cases
+      operations:
+      - name: searchcases
+        method: GET
+        description: Datadog Search Cases
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter
+          in: query
+          type: string
+          description: Search query
+        - name: sort[asc]
+          in: query
+          type: boolean
+          description: Specify if order is ascending or not
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-cases-rest
+    port: 8080
+    description: REST adapter for Datadog API — Cases. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/cases
+      name: api-v2-cases
+      description: REST surface for api-v2-cases.
+      operations:
+      - method: GET
+        name: searchcases
+        description: Datadog Search Cases
+        call: datadog-cases.searchcases
+        with:
+          filter: rest.filter
+          sort[asc]: rest.sort[asc]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-cases-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Cases. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-search-cases
+      description: Datadog Search Cases
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-cases.searchcases
+      with:
+        filter: tools.filter
+        sort[asc]: tools.sort[asc]
+      outputParameters:
+      - type: object
+        mapping: $.

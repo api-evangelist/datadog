@@ -1,0 +1,86 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Dimension
+  description: 'Datadog API — Dimension. 1 operations. Lead operation: Datadog Get Billing Dimension Mapping for Usage Endpoints.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Dimension
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-dimension
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Dimension business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-usage-billing_dimension_mapping
+      path: /api/v2/usage/billing_dimension_mapping
+      operations:
+      - name: getbillingdimensionmapping
+        method: GET
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[month]
+          in: query
+          type: string
+          description: Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month.
+        - name: filter[view]
+          in: query
+          type: string
+          description: String to specify whether to retrieve active billing dimension mappings for the contract or for all
+            available mappings. Allowed views have the string `active` o
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-dimension-rest
+    port: 8080
+    description: REST adapter for Datadog API — Dimension. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/usage/billing-dimension-mapping
+      name: api-v2-usage-billing-dimension-mapping
+      description: REST surface for api-v2-usage-billing_dimension_mapping.
+      operations:
+      - method: GET
+        name: getbillingdimensionmapping
+        description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+        call: datadog-dimension.getbillingdimensionmapping
+        with:
+          filter[month]: rest.filter[month]
+          filter[view]: rest.filter[view]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-dimension-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Dimension. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-billing-dimension-mapping
+      description: Datadog Get Billing Dimension Mapping for Usage Endpoints
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-dimension.getbillingdimensionmapping
+      with:
+        filter[month]: tools.filter[month]
+        filter[view]: tools.filter[view]
+      outputParameters:
+      - type: object
+        mapping: $.

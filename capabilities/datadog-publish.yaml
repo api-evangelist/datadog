@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Publish
+  description: 'Datadog API — Publish. 1 operations. Lead operation: Datadog Publish App. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Publish
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-publish
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Publish business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-app-builder-apps-app_id-deployment
+      path: /api/v2/app-builder/apps/{app_id}/deployment
+      operations:
+      - name: publishapp
+        method: POST
+        description: Datadog Publish App
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: app_id
+          in: path
+          type: string
+          description: The ID of the app to publish.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-publish-rest
+    port: 8080
+    description: REST adapter for Datadog API — Publish. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/app-builder/apps/{app-id}/deployment
+      name: api-v2-app-builder-apps-app-id-deployment
+      description: REST surface for api-v2-app-builder-apps-app_id-deployment.
+      operations:
+      - method: POST
+        name: publishapp
+        description: Datadog Publish App
+        call: datadog-publish.publishapp
+        with:
+          app_id: rest.app_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-publish-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Publish. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-publish-app
+      description: Datadog Publish App
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-publish.publishapp
+      with:
+        app_id: tools.app_id
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,475 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Monitor
+  description: 'Datadog API — Monitor. 11 operations. Lead operation: Datadog Get All Monitor Notification Rules. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Monitor
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-monitor
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Monitor business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-monitor-notification_rule
+      path: /api/v2/monitor/notification_rule
+      operations:
+      - name: getmonitornotificationrules
+        method: GET
+        description: Datadog Get All Monitor Notification Rules
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of resource paths for related resources to include in the response. Supported
+            resource
+      - name: createmonitornotificationrule
+        method: POST
+        description: Datadog Create a Monitor Notification Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-notification_rule-rule_id
+      path: /api/v2/monitor/notification_rule/{rule_id}
+      operations:
+      - name: deletemonitornotificationrule
+        method: DELETE
+        description: Datadog Delete a Monitor Notification Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: rule_id
+          in: path
+          type: string
+          description: ID of the monitor notification rule to delete.
+          required: true
+      - name: getmonitornotificationrule
+        method: GET
+        description: Datadog Get a Monitor Notification Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: rule_id
+          in: path
+          type: string
+          description: ID of the monitor notification rule to fetch.
+          required: true
+        - name: include
+          in: query
+          type: string
+          description: Comma-separated list of resource paths for related resources to include in the response. Supported
+            resource
+      - name: updatemonitornotificationrule
+        method: PATCH
+        description: Datadog Update a Monitor Notification Rule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: rule_id
+          in: path
+          type: string
+          description: ID of the monitor notification rule to update.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-policy
+      path: /api/v2/monitor/policy
+      operations:
+      - name: listmonitorconfigpolicies
+        method: GET
+        description: Datadog Get All Monitor Configuration Policies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createmonitorconfigpolicy
+        method: POST
+        description: Datadog Create a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-policy-policy_id
+      path: /api/v2/monitor/policy/{policy_id}
+      operations:
+      - name: deletemonitorconfigpolicy
+        method: DELETE
+        description: Datadog Delete a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+      - name: getmonitorconfigpolicy
+        method: GET
+        description: Datadog Get a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+      - name: updatemonitorconfigpolicy
+        method: PATCH
+        description: Datadog Edit a Monitor Configuration Policy
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: policy_id
+          in: path
+          type: string
+          description: ID of the monitor configuration policy.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-monitor-monitor_id-downtime_matches
+      path: /api/v2/monitor/{monitor_id}/downtime_matches
+      operations:
+      - name: listmonitordowntimes
+        method: GET
+        description: Datadog Get Active Downtimes for a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: monitor_id
+          in: path
+          type: integer
+          description: The id of the monitor.
+          required: true
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of downtimes in the response.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-monitor-rest
+    port: 8080
+    description: REST adapter for Datadog API — Monitor. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/monitor/notification-rule
+      name: api-v2-monitor-notification-rule
+      description: REST surface for api-v2-monitor-notification_rule.
+      operations:
+      - method: GET
+        name: getmonitornotificationrules
+        description: Datadog Get All Monitor Notification Rules
+        call: datadog-monitor.getmonitornotificationrules
+        with:
+          include: rest.include
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createmonitornotificationrule
+        description: Datadog Create a Monitor Notification Rule
+        call: datadog-monitor.createmonitornotificationrule
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/notification-rule/{rule-id}
+      name: api-v2-monitor-notification-rule-rule-id
+      description: REST surface for api-v2-monitor-notification_rule-rule_id.
+      operations:
+      - method: DELETE
+        name: deletemonitornotificationrule
+        description: Datadog Delete a Monitor Notification Rule
+        call: datadog-monitor.deletemonitornotificationrule
+        with:
+          rule_id: rest.rule_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getmonitornotificationrule
+        description: Datadog Get a Monitor Notification Rule
+        call: datadog-monitor.getmonitornotificationrule
+        with:
+          rule_id: rest.rule_id
+          include: rest.include
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatemonitornotificationrule
+        description: Datadog Update a Monitor Notification Rule
+        call: datadog-monitor.updatemonitornotificationrule
+        with:
+          rule_id: rest.rule_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/policy
+      name: api-v2-monitor-policy
+      description: REST surface for api-v2-monitor-policy.
+      operations:
+      - method: GET
+        name: listmonitorconfigpolicies
+        description: Datadog Get All Monitor Configuration Policies
+        call: datadog-monitor.listmonitorconfigpolicies
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createmonitorconfigpolicy
+        description: Datadog Create a Monitor Configuration Policy
+        call: datadog-monitor.createmonitorconfigpolicy
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/policy/{policy-id}
+      name: api-v2-monitor-policy-policy-id
+      description: REST surface for api-v2-monitor-policy-policy_id.
+      operations:
+      - method: DELETE
+        name: deletemonitorconfigpolicy
+        description: Datadog Delete a Monitor Configuration Policy
+        call: datadog-monitor.deletemonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getmonitorconfigpolicy
+        description: Datadog Get a Monitor Configuration Policy
+        call: datadog-monitor.getmonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatemonitorconfigpolicy
+        description: Datadog Edit a Monitor Configuration Policy
+        call: datadog-monitor.updatemonitorconfigpolicy
+        with:
+          policy_id: rest.policy_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/monitor/{monitor-id}/downtime-matches
+      name: api-v2-monitor-monitor-id-downtime-matches
+      description: REST surface for api-v2-monitor-monitor_id-downtime_matches.
+      operations:
+      - method: GET
+        name: listmonitordowntimes
+        description: Datadog Get Active Downtimes for a Monitor
+        call: datadog-monitor.listmonitordowntimes
+        with:
+          monitor_id: rest.monitor_id
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-monitor-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Monitor. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-monitor-notification
+      description: Datadog Get All Monitor Notification Rules
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.getmonitornotificationrules
+      with:
+        include: tools.include
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-monitor-notification-rule
+      description: Datadog Create a Monitor Notification Rule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-monitor.createmonitornotificationrule
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-monitor-notification-rule
+      description: Datadog Delete a Monitor Notification Rule
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-monitor.deletemonitornotificationrule
+      with:
+        rule_id: tools.rule_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-monitor-notification-rule
+      description: Datadog Get a Monitor Notification Rule
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.getmonitornotificationrule
+      with:
+        rule_id: tools.rule_id
+        include: tools.include
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-monitor-notification-rule
+      description: Datadog Update a Monitor Notification Rule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.updatemonitornotificationrule
+      with:
+        rule_id: tools.rule_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-monitor-configuration
+      description: Datadog Get All Monitor Configuration Policies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.listmonitorconfigpolicies
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-monitor-configuration-policy
+      description: Datadog Create a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-monitor.createmonitorconfigpolicy
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-monitor-configuration-policy
+      description: Datadog Delete a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-monitor.deletemonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-monitor-configuration-policy
+      description: Datadog Get a Monitor Configuration Policy
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.getmonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-edit-monitor-configuration-policy
+      description: Datadog Edit a Monitor Configuration Policy
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.updatemonitorconfigpolicy
+      with:
+        policy_id: tools.policy_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-active-downtimes-monitor
+      description: Datadog Get Active Downtimes for a Monitor
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-monitor.listmonitordowntimes
+      with:
+        monitor_id: tools.monitor_id
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.

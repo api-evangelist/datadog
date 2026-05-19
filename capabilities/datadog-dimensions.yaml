@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Dimensions
+  description: 'Datadog API — Dimensions. 1 operations. Lead operation: Datadog Get Active Billing Dimensions for Cost Attribution.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Dimensions
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-dimensions
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Dimensions business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost_by_tag-active_billing_dimensions
+      path: /api/v2/cost_by_tag/active_billing_dimensions
+      operations:
+      - name: getactivebillingdimensions
+        method: GET
+        description: Datadog Get Active Billing Dimensions for Cost Attribution
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-dimensions-rest
+    port: 8080
+    description: REST adapter for Datadog API — Dimensions. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/cost-by-tag/active-billing-dimensions
+      name: api-v2-cost-by-tag-active-billing-dimensions
+      description: REST surface for api-v2-cost_by_tag-active_billing_dimensions.
+      operations:
+      - method: GET
+        name: getactivebillingdimensions
+        description: Datadog Get Active Billing Dimensions for Cost Attribution
+        call: datadog-dimensions.getactivebillingdimensions
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-dimensions-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Dimensions. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-active-billing-dimensions
+      description: Datadog Get Active Billing Dimensions for Cost Attribution
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-dimensions.getactivebillingdimensions
+      outputParameters:
+      - type: object
+        mapping: $.

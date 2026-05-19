@@ -1,0 +1,134 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Coverage
+  description: 'Datadog API — Coverage. 3 operations. Lead operation: Datadog Get the Csm Cloud Accounts Coverage Analysis.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Coverage
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-coverage
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Coverage business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-csm-onboarding-coverage_analysis-cloud_accounts
+      path: /api/v2/csm/onboarding/coverage_analysis/cloud_accounts
+      operations:
+      - name: getcsmcloudaccountscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Cloud Accounts Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-csm-onboarding-coverage_analysis-hosts_and_containers
+      path: /api/v2/csm/onboarding/coverage_analysis/hosts_and_containers
+      operations:
+      - name: getcsmhostsandcontainerscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-csm-onboarding-coverage_analysis-serverless
+      path: /api/v2/csm/onboarding/coverage_analysis/serverless
+      operations:
+      - name: getcsmserverlesscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Serverless Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-coverage-rest
+    port: 8080
+    description: REST adapter for Datadog API — Coverage. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/cloud-accounts
+      name: api-v2-csm-onboarding-coverage-analysis-cloud-accounts
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-cloud_accounts.
+      operations:
+      - method: GET
+        name: getcsmcloudaccountscoverageanalysis
+        description: Datadog Get the Csm Cloud Accounts Coverage Analysis
+        call: datadog-coverage.getcsmcloudaccountscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/hosts-and-containers
+      name: api-v2-csm-onboarding-coverage-analysis-hosts-and-containers
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-hosts_and_containers.
+      operations:
+      - method: GET
+        name: getcsmhostsandcontainerscoverageanalysis
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        call: datadog-coverage.getcsmhostsandcontainerscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/serverless
+      name: api-v2-csm-onboarding-coverage-analysis-serverless
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-serverless.
+      operations:
+      - method: GET
+        name: getcsmserverlesscoverageanalysis
+        description: Datadog Get the Csm Serverless Coverage Analysis
+        call: datadog-coverage.getcsmserverlesscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-coverage-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Coverage. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-csm-cloud-accounts
+      description: Datadog Get the Csm Cloud Accounts Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-coverage.getcsmcloudaccountscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-csm-hosts-and
+      description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-coverage.getcsmhostsandcontainerscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-csm-serverless-coverage
+      description: Datadog Get the Csm Serverless Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-coverage.getcsmserverlesscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.

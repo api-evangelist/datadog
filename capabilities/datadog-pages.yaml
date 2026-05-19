@@ -1,0 +1,206 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Pages
+  description: 'Datadog API — Pages. 4 operations. Lead operation: Datadog Create On-call Page. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Pages
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-pages
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Pages business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-on-call-pages
+      path: /api/v2/on-call/pages
+      operations:
+      - name: createoncallpage
+        method: POST
+        description: Datadog Create On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-on-call-pages-page_id-acknowledge
+      path: /api/v2/on-call/pages/{page_id}/acknowledge
+      operations:
+      - name: acknowledgeoncallpage
+        method: POST
+        description: Datadog Acknowledge On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page_id
+          in: path
+          type: string
+          description: The page ID.
+          required: true
+    - name: api-v2-on-call-pages-page_id-escalate
+      path: /api/v2/on-call/pages/{page_id}/escalate
+      operations:
+      - name: escalateoncallpage
+        method: POST
+        description: Datadog Escalate On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page_id
+          in: path
+          type: string
+          description: The page ID.
+          required: true
+    - name: api-v2-on-call-pages-page_id-resolve
+      path: /api/v2/on-call/pages/{page_id}/resolve
+      operations:
+      - name: resolveoncallpage
+        method: POST
+        description: Datadog Resolve On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page_id
+          in: path
+          type: string
+          description: The page ID.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-pages-rest
+    port: 8080
+    description: REST adapter for Datadog API — Pages. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/on-call/pages
+      name: api-v2-on-call-pages
+      description: REST surface for api-v2-on-call-pages.
+      operations:
+      - method: POST
+        name: createoncallpage
+        description: Datadog Create On-call Page
+        call: datadog-pages.createoncallpage
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/pages/{page-id}/acknowledge
+      name: api-v2-on-call-pages-page-id-acknowledge
+      description: REST surface for api-v2-on-call-pages-page_id-acknowledge.
+      operations:
+      - method: POST
+        name: acknowledgeoncallpage
+        description: Datadog Acknowledge On-call Page
+        call: datadog-pages.acknowledgeoncallpage
+        with:
+          page_id: rest.page_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/pages/{page-id}/escalate
+      name: api-v2-on-call-pages-page-id-escalate
+      description: REST surface for api-v2-on-call-pages-page_id-escalate.
+      operations:
+      - method: POST
+        name: escalateoncallpage
+        description: Datadog Escalate On-call Page
+        call: datadog-pages.escalateoncallpage
+        with:
+          page_id: rest.page_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/pages/{page-id}/resolve
+      name: api-v2-on-call-pages-page-id-resolve
+      description: REST surface for api-v2-on-call-pages-page_id-resolve.
+      operations:
+      - method: POST
+        name: resolveoncallpage
+        description: Datadog Resolve On-call Page
+        call: datadog-pages.resolveoncallpage
+        with:
+          page_id: rest.page_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-pages-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Pages. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-call-page
+      description: Datadog Create On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-pages.createoncallpage
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-acknowledge-call-page
+      description: Datadog Acknowledge On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-pages.acknowledgeoncallpage
+      with:
+        page_id: tools.page_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-escalate-call-page
+      description: Datadog Escalate On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-pages.escalateoncallpage
+      with:
+        page_id: tools.page_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-resolve-call-page
+      description: Datadog Resolve On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-pages.resolveoncallpage
+      with:
+        page_id: tools.page_id
+      outputParameters:
+      - type: object
+        mapping: $.

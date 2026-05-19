@@ -1,0 +1,82 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Logs API — Log Aggregation
+  description: 'Datadog Logs API — Log Aggregation. 1 operations. Lead operation: Datadog Aggregate Logs. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Log Aggregation
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: logs-log-aggregation
+    baseUri: https://api.datadoghq.com
+    description: Datadog Logs API — Log Aggregation business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-logs-analytics-aggregate
+      path: /api/v2/logs/analytics/aggregate
+      operations:
+      - name: aggregatelogs
+        method: POST
+        description: Datadog Aggregate Logs
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: logs-log-aggregation-rest
+    port: 8080
+    description: REST adapter for Datadog Logs API — Log Aggregation. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v2/logs/analytics/aggregate
+      name: api-v2-logs-analytics-aggregate
+      description: REST surface for api-v2-logs-analytics-aggregate.
+      operations:
+      - method: POST
+        name: aggregatelogs
+        description: Datadog Aggregate Logs
+        call: logs-log-aggregation.aggregatelogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: logs-log-aggregation-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Logs API — Log Aggregation. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-aggregate-logs
+      description: Datadog Aggregate Logs
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: logs-log-aggregation.aggregatelogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

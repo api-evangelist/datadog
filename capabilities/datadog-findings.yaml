@@ -1,0 +1,187 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Findings
+  description: 'Datadog API — Findings. 2 operations. Lead operation: Datadog List Findings. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Findings
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-findings
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Findings business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-posture_management-findings
+      path: /api/v2/posture_management/findings
+      operations:
+      - name: listfindings
+        method: GET
+        description: Datadog List Findings
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Limit the number of findings returned. Must be <= 1000.
+        - name: snapshot_timestamp
+          in: query
+          type: integer
+          description: Return findings for a given snapshot of time (Unix ms).
+        - name: page[cursor]
+          in: query
+          type: string
+          description: Return the next page of findings pointed to by the cursor.
+        - name: filter[tags]
+          in: query
+          type: string
+          description: Return findings that have these associated tags (repeatable).
+        - name: filter[evaluation_changed_at]
+          in: query
+          type: string
+          description: Return findings that have changed from pass to fail or vice versa on a specified date (Unix ms) or
+            date range (using comparison operators).
+        - name: filter[muted]
+          in: query
+          type: boolean
+          description: Set to `true` to return findings that are muted. Set to `false` to return unmuted findings.
+        - name: filter[rule_id]
+          in: query
+          type: string
+          description: Return findings for the specified rule ID.
+        - name: filter[rule_name]
+          in: query
+          type: string
+          description: Return findings for the specified rule.
+        - name: filter[resource_type]
+          in: query
+          type: string
+          description: Return only findings for the specified resource type.
+        - name: filter[discovery_timestamp]
+          in: query
+          type: string
+          description: Return findings that were found on a specified date (Unix ms) or date range (using comparison operators).
+        - name: filter[evaluation]
+          in: query
+          type: string
+          description: Return only `pass` or `fail` findings.
+        - name: filter[status]
+          in: query
+          type: string
+          description: Return only findings with the specified status.
+        - name: filter[vulnerability_type]
+          in: query
+          type: array
+          description: Return findings that match the selected vulnerability types (repeatable).
+      - name: mutefindings
+        method: PATCH
+        description: Datadog Mute or Unmute a Batch of Findings
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-findings-rest
+    port: 8080
+    description: REST adapter for Datadog API — Findings. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/posture-management/findings
+      name: api-v2-posture-management-findings
+      description: REST surface for api-v2-posture_management-findings.
+      operations:
+      - method: GET
+        name: listfindings
+        description: Datadog List Findings
+        call: datadog-findings.listfindings
+        with:
+          page[limit]: rest.page[limit]
+          snapshot_timestamp: rest.snapshot_timestamp
+          page[cursor]: rest.page[cursor]
+          filter[tags]: rest.filter[tags]
+          filter[evaluation_changed_at]: rest.filter[evaluation_changed_at]
+          filter[muted]: rest.filter[muted]
+          filter[rule_id]: rest.filter[rule_id]
+          filter[rule_name]: rest.filter[rule_name]
+          filter[resource_type]: rest.filter[resource_type]
+          filter[discovery_timestamp]: rest.filter[discovery_timestamp]
+          filter[evaluation]: rest.filter[evaluation]
+          filter[status]: rest.filter[status]
+          filter[vulnerability_type]: rest.filter[vulnerability_type]
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: mutefindings
+        description: Datadog Mute or Unmute a Batch of Findings
+        call: datadog-findings.mutefindings
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-findings-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Findings. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-findings
+      description: Datadog List Findings
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-findings.listfindings
+      with:
+        page[limit]: tools.page[limit]
+        snapshot_timestamp: tools.snapshot_timestamp
+        page[cursor]: tools.page[cursor]
+        filter[tags]: tools.filter[tags]
+        filter[evaluation_changed_at]: tools.filter[evaluation_changed_at]
+        filter[muted]: tools.filter[muted]
+        filter[rule_id]: tools.filter[rule_id]
+        filter[rule_name]: tools.filter[rule_name]
+        filter[resource_type]: tools.filter[resource_type]
+        filter[discovery_timestamp]: tools.filter[discovery_timestamp]
+        filter[evaluation]: tools.filter[evaluation]
+        filter[status]: tools.filter[status]
+        filter[vulnerability_type]: tools.filter[vulnerability_type]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-mute-unmute-batch-findings
+      description: Datadog Mute or Unmute a Batch of Findings
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-findings.mutefindings
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

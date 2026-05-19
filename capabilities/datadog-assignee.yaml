@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Assignee
+  description: 'Datadog API — Assignee. 1 operations. Lead operation: Datadog Modify the Triage Assignee of a Security Signal.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Assignee
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-assignee
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Assignee business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-signals-signal_id-assignee
+      path: /api/v2/security_monitoring/signals/{signal_id}/assignee
+      operations:
+      - name: editsecuritymonitoringsignalassignee
+        method: PATCH
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-assignee-rest
+    port: 8080
+    description: REST adapter for Datadog API — Assignee. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/assignee
+      name: api-v2-security-monitoring-signals-signal-id-assignee
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-assignee.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalassignee
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        call: datadog-assignee.editsecuritymonitoringsignalassignee
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-assignee-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Assignee. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-modify-triage-assignee-security
+      description: Datadog Modify the Triage Assignee of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-assignee.editsecuritymonitoringsignalassignee
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

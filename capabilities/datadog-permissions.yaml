@@ -1,0 +1,302 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Permissions
+  description: 'Datadog API — Permissions. 7 operations. Lead operation: Datadog List Permissions. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Permissions
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-permissions
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Permissions business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-permissions
+      path: /api/v2/permissions
+      operations:
+      - name: listpermissions
+        method: GET
+        description: Datadog List Permissions
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-roles-role_id-permissions
+      path: /api/v2/roles/{role_id}/permissions
+      operations:
+      - name: removepermissionfromrole
+        method: DELETE
+        description: Datadog Revoke Permission
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: listrolepermissions
+        method: GET
+        description: Datadog List Permissions for a Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: addpermissiontorole
+        method: POST
+        description: Datadog Grant Permission to a Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-team-team_id-permission-settings
+      path: /api/v2/team/{team_id}/permission-settings
+      operations:
+      - name: getteampermissionsettings
+        method: GET
+        description: Datadog Get Permission Settings for a Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+    - name: api-v2-team-team_id-permission-settings-action
+      path: /api/v2/team/{team_id}/permission-settings/{action}
+      operations:
+      - name: updateteampermissionsetting
+        method: PUT
+        description: Datadog Update Permission Setting for Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: action
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-users-user_id-permissions
+      path: /api/v2/users/{user_id}/permissions
+      operations:
+      - name: listuserpermissions
+        method: GET
+        description: Datadog Get a User Permissions
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-permissions-rest
+    port: 8080
+    description: REST adapter for Datadog API — Permissions. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/permissions
+      name: api-v2-permissions
+      description: REST surface for api-v2-permissions.
+      operations:
+      - method: GET
+        name: listpermissions
+        description: Datadog List Permissions
+        call: datadog-permissions.listpermissions
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/roles/{role-id}/permissions
+      name: api-v2-roles-role-id-permissions
+      description: REST surface for api-v2-roles-role_id-permissions.
+      operations:
+      - method: DELETE
+        name: removepermissionfromrole
+        description: Datadog Revoke Permission
+        call: datadog-permissions.removepermissionfromrole
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: listrolepermissions
+        description: Datadog List Permissions for a Role
+        call: datadog-permissions.listrolepermissions
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: addpermissiontorole
+        description: Datadog Grant Permission to a Role
+        call: datadog-permissions.addpermissiontorole
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}/permission-settings
+      name: api-v2-team-team-id-permission-settings
+      description: REST surface for api-v2-team-team_id-permission-settings.
+      operations:
+      - method: GET
+        name: getteampermissionsettings
+        description: Datadog Get Permission Settings for a Team
+        call: datadog-permissions.getteampermissionsettings
+        with:
+          team_id: rest.team_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}/permission-settings/{action}
+      name: api-v2-team-team-id-permission-settings-action
+      description: REST surface for api-v2-team-team_id-permission-settings-action.
+      operations:
+      - method: PUT
+        name: updateteampermissionsetting
+        description: Datadog Update Permission Setting for Team
+        call: datadog-permissions.updateteampermissionsetting
+        with:
+          team_id: rest.team_id
+          action: rest.action
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/users/{user-id}/permissions
+      name: api-v2-users-user-id-permissions
+      description: REST surface for api-v2-users-user_id-permissions.
+      operations:
+      - method: GET
+        name: listuserpermissions
+        description: Datadog Get a User Permissions
+        call: datadog-permissions.listuserpermissions
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-permissions-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Permissions. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-permissions
+      description: Datadog List Permissions
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-permissions.listpermissions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-revoke-permission
+      description: Datadog Revoke Permission
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-permissions.removepermissionfromrole
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-permissions-role
+      description: Datadog List Permissions for a Role
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-permissions.listrolepermissions
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-grant-permission-role
+      description: Datadog Grant Permission to a Role
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-permissions.addpermissiontorole
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-permission-settings-team
+      description: Datadog Get Permission Settings for a Team
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-permissions.getteampermissionsettings
+      with:
+        team_id: tools.team_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-permission-setting-team
+      description: Datadog Update Permission Setting for Team
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-permissions.updateteampermissionsetting
+      with:
+        team_id: tools.team_id
+        action: tools.action
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-user-permissions
+      description: Datadog Get a User Permissions
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-permissions.listuserpermissions
+      outputParameters:
+      - type: object
+        mapping: $.

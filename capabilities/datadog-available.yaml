@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Available
+  description: 'Datadog API — Available. 1 operations. Lead operation: Datadog List Available Namespaces. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Available
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-available
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Available business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-aws-available_namespaces
+      path: /api/v2/integration/aws/available_namespaces
+      operations:
+      - name: listawsnamespaces
+        method: GET
+        description: Datadog List Available Namespaces
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-available-rest
+    port: 8080
+    description: REST adapter for Datadog API — Available. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/aws/available-namespaces
+      name: api-v2-integration-aws-available-namespaces
+      description: REST surface for api-v2-integration-aws-available_namespaces.
+      operations:
+      - method: GET
+        name: listawsnamespaces
+        description: Datadog List Available Namespaces
+        call: datadog-available.listawsnamespaces
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-available-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Available. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-available-namespaces
+      description: Datadog List Available Namespaces
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-available.listawsnamespaces
+      outputParameters:
+      - type: object
+        mapping: $.

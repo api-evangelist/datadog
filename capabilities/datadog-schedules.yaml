@@ -1,0 +1,316 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Schedules
+  description: 'Datadog API — Schedules. 6 operations. Lead operation: Datadog Schedule a Downtime. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Schedules
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-schedules
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Schedules business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-downtime
+      path: /api/v2/downtime
+      operations:
+      - name: createdowntime
+        method: POST
+        description: Datadog Schedule a Downtime
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-on-call-schedules
+      path: /api/v2/on-call/schedules
+      operations:
+      - name: createoncallschedule
+        method: POST
+        description: Datadog Create On-call Schedule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`,
+            `layers.members`, `layers.members.user`.'
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-on-call-schedules-schedule_id
+      path: /api/v2/on-call/schedules/{schedule_id}
+      operations:
+      - name: deleteoncallschedule
+        method: DELETE
+        description: Datadog Delete On-call Schedule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: schedule_id
+          in: path
+          type: string
+          description: The ID of the schedule
+          required: true
+      - name: getoncallschedule
+        method: GET
+        description: Datadog Get On-call Schedule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`,
+            `layers.members`, `layers.members.user`.'
+        - name: schedule_id
+          in: path
+          type: string
+          description: The ID of the schedule
+          required: true
+      - name: updateoncallschedule
+        method: PUT
+        description: Datadog Update On-call Schedule
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`,
+            `layers.members`, `layers.members.user`.'
+        - name: schedule_id
+          in: path
+          type: string
+          description: The ID of the schedule
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-on-call-schedules-schedule_id-on-call
+      path: /api/v2/on-call/schedules/{schedule_id}/on-call
+      operations:
+      - name: getscheduleoncalluser
+        method: GET
+        description: Datadog Get the Schedule On-call User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: include
+          in: query
+          type: string
+          description: 'Specifies related resources to include in the response as a comma-separated list. Allowed value: `user`.'
+        - name: schedule_id
+          in: path
+          type: string
+          description: The ID of the schedule.
+          required: true
+        - name: filter[at_ts]
+          in: query
+          type: string
+          description: Retrieves the on-call user at the given timestamp (ISO-8601). Defaults to the current time if omitted."
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-schedules-rest
+    port: 8080
+    description: REST adapter for Datadog API — Schedules. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/downtime
+      name: api-v2-downtime
+      description: REST surface for api-v2-downtime.
+      operations:
+      - method: POST
+        name: createdowntime
+        description: Datadog Schedule a Downtime
+        call: datadog-schedules.createdowntime
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/schedules
+      name: api-v2-on-call-schedules
+      description: REST surface for api-v2-on-call-schedules.
+      operations:
+      - method: POST
+        name: createoncallschedule
+        description: Datadog Create On-call Schedule
+        call: datadog-schedules.createoncallschedule
+        with:
+          include: rest.include
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/schedules/{schedule-id}
+      name: api-v2-on-call-schedules-schedule-id
+      description: REST surface for api-v2-on-call-schedules-schedule_id.
+      operations:
+      - method: DELETE
+        name: deleteoncallschedule
+        description: Datadog Delete On-call Schedule
+        call: datadog-schedules.deleteoncallschedule
+        with:
+          schedule_id: rest.schedule_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getoncallschedule
+        description: Datadog Get On-call Schedule
+        call: datadog-schedules.getoncallschedule
+        with:
+          include: rest.include
+          schedule_id: rest.schedule_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updateoncallschedule
+        description: Datadog Update On-call Schedule
+        call: datadog-schedules.updateoncallschedule
+        with:
+          include: rest.include
+          schedule_id: rest.schedule_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/schedules/{schedule-id}/on-call
+      name: api-v2-on-call-schedules-schedule-id-on-call
+      description: REST surface for api-v2-on-call-schedules-schedule_id-on-call.
+      operations:
+      - method: GET
+        name: getscheduleoncalluser
+        description: Datadog Get the Schedule On-call User
+        call: datadog-schedules.getscheduleoncalluser
+        with:
+          include: rest.include
+          schedule_id: rest.schedule_id
+          filter[at_ts]: rest.filter[at_ts]
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-schedules-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Schedules. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-schedule-downtime
+      description: Datadog Schedule a Downtime
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-schedules.createdowntime
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-call-schedule
+      description: Datadog Create On-call Schedule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-schedules.createoncallschedule
+      with:
+        include: tools.include
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-call-schedule
+      description: Datadog Delete On-call Schedule
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-schedules.deleteoncallschedule
+      with:
+        schedule_id: tools.schedule_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-call-schedule
+      description: Datadog Get On-call Schedule
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-schedules.getoncallschedule
+      with:
+        include: tools.include
+        schedule_id: tools.schedule_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-call-schedule
+      description: Datadog Update On-call Schedule
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-schedules.updateoncallschedule
+      with:
+        include: tools.include
+        schedule_id: tools.schedule_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-schedule-call-user
+      description: Datadog Get the Schedule On-call User
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-schedules.getscheduleoncalluser
+      with:
+        include: tools.include
+        schedule_id: tools.schedule_id
+        filter[at_ts]: tools.filter[at_ts]
+      outputParameters:
+      - type: object
+        mapping: $.

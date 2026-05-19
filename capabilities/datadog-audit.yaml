@@ -1,0 +1,151 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Audit
+  description: 'Datadog API — Audit. 2 operations. Lead operation: Datadog Get a List of Audit Logs Events. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Audit
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-audit
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Audit business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-audit-events
+      path: /api/v2/audit/events
+      operations:
+      - name: listauditlogs
+        method: GET
+        description: Datadog Get a List of Audit Logs Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[query]
+          in: query
+          type: string
+          description: Search query following Audit Logs syntax.
+        - name: filter[from]
+          in: query
+          type: string
+          description: Minimum timestamp for requested events.
+        - name: filter[to]
+          in: query
+          type: string
+          description: Maximum timestamp for requested events.
+        - name: sort
+          in: query
+          type: string
+          description: Order of events in results.
+        - name: page[cursor]
+          in: query
+          type: string
+          description: List following results with a cursor provided in the previous query.
+        - name: page[limit]
+          in: query
+          type: integer
+          description: Maximum number of events in the response.
+    - name: api-v2-audit-events-search
+      path: /api/v2/audit/events/search
+      operations:
+      - name: searchauditlogs
+        method: POST
+        description: Datadog Search Audit Logs Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-audit-rest
+    port: 8080
+    description: REST adapter for Datadog API — Audit. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/audit/events
+      name: api-v2-audit-events
+      description: REST surface for api-v2-audit-events.
+      operations:
+      - method: GET
+        name: listauditlogs
+        description: Datadog Get a List of Audit Logs Events
+        call: datadog-audit.listauditlogs
+        with:
+          filter[query]: rest.filter[query]
+          filter[from]: rest.filter[from]
+          filter[to]: rest.filter[to]
+          sort: rest.sort
+          page[cursor]: rest.page[cursor]
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/audit/events/search
+      name: api-v2-audit-events-search
+      description: REST surface for api-v2-audit-events-search.
+      operations:
+      - method: POST
+        name: searchauditlogs
+        description: Datadog Search Audit Logs Events
+        call: datadog-audit.searchauditlogs
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-audit-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Audit. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-list-audit-logs
+      description: Datadog Get a List of Audit Logs Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-audit.listauditlogs
+      with:
+        filter[query]: tools.filter[query]
+        filter[from]: tools.filter[from]
+        filter[to]: tools.filter[to]
+        sort: tools.sort
+        page[cursor]: tools.page[cursor]
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-search-audit-logs-events
+      description: Datadog Search Audit Logs Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-audit.searchauditlogs
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,197 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Webhooks
+  description: 'Datadog API — Webhooks. 5 operations. Lead operation: Datadog Get All Workflows Webhook Handles. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Webhooks
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-webhooks
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Webhooks business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles
+      path: /api/v2/integration/ms-teams/configuration/workflows-webhook-handles
+      operations:
+      - name: listworkflowswebhookhandles
+        method: GET
+        description: Datadog Get All Workflows Webhook Handles
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createworkflowswebhookhandle
+        method: POST
+        description: Datadog Create Workflows Webhook Handle
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle_id
+      path: /api/v2/integration/ms-teams/configuration/workflows-webhook-handles/{handle_id}
+      operations:
+      - name: deleteworkflowswebhookhandle
+        method: DELETE
+        description: Datadog Delete Workflows Webhook Handle
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getworkflowswebhookhandle
+        method: GET
+        description: Datadog Get Workflows Webhook Handle Information
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateworkflowswebhookhandle
+        method: PATCH
+        description: Datadog Update Workflows Webhook Handle
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-webhooks-rest
+    port: 8080
+    description: REST adapter for Datadog API — Webhooks. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/integration/ms-teams/configuration/workflows-webhook-handles
+      name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles
+      description: REST surface for api-v2-integration-ms-teams-configuration-workflows-webhook-handles.
+      operations:
+      - method: GET
+        name: listworkflowswebhookhandles
+        description: Datadog Get All Workflows Webhook Handles
+        call: datadog-webhooks.listworkflowswebhookhandles
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createworkflowswebhookhandle
+        description: Datadog Create Workflows Webhook Handle
+        call: datadog-webhooks.createworkflowswebhookhandle
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/integration/ms-teams/configuration/workflows-webhook-handles/{handle-id}
+      name: api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle-id
+      description: REST surface for api-v2-integration-ms-teams-configuration-workflows-webhook-handles-handle_id.
+      operations:
+      - method: DELETE
+        name: deleteworkflowswebhookhandle
+        description: Datadog Delete Workflows Webhook Handle
+        call: datadog-webhooks.deleteworkflowswebhookhandle
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getworkflowswebhookhandle
+        description: Datadog Get Workflows Webhook Handle Information
+        call: datadog-webhooks.getworkflowswebhookhandle
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateworkflowswebhookhandle
+        description: Datadog Update Workflows Webhook Handle
+        call: datadog-webhooks.updateworkflowswebhookhandle
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-webhooks-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Webhooks. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-workflows-webhook
+      description: Datadog Get All Workflows Webhook Handles
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-webhooks.listworkflowswebhookhandles
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-workflows-webhook-handle
+      description: Datadog Create Workflows Webhook Handle
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-webhooks.createworkflowswebhookhandle
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-workflows-webhook-handle
+      description: Datadog Delete Workflows Webhook Handle
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-webhooks.deleteworkflowswebhookhandle
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-workflows-webhook-handle
+      description: Datadog Get Workflows Webhook Handle Information
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-webhooks.getworkflowswebhookhandle
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-workflows-webhook-handle
+      description: Datadog Update Workflows Webhook Handle
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-webhooks.updateworkflowswebhookhandle
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

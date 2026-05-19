@@ -1,0 +1,162 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Files
+  description: 'Datadog API — Files. 4 operations. Lead operation: Datadog List Custom Costs Files. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Files
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-files
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Files business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cost-custom_costs
+      path: /api/v2/cost/custom_costs
+      operations:
+      - name: listcustomcostsfiles
+        method: GET
+        description: Datadog List Custom Costs Files
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: uploadcustomcostsfile
+        method: PUT
+        description: Datadog Upload Custom Costs File
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-cost-custom_costs-file_id
+      path: /api/v2/cost/custom_costs/{file_id}
+      operations:
+      - name: deletecustomcostsfile
+        method: DELETE
+        description: Datadog Delete Custom Costs File
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getcustomcostsfile
+        method: GET
+        description: Datadog Get Custom Costs File
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-files-rest
+    port: 8080
+    description: REST adapter for Datadog API — Files. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/cost/custom-costs
+      name: api-v2-cost-custom-costs
+      description: REST surface for api-v2-cost-custom_costs.
+      operations:
+      - method: GET
+        name: listcustomcostsfiles
+        description: Datadog List Custom Costs Files
+        call: datadog-files.listcustomcostsfiles
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: uploadcustomcostsfile
+        description: Datadog Upload Custom Costs File
+        call: datadog-files.uploadcustomcostsfile
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/cost/custom-costs/{file-id}
+      name: api-v2-cost-custom-costs-file-id
+      description: REST surface for api-v2-cost-custom_costs-file_id.
+      operations:
+      - method: DELETE
+        name: deletecustomcostsfile
+        description: Datadog Delete Custom Costs File
+        call: datadog-files.deletecustomcostsfile
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getcustomcostsfile
+        description: Datadog Get Custom Costs File
+        call: datadog-files.getcustomcostsfile
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-files-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Files. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-custom-costs-files
+      description: Datadog List Custom Costs Files
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-files.listcustomcostsfiles
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-upload-custom-costs-file
+      description: Datadog Upload Custom Costs File
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-files.uploadcustomcostsfile
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-custom-costs-file
+      description: Datadog Delete Custom Costs File
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-files.deletecustomcostsfile
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-custom-costs-file
+      description: Datadog Get Custom Costs File
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-files.getcustomcostsfile
+      outputParameters:
+      - type: object
+        mapping: $.

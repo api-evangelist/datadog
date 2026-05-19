@@ -1,0 +1,226 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Jobs
+  description: 'Datadog API — Jobs. 5 operations. Lead operation: Datadog List Historical Jobs. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Jobs
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-jobs
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Jobs business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-siem-historical-detections-jobs
+      path: /api/v2/siem-historical-detections/jobs
+      operations:
+      - name: listhistoricaljobs
+        method: GET
+        description: Datadog List Historical Jobs
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: sort
+          in: query
+          type: string
+          description: The order of the jobs in results.
+        - name: filter[query]
+          in: query
+          type: string
+          description: Query used to filter items from the fetched list.
+      - name: runhistoricaljob
+        method: POST
+        description: Datadog Run a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-siem-historical-detections-jobs-signal_convert
+      path: /api/v2/siem-historical-detections/jobs/signal_convert
+      operations:
+      - name: convertjobresulttosignal
+        method: POST
+        description: Datadog Convert a Job Result to a Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-siem-historical-detections-jobs-job_id
+      path: /api/v2/siem-historical-detections/jobs/{job_id}
+      operations:
+      - name: deletehistoricaljob
+        method: DELETE
+        description: Datadog Delete an Existing Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-siem-historical-detections-jobs-job_id-cancel
+      path: /api/v2/siem-historical-detections/jobs/{job_id}/cancel
+      operations:
+      - name: cancelhistoricaljob
+        method: PATCH
+        description: Datadog Cancel a Historical Job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-jobs-rest
+    port: 8080
+    description: REST adapter for Datadog API — Jobs. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/siem-historical-detections/jobs
+      name: api-v2-siem-historical-detections-jobs
+      description: REST surface for api-v2-siem-historical-detections-jobs.
+      operations:
+      - method: GET
+        name: listhistoricaljobs
+        description: Datadog List Historical Jobs
+        call: datadog-jobs.listhistoricaljobs
+        with:
+          sort: rest.sort
+          filter[query]: rest.filter[query]
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: runhistoricaljob
+        description: Datadog Run a Historical Job
+        call: datadog-jobs.runhistoricaljob
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/signal-convert
+      name: api-v2-siem-historical-detections-jobs-signal-convert
+      description: REST surface for api-v2-siem-historical-detections-jobs-signal_convert.
+      operations:
+      - method: POST
+        name: convertjobresulttosignal
+        description: Datadog Convert a Job Result to a Signal
+        call: datadog-jobs.convertjobresulttosignal
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/{job-id}
+      name: api-v2-siem-historical-detections-jobs-job-id
+      description: REST surface for api-v2-siem-historical-detections-jobs-job_id.
+      operations:
+      - method: DELETE
+        name: deletehistoricaljob
+        description: Datadog Delete an Existing Job
+        call: datadog-jobs.deletehistoricaljob
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/siem-historical-detections/jobs/{job-id}/cancel
+      name: api-v2-siem-historical-detections-jobs-job-id-cancel
+      description: REST surface for api-v2-siem-historical-detections-jobs-job_id-cancel.
+      operations:
+      - method: PATCH
+        name: cancelhistoricaljob
+        description: Datadog Cancel a Historical Job
+        call: datadog-jobs.cancelhistoricaljob
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-jobs-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Jobs. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-historical-jobs
+      description: Datadog List Historical Jobs
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-jobs.listhistoricaljobs
+      with:
+        sort: tools.sort
+        filter[query]: tools.filter[query]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-run-historical-job
+      description: Datadog Run a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-jobs.runhistoricaljob
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-convert-job-result-signal
+      description: Datadog Convert a Job Result to a Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-jobs.convertjobresulttosignal
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-existing-job
+      description: Datadog Delete an Existing Job
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-jobs.deletehistoricaljob
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-cancel-historical-job
+      description: Datadog Cancel a Historical Job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-jobs.cancelhistoricaljob
+      outputParameters:
+      - type: object
+        mapping: $.

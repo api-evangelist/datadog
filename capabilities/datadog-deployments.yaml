@@ -1,0 +1,164 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Deployments
+  description: 'Datadog API — Deployments. 3 operations. Lead operation: Datadog Send a Deployment Event for Dora Metrics.
+    Self-contained Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Deployments
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-deployments
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Deployments business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-dora-deployment
+      path: /api/v2/dora/deployment
+      operations:
+      - name: createdoradeployment
+        method: POST
+        description: Datadog Send a Deployment Event for Dora Metrics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-dora-deployments
+      path: /api/v2/dora/deployments
+      operations:
+      - name: listdoradeployments
+        method: POST
+        description: Datadog Get a List of Deployment Events
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-dora-deployments-deployment_id
+      path: /api/v2/dora/deployments/{deployment_id}
+      operations:
+      - name: getdoradeployment
+        method: GET
+        description: Datadog Get a Deployment Event
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: deployment_id
+          in: path
+          type: string
+          description: The ID of the deployment event.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-deployments-rest
+    port: 8080
+    description: REST adapter for Datadog API — Deployments. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/dora/deployment
+      name: api-v2-dora-deployment
+      description: REST surface for api-v2-dora-deployment.
+      operations:
+      - method: POST
+        name: createdoradeployment
+        description: Datadog Send a Deployment Event for Dora Metrics
+        call: datadog-deployments.createdoradeployment
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/dora/deployments
+      name: api-v2-dora-deployments
+      description: REST surface for api-v2-dora-deployments.
+      operations:
+      - method: POST
+        name: listdoradeployments
+        description: Datadog Get a List of Deployment Events
+        call: datadog-deployments.listdoradeployments
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/dora/deployments/{deployment-id}
+      name: api-v2-dora-deployments-deployment-id
+      description: REST surface for api-v2-dora-deployments-deployment_id.
+      operations:
+      - method: GET
+        name: getdoradeployment
+        description: Datadog Get a Deployment Event
+        call: datadog-deployments.getdoradeployment
+        with:
+          deployment_id: rest.deployment_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-deployments-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Deployments. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-send-deployment-event-dora
+      description: Datadog Send a Deployment Event for Dora Metrics
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-deployments.createdoradeployment
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-list-deployment-events
+      description: Datadog Get a List of Deployment Events
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-deployments.listdoradeployments
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-deployment-event
+      description: Datadog Get a Deployment Event
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-deployments.getdoradeployment
+      with:
+        deployment_id: tools.deployment_id
+      outputParameters:
+      - type: object
+        mapping: $.

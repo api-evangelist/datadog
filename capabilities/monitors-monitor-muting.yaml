@@ -1,0 +1,124 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog Monitors API — Monitor Muting
+  description: 'Datadog Monitors API — Monitor Muting. 2 operations. Lead operation: Datadog Mute a Monitor. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Monitor Muting
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: monitors-monitor-muting
+    baseUri: https://api.datadoghq.com
+    description: Datadog Monitors API — Monitor Muting business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v1-monitor-monitor_id-mute
+      path: /api/v1/monitor/{monitor_id}/mute
+      operations:
+      - name: mutemonitor
+        method: POST
+        description: Datadog Mute a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v1-monitor-monitor_id-unmute
+      path: /api/v1/monitor/{monitor_id}/unmute
+      operations:
+      - name: unmutemonitor
+        method: POST
+        description: Datadog Unmute a Monitor
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: apikey
+      key: DD-API-KEY
+      value: '{{env.DATADOG_API_KEY}}'
+      placement: header
+  exposes:
+  - type: rest
+    namespace: monitors-monitor-muting-rest
+    port: 8080
+    description: REST adapter for Datadog Monitors API — Monitor Muting. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/api/v1/monitor/{monitor-id}/mute
+      name: api-v1-monitor-monitor-id-mute
+      description: REST surface for api-v1-monitor-monitor_id-mute.
+      operations:
+      - method: POST
+        name: mutemonitor
+        description: Datadog Mute a Monitor
+        call: monitors-monitor-muting.mutemonitor
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v1/monitor/{monitor-id}/unmute
+      name: api-v1-monitor-monitor-id-unmute
+      description: REST surface for api-v1-monitor-monitor_id-unmute.
+      operations:
+      - method: POST
+        name: unmutemonitor
+        description: Datadog Unmute a Monitor
+        call: monitors-monitor-muting.unmutemonitor
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: monitors-monitor-muting-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog Monitors API — Monitor Muting. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: datadog-mute-monitor
+      description: Datadog Mute a Monitor
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: monitors-monitor-muting.mutemonitor
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-unmute-monitor
+      description: Datadog Unmute a Monitor
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: monitors-monitor-muting.unmutemonitor
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

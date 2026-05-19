@@ -1,0 +1,128 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Observability
+  description: 'Datadog API — Observability. 2 operations. Lead operation: Datadog Validate an Observability Pipeline. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Observability
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-observability
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Observability business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-remote_config-products-obs_pipelines-pipelines-validate
+      path: /api/v2/remote_config/products/obs_pipelines/pipelines/validate
+      operations:
+      - name: validatepipeline
+        method: POST
+        description: Datadog Validate an Observability Pipeline
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-usage-observability_pipelines
+      path: /api/v2/usage/observability_pipelines
+      operations:
+      - name: getusageobservabilitypipelines
+        method: GET
+        description: Datadog Get Hourly Usage for Observability Pipelines
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-observability-rest
+    port: 8080
+    description: REST adapter for Datadog API — Observability. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/remote-config/products/obs-pipelines/pipelines/validate
+      name: api-v2-remote-config-products-obs-pipelines-pipelines-validate
+      description: REST surface for api-v2-remote_config-products-obs_pipelines-pipelines-validate.
+      operations:
+      - method: POST
+        name: validatepipeline
+        description: Datadog Validate an Observability Pipeline
+        call: datadog-observability.validatepipeline
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/observability-pipelines
+      name: api-v2-usage-observability-pipelines
+      description: REST surface for api-v2-usage-observability_pipelines.
+      operations:
+      - method: GET
+        name: getusageobservabilitypipelines
+        description: Datadog Get Hourly Usage for Observability Pipelines
+        call: datadog-observability.getusageobservabilitypipelines
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-observability-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Observability. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: datadog-validate-observability-pipeline
+      description: Datadog Validate an Observability Pipeline
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-observability.validatepipeline
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-hourly-usage-observability
+      description: Datadog Get Hourly Usage for Observability Pipelines
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-observability.getusageobservabilitypipelines
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.

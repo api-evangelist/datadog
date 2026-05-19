@@ -1,0 +1,200 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Containers
+  description: 'Datadog API — Containers. 3 operations. Lead operation: Datadog Get All Container Images. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Containers
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-containers
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Containers business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-container_images
+      path: /api/v2/container_images
+      operations:
+      - name: listcontainerimages
+        method: GET
+        description: Datadog Get All Container Images
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[tags]
+          in: query
+          type: string
+          description: Comma-separated list of tags to filter Container Images by.
+        - name: group_by
+          in: query
+          type: string
+          description: Comma-separated list of tags to group Container Images by.
+        - name: sort
+          in: query
+          type: string
+          description: Attribute to sort Container Images by.
+        - name: page[size]
+          in: query
+          type: integer
+          description: Maximum number of results returned.
+        - name: page[cursor]
+          in: query
+          type: string
+          description: String to query the next page of results.
+    - name: api-v2-containers
+      path: /api/v2/containers
+      operations:
+      - name: listcontainers
+        method: GET
+        description: Datadog Get All Containers
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[tags]
+          in: query
+          type: string
+          description: Comma-separated list of tags to filter containers by.
+        - name: group_by
+          in: query
+          type: string
+          description: Comma-separated list of tags to group containers by.
+        - name: sort
+          in: query
+          type: string
+          description: Attribute to sort containers by.
+        - name: page[size]
+          in: query
+          type: integer
+          description: Maximum number of results returned.
+        - name: page[cursor]
+          in: query
+          type: string
+          description: String to query the next page of results.
+    - name: api-v2-csm-onboarding-coverage_analysis-hosts_and_containers
+      path: /api/v2/csm/onboarding/coverage_analysis/hosts_and_containers
+      operations:
+      - name: getcsmhostsandcontainerscoverageanalysis
+        method: GET
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-containers-rest
+    port: 8080
+    description: REST adapter for Datadog API — Containers. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/container-images
+      name: api-v2-container-images
+      description: REST surface for api-v2-container_images.
+      operations:
+      - method: GET
+        name: listcontainerimages
+        description: Datadog Get All Container Images
+        call: datadog-containers.listcontainerimages
+        with:
+          filter[tags]: rest.filter[tags]
+          group_by: rest.group_by
+          sort: rest.sort
+          page[size]: rest.page[size]
+          page[cursor]: rest.page[cursor]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/containers
+      name: api-v2-containers
+      description: REST surface for api-v2-containers.
+      operations:
+      - method: GET
+        name: listcontainers
+        description: Datadog Get All Containers
+        call: datadog-containers.listcontainers
+        with:
+          filter[tags]: rest.filter[tags]
+          group_by: rest.group_by
+          sort: rest.sort
+          page[size]: rest.page[size]
+          page[cursor]: rest.page[cursor]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/csm/onboarding/coverage-analysis/hosts-and-containers
+      name: api-v2-csm-onboarding-coverage-analysis-hosts-and-containers
+      description: REST surface for api-v2-csm-onboarding-coverage_analysis-hosts_and_containers.
+      operations:
+      - method: GET
+        name: getcsmhostsandcontainerscoverageanalysis
+        description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+        call: datadog-containers.getcsmhostsandcontainerscoverageanalysis
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-containers-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Containers. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-container-images
+      description: Datadog Get All Container Images
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-containers.listcontainerimages
+      with:
+        filter[tags]: tools.filter[tags]
+        group_by: tools.group_by
+        sort: tools.sort
+        page[size]: tools.page[size]
+        page[cursor]: tools.page[cursor]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-all-containers
+      description: Datadog Get All Containers
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-containers.listcontainers
+      with:
+        filter[tags]: tools.filter[tags]
+        group_by: tools.group_by
+        sort: tools.sort
+        page[size]: tools.page[size]
+        page[cursor]: tools.page[cursor]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-csm-hosts-and
+      description: Datadog Get the Csm Hosts and Containers Coverage Analysis
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-containers.getcsmhostsandcontainerscoverageanalysis
+      outputParameters:
+      - type: object
+        mapping: $.

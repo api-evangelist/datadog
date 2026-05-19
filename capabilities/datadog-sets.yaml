@@ -1,0 +1,135 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Sets
+  description: 'Datadog API — Sets. 2 operations. Lead operation: Datadog Sets Domain Allowlist. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Sets
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-sets
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Sets business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-domain_allowlist
+      path: /api/v2/domain_allowlist
+      operations:
+      - name: patchdomainallowlist
+        method: PATCH
+        description: Datadog Sets Domain Allowlist
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-on-call-teams-team_id-routing-rules
+      path: /api/v2/on-call/teams/{team_id}/routing-rules
+      operations:
+      - name: setoncallteamroutingrules
+        method: PUT
+        description: Datadog Set On-call Team Routing Rules
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: The team ID
+          required: true
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-sets-rest
+    port: 8080
+    description: REST adapter for Datadog API — Sets. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/domain-allowlist
+      name: api-v2-domain-allowlist
+      description: REST surface for api-v2-domain_allowlist.
+      operations:
+      - method: PATCH
+        name: patchdomainallowlist
+        description: Datadog Sets Domain Allowlist
+        call: datadog-sets.patchdomainallowlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/on-call/teams/{team-id}/routing-rules
+      name: api-v2-on-call-teams-team-id-routing-rules
+      description: REST surface for api-v2-on-call-teams-team_id-routing-rules.
+      operations:
+      - method: PUT
+        name: setoncallteamroutingrules
+        description: Datadog Set On-call Team Routing Rules
+        call: datadog-sets.setoncallteamroutingrules
+        with:
+          team_id: rest.team_id
+          include: rest.include
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-sets-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Sets. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-sets-domain-allowlist
+      description: Datadog Sets Domain Allowlist
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-sets.patchdomainallowlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-set-call-team-routing
+      description: Datadog Set On-call Team Routing Rules
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-sets.setoncallteamroutingrules
+      with:
+        team_id: tools.team_id
+        include: tools.include
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

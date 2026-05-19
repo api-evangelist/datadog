@@ -1,0 +1,473 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Groups
+  description: 'Datadog API — Groups. 11 operations. Lead operation: Datadog List Groups. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Groups
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-groups
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Groups business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-scim-Groups
+      path: /api/v2/scim/Groups
+      operations:
+      - name: listscimgroups
+        method: GET
+        description: Datadog List Groups
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: startIndex
+          in: query
+          type: integer
+          description: Specifies the start index to fetch the results (1-indexed).
+        - name: count
+          in: query
+          type: integer
+          description: Specifies the number of groups to be returned.
+        - name: filter
+          in: query
+          type: string
+          description: Specifies the url encoded filter to use to narrow down the results.
+      - name: createscimgroup
+        method: POST
+        description: Datadog Create Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-scim-Groups-group_id
+      path: /api/v2/scim/Groups/{group_id}
+      operations:
+      - name: deletescimgroup
+        method: DELETE
+        description: Datadog Delete Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: getscimgroup
+        method: GET
+        description: Datadog Get Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_id
+          in: path
+          type: string
+          description: None
+          required: true
+      - name: patchscimgroup
+        method: PATCH
+        description: Datadog Patch Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: updatescimgroup
+        method: PUT
+        description: Datadog Update Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: group_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-sensitive-data-scanner-config
+      path: /api/v2/sensitive-data-scanner/config
+      operations:
+      - name: listscanninggroups
+        method: GET
+        description: Datadog List Scanning Groups
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: reorderscanninggroups
+        method: PATCH
+        description: Datadog Reorder Groups
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-sensitive-data-scanner-config-groups
+      path: /api/v2/sensitive-data-scanner/config/groups
+      operations:
+      - name: createscanninggroup
+        method: POST
+        description: Datadog Create Scanning Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-sensitive-data-scanner-config-groups-group_id
+      path: /api/v2/sensitive-data-scanner/config/groups/{group_id}
+      operations:
+      - name: deletescanninggroup
+        method: DELETE
+        description: Datadog Delete Scanning Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: updatescanninggroup
+        method: PATCH
+        description: Datadog Update Scanning Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-groups-rest
+    port: 8080
+    description: REST adapter for Datadog API — Groups. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/scim/groups
+      name: api-v2-scim-groups
+      description: REST surface for api-v2-scim-Groups.
+      operations:
+      - method: GET
+        name: listscimgroups
+        description: Datadog List Groups
+        call: datadog-groups.listscimgroups
+        with:
+          startIndex: rest.startIndex
+          count: rest.count
+          filter: rest.filter
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createscimgroup
+        description: Datadog Create Group
+        call: datadog-groups.createscimgroup
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/scim/groups/{group-id}
+      name: api-v2-scim-groups-group-id
+      description: REST surface for api-v2-scim-Groups-group_id.
+      operations:
+      - method: DELETE
+        name: deletescimgroup
+        description: Datadog Delete Group
+        call: datadog-groups.deletescimgroup
+        with:
+          group_id: rest.group_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getscimgroup
+        description: Datadog Get Group
+        call: datadog-groups.getscimgroup
+        with:
+          group_id: rest.group_id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patchscimgroup
+        description: Datadog Patch Group
+        call: datadog-groups.patchscimgroup
+        with:
+          group_id: rest.group_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updatescimgroup
+        description: Datadog Update Group
+        call: datadog-groups.updatescimgroup
+        with:
+          group_id: rest.group_id
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/sensitive-data-scanner/config
+      name: api-v2-sensitive-data-scanner-config
+      description: REST surface for api-v2-sensitive-data-scanner-config.
+      operations:
+      - method: GET
+        name: listscanninggroups
+        description: Datadog List Scanning Groups
+        call: datadog-groups.listscanninggroups
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: reorderscanninggroups
+        description: Datadog Reorder Groups
+        call: datadog-groups.reorderscanninggroups
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/sensitive-data-scanner/config/groups
+      name: api-v2-sensitive-data-scanner-config-groups
+      description: REST surface for api-v2-sensitive-data-scanner-config-groups.
+      operations:
+      - method: POST
+        name: createscanninggroup
+        description: Datadog Create Scanning Group
+        call: datadog-groups.createscanninggroup
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/sensitive-data-scanner/config/groups/{group-id}
+      name: api-v2-sensitive-data-scanner-config-groups-group-id
+      description: REST surface for api-v2-sensitive-data-scanner-config-groups-group_id.
+      operations:
+      - method: DELETE
+        name: deletescanninggroup
+        description: Datadog Delete Scanning Group
+        call: datadog-groups.deletescanninggroup
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatescanninggroup
+        description: Datadog Update Scanning Group
+        call: datadog-groups.updatescanninggroup
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-groups-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Groups. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-list-groups
+      description: Datadog List Groups
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-groups.listscimgroups
+      with:
+        startIndex: tools.startIndex
+        count: tools.count
+        filter: tools.filter
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-group
+      description: Datadog Create Group
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-groups.createscimgroup
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-group
+      description: Datadog Delete Group
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-groups.deletescimgroup
+      with:
+        group_id: tools.group_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-group
+      description: Datadog Get Group
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-groups.getscimgroup
+      with:
+        group_id: tools.group_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-patch-group
+      description: Datadog Patch Group
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-groups.patchscimgroup
+      with:
+        group_id: tools.group_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-group
+      description: Datadog Update Group
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-groups.updatescimgroup
+      with:
+        group_id: tools.group_id
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-list-scanning-groups
+      description: Datadog List Scanning Groups
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-groups.listscanninggroups
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-reorder-groups
+      description: Datadog Reorder Groups
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-groups.reorderscanninggroups
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-scanning-group
+      description: Datadog Create Scanning Group
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-groups.createscanninggroup
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-scanning-group
+      description: Datadog Delete Scanning Group
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-groups.deletescanninggroup
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-scanning-group
+      description: Datadog Update Scanning Group
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-groups.updatescanninggroup
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

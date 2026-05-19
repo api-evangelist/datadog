@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Resolve
+  description: 'Datadog API — Resolve. 1 operations. Lead operation: Datadog Resolve On-call Page. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Resolve
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-resolve
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Resolve business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-on-call-pages-page_id-resolve
+      path: /api/v2/on-call/pages/{page_id}/resolve
+      operations:
+      - name: resolveoncallpage
+        method: POST
+        description: Datadog Resolve On-call Page
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: page_id
+          in: path
+          type: string
+          description: The page ID.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-resolve-rest
+    port: 8080
+    description: REST adapter for Datadog API — Resolve. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/on-call/pages/{page-id}/resolve
+      name: api-v2-on-call-pages-page-id-resolve
+      description: REST surface for api-v2-on-call-pages-page_id-resolve.
+      operations:
+      - method: POST
+        name: resolveoncallpage
+        description: Datadog Resolve On-call Page
+        call: datadog-resolve.resolveoncallpage
+        with:
+          page_id: rest.page_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-resolve-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Resolve. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-resolve-call-page
+      description: Datadog Resolve On-call Page
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-resolve.resolveoncallpage
+      with:
+        page_id: tools.page_id
+      outputParameters:
+      - type: object
+        mapping: $.

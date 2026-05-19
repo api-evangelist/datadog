@@ -1,0 +1,252 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Remove
+  description: 'Datadog API — Remove. 5 operations. Lead operation: Datadog Remove a Project. Self-contained Naftiko capability
+    covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Remove
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-remove
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Remove business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-cases-projects-project_id
+      path: /api/v2/cases/projects/{project_id}
+      operations:
+      - name: deleteproject
+        method: DELETE
+        description: Datadog Remove a Project
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: api-v2-roles-role_id-users
+      path: /api/v2/roles/{role_id}/users
+      operations:
+      - name: removeuserfromrole
+        method: DELETE
+        description: Datadog Remove a User from a Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-team-team_id
+      path: /api/v2/team/{team_id}
+      operations:
+      - name: deleteteam
+        method: DELETE
+        description: Datadog Remove a Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+    - name: api-v2-team-team_id-links-link_id
+      path: /api/v2/team/{team_id}/links/{link_id}
+      operations:
+      - name: deleteteamlink
+        method: DELETE
+        description: Datadog Remove a Team Link
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: link_id
+          in: path
+          type: string
+          description: None
+          required: true
+    - name: api-v2-team-team_id-memberships-user_id
+      path: /api/v2/team/{team_id}/memberships/{user_id}
+      operations:
+      - name: deleteteammembership
+        method: DELETE
+        description: Datadog Remove a User from a Team
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: None
+          required: true
+        - name: user_id
+          in: path
+          type: string
+          description: None
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-remove-rest
+    port: 8080
+    description: REST adapter for Datadog API — Remove. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/cases/projects/{project-id}
+      name: api-v2-cases-projects-project-id
+      description: REST surface for api-v2-cases-projects-project_id.
+      operations:
+      - method: DELETE
+        name: deleteproject
+        description: Datadog Remove a Project
+        call: datadog-remove.deleteproject
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/roles/{role-id}/users
+      name: api-v2-roles-role-id-users
+      description: REST surface for api-v2-roles-role_id-users.
+      operations:
+      - method: DELETE
+        name: removeuserfromrole
+        description: Datadog Remove a User from a Role
+        call: datadog-remove.removeuserfromrole
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}
+      name: api-v2-team-team-id
+      description: REST surface for api-v2-team-team_id.
+      operations:
+      - method: DELETE
+        name: deleteteam
+        description: Datadog Remove a Team
+        call: datadog-remove.deleteteam
+        with:
+          team_id: rest.team_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}/links/{link-id}
+      name: api-v2-team-team-id-links-link-id
+      description: REST surface for api-v2-team-team_id-links-link_id.
+      operations:
+      - method: DELETE
+        name: deleteteamlink
+        description: Datadog Remove a Team Link
+        call: datadog-remove.deleteteamlink
+        with:
+          team_id: rest.team_id
+          link_id: rest.link_id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/team/{team-id}/memberships/{user-id}
+      name: api-v2-team-team-id-memberships-user-id
+      description: REST surface for api-v2-team-team_id-memberships-user_id.
+      operations:
+      - method: DELETE
+        name: deleteteammembership
+        description: Datadog Remove a User from a Team
+        call: datadog-remove.deleteteammembership
+        with:
+          team_id: rest.team_id
+          user_id: rest.user_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-remove-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Remove. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-remove-project
+      description: Datadog Remove a Project
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-remove.deleteproject
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-user-role
+      description: Datadog Remove a User from a Role
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-remove.removeuserfromrole
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-team
+      description: Datadog Remove a Team
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-remove.deleteteam
+      with:
+        team_id: tools.team_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-team-link
+      description: Datadog Remove a Team Link
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-remove.deleteteamlink
+      with:
+        team_id: tools.team_id
+        link_id: tools.link_id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-remove-user-team
+      description: Datadog Remove a User from a Team
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-remove.deleteteammembership
+      with:
+        team_id: tools.team_id
+        user_id: tools.user_id
+      outputParameters:
+      - type: object
+        mapping: $.

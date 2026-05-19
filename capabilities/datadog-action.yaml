@@ -1,0 +1,172 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Action
+  description: 'Datadog API — Action. 4 operations. Lead operation: Datadog Create a New Action Connection. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Action
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-action
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Action business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-actions-connections
+      path: /api/v2/actions/connections
+      operations:
+      - name: createactionconnection
+        method: POST
+        description: Datadog Create a New Action Connection
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-actions-connections-connection_id
+      path: /api/v2/actions/connections/{connection_id}
+      operations:
+      - name: deleteactionconnection
+        method: DELETE
+        description: Datadog Delete an Existing Action Connection
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getactionconnection
+        method: GET
+        description: Datadog Get an Existing Action Connection
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updateactionconnection
+        method: PATCH
+        description: Datadog Update an Existing Action Connection
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-action-rest
+    port: 8080
+    description: REST adapter for Datadog API — Action. One Spectral-compliant resource per consumed operation, prefixed with
+      /v1.
+    resources:
+    - path: /v1/api/v2/actions/connections
+      name: api-v2-actions-connections
+      description: REST surface for api-v2-actions-connections.
+      operations:
+      - method: POST
+        name: createactionconnection
+        description: Datadog Create a New Action Connection
+        call: datadog-action.createactionconnection
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/actions/connections/{connection-id}
+      name: api-v2-actions-connections-connection-id
+      description: REST surface for api-v2-actions-connections-connection_id.
+      operations:
+      - method: DELETE
+        name: deleteactionconnection
+        description: Datadog Delete an Existing Action Connection
+        call: datadog-action.deleteactionconnection
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getactionconnection
+        description: Datadog Get an Existing Action Connection
+        call: datadog-action.getactionconnection
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updateactionconnection
+        description: Datadog Update an Existing Action Connection
+        call: datadog-action.updateactionconnection
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-action-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Action. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-create-new-action-connection
+      description: Datadog Create a New Action Connection
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-action.createactionconnection
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-existing-action-connection
+      description: Datadog Delete an Existing Action Connection
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-action.deleteactionconnection
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-existing-action-connection
+      description: Datadog Get an Existing Action Connection
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-action.getactionconnection
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-existing-action-connection
+      description: Datadog Update an Existing Action Connection
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-action.updateactionconnection
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,484 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Security
+  description: 'Datadog API — Security. 11 operations. Lead operation: Datadog Get All Security Filters. Self-contained Naftiko
+    capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Security
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-security
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Security business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-security_monitoring-configuration-security_filters
+      path: /api/v2/security_monitoring/configuration/security_filters
+      operations:
+      - name: listsecurityfilters
+        method: GET
+        description: Datadog Get All Security Filters
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createsecurityfilter
+        method: POST
+        description: Datadog Create a Security Filter
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-configuration-security_filters-security_filter_id
+      path: /api/v2/security_monitoring/configuration/security_filters/{security_filter_id}
+      operations:
+      - name: deletesecurityfilter
+        method: DELETE
+        description: Datadog Delete a Security Filter
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getsecurityfilter
+        method: GET
+        description: Datadog Get a Security Filter
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: updatesecurityfilter
+        method: PATCH
+        description: Datadog Update a Security Filter
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-signals
+      path: /api/v2/security_monitoring/signals
+      operations:
+      - name: listsecuritymonitoringsignals
+        method: GET
+        description: Datadog Get a Quick List of Security Signals
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: filter[query]
+          in: query
+          type: string
+          description: The search query for security signals.
+        - name: filter[from]
+          in: query
+          type: string
+          description: The minimum timestamp for requested security signals.
+        - name: filter[to]
+          in: query
+          type: string
+          description: The maximum timestamp for requested security signals.
+        - name: sort
+          in: query
+          type: string
+          description: The order of the security signals in results.
+        - name: page[cursor]
+          in: query
+          type: string
+          description: A list of results using the cursor provided in the previous query.
+        - name: page[limit]
+          in: query
+          type: integer
+          description: The maximum number of security signals in the response.
+    - name: api-v2-security_monitoring-signals-search
+      path: /api/v2/security_monitoring/signals/search
+      operations:
+      - name: searchsecuritymonitoringsignals
+        method: POST
+        description: Datadog Get a List of Security Signals
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: api-v2-security_monitoring-signals-signal_id-assignee
+      path: /api/v2/security_monitoring/signals/{signal_id}/assignee
+      operations:
+      - name: editsecuritymonitoringsignalassignee
+        method: PATCH
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-signals-signal_id-incidents
+      path: /api/v2/security_monitoring/signals/{signal_id}/incidents
+      operations:
+      - name: editsecuritymonitoringsignalincidents
+        method: PATCH
+        description: Datadog Change the Related Incidents of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-security_monitoring-signals-signal_id-state
+      path: /api/v2/security_monitoring/signals/{signal_id}/state
+      operations:
+      - name: editsecuritymonitoringsignalstate
+        method: PATCH
+        description: Datadog Change the Triage State of a Security Signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: api-v2-usage-application_security
+      path: /api/v2/usage/application_security
+      operations:
+      - name: getusageapplicationsecuritymonitoring
+        method: GET
+        description: Datadog Get Hourly Usage for Application Security
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: start_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+          required: true
+        - name: end_hr
+          in: query
+          type: string
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending'
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-security-rest
+    port: 8080
+    description: REST adapter for Datadog API — Security. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/security-monitoring/configuration/security-filters
+      name: api-v2-security-monitoring-configuration-security-filters
+      description: REST surface for api-v2-security_monitoring-configuration-security_filters.
+      operations:
+      - method: GET
+        name: listsecurityfilters
+        description: Datadog Get All Security Filters
+        call: datadog-security.listsecurityfilters
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createsecurityfilter
+        description: Datadog Create a Security Filter
+        call: datadog-security.createsecurityfilter
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/configuration/security-filters/{security-filter-id}
+      name: api-v2-security-monitoring-configuration-security-filters-security-filter-id
+      description: REST surface for api-v2-security_monitoring-configuration-security_filters-security_filter_id.
+      operations:
+      - method: DELETE
+        name: deletesecurityfilter
+        description: Datadog Delete a Security Filter
+        call: datadog-security.deletesecurityfilter
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getsecurityfilter
+        description: Datadog Get a Security Filter
+        call: datadog-security.getsecurityfilter
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: updatesecurityfilter
+        description: Datadog Update a Security Filter
+        call: datadog-security.updatesecurityfilter
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals
+      name: api-v2-security-monitoring-signals
+      description: REST surface for api-v2-security_monitoring-signals.
+      operations:
+      - method: GET
+        name: listsecuritymonitoringsignals
+        description: Datadog Get a Quick List of Security Signals
+        call: datadog-security.listsecuritymonitoringsignals
+        with:
+          filter[query]: rest.filter[query]
+          filter[from]: rest.filter[from]
+          filter[to]: rest.filter[to]
+          sort: rest.sort
+          page[cursor]: rest.page[cursor]
+          page[limit]: rest.page[limit]
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/search
+      name: api-v2-security-monitoring-signals-search
+      description: REST surface for api-v2-security_monitoring-signals-search.
+      operations:
+      - method: POST
+        name: searchsecuritymonitoringsignals
+        description: Datadog Get a List of Security Signals
+        call: datadog-security.searchsecuritymonitoringsignals
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/assignee
+      name: api-v2-security-monitoring-signals-signal-id-assignee
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-assignee.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalassignee
+        description: Datadog Modify the Triage Assignee of a Security Signal
+        call: datadog-security.editsecuritymonitoringsignalassignee
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/incidents
+      name: api-v2-security-monitoring-signals-signal-id-incidents
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-incidents.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalincidents
+        description: Datadog Change the Related Incidents of a Security Signal
+        call: datadog-security.editsecuritymonitoringsignalincidents
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/security-monitoring/signals/{signal-id}/state
+      name: api-v2-security-monitoring-signals-signal-id-state
+      description: REST surface for api-v2-security_monitoring-signals-signal_id-state.
+      operations:
+      - method: PATCH
+        name: editsecuritymonitoringsignalstate
+        description: Datadog Change the Triage State of a Security Signal
+        call: datadog-security.editsecuritymonitoringsignalstate
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/api/v2/usage/application-security
+      name: api-v2-usage-application-security
+      description: REST surface for api-v2-usage-application_security.
+      operations:
+      - method: GET
+        name: getusageapplicationsecuritymonitoring
+        description: Datadog Get Hourly Usage for Application Security
+        call: datadog-security.getusageapplicationsecuritymonitoring
+        with:
+          start_hr: rest.start_hr
+          end_hr: rest.end_hr
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-security-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Security. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-all-security-filters
+      description: Datadog Get All Security Filters
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-security.listsecurityfilters
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-create-security-filter
+      description: Datadog Create a Security Filter
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: datadog-security.createsecurityfilter
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-delete-security-filter
+      description: Datadog Delete a Security Filter
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: datadog-security.deletesecurityfilter
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-security-filter
+      description: Datadog Get a Security Filter
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-security.getsecurityfilter
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-update-security-filter
+      description: Datadog Update a Security Filter
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-security.updatesecurityfilter
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-quick-list-security
+      description: Datadog Get a Quick List of Security Signals
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-security.listsecuritymonitoringsignals
+      with:
+        filter[query]: tools.filter[query]
+        filter[from]: tools.filter[from]
+        filter[to]: tools.filter[to]
+        sort: tools.sort
+        page[cursor]: tools.page[cursor]
+        page[limit]: tools.page[limit]
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-list-security-signals
+      description: Datadog Get a List of Security Signals
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: datadog-security.searchsecuritymonitoringsignals
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-modify-triage-assignee-security
+      description: Datadog Modify the Triage Assignee of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-security.editsecuritymonitoringsignalassignee
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-change-related-incidents-security
+      description: Datadog Change the Related Incidents of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-security.editsecuritymonitoringsignalincidents
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-change-triage-state-security
+      description: Datadog Change the Triage State of a Security Signal
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-security.editsecuritymonitoringsignalstate
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-get-hourly-usage-application
+      description: Datadog Get Hourly Usage for Application Security
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-security.getusageapplicationsecuritymonitoring
+      with:
+        start_hr: tools.start_hr
+        end_hr: tools.end_hr
+      outputParameters:
+      - type: object
+        mapping: $.

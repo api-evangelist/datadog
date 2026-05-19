@@ -1,0 +1,134 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Datadog API — Routing
+  description: 'Datadog API — Routing. 2 operations. Lead operation: Datadog Get On-call Team Routing Rules. Self-contained
+    Naftiko capability covering one Datadog business surface.'
+  tags:
+  - Datadog
+  - Routing
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    DATADOG_API_KEY: DATADOG_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: datadog-routing
+    baseUri: https://{subdomain}.{site}
+    description: Datadog API — Routing business capability. Self-contained, no shared references.
+    resources:
+    - name: api-v2-on-call-teams-team_id-routing-rules
+      path: /api/v2/on-call/teams/{team_id}/routing-rules
+      operations:
+      - name: getoncallteamroutingrules
+        method: GET
+        description: Datadog Get On-call Team Routing Rules
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: The team ID
+          required: true
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+      - name: setoncallteamroutingrules
+        method: PUT
+        description: Datadog Set On-call Team Routing Rules
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: team_id
+          in: path
+          type: string
+          description: The team ID
+          required: true
+        - name: include
+          in: query
+          type: string
+          description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.DATADOG_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: datadog-routing-rest
+    port: 8080
+    description: REST adapter for Datadog API — Routing. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/api/v2/on-call/teams/{team-id}/routing-rules
+      name: api-v2-on-call-teams-team-id-routing-rules
+      description: REST surface for api-v2-on-call-teams-team_id-routing-rules.
+      operations:
+      - method: GET
+        name: getoncallteamroutingrules
+        description: Datadog Get On-call Team Routing Rules
+        call: datadog-routing.getoncallteamroutingrules
+        with:
+          team_id: rest.team_id
+          include: rest.include
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: setoncallteamroutingrules
+        description: Datadog Set On-call Team Routing Rules
+        call: datadog-routing.setoncallteamroutingrules
+        with:
+          team_id: rest.team_id
+          include: rest.include
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: datadog-routing-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Datadog API — Routing. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: datadog-get-call-team-routing
+      description: Datadog Get On-call Team Routing Rules
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: datadog-routing.getoncallteamroutingrules
+      with:
+        team_id: tools.team_id
+        include: tools.include
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: datadog-set-call-team-routing
+      description: Datadog Set On-call Team Routing Rules
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: datadog-routing.setoncallteamroutingrules
+      with:
+        team_id: tools.team_id
+        include: tools.include
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
