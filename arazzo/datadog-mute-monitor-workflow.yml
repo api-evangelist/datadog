@@ -1,0 +1,73 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Mute a Monitor
+  summary: Fetch a Datadog monitor, then mute it to suppress alert notifications.
+  description: >-
+    A common maintenance pattern for Datadog monitors. The workflow first reads
+    the target monitor to confirm it exists and capture its current name, then
+    mutes it for a given scope and optional expiration so that alert
+    notifications are suppressed while the monitor continues to evaluate. Every
+    step spells out its request inline so the flow can be read and executed
+    without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMonitorsApi
+  url: ../openapi/datadog-monitors-openapi.yml
+  type: openapi
+workflows:
+- workflowId: mute-monitor
+  summary: Read a monitor and then mute it.
+  description: >-
+    Fetches a monitor by ID to confirm it exists, then mutes it for the supplied
+    scope and optional end timestamp.
+  inputs:
+    type: object
+    required:
+    - monitorId
+    properties:
+      monitorId:
+        type: integer
+        description: The unique numeric ID of the monitor to mute.
+      scope:
+        type: string
+        description: The scope expression specifying which groups to mute (e.g. host:web-01).
+      end:
+        type: integer
+        description: Unix timestamp in seconds when the mute expires; omit for indefinite mute.
+  steps:
+  - stepId: getMonitor
+    description: >-
+      Read the monitor by ID to confirm it exists and capture its current name
+      before muting.
+    operationId: getMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $inputs.monitorId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      monitorId: $response.body#/id
+      monitorName: $response.body#/name
+  - stepId: muteMonitor
+    description: >-
+      Mute the monitor for the supplied scope and optional expiration so alert
+      notifications are suppressed.
+    operationId: muteMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $steps.getMonitor.outputs.monitorId
+    requestBody:
+      contentType: application/json
+      payload:
+        scope: $inputs.scope
+        end: $inputs.end
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      mutedMonitorId: $response.body#/id
+      silenced: $response.body#/options/silenced
+  outputs:
+    mutedMonitorId: $steps.muteMonitor.outputs.mutedMonitorId
+    silenced: $steps.muteMonitor.outputs.silenced

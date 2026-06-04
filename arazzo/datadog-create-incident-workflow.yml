@@ -1,0 +1,80 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create an Incident
+  summary: Declare an incident, read it back, then list incidents.
+  description: >-
+    An incident-response pattern on the Datadog v2 Incidents API, substituted
+    for a v1-only dashboard flow that this v2 specification does not expose. The
+    workflow declares an incident with a title and customer-impact flag, fetches
+    the created incident by id to confirm it exists, and then lists incidents so
+    the new one can be located among them. Every step spells out its request
+    inline so the flow can be read and executed without opening the underlying
+    OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-incident
+  summary: Declare a Datadog incident, get it, then list incidents.
+  description: >-
+    Creates an incident with the supplied title and customer-impact flag, reads
+    it back by id, and lists incidents in the organization.
+  inputs:
+    type: object
+    required:
+    - title
+    - customerImpacted
+    properties:
+      title:
+        type: string
+        description: The title of the incident, summarizing what happened.
+      customerImpacted:
+        type: boolean
+        description: Whether the incident caused customer impact.
+  steps:
+  - stepId: createIncident
+    description: Declare an incident with the supplied title and customer-impact flag.
+    operationId: CreateIncident
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: incidents
+          attributes:
+            title: $inputs.title
+            customer_impacted: $inputs.customerImpacted
+          relationships:
+            commander_user:
+              data: null
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      incidentId: $response.body#/data/id
+  - stepId: getIncident
+    description: Fetch the created incident by id to confirm it exists.
+    operationId: GetIncident
+    parameters:
+    - name: incident_id
+      in: path
+      value: $steps.createIncident.outputs.incidentId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidentTitle: $response.body#/data/attributes/title
+  - stepId: listIncidents
+    description: List incidents in the organization so the new incident can be located.
+    operationId: ListIncidents
+    parameters:
+    - name: page[size]
+      in: query
+      value: 10
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidents: $response.body#/data
+  outputs:
+    incidentId: $steps.createIncident.outputs.incidentId
+    incidentTitle: $steps.getIncident.outputs.incidentTitle
+    incidents: $steps.listIncidents.outputs.incidents

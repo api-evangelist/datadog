@@ -1,0 +1,67 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Manage API Keys
+  summary: Create an API key, read it back, then list all API keys for the org.
+  description: >-
+    A foundational provisioning pattern on the Datadog v2 API Keys API. The
+    workflow creates a named API key, fetches the created key by id to confirm
+    it exists, and then lists all keys in the organization so the new key can be
+    located among them. Every step spells out its request inline so the flow can
+    be read and executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: manage-api-keys
+  summary: Create a Datadog API key, get it, then list all keys.
+  description: >-
+    Creates an API key with the supplied name, reads it back by id, and lists
+    all API keys in the organization.
+  inputs:
+    type: object
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        description: Name of the API key to create.
+  steps:
+  - stepId: createApiKey
+    description: Create a new API key with the supplied name.
+    operationId: CreateAPIKey
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: api_keys
+          attributes:
+            name: $inputs.name
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      apiKeyId: $response.body#/data/id
+      apiKeyValue: $response.body#/data/attributes/key
+  - stepId: getApiKey
+    description: Fetch the created API key by id to confirm it exists.
+    operationId: GetAPIKey
+    parameters:
+    - name: api_key_id
+      in: path
+      value: $steps.createApiKey.outputs.apiKeyId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      apiKeyName: $response.body#/data/attributes/name
+  - stepId: listApiKeys
+    description: List all API keys in the organization so the new key can be located.
+    operationId: ListAPIKeys
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      keys: $response.body#/data
+  outputs:
+    apiKeyId: $steps.createApiKey.outputs.apiKeyId
+    apiKeyName: $steps.getApiKey.outputs.apiKeyName
+    keys: $steps.listApiKeys.outputs.keys

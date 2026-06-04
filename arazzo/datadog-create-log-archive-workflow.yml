@@ -1,0 +1,92 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Logs Archive
+  summary: Create a logs archive backed by an S3 destination then read it back.
+  description: >-
+    Provisions a new Datadog logs archive that forwards matching log events to
+    an Amazon S3 bucket through an AWS integration, and then retrieves the
+    created archive by its identifier to confirm the configuration was stored
+    as expected. Every step spells out its request inline so the flow can be
+    read and executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-log-archive
+  summary: Create a logs archive then get it by id.
+  description: >-
+    Creates a logs archive with an S3 destination, then retrieves the archive
+    by id to confirm it persisted with the supplied query and destination.
+  inputs:
+    type: object
+    required:
+    - name
+    - query
+    - bucket
+    - accountId
+    - roleName
+    properties:
+      name:
+        type: string
+        description: The display name for the new archive.
+      query:
+        type: string
+        description: The archive query/filter; logs matching this query are archived.
+      bucket:
+        type: string
+        description: The S3 bucket where the archive will be stored.
+      path:
+        type: string
+        description: The path prefix within the S3 bucket.
+      accountId:
+        type: string
+        description: The AWS account ID for the S3 integration.
+      roleName:
+        type: string
+        description: The AWS IAM role name for the S3 integration.
+  steps:
+  - stepId: createArchive
+    description: >-
+      Create a new logs archive that sends matching logs to an S3 bucket via
+      the supplied AWS integration.
+    operationId: CreateLogsArchive
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: archives
+          attributes:
+            name: $inputs.name
+            query: $inputs.query
+            include_tags: true
+            destination:
+              type: s3
+              bucket: $inputs.bucket
+              path: $inputs.path
+              integration:
+                account_id: $inputs.accountId
+                role_name: $inputs.roleName
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      archiveId: $response.body#/data/id
+      archiveName: $response.body#/data/attributes/name
+  - stepId: getArchive
+    description: >-
+      Retrieve the newly created archive by its id to confirm it was stored
+      with the expected query and destination.
+    operationId: GetLogsArchive
+    parameters:
+    - name: archive_id
+      in: path
+      value: $steps.createArchive.outputs.archiveId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      archiveId: $response.body#/data/id
+      destination: $response.body#/data/attributes/destination
+  outputs:
+    archiveId: $steps.createArchive.outputs.archiveId
+    destination: $steps.getArchive.outputs.destination

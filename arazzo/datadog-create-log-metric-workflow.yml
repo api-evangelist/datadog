@@ -1,0 +1,72 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Log-based Metric
+  summary: Create a log-based metric from a query then read it back.
+  description: >-
+    Defines a new Datadog log-based metric that counts the log events matching
+    a search query, then retrieves the created metric by its identifier to
+    confirm it was stored with the expected filter and compute configuration.
+    Every step spells out its request inline so the flow can be read and
+    executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-log-metric
+  summary: Create a log-based metric then get it by id.
+  description: >-
+    Creates a count log-based metric over the supplied query, then retrieves
+    the metric by id to confirm its filter and compute settings persisted.
+  inputs:
+    type: object
+    required:
+    - metricId
+    - query
+    properties:
+      metricId:
+        type: string
+        description: The unique name/id for the new log-based metric.
+      query:
+        type: string
+        description: The log search query that selects which logs feed the metric.
+  steps:
+  - stepId: createMetric
+    description: >-
+      Create a new log-based metric that counts log events matching the
+      supplied query.
+    operationId: CreateLogsMetric
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: logs_metrics
+          id: $inputs.metricId
+          attributes:
+            filter:
+              query: $inputs.query
+            compute:
+              aggregation_type: count
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      metricId: $response.body#/data/id
+      filter: $response.body#/data/attributes/filter
+  - stepId: getMetric
+    description: >-
+      Retrieve the newly created log-based metric by its id to confirm it was
+      stored with the expected filter and compute configuration.
+    operationId: GetLogsMetric
+    parameters:
+    - name: metric_id
+      in: path
+      value: $steps.createMetric.outputs.metricId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      metricId: $response.body#/data/id
+      compute: $response.body#/data/attributes/compute
+  outputs:
+    metricId: $steps.createMetric.outputs.metricId
+    compute: $steps.getMetric.outputs.compute

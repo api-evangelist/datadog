@@ -1,0 +1,85 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Monitor Configuration Policy
+  summary: Create a tag monitor configuration policy, read it back, then list policies.
+  description: >-
+    A monitor-governance pattern on the Datadog v2 Monitors API, substituted for
+    a v1-only notebook flow that this v2 specification does not expose. The
+    workflow creates a tag-policy that enforces valid tag values on monitor
+    creation, fetches the created policy by id to confirm it exists, and then
+    lists all monitor configuration policies so the new one can be located among
+    them. Every step spells out its request inline so the flow can be read and
+    executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-monitor-config-policy
+  summary: Create a monitor tag policy, get it, then list all policies.
+  description: >-
+    Creates a tag-type monitor configuration policy with the supplied tag key
+    and valid values, reads it back by id, and lists all monitor configuration
+    policies.
+  inputs:
+    type: object
+    required:
+    - tagKey
+    - tagKeyRequired
+    - validTagValues
+    properties:
+      tagKey:
+        type: string
+        description: The key of the tag the policy governs (e.g. "env").
+      tagKeyRequired:
+        type: boolean
+        description: Whether the tag key is required for monitor creation.
+      validTagValues:
+        type: array
+        description: The valid values allowed for the tag.
+        items:
+          type: string
+  steps:
+  - stepId: createPolicy
+    description: >-
+      Create a tag-type monitor configuration policy enforcing the supplied tag
+      key and valid values.
+    operationId: CreateMonitorConfigPolicy
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: monitor-config-policy
+          attributes:
+            policy_type: tag
+            policy:
+              tag_key: $inputs.tagKey
+              tag_key_required: $inputs.tagKeyRequired
+              valid_tag_values: $inputs.validTagValues
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      policyId: $response.body#/data/id
+  - stepId: getPolicy
+    description: Fetch the created policy by id to confirm it exists.
+    operationId: GetMonitorConfigPolicy
+    parameters:
+    - name: policy_id
+      in: path
+      value: $steps.createPolicy.outputs.policyId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      policyType: $response.body#/data/attributes/policy_type
+  - stepId: listPolicies
+    description: List all monitor configuration policies so the new one can be located.
+    operationId: ListMonitorConfigPolicies
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      policies: $response.body#/data
+  outputs:
+    policyId: $steps.createPolicy.outputs.policyId
+    policyType: $steps.getPolicy.outputs.policyType
+    policies: $steps.listPolicies.outputs.policies

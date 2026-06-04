@@ -1,0 +1,105 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Submit and Query Metrics
+  summary: Submit a metric series, then query it back as timeseries data.
+  description: >-
+    A round-trip pattern for Datadog metrics. The workflow submits a single
+    metric series with a timestamped data point and tags to the intake
+    endpoint, then issues a timeseries query for the same metric across a time
+    range to read the value back. Every step spells out its request inline so
+    the flow can be read and executed without opening the underlying OpenAPI
+    description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMetricsApi
+  url: ../openapi/datadog-metrics-openapi.yml
+  type: openapi
+workflows:
+- workflowId: submit-and-query-metrics
+  summary: Submit a metric series then query it as timeseries data.
+  description: >-
+    Submits one metric series to the intake endpoint and then queries the same
+    metric over a time range to confirm the data landed.
+  inputs:
+    type: object
+    required:
+    - metric
+    - timestamp
+    - value
+    - queryFrom
+    - queryTo
+    - queryString
+    properties:
+      metric:
+        type: string
+        description: The metric name to submit and query (e.g. custom.app.requests).
+      type:
+        type: integer
+        description: The metric type (0=unspecified, 1=count, 2=rate, 3=gauge).
+      timestamp:
+        type: integer
+        description: Unix timestamp in seconds for the submitted data point.
+      value:
+        type: number
+        description: The numeric value of the metric at the given timestamp.
+      tags:
+        type: array
+        description: List of tags in key:value format (e.g. env:prod).
+        items:
+          type: string
+      queryFrom:
+        type: integer
+        description: Unix timestamp in milliseconds for the start of the query range.
+      queryTo:
+        type: integer
+        description: Unix timestamp in milliseconds for the end of the query range.
+      queryString:
+        type: string
+        description: The Datadog metrics query string (e.g. avg:custom.app.requests{*}).
+  steps:
+  - stepId: submitSeries
+    description: >-
+      Submit a single metric series containing one timestamped data point and
+      its tags to the Datadog intake endpoint.
+    operationId: submitMetrics
+    requestBody:
+      contentType: application/json
+      payload:
+        series:
+        - metric: $inputs.metric
+          type: $inputs.type
+          points:
+          - timestamp: $inputs.timestamp
+            value: $inputs.value
+          tags: $inputs.tags
+    successCriteria:
+    - condition: $statusCode == 202
+    outputs:
+      submitErrors: $response.body#/errors
+  - stepId: queryTimeseries
+    description: >-
+      Query the same metric over the supplied time range to read the submitted
+      values back as timeseries data.
+    operationId: queryMetricsTimeseries
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: timeseries_request
+          attributes:
+            from: $inputs.queryFrom
+            to: $inputs.queryTo
+            queries:
+            - name: query1
+              data_source: metrics
+              query: $inputs.queryString
+            formulas:
+            - formula: query1
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      times: $response.body#/data/attributes/times
+      series: $response.body#/data/attributes/series
+  outputs:
+    times: $steps.queryTimeseries.outputs.times
+    series: $steps.queryTimeseries.outputs.series

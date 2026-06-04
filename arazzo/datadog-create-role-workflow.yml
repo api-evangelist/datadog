@@ -1,0 +1,71 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Role
+  summary: Create a role, read it back, then list roles.
+  description: >-
+    An access-control provisioning pattern on the Datadog v2 Roles API,
+    substituted for a v1-only synthetics flow that this v2 specification does not
+    expose. The workflow creates a named role, fetches the created role by id to
+    confirm it exists, and then lists roles so the new role can be located among
+    them. Every step spells out its request inline so the flow can be read and
+    executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-role
+  summary: Create a Datadog role, get it, then list roles.
+  description: >-
+    Creates a role with the supplied name, reads it back by id, and lists roles
+    in the organization.
+  inputs:
+    type: object
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        description: Name of the role to create (e.g. "developers").
+  steps:
+  - stepId: createRole
+    description: Create a new role with the supplied name.
+    operationId: CreateRole
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: roles
+          attributes:
+            name: $inputs.name
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      roleId: $response.body#/data/id
+  - stepId: getRole
+    description: Fetch the created role by id to confirm it exists.
+    operationId: GetRole
+    parameters:
+    - name: role_id
+      in: path
+      value: $steps.createRole.outputs.roleId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      roleName: $response.body#/data/attributes/name
+  - stepId: listRoles
+    description: List roles in the organization so the new role can be located.
+    operationId: ListRoles
+    parameters:
+    - name: filter
+      in: query
+      value: $inputs.name
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      roles: $response.body#/data
+  outputs:
+    roleId: $steps.createRole.outputs.roleId
+    roleName: $steps.getRole.outputs.roleName
+    roles: $steps.listRoles.outputs.roles

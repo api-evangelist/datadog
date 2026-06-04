@@ -1,0 +1,80 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Manage Metric Metadata
+  summary: Read a metric's tag configuration, then update its tags and metadata.
+  description: >-
+    A governance pattern for managing custom metric cardinality in Datadog. The
+    workflow reads the existing tag configuration for a metric to capture its
+    current type and tag keys, then issues a merge-patch update to change the
+    set of indexed tag keys and percentile behavior. Every step spells out its
+    request inline so the flow can be read and executed without opening the
+    underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMetricsApi
+  url: ../openapi/datadog-metrics-openapi.yml
+  type: openapi
+workflows:
+- workflowId: manage-metric-metadata
+  summary: Read a metric tag configuration then update its tags.
+  description: >-
+    Fetches the tag configuration for a metric and then updates the set of
+    indexed tag keys and percentile behavior.
+  inputs:
+    type: object
+    required:
+    - metricName
+    - tags
+    properties:
+      metricName:
+        type: string
+        description: The name of the metric to manage (e.g. system.cpu.user).
+      tags:
+        type: array
+        description: Updated list of tag keys to include when storing metric data.
+        items:
+          type: string
+      includePercentiles:
+        type: boolean
+        description: Whether to include percentile aggregations (distribution metrics only).
+  steps:
+  - stepId: getTagConfiguration
+    description: >-
+      Read the current tag configuration for the metric to capture its type and
+      existing indexed tag keys before updating.
+    operationId: getMetricTagConfiguration
+    parameters:
+    - name: metric_name
+      in: path
+      value: $inputs.metricName
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      metricId: $response.body#/data/id
+      currentTags: $response.body#/data/attributes/tags
+  - stepId: updateTagConfiguration
+    description: >-
+      Update the metric tag configuration with the new set of indexed tag keys
+      and percentile behavior using merge-patch semantics.
+    operationId: updateMetricTagConfiguration
+    parameters:
+    - name: metric_name
+      in: path
+      value: $inputs.metricName
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: manage_tags
+          id: $inputs.metricName
+          attributes:
+            tags: $inputs.tags
+            include_percentiles: $inputs.includePercentiles
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      updatedId: $response.body#/data/id
+      updatedTags: $response.body#/data/attributes/tags
+  outputs:
+    updatedId: $steps.updateTagConfiguration.outputs.updatedId
+    updatedTags: $steps.updateTagConfiguration.outputs.updatedTags

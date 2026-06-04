@@ -1,0 +1,86 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Schedule a Downtime
+  summary: Schedule a downtime for monitors matching a scope, confirm it, then cancel it.
+  description: >-
+    A common monitor maintenance pattern on the Datadog v2 Downtime API. The
+    workflow schedules a downtime that mutes monitors matching a scope and a set
+    of monitor tags, reads the created downtime back to confirm its state, and
+    then cancels it so the mute window is closed out cleanly. Every step spells
+    out its request inline so the flow can be read and executed without opening
+    the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: schedule-downtime
+  summary: Schedule, verify, and cancel a Datadog downtime.
+  description: >-
+    Creates a downtime scoped to a query and a list of monitor tags, fetches the
+    created downtime by id to confirm it exists, then cancels it.
+  inputs:
+    type: object
+    required:
+    - scope
+    - monitorTags
+    properties:
+      scope:
+        type: string
+        description: The scope to apply the downtime to (e.g. "env:staging").
+      monitorTags:
+        type: array
+        description: List of monitor tags the downtime applies to (matches all).
+        items:
+          type: string
+      message:
+        type: string
+        description: Optional message to include with downtime notifications.
+  steps:
+  - stepId: scheduleDowntime
+    description: >-
+      Schedule a downtime that mutes monitors matching the supplied scope and
+      monitor tags.
+    operationId: CreateDowntime
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: downtime
+          attributes:
+            scope: $inputs.scope
+            message: $inputs.message
+            monitor_identifier:
+              monitor_tags: $inputs.monitorTags
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      downtimeId: $response.body#/data/id
+  - stepId: getDowntime
+    description: >-
+      Fetch the created downtime by id to confirm it was scheduled and read its
+      current state.
+    operationId: GetDowntime
+    parameters:
+    - name: downtime_id
+      in: path
+      value: $steps.scheduleDowntime.outputs.downtimeId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      downtimeStatus: $response.body#/data/attributes/status
+  - stepId: cancelDowntime
+    description: >-
+      Cancel the downtime so the mute window is closed out. Canceled downtimes
+      are retained for approximately two days before permanent removal.
+    operationId: CancelDowntime
+    parameters:
+    - name: downtime_id
+      in: path
+      value: $steps.scheduleDowntime.outputs.downtimeId
+    successCriteria:
+    - condition: $statusCode == 204
+  outputs:
+    downtimeId: $steps.scheduleDowntime.outputs.downtimeId
+    downtimeStatus: $steps.getDowntime.outputs.downtimeStatus

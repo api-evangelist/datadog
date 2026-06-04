@@ -1,0 +1,75 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Cleanup Stale Monitors
+  summary: List monitors by tag, then delete a matched stale monitor.
+  description: >-
+    A housekeeping pattern for retiring obsolete Datadog monitors. The workflow
+    lists monitors filtered by name and tags to identify a stale candidate,
+    then permanently deletes the first match, optionally forcing deletion even
+    when the monitor is referenced by SLOs or composite monitors. Every step
+    spells out its request inline so the flow can be read and executed without
+    opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMonitorsApi
+  url: ../openapi/datadog-monitors-openapi.yml
+  type: openapi
+workflows:
+- workflowId: cleanup-stale-monitors
+  summary: List monitors by tag then delete a matched stale one.
+  description: >-
+    Searches monitors using name and tag filters and then permanently deletes
+    the first matched monitor, optionally forcing the deletion.
+  inputs:
+    type: object
+    required:
+    - tags
+    properties:
+      name:
+        type: string
+        description: Filter monitors by name substring match.
+      tags:
+        type: string
+        description: Comma-separated list of tags to filter monitors by (e.g. team:retired).
+      force:
+        type: string
+        description: When set, forcefully deletes the monitor even if referenced by SLOs.
+  steps:
+  - stepId: listMonitors
+    description: >-
+      List monitors filtered by name and tags to identify the stale monitor
+      that should be retired.
+    operationId: listMonitors
+    parameters:
+    - name: name
+      in: query
+      value: $inputs.name
+    - name: tags
+      in: query
+      value: $inputs.tags
+    - name: page_size
+      in: query
+      value: 100
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      staleMonitorId: $response.body#/0/id
+      staleMonitorName: $response.body#/0/name
+  - stepId: deleteMonitor
+    description: >-
+      Permanently delete the first matched stale monitor, optionally forcing
+      deletion when it is referenced by SLOs or composite monitors.
+    operationId: deleteMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $steps.listMonitors.outputs.staleMonitorId
+    - name: force
+      in: query
+      value: $inputs.force
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      deletedMonitorId: $response.body#/deleted_monitor_id
+  outputs:
+    deletedMonitorId: $steps.deleteMonitor.outputs.deletedMonitorId

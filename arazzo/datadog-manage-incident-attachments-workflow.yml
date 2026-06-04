@@ -1,0 +1,78 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Manage Incident Attachments
+  summary: List an incident's attachments then add a link attachment via bulk update.
+  description: >-
+    Manages the supplementary documents attached to a Datadog incident by
+    first listing the incident's current attachments to see what is already
+    referenced, and then running a bulk attachment update to add a link
+    attachment that points responders to a relevant document. Every step
+    spells out its request inline so the flow can be read and executed without
+    opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: manage-incident-attachments
+  summary: List then update the attachments on an incident.
+  description: >-
+    Lists the current attachments for an incident, then performs a bulk update
+    that adds a link attachment referencing an external document.
+  inputs:
+    type: object
+    required:
+    - incidentId
+    - documentUrl
+    - documentTitle
+    properties:
+      incidentId:
+        type: string
+        description: The UUID of the incident whose attachments are managed.
+      documentUrl:
+        type: string
+        description: The URL of the document to attach to the incident.
+      documentTitle:
+        type: string
+        description: The display title for the attached document link.
+  steps:
+  - stepId: listAttachments
+    description: >-
+      List the incident's current attachments to see what documents are
+      already referenced before adding a new one.
+    operationId: ListIncidentAttachments
+    parameters:
+    - name: incident_id
+      in: path
+      value: $inputs.incidentId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      attachments: $response.body#/data
+  - stepId: addAttachment
+    description: >-
+      Run a bulk attachment update that adds a link attachment pointing to the
+      supplied document URL.
+    operationId: UpdateIncidentAttachments
+    parameters:
+    - name: incident_id
+      in: path
+      value: $inputs.incidentId
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+        - type: incident_attachments
+          attributes:
+            attachment_type: link
+            attachment:
+              documentUrl: $inputs.documentUrl
+              title: $inputs.documentTitle
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      attachments: $response.body#/data
+  outputs:
+    existingAttachments: $steps.listAttachments.outputs.attachments
+    updatedAttachments: $steps.addAttachment.outputs.attachments

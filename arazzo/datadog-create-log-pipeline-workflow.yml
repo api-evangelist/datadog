@@ -1,0 +1,101 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create an Observability Pipeline
+  summary: Create an observability pipeline, retrieve it, then list pipelines to confirm placement.
+  description: >-
+    Provisions a new Datadog observability pipeline from an inline
+    configuration of sources, processors, and destinations, reads the created
+    pipeline back by its identifier to confirm it was stored, and finally
+    lists the configured pipelines so the new pipeline's placement among the
+    existing pipelines can be verified. Every step spells out its request
+    inline so the flow can be read and executed without opening the underlying
+    OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-log-pipeline
+  summary: Create an observability pipeline, get it, then list pipelines.
+  description: >-
+    Creates a new observability pipeline, retrieves it by id to confirm
+    persistence, then lists the configured pipelines to confirm the new
+    pipeline appears among them.
+  inputs:
+    type: object
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        description: The display name for the new observability pipeline.
+      filterQuery:
+        type: string
+        description: The include query used by the pipeline filter processor (e.g. service:my-service).
+  steps:
+  - stepId: createPipeline
+    description: >-
+      Create a new observability pipeline with a Datadog Agent source, a
+      filter processor, and a Datadog Logs destination.
+    operationId: CreatePipeline
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: pipelines
+          attributes:
+            name: $inputs.name
+            config:
+              sources:
+              - id: datadog-agent-source
+                type: datadog_agent
+              processors:
+              - id: filter-processor
+                type: filter
+                include: $inputs.filterQuery
+                inputs:
+                - datadog-agent-source
+              destinations:
+              - id: datadog-logs-destination
+                type: datadog_logs
+                inputs:
+                - filter-processor
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      pipelineId: $response.body#/data/id
+      pipelineName: $response.body#/data/attributes/name
+  - stepId: getPipeline
+    description: >-
+      Retrieve the newly created pipeline by its id to confirm it was stored
+      with the expected configuration.
+    operationId: GetPipeline
+    parameters:
+    - name: pipeline_id
+      in: path
+      value: $steps.createPipeline.outputs.pipelineId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      pipelineId: $response.body#/data/id
+      config: $response.body#/data/attributes/config
+  - stepId: listPipelines
+    description: >-
+      List the configured pipelines to confirm the new pipeline appears among
+      them and to inspect its placement in the ordering.
+    operationId: ListPipelines
+    parameters:
+    - name: page[size]
+      in: query
+      value: 25
+    - name: page[number]
+      in: query
+      value: 0
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      pipelines: $response.body#/data
+  outputs:
+    pipelineId: $steps.createPipeline.outputs.pipelineId
+    pipelines: $steps.listPipelines.outputs.pipelines

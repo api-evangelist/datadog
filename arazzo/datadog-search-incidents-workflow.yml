@@ -1,0 +1,76 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Search Incidents
+  summary: Search incidents by a facet query then fetch the first match by id.
+  description: >-
+    Finds Datadog incidents that match a faceted search query — for example
+    active incidents at a given severity — and then retrieves the full details
+    of the first matching incident by its identifier so its current state and
+    attributes can be inspected. Every step spells out its request inline so
+    the flow can be read and executed without opening the underlying OpenAPI
+    description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: search-incidents
+  summary: Search incidents then get the first matching incident by id.
+  description: >-
+    Runs a faceted incident search bounded by page size, then fetches the
+    first matched incident by id to retrieve its full details.
+  inputs:
+    type: object
+    required:
+    - query
+    properties:
+      query:
+        type: string
+        description: The incident search query (e.g. "state:active AND severity:(SEV-2 OR SEV-1)").
+      sort:
+        type: string
+        description: The order of returned incidents (e.g. created, -created).
+  steps:
+  - stepId: searchIncidents
+    description: >-
+      Search for incidents matching the supplied facet query, returning the
+      first page of matches.
+    operationId: SearchIncidents
+    parameters:
+    - name: query
+      in: query
+      value: $inputs.query
+    - name: sort
+      in: query
+      value: $inputs.sort
+    - name: page[size]
+      in: query
+      value: 25
+    - name: page[offset]
+      in: query
+      value: 0
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidents: $response.body#/data/attributes/incidents
+      total: $response.body#/data/attributes/total
+      firstIncidentId: $response.body#/data/attributes/incidents/0/data/id
+  - stepId: getIncident
+    description: >-
+      Retrieve the full details of the first incident returned by the search
+      to inspect its current state and attributes.
+    operationId: GetIncident
+    parameters:
+    - name: incident_id
+      in: path
+      value: $steps.searchIncidents.outputs.firstIncidentId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidentId: $response.body#/data/id
+      attributes: $response.body#/data/attributes
+  outputs:
+    incidents: $steps.searchIncidents.outputs.incidents
+    incidentId: $steps.getIncident.outputs.incidentId
+    attributes: $steps.getIncident.outputs.attributes

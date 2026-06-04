@@ -1,0 +1,103 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Tune Monitor Thresholds
+  summary: Fetch a Datadog monitor, then update its options and alert thresholds.
+  description: >-
+    A tuning pattern for reducing alert noise on an existing Datadog monitor.
+    The workflow reads the target monitor to capture its current query and name,
+    then issues an update that replaces the monitor options with new critical
+    and warning thresholds plus no-data and renotify behavior. Every step spells
+    out its request inline so the flow can be read and executed without opening
+    the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMonitorsApi
+  url: ../openapi/datadog-monitors-openapi.yml
+  type: openapi
+workflows:
+- workflowId: tune-monitor-thresholds
+  summary: Read a monitor and then update its options and thresholds.
+  description: >-
+    Fetches a monitor by ID, then updates its query, name, message, and option
+    thresholds to retune when it alerts.
+  inputs:
+    type: object
+    required:
+    - monitorId
+    - query
+    - name
+    - message
+    properties:
+      monitorId:
+        type: integer
+        description: The unique numeric ID of the monitor to tune.
+      query:
+        type: string
+        description: The monitor query expression to apply on update.
+      name:
+        type: string
+        description: The descriptive name for the monitor.
+      message:
+        type: string
+        description: The notification message body sent when the monitor triggers.
+      critical:
+        type: number
+        description: The threshold value that triggers a CRITICAL alert.
+      critical_recovery:
+        type: number
+        description: The threshold value at which a CRITICAL alert recovers to OK.
+      warning:
+        type: number
+        description: The threshold value that triggers a WARNING alert.
+      warning_recovery:
+        type: number
+        description: The threshold value at which a WARNING alert recovers to OK.
+      renotify_interval:
+        type: integer
+        description: Minutes between re-notifications while the monitor stays in alert.
+  steps:
+  - stepId: getMonitor
+    description: >-
+      Read the monitor by ID to capture its current query and name before
+      retuning its thresholds.
+    operationId: getMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $inputs.monitorId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      monitorId: $response.body#/id
+      currentQuery: $response.body#/query
+  - stepId: updateThresholds
+    description: >-
+      Update the monitor with new option thresholds and renotify behavior to
+      retune when and how often it alerts.
+    operationId: updateMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $steps.getMonitor.outputs.monitorId
+    requestBody:
+      contentType: application/json
+      payload:
+        query: $inputs.query
+        name: $inputs.name
+        message: $inputs.message
+        options:
+          thresholds:
+            critical: $inputs.critical
+            critical_recovery: $inputs.critical_recovery
+            warning: $inputs.warning
+            warning_recovery: $inputs.warning_recovery
+          renotify_interval: $inputs.renotify_interval
+          notify_no_data: true
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      updatedMonitorId: $response.body#/id
+      updatedThresholds: $response.body#/options/thresholds
+  outputs:
+    updatedMonitorId: $steps.updateThresholds.outputs.updatedMonitorId
+    updatedThresholds: $steps.updateThresholds.outputs.updatedThresholds

@@ -1,0 +1,118 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Monitor
+  summary: Create a Datadog monitor, read it back, and validate the configuration.
+  description: >-
+    A foundational Datadog monitoring pattern. The workflow first validates the
+    proposed monitor configuration without persisting it, then creates the
+    monitor, and finally reads the created monitor back by its assigned ID to
+    confirm the query, thresholds, and notification message were stored as
+    intended. Every step spells out its request inline so the flow can be read
+    and executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMonitorsApi
+  url: ../openapi/datadog-monitors-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-monitor
+  summary: Validate, create, and read back a Datadog monitor.
+  description: >-
+    Validates a monitor configuration, creates the monitor, and then fetches it
+    by the returned ID to confirm it was persisted correctly.
+  inputs:
+    type: object
+    required:
+    - type
+    - query
+    - name
+    - message
+    properties:
+      type:
+        type: string
+        description: The monitor type (e.g. metric alert, query alert, service check).
+      query:
+        type: string
+        description: The monitor query expression (e.g. avg:system.cpu.user{*} > 95).
+      name:
+        type: string
+        description: A descriptive name for the monitor.
+      message:
+        type: string
+        description: The notification message body sent when the monitor triggers.
+      tags:
+        type: array
+        description: List of tags to associate with the monitor.
+        items:
+          type: string
+      priority:
+        type: integer
+        description: The monitor priority level from 1 (highest) to 5 (lowest).
+      critical:
+        type: number
+        description: The threshold value that triggers a CRITICAL alert.
+      warning:
+        type: number
+        description: The threshold value that triggers a WARNING alert.
+  steps:
+  - stepId: validateConfig
+    description: >-
+      Validate the monitor configuration without creating it to surface any
+      query or option errors before persisting the monitor.
+    operationId: validateMonitor
+    requestBody:
+      contentType: application/json
+      payload:
+        type: $inputs.type
+        query: $inputs.query
+        name: $inputs.name
+        message: $inputs.message
+        tags: $inputs.tags
+        priority: $inputs.priority
+        options:
+          thresholds:
+            critical: $inputs.critical
+            warning: $inputs.warning
+    successCriteria:
+    - condition: $statusCode == 200
+  - stepId: createMonitor
+    description: >-
+      Create the monitor with the validated configuration. Datadog returns the
+      full monitor including its newly assigned numeric ID.
+    operationId: createMonitor
+    requestBody:
+      contentType: application/json
+      payload:
+        type: $inputs.type
+        query: $inputs.query
+        name: $inputs.name
+        message: $inputs.message
+        tags: $inputs.tags
+        priority: $inputs.priority
+        options:
+          thresholds:
+            critical: $inputs.critical
+            warning: $inputs.warning
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      monitorId: $response.body#/id
+      monitorName: $response.body#/name
+  - stepId: readBackMonitor
+    description: >-
+      Read the created monitor back by its ID to confirm the query, message,
+      and thresholds were stored as intended.
+    operationId: getMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $steps.createMonitor.outputs.monitorId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      confirmedId: $response.body#/id
+      confirmedQuery: $response.body#/query
+      confirmedName: $response.body#/name
+  outputs:
+    monitorId: $steps.createMonitor.outputs.monitorId
+    confirmedQuery: $steps.readBackMonitor.outputs.confirmedQuery

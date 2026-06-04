@@ -1,0 +1,69 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Resolve an Incident
+  summary: Retrieve an incident then update its state to resolved.
+  description: >-
+    Closes out a Datadog incident by first retrieving its current details to
+    confirm it exists and capture its present state, and then updating the
+    incident to transition its state to resolved, which records the resolution
+    time. Every step spells out its request inline so the flow can be read and
+    executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogIncidentsApi
+  url: ../openapi/datadog-incidents-openapi.yml
+  type: openapi
+workflows:
+- workflowId: resolve-incident
+  summary: Get an incident then update its state to resolved.
+  description: >-
+    Fetches the incident by id to confirm it exists, then patches its state to
+    resolved to mark the incident closed.
+  inputs:
+    type: object
+    required:
+    - incidentId
+    properties:
+      incidentId:
+        type: string
+        description: The unique identifier of the incident to resolve.
+  steps:
+  - stepId: getIncident
+    description: >-
+      Retrieve the incident details by id to confirm it exists and capture its
+      current state before resolving.
+    operationId: getIncident
+    parameters:
+    - name: incident_id
+      in: path
+      value: $inputs.incidentId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidentId: $response.body#/data/id
+      currentState: $response.body#/data/attributes/state
+  - stepId: resolveIncident
+    description: >-
+      Update the incident state to resolved, which records the resolution time
+      and marks the incident closed.
+    operationId: updateIncident
+    parameters:
+    - name: incident_id
+      in: path
+      value: $steps.getIncident.outputs.incidentId
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          id: $steps.getIncident.outputs.incidentId
+          type: incidents
+          attributes:
+            state: resolved
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidentId: $response.body#/data/id
+      state: $response.body#/data/attributes/state
+  outputs:
+    incidentId: $steps.resolveIncident.outputs.incidentId
+    state: $steps.resolveIncident.outputs.state

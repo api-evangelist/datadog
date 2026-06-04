@@ -1,0 +1,82 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Bulk Mute Monitors
+  summary: Search monitors by tag, then mute a matched monitor to silence alerts.
+  description: >-
+    A bulk maintenance pattern for Datadog monitors. The workflow lists
+    monitors filtered by name and tags to find candidates for silencing during
+    a maintenance window, then mutes the first matched monitor for a given
+    scope and expiration. Every step spells out its request inline so the flow
+    can be read and executed without opening the underlying OpenAPI
+    description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogMonitorsApi
+  url: ../openapi/datadog-monitors-openapi.yml
+  type: openapi
+workflows:
+- workflowId: bulk-mute-monitors
+  summary: List monitors by tag then mute a matched one.
+  description: >-
+    Searches monitors using name and tag filters and then mutes the first
+    matched monitor for the supplied scope and expiration.
+  inputs:
+    type: object
+    required:
+    - tags
+    properties:
+      name:
+        type: string
+        description: Filter monitors by name substring match.
+      tags:
+        type: string
+        description: Comma-separated list of tags to filter monitors by (e.g. env:production).
+      scope:
+        type: string
+        description: The scope expression specifying which groups to mute.
+      end:
+        type: integer
+        description: Unix timestamp in seconds when the mute expires; omit for indefinite.
+  steps:
+  - stepId: searchMonitors
+    description: >-
+      List monitors filtered by name and tags to find the candidate monitor to
+      silence during the maintenance window.
+    operationId: listMonitors
+    parameters:
+    - name: name
+      in: query
+      value: $inputs.name
+    - name: tags
+      in: query
+      value: $inputs.tags
+    - name: page_size
+      in: query
+      value: 100
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      matchedMonitorId: $response.body#/0/id
+      matchedMonitorName: $response.body#/0/name
+  - stepId: muteMatched
+    description: >-
+      Mute the first matched monitor for the supplied scope and expiration so
+      its alert notifications are suppressed.
+    operationId: muteMonitor
+    parameters:
+    - name: monitor_id
+      in: path
+      value: $steps.searchMonitors.outputs.matchedMonitorId
+    requestBody:
+      contentType: application/json
+      payload:
+        scope: $inputs.scope
+        end: $inputs.end
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      mutedMonitorId: $response.body#/id
+      silenced: $response.body#/options/silenced
+  outputs:
+    mutedMonitorId: $steps.muteMatched.outputs.mutedMonitorId
+    silenced: $steps.muteMatched.outputs.silenced

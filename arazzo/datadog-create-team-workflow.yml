@@ -1,0 +1,80 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Create a Team
+  summary: Create a team, read it back, then list teams.
+  description: >-
+    A team-provisioning pattern on the Datadog v2 Teams API, substituted for a
+    v1-only SLO flow that this v2 specification does not expose. The workflow
+    creates a team with a handle and name, fetches the created team by id to
+    confirm it exists, and then lists teams so the new team can be located among
+    them. Every step spells out its request inline so the flow can be read and
+    executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: create-team
+  summary: Create a Datadog team, get it, then list teams.
+  description: >-
+    Creates a team with the supplied handle and name, reads it back by id, and
+    lists teams in the organization.
+  inputs:
+    type: object
+    required:
+    - handle
+    - name
+    properties:
+      handle:
+        type: string
+        description: The team's identifier (e.g. "example-team").
+      name:
+        type: string
+        description: The display name of the team.
+      description:
+        type: string
+        description: Optional free-form markdown description for the team.
+  steps:
+  - stepId: createTeam
+    description: Create a team with the supplied handle and name.
+    operationId: CreateTeam
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: team
+          attributes:
+            handle: $inputs.handle
+            name: $inputs.name
+            description: $inputs.description
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      teamId: $response.body#/data/id
+  - stepId: getTeam
+    description: Fetch the created team by id to confirm it exists.
+    operationId: GetTeam
+    parameters:
+    - name: team_id
+      in: path
+      value: $steps.createTeam.outputs.teamId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      teamName: $response.body#/data/attributes/name
+  - stepId: listTeams
+    description: List teams in the organization so the new team can be located.
+    operationId: ListTeams
+    parameters:
+    - name: filter[keyword]
+      in: query
+      value: $inputs.handle
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      teams: $response.body#/data
+  outputs:
+    teamId: $steps.createTeam.outputs.teamId
+    teamName: $steps.getTeam.outputs.teamName
+    teams: $steps.listTeams.outputs.teams

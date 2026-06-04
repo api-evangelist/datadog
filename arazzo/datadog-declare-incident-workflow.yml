@@ -1,0 +1,111 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Declare an Incident
+  summary: Create an incident, update its details, then add a follow-up todo entry.
+  description: >-
+    Walks the early lifecycle of a Datadog incident: a new incident is
+    declared with a title and customer-impact flag, the incident is then
+    updated to attach a customer impact summary and severity selection, and
+    finally a follow-up todo is added to the incident timeline so responders
+    have a tracked next action. Every step spells out its request inline so
+    the flow can be read and executed without opening the underlying OpenAPI
+    description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: declare-incident
+  summary: Create an incident, update it, then add a todo entry.
+  description: >-
+    Declares a new incident, updates its attributes with a customer impact
+    summary and severity, then creates an incident todo for follow-up.
+  inputs:
+    type: object
+    required:
+    - title
+    - todoContent
+    properties:
+      title:
+        type: string
+        description: The title summarizing what happened in the incident.
+      customerImpacted:
+        type: boolean
+        description: Whether the incident caused customer impact.
+      customerImpactScope:
+        type: string
+        description: A summary of the impact customers experienced.
+      severity:
+        type: string
+        description: The severity selection for the incident (e.g. SEV-2).
+      todoContent:
+        type: string
+        description: The content of the follow-up todo to add to the incident.
+  steps:
+  - stepId: createIncident
+    description: >-
+      Declare a new incident with a title and a flag indicating whether
+      customers are impacted.
+    operationId: CreateIncident
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: incidents
+          attributes:
+            title: $inputs.title
+            customer_impacted: $inputs.customerImpacted
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      incidentId: $response.body#/data/id
+      title: $response.body#/data/attributes/title
+  - stepId: updateIncident
+    description: >-
+      Update the incident with a customer impact summary and a severity field
+      selection now that more detail is known.
+    operationId: UpdateIncident
+    parameters:
+    - name: incident_id
+      in: path
+      value: $steps.createIncident.outputs.incidentId
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          id: $steps.createIncident.outputs.incidentId
+          type: incidents
+          attributes:
+            customer_impact_scope: $inputs.customerImpactScope
+            fields:
+              severity:
+                type: dropdown
+                value: $inputs.severity
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      incidentId: $response.body#/data/id
+  - stepId: addTodo
+    description: >-
+      Add a follow-up todo to the incident so responders have a tracked next
+      action on the timeline.
+    operationId: CreateIncidentTodo
+    parameters:
+    - name: incident_id
+      in: path
+      value: $steps.createIncident.outputs.incidentId
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: incident_todos
+          attributes:
+            content: $inputs.todoContent
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      todoId: $response.body#/data/id
+  outputs:
+    incidentId: $steps.createIncident.outputs.incidentId
+    todoId: $steps.addTodo.outputs.todoId

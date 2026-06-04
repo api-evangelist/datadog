@@ -1,0 +1,93 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Ingest and Search Logs
+  summary: Submit log entries to Datadog then search the platform for those logs.
+  description: >-
+    A foundational Datadog Logs pipeline that first sends a batch of log
+    entries to the HTTP intake endpoint for indexing and storage, and then
+    runs a log search query over a time range to confirm the logs are
+    queryable and to retrieve the matching events. Every step spells out its
+    request inline so the flow can be read and executed without opening the
+    underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogLogsApi
+  url: ../openapi/datadog-logs-openapi.yml
+  type: openapi
+workflows:
+- workflowId: ingest-and-search-logs
+  summary: Submit logs to Datadog then search for the indexed log events.
+  description: >-
+    Sends one or more log entries to the Datadog intake endpoint and then
+    issues a log search query bounded by a time range to retrieve the
+    matching events.
+  inputs:
+    type: object
+    required:
+    - message
+    - query
+    properties:
+      message:
+        type: string
+        description: The message content of the log entry to submit.
+      hostname:
+        type: string
+        description: The host that generated the log entry.
+      service:
+        type: string
+        description: The application or service that generated the log.
+      ddsource:
+        type: string
+        description: The source technology of the log used for automatic processing.
+      ddtags:
+        type: string
+        description: Comma-separated key:value tags to apply to the log entry.
+      query:
+        type: string
+        description: A Datadog log search query string to filter log events.
+      from:
+        type: string
+        description: Start of the search time range (ISO 8601 or relative, e.g. now-15m).
+      to:
+        type: string
+        description: End of the search time range (ISO 8601 or relative, e.g. now).
+  steps:
+  - stepId: submitLogEntry
+    description: >-
+      Send a single log entry to the Datadog intake endpoint so it is queued
+      for indexing, storage, and analysis.
+    operationId: submitLogs
+    requestBody:
+      contentType: application/json
+      payload:
+      - message: $inputs.message
+        hostname: $inputs.hostname
+        service: $inputs.service
+        ddsource: $inputs.ddsource
+        ddtags: $inputs.ddtags
+    successCriteria:
+    - condition: $statusCode == 202
+  - stepId: searchLogs
+    description: >-
+      Run a log search query bounded by the supplied time range to retrieve
+      the log events that match the query.
+    operationId: searchLogs
+    requestBody:
+      contentType: application/json
+      payload:
+        filter:
+          query: $inputs.query
+          from: $inputs.from
+          to: $inputs.to
+        sort: -timestamp
+        page:
+          limit: 25
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      logs: $response.body#/data
+      firstLogId: $response.body#/data/0/id
+      after: $response.body#/meta/page/after
+  outputs:
+    logs: $steps.searchLogs.outputs.logs
+    firstLogId: $steps.searchLogs.outputs.firstLogId

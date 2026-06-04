@@ -1,0 +1,79 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Invite a User
+  summary: Create (invite) a user for the organization, read it back, then list users.
+  description: >-
+    A common user-provisioning pattern on the Datadog v2 Users API. The workflow
+    creates a user for the organization by email, fetches the created user by id
+    to confirm it exists, and then lists all users so the new account can be
+    located among them. Every step spells out its request inline so the flow can
+    be read and executed without opening the underlying OpenAPI description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogApi
+  url: ../openapi/datadog-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: invite-user
+  summary: Create a Datadog user, get it, then list all users.
+  description: >-
+    Creates a user for the organization with the supplied email, reads it back
+    by id, and lists all users in the organization.
+  inputs:
+    type: object
+    required:
+    - email
+    properties:
+      email:
+        type: string
+        description: The email address of the user to create.
+      name:
+        type: string
+        description: Optional display name of the user.
+      title:
+        type: string
+        description: Optional title of the user.
+  steps:
+  - stepId: createUser
+    description: Create a user for the organization with the supplied attributes.
+    operationId: CreateUser
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: users
+          attributes:
+            email: $inputs.email
+            name: $inputs.name
+            title: $inputs.title
+    successCriteria:
+    - condition: $statusCode == 201
+    outputs:
+      userId: $response.body#/data/id
+  - stepId: getUser
+    description: Fetch the created user by id to confirm the account exists.
+    operationId: GetUser
+    parameters:
+    - name: user_id
+      in: path
+      value: $steps.createUser.outputs.userId
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      userStatus: $response.body#/data/attributes/status
+      userEmail: $response.body#/data/attributes/email
+  - stepId: listUsers
+    description: List all users in the organization so the new account can be located.
+    operationId: ListUsers
+    parameters:
+    - name: filter
+      in: query
+      value: $inputs.email
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      users: $response.body#/data
+  outputs:
+    userId: $steps.createUser.outputs.userId
+    userStatus: $steps.getUser.outputs.userStatus
+    users: $steps.listUsers.outputs.users

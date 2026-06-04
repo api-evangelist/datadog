@@ -1,0 +1,99 @@
+arazzo: 1.0.1
+info:
+  title: Datadog Post and Search Events
+  summary: Post an event to the Events Explorer, then search events to find it.
+  description: >-
+    A correlation pattern for Datadog events such as deployment markers. The
+    workflow posts a new event with a title, message, tags, and alert type to
+    the Events Explorer, then runs a structured search over a time range to
+    locate matching events. Every step spells out its request inline so the
+    flow can be read and executed without opening the underlying OpenAPI
+    description.
+  version: 1.0.0
+sourceDescriptions:
+- name: datadogEventsApi
+  url: ../openapi/datadog-events-openapi.yml
+  type: openapi
+workflows:
+- workflowId: post-and-search-events
+  summary: Post an event then search the Events Explorer for matches.
+  description: >-
+    Creates an event in the Events Explorer and then searches events over a
+    time range using the Datadog events query language.
+  inputs:
+    type: object
+    required:
+    - title
+    - searchQuery
+    properties:
+      title:
+        type: string
+        description: The event title displayed in the Events Explorer (max 100 chars).
+      message:
+        type: string
+        description: The event body text with additional details (max 4000 chars).
+      host:
+        type: string
+        description: The hostname to associate with the event.
+      tags:
+        type: array
+        description: List of tags to apply to the event in key:value format.
+        items:
+          type: string
+      alertType:
+        type: string
+        description: The alert type category (error, warning, info, success, etc.).
+      searchQuery:
+        type: string
+        description: A Datadog events search query (e.g. source:deploy tags:env:prod).
+      searchFrom:
+        type: string
+        description: Start of the search time range (ISO 8601 or relative, e.g. now-1h).
+      searchTo:
+        type: string
+        description: End of the search time range (ISO 8601 or relative, e.g. now).
+  steps:
+  - stepId: postEvent
+    description: >-
+      Create a new event in the Events Explorer with a title, message, tags,
+      and alert type for visual categorization.
+    operationId: createEvent
+    requestBody:
+      contentType: application/json
+      payload:
+        data:
+          type: event
+          attributes:
+            title: $inputs.title
+            message: $inputs.message
+            host: $inputs.host
+            tags: $inputs.tags
+            alert_type: $inputs.alertType
+    successCriteria:
+    - condition: $statusCode == 202
+    outputs:
+      status: $response.body#/status
+      eventId: $response.body#/event_id
+  - stepId: searchEvents
+    description: >-
+      Search the Events Explorer over the supplied time range to locate the
+      posted event and any related matches.
+    operationId: searchEvents
+    requestBody:
+      contentType: application/json
+      payload:
+        filter:
+          query: $inputs.searchQuery
+          from: $inputs.searchFrom
+          to: $inputs.searchTo
+        sort: -timestamp
+        page:
+          limit: 25
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      matchedEvents: $response.body#/data
+      firstMatchId: $response.body#/data/0/id
+  outputs:
+    postedEventId: $steps.postEvent.outputs.eventId
+    matchedEvents: $steps.searchEvents.outputs.matchedEvents
