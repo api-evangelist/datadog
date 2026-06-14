@@ -1,0 +1,1771 @@
+"""
+Datadog GraphQL Schema
+
+Conceptual schema derived from the Datadog REST API (https://docs.datadoghq.com/api/latest/).
+Datadog does not expose a native GraphQL API; this schema models the core domain types
+for use in integration tooling, internal GraphQL gateways, or documentation purposes.
+
+Source: https://docs.datadoghq.com/api/latest/
+GitHub: https://github.com/DataDog
+"""
+
+scalar DateTime
+scalar JSON
+scalar Float64
+
+# ─────────────────────────────────────────────
+# Metrics
+# ─────────────────────────────────────────────
+
+"""A Datadog metric definition with metadata."""
+type Metric {
+  name: String!
+  type: MetricType
+  description: String
+  unit: String
+  perUnit: String
+  shortName: String
+  statsdInterval: Int
+  integration: String
+  tags: [MetricTag!]
+  metadata: MetricMetadata
+}
+
+enum MetricType {
+  GAUGE
+  RATE
+  COUNT
+  DISTRIBUTION
+}
+
+"""A submitted metric data series with points and context."""
+type MetricSeries {
+  metric: String!
+  type: Int
+  interval: Int
+  points: [[Float64]]
+  tags: [String!]
+  host: String
+  unit: String
+  resources: [MetricResource!]
+}
+
+"""A key-value tag associated with a metric."""
+type MetricTag {
+  key: String!
+  value: String
+}
+
+"""Metadata attributes for a Datadog metric."""
+type MetricMetadata {
+  description: String
+  shortName: String
+  statsdInterval: Int
+  type: String
+  unit: String
+  perUnit: String
+  integration: String
+}
+
+"""A resource associated with a metric series submission."""
+type MetricResource {
+  name: String!
+  type: String!
+}
+
+input MetricFilter {
+  host: String
+  tagKey: String
+  tagValue: String
+}
+
+# ─────────────────────────────────────────────
+# Hosts
+# ─────────────────────────────────────────────
+
+"""A host reporting metrics to Datadog."""
+type Host {
+  id: ID!
+  name: String!
+  aliases: [String!]
+  apps: [String!]
+  awsName: String
+  hostName: String
+  isMuted: Boolean!
+  muteTimeout: DateTime
+  lastReportedTime: DateTime
+  metrics: HostMetrics
+  meta: HostMeta
+  sources: [String!]
+  tagsBySource: JSON
+  up: Boolean
+}
+
+"""Aggregated metric snapshot for a host."""
+type HostMetrics {
+  cpu: Float
+  iowait: Float
+  load: Float
+}
+
+"""Host metadata collected by the Datadog Agent."""
+type HostMeta {
+  agentVersion: String
+  cpuCores: Int
+  gohai: JSON
+  machine: String
+  platform: String
+  processor: String
+  pythonVersion: String
+  socketFqdn: String
+  socketHostname: String
+}
+
+"""A mute configuration applied to a host."""
+type HostMute {
+  hostname: String!
+  action: String!
+  message: String
+  end: DateTime
+}
+
+input HostFilter {
+  filter: String
+  start: Int
+  count: Int
+  from: Int
+  sortField: String
+  sortDir: String
+  includeHostsMetadata: Boolean
+  includeMutedHostsData: Boolean
+}
+
+# ─────────────────────────────────────────────
+# Dashboards
+# ─────────────────────────────────────────────
+
+"""A Datadog dashboard containing visualization widgets."""
+type Dashboard {
+  id: ID!
+  title: String!
+  description: String
+  layoutType: LayoutType!
+  url: String
+  createdAt: DateTime
+  modifiedAt: DateTime
+  author: Author
+  widgets: [DashboardWidget!]!
+  templateVariables: [TemplateVariable!]
+  notifyList: [String!]
+  reflowType: String
+  tags: [String!]
+  isReadOnly: Boolean
+}
+
+enum LayoutType {
+  ORDERED
+  FREE
+}
+
+"""A widget placement on a dashboard."""
+type DashboardWidget {
+  id: ID!
+  definition: WidgetDefinition!
+  layout: WidgetLayout
+}
+
+"""The definition content of a dashboard widget."""
+type WidgetDefinition {
+  type: String!
+  title: String
+  titleSize: String
+  titleAlign: String
+  time: WidgetTime
+}
+
+"""A timeseries graph widget."""
+type TimeseriesWidget {
+  id: ID!
+  type: String!
+  title: String
+  requests: [TimeseriesRequest!]!
+  yaxis: WidgetAxis
+  markers: [WidgetMarker!]
+  events: [WidgetEvent!]
+  legendSize: String
+  showLegend: Boolean
+  time: WidgetTime
+}
+
+"""A query value (single stat) widget."""
+type QueryValueWidget {
+  id: ID!
+  type: String!
+  title: String
+  requests: [QueryValueRequest!]!
+  autoscale: Boolean
+  customUnit: String
+  precision: Int
+  textAlign: String
+  time: WidgetTime
+}
+
+"""A table widget displaying multi-column query results."""
+type TableWidget {
+  id: ID!
+  type: String!
+  title: String
+  requests: [TableRequest!]!
+  time: WidgetTime
+  hasSearchBar: String
+}
+
+type TimeseriesRequest {
+  q: String
+  style: WidgetStyle
+  displayType: String
+}
+
+type QueryValueRequest {
+  q: String
+  aggregator: String
+  conditionalFormats: [ConditionalFormat!]
+}
+
+type TableRequest {
+  q: String
+  aggregator: String
+  alias: String
+  limit: Int
+  orderBy: String
+  order: String
+  conditionalFormats: [ConditionalFormat!]
+}
+
+type WidgetLayout {
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+}
+
+type WidgetTime {
+  liveSpan: String
+}
+
+type WidgetAxis {
+  label: String
+  scale: String
+  min: String
+  max: String
+  includeZero: Boolean
+}
+
+type WidgetMarker {
+  value: String!
+  displayType: String
+  label: String
+}
+
+type WidgetEvent {
+  q: String!
+  tagsExecution: String
+}
+
+type WidgetStyle {
+  palette: String
+  lineType: String
+  lineWidth: String
+}
+
+type ConditionalFormat {
+  comparator: String!
+  value: Float
+  palette: String!
+  customBgColor: String
+  customFgColor: String
+  imageUrl: String
+  hideValue: Boolean
+}
+
+type TemplateVariable {
+  name: String!
+  prefix: String
+  defaultValue: String
+  availableValues: [String!]
+}
+
+type Author {
+  email: String
+  handle: String
+  name: String
+}
+
+input CreateDashboardInput {
+  title: String!
+  layoutType: LayoutType!
+  description: String
+  widgets: [JSON!]
+  templateVariables: [JSON!]
+  notifyList: [String!]
+  tags: [String!]
+}
+
+input UpdateDashboardInput {
+  title: String
+  description: String
+  widgets: [JSON!]
+  templateVariables: [JSON!]
+  notifyList: [String!]
+}
+
+# ─────────────────────────────────────────────
+# Monitors
+# ─────────────────────────────────────────────
+
+"""A Datadog monitor that watches a metric or check."""
+type Monitor {
+  id: ID!
+  name: String!
+  type: MonitorType!
+  query: String!
+  message: String
+  tags: [String!]
+  options: MonitorOptions
+  state: MonitorState
+  overallState: MonitorOverallState
+  creator: Creator
+  created: DateTime
+  modified: DateTime
+  deleted: DateTime
+  priority: Int
+  restrictedRoles: [String!]
+}
+
+enum MonitorType {
+  METRIC_ALERT
+  SERVICE_CHECK
+  EVENT_ALERT
+  QUERY_ALERT
+  COMPOSITE
+  LOG_ALERT
+  SYNTHETICS_ALERT
+  PROCESS_ALERT
+  NPM_ALERT
+  TRACE_ANALYTICS_ALERT
+  SLO_ALERT
+  AUDIT_ALERT
+  CI_PIPELINES_ALERT
+  CI_TESTS_ALERT
+  ERROR_TRACKING_ALERT
+}
+
+enum MonitorOverallState {
+  ALERT
+  IGNORED
+  NO_DATA
+  OK
+  SKIPPED
+  UNKNOWN
+  WARN
+}
+
+"""State information for monitor groups."""
+type MonitorState {
+  name: String!
+  groups: JSON
+}
+
+"""Alert threshold configuration for a monitor."""
+type MonitorThreshold {
+  critical: Float
+  criticalRecovery: Float
+  warning: Float
+  warningRecovery: Float
+  ok: Float
+  unknown: Float
+}
+
+"""Recovery conditions configuration for a monitor."""
+type MonitorRecovery {
+  minFailures: Int
+  minSuccess: Int
+}
+
+"""Configuration options for a monitor."""
+type MonitorOptions {
+  notifyNoData: Boolean
+  noDataTimeframe: Int
+  notifyAudit: Boolean
+  silenced: JSON
+  newGroupDelay: Int
+  evaluationDelay: Int
+  includeTags: Boolean
+  requireFullWindow: Boolean
+  thresholds: MonitorThreshold
+  thresholdWindows: JSON
+  renotifyInterval: Int
+  renotifyStatuses: [String!]
+  renotifyOccurrences: Int
+  escalationMessage: String
+  timeoutH: Int
+  minLocationFailed: Int
+  newHostDelay: Int
+  enableLogsSample: Boolean
+  groupbySimpleMonitor: Boolean
+  monitoringOptions: JSON
+}
+
+input MonitorFilter {
+  groupStates: String
+  name: String
+  tags: [String!]
+  monitorTags: [String!]
+  withDowntimes: Boolean
+  idOffset: Int
+  page: Int
+  pageSize: Int
+}
+
+input CreateMonitorInput {
+  name: String!
+  type: MonitorType!
+  query: String!
+  message: String
+  tags: [String!]
+  options: JSON
+  priority: Int
+}
+
+input UpdateMonitorInput {
+  name: String
+  query: String
+  message: String
+  tags: [String!]
+  options: JSON
+  priority: Int
+}
+
+input MuteInput {
+  message: String
+  end: DateTime
+  scope: [String!]
+}
+
+# ─────────────────────────────────────────────
+# Alerts
+# ─────────────────────────────────────────────
+
+"""A triggered alert instance."""
+type Alert {
+  id: ID!
+  monitorId: ID!
+  status: String!
+  triggeredAt: DateTime
+  resolvedAt: DateTime
+  message: String
+  tags: [String!]
+  scope: [String!]
+}
+
+"""An event associated with an alert trigger or recovery."""
+type AlertEvent {
+  id: ID!
+  alertId: ID
+  eventType: String!
+  timestamp: DateTime!
+  title: String
+  text: String
+  tags: [String!]
+  priority: String
+}
+
+# ─────────────────────────────────────────────
+# Downtimes
+# ─────────────────────────────────────────────
+
+"""A scheduled downtime that suppresses monitor alerts."""
+type Downtime {
+  id: ID!
+  monitorId: ID
+  monitorTags: [String!]
+  scope: [String!]!
+  message: String
+  start: DateTime!
+  end: DateTime
+  timezone: String
+  active: Boolean!
+  disabled: Boolean!
+  recurrence: DowntimeRecurrence
+  creator: Creator
+  updaterId: ID
+  parentId: ID
+  childIds: [ID!]
+  notifyEndStates: [String!]
+  notifyEndTypes: [String!]
+  muteFirstRecoveryNotification: Boolean
+  schedules: [DowntimeSchedule!]
+}
+
+"""A recurrence rule for a scheduled downtime."""
+type DowntimeSchedule {
+  type: String!
+  period: Int
+  weekDays: [String!]
+  untilDate: DateTime
+  untilOccurrences: Int
+  rrule: String
+}
+
+type DowntimeRecurrence {
+  type: String!
+  period: Int
+  weekDays: [String!]
+  untilDate: DateTime
+  untilOccurrences: Int
+}
+
+input CreateDowntimeInput {
+  scope: [String!]!
+  message: String
+  start: DateTime!
+  end: DateTime
+  timezone: String
+  monitorId: ID
+  monitorTags: [String!]
+  recurrence: JSON
+}
+
+# ─────────────────────────────────────────────
+# SLOs
+# ─────────────────────────────────────────────
+
+"""A Service Level Objective definition."""
+type SLO {
+  id: ID!
+  name: String!
+  description: String
+  type: SLOType!
+  tags: [String!]
+  thresholds: [SLOThreshold!]!
+  query: JSON
+  monitorIds: [ID!]
+  groups: [String!]
+  creator: Creator
+  created: DateTime
+  modified: DateTime
+  history: SLOHistory
+}
+
+enum SLOType {
+  METRIC
+  MONITOR
+  TIME_SLICE
+}
+
+"""A target threshold for an SLO."""
+type SLOThreshold {
+  target: Float!
+  targetDisplay: String
+  timeframe: String!
+  warning: Float
+  warningDisplay: String
+}
+
+"""Historical burn rate and status for an SLO."""
+type SLOHistory {
+  fromTs: DateTime!
+  toTs: DateTime!
+  thresholds: JSON
+  overall: SLOHistoryMetrics
+}
+
+type SLOHistoryMetrics {
+  spanPrecision: Float
+  uptime: Float
+  errorBudgetRemaining: Float
+  rawErrorBudgetRemaining: JSON
+  state: String
+  sliBudgetRemaining: Float
+  errors: [JSON!]
+}
+
+"""A correction window applied to an SLO calculation."""
+type SLOCorrection {
+  id: ID!
+  sloId: ID!
+  category: String!
+  description: String
+  start: DateTime!
+  end: DateTime
+  timezone: String
+  creator: Creator
+  created: DateTime
+  modified: DateTime
+  rrule: String
+  duration: Int
+}
+
+input SLOFilter {
+  ids: [ID!]
+  query: String
+  tagsQuery: String
+  metricsQuery: String
+  offset: Int
+  limit: Int
+}
+
+input CreateSLOInput {
+  name: String!
+  type: SLOType!
+  description: String
+  tags: [String!]
+  thresholds: [JSON!]!
+  query: JSON
+  monitorIds: [ID!]
+}
+
+input UpdateSLOInput {
+  name: String
+  description: String
+  tags: [String!]
+  thresholds: [JSON!]
+}
+
+input CreateSLOCorrectionInput {
+  sloId: ID!
+  category: String!
+  description: String
+  start: DateTime!
+  end: DateTime
+  timezone: String
+  rrule: String
+  duration: Int
+}
+
+# ─────────────────────────────────────────────
+# APM / Tracing
+# ─────────────────────────────────────────────
+
+"""A distributed trace captured by Datadog APM."""
+type APMTrace {
+  traceId: ID!
+  rootSpanId: ID!
+  duration: Float!
+  startTime: DateTime!
+  resourceName: String
+  serviceName: String!
+  spans: [APMSpan!]
+  env: String
+  error: Int
+}
+
+"""A single span within a distributed trace."""
+type APMSpan {
+  spanId: ID!
+  traceId: ID!
+  parentId: ID
+  name: String!
+  resource: String
+  service: String!
+  type: String
+  start: DateTime!
+  duration: Float!
+  error: Int
+  meta: JSON
+  metrics: JSON
+}
+
+"""Query parameters for searching APM traces."""
+type TraceQuery {
+  query: String!
+  startMs: Float!
+  endMs: Float!
+  sort: String
+  page: JSON
+}
+
+"""A filter applied to span searches."""
+type SpanFilter {
+  query: String
+  from: DateTime
+  to: DateTime
+}
+
+"""An APM service in the service topology."""
+type APMService {
+  name: String!
+  type: String
+  env: String
+  lang: String
+  version: String
+  hits: Float
+  errors: Float
+  totalHits: Float
+  p50: Float
+  p75: Float
+  p90: Float
+  p95: Float
+  p99: Float
+  duration: Float
+}
+
+"""A resource endpoint for an APM service."""
+type APMResource {
+  serviceName: String!
+  name: String!
+  hits: Float
+  errors: Float
+  duration: Float
+  p50: Float
+  p90: Float
+  p95: Float
+  p99: Float
+}
+
+"""An aggregated error group from APM error tracking."""
+type APMError {
+  id: ID!
+  attributes: APMErrorAttributes
+}
+
+type APMErrorAttributes {
+  message: String!
+  type: String
+  stack: String
+  serviceName: String
+  env: String
+  version: String
+  firstSeen: DateTime
+  lastSeen: DateTime
+  occurrences: Int
+}
+
+# ─────────────────────────────────────────────
+# Logs
+# ─────────────────────────────────────────────
+
+"""A log event ingested into Datadog Log Management."""
+type Log {
+  id: ID!
+  type: String
+  attributes: LogAttributes!
+}
+
+"""Attributes associated with a log event."""
+type LogAttributes {
+  timestamp: DateTime
+  status: String
+  message: String
+  service: String
+  host: String
+  source: String
+  tags: [String!]
+  attributes: JSON
+  httpMethod: String
+  httpUrl: String
+  httpStatusCode: Int
+  networkClientIp: String
+  usrEmail: String
+  usrName: String
+  errorKind: String
+  errorStack: String
+}
+
+"""A log index configuration."""
+type LogIndex {
+  name: String!
+  filter: LogFilter!
+  exclusionFilters: [LogExclusionFilter!]
+  numRetentionDays: Int
+  dailyLimit: Int
+  isRateLimited: Boolean
+}
+
+"""A log processing pipeline."""
+type LogPipeline {
+  id: ID!
+  name: String!
+  isEnabled: Boolean!
+  isReadOnly: Boolean!
+  filter: LogFilter!
+  processors: [LogProcessor!]
+  type: String!
+}
+
+"""A log processor within a pipeline."""
+type LogProcessor {
+  type: String!
+  name: String
+  isEnabled: Boolean
+  sources: [String!]
+  target: String
+  template: String
+  grok: JSON
+  lookupTable: [String!]
+  defaultLookup: String
+  filter: LogFilter
+}
+
+"""A filter expression for log queries or pipeline routing."""
+type LogFilter {
+  query: String!
+}
+
+type LogExclusionFilter {
+  name: String!
+  filter: LogFilter!
+  sampleRate: Float
+  isEnabled: Boolean
+}
+
+"""A log archive destination configuration."""
+type LogArchive {
+  id: ID!
+  name: String!
+  query: String!
+  destination: LogArchiveDestination!
+  rehydrationMaxScanSizeInGb: Float
+  rehydrationTags: [String!]
+  includeTags: Boolean
+  state: String
+}
+
+"""The destination for a log archive."""
+type LogArchiveDestination {
+  type: String!
+  bucket: String
+  path: String
+  region: String
+  storageAccount: String
+  container: String
+  projectId: String
+  clientEmail: String
+}
+
+"""A log routing path configuration."""
+type LoggingPath {
+  id: ID!
+  name: String!
+  filter: LogFilter!
+  processors: [LogProcessor!]
+  isEnabled: Boolean!
+}
+
+input LogQuery {
+  query: String!
+  from: DateTime!
+  to: DateTime!
+  indexes: [String!]
+  sort: String
+  limit: Int
+  cursor: String
+}
+
+# ─────────────────────────────────────────────
+# Security
+# ─────────────────────────────────────────────
+
+"""A security signal detected by Datadog Cloud SIEM."""
+type SecuritySignal {
+  id: ID!
+  attributes: SecuritySignalAttributes!
+  type: String
+}
+
+type SecuritySignalAttributes {
+  title: String!
+  message: String!
+  severity: String!
+  status: String!
+  timestamp: DateTime!
+  tags: [String!]
+  attributes: JSON
+  isDefault: Boolean
+}
+
+"""A security detection rule."""
+type SecurityRule {
+  id: ID!
+  name: String!
+  message: String!
+  enabled: Boolean!
+  type: String!
+  isDefault: Boolean
+  queries: [SecurityRuleQuery!]
+  cases: [SecurityRuleCase!]
+  options: SecurityRuleOptions
+  filters: [SecurityRuleFilter!]
+  tags: [String!]
+  createdAt: DateTime
+  updatedAt: DateTime
+  creationAuthorId: ID
+  updateAuthorId: ID
+  complianceSignalOptions: JSON
+  version: Int
+}
+
+type SecurityRuleQuery {
+  name: String
+  query: String!
+  metrics: [String!]
+  groupByFields: [String!]
+  distinctFields: [String!]
+  aggregation: String
+}
+
+type SecurityRuleCase {
+  name: String
+  condition: String
+  status: String!
+  notifications: [String!]
+}
+
+type SecurityRuleOptions {
+  evaluationWindow: Int
+  keepAlive: Int
+  maxSignalDuration: Int
+  detectionMethod: String
+  newValueOptions: JSON
+  impossibleTravelOptions: JSON
+  thirdPartyRuleOptions: JSON
+}
+
+type SecurityRuleFilter {
+  action: String!
+  query: String!
+}
+
+"""A security finding from posture management or vulnerability scanning."""
+type SecurityFinding {
+  id: ID!
+  type: String!
+  attributes: SecurityFindingAttributes!
+}
+
+type SecurityFindingAttributes {
+  rule: SecurityFindingRule
+  resource: SecurityFindingResource
+  status: String!
+  evaluation: String
+  evaluationChangedAt: DateTime
+  tags: [String!]
+  message: String
+}
+
+type SecurityFindingRule {
+  id: ID
+  name: String
+  defaultSeverity: String
+  benchmarkId: String
+  controlId: String
+  framework: String
+  section: String
+}
+
+type SecurityFindingResource {
+  id: String
+  type: String
+  name: String
+  tags: [String!]
+  region: String
+  accountId: String
+}
+
+"""A security vulnerability identified by Datadog."""
+type SecurityVulnerability {
+  id: ID!
+  type: String
+  attributes: SecurityVulnerabilityAttributes
+}
+
+type SecurityVulnerabilityAttributes {
+  title: String
+  severity: String
+  cvss: Float
+  status: String
+  cveId: String
+  description: String
+  remediation: String
+  affectedAssets: [JSON!]
+  firstDetected: DateTime
+  lastDetected: DateTime
+}
+
+input SecurityFilter {
+  query: String
+  from: DateTime!
+  to: DateTime!
+  sort: String
+  cursor: String
+  limit: Int
+}
+
+# ─────────────────────────────────────────────
+# Infrastructure Map
+# ─────────────────────────────────────────────
+
+"""A topology snapshot of infrastructure entities and their relationships."""
+type InfrastructureMap {
+  nodes: [InfraNode!]!
+  edges: [InfraEdge!]!
+  groups: [InfraGroup!]
+}
+
+type InfraNode {
+  id: ID!
+  type: String!
+  name: String!
+  tags: [String!]
+  health: String
+}
+
+type InfraEdge {
+  source: ID!
+  target: ID!
+  type: String
+}
+
+type InfraGroup {
+  id: ID!
+  name: String!
+  members: [ID!]!
+}
+
+# ─────────────────────────────────────────────
+# Events
+# ─────────────────────────────────────────────
+
+"""An event in the Datadog Events Explorer."""
+type Event {
+  id: ID!
+  title: String!
+  text: String
+  dateHappened: DateTime!
+  priority: EventPriority
+  host: String
+  tags: [String!]
+  alertType: AlertType
+  sourceTypeName: String
+  url: String
+  resource: String
+  isAggregate: Boolean
+  children: [Event!]
+}
+
+enum EventPriority {
+  NORMAL
+  LOW
+}
+
+enum AlertType {
+  ERROR
+  WARNING
+  INFO
+  SUCCESS
+  USER_UPDATE
+  RECOMMENDATION
+  SNAPSHOT
+}
+
+"""Query parameters for searching events."""
+type EventQuery {
+  start: DateTime!
+  end: DateTime!
+  priority: EventPriority
+  sources: String
+  tags: String
+  unaggregated: Boolean
+  excludeAggregate: Boolean
+  page: Int
+}
+
+input EventQueryInput {
+  query: String!
+  from: DateTime!
+  to: DateTime!
+  sort: String
+  cursor: String
+  limit: Int
+}
+
+# ─────────────────────────────────────────────
+# Incidents
+# ─────────────────────────────────────────────
+
+"""A Datadog incident record."""
+type Incident {
+  id: ID!
+  title: String!
+  status: IncidentStatus!
+  severity: String
+  state: String
+  created: DateTime
+  modified: DateTime
+  resolved: DateTime
+  publicId: Int
+  customerImpactStart: DateTime
+  customerImpactEnd: DateTime
+  customerImpactScope: String
+  customerImpacted: Boolean
+  notificationHandles: [String!]
+  fields: JSON
+  timeline: [IncidentTimeline!]
+  teams: [IncidentTeam!]
+  commander: User
+  createdBy: User
+  lastModifiedBy: User
+}
+
+enum IncidentStatus {
+  ACTIVE
+  STABLE
+  RESOLVED
+  COMPLETED
+}
+
+"""A timeline entry in an incident."""
+type IncidentTimeline {
+  id: ID!
+  incidentId: ID!
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+  content: IncidentTimelineContent!
+  type: String
+  cellType: String
+  important: Boolean
+  createdBy: User
+  lastModifiedBy: User
+}
+
+type IncidentTimelineContent {
+  type: String!
+  content: String
+}
+
+"""A team associated with an incident."""
+type IncidentTeam {
+  id: ID!
+  name: String!
+  handle: String
+  description: String
+  created: DateTime
+  modified: DateTime
+  links: [JSON!]
+  visibleTeams: [JSON!]
+}
+
+input IncidentFilter {
+  query: String
+  sort: String
+  pageSize: Int
+  pageOffset: Int
+}
+
+input CreateIncidentInput {
+  title: String!
+  customerImpacted: Boolean!
+  fields: JSON
+  notificationHandles: [String!]
+  severity: String
+  initialTimelineCells: [JSON!]
+  teams: [ID!]
+}
+
+input UpdateIncidentInput {
+  title: String
+  status: IncidentStatus
+  severity: String
+  customerImpacted: Boolean
+  customerImpactScope: String
+  customerImpactEnd: DateTime
+  fields: JSON
+  notificationHandles: [String!]
+}
+
+# ─────────────────────────────────────────────
+# Users, Teams, Roles, Org
+# ─────────────────────────────────────────────
+
+"""A Datadog user account."""
+type User {
+  id: ID!
+  name: String
+  email: String!
+  handle: String
+  icon: String
+  status: String
+  title: String
+  verified: Boolean
+  serviceAccount: Boolean
+  disabled: Boolean
+  allowedLoginMethods: [String!]
+  created: DateTime
+  modified: DateTime
+  roles: [Role!]
+  org: Organization
+  relationships: JSON
+  permissions: [UserPermission!]
+}
+
+"""A permission granted to a user or role."""
+type UserPermission {
+  id: ID!
+  type: String!
+  attributes: PermissionAttributes!
+}
+
+type PermissionAttributes {
+  name: String!
+  displayName: String
+  description: String
+  displayType: String
+  created: DateTime
+  groupName: String
+  restricted: Boolean
+}
+
+"""A Datadog team for organizing ownership."""
+type Team {
+  id: ID!
+  name: String!
+  handle: String!
+  description: String
+  avatar: String
+  banner: Int
+  hiddenModules: [String!]
+  visibleModules: [String!]
+  linkCount: Int
+  userCount: Int
+  created: DateTime
+  modified: DateTime
+}
+
+"""A Datadog RBAC role."""
+type Role {
+  id: ID!
+  name: String!
+  createdAt: DateTime
+  modifiedAt: DateTime
+  userCount: Int
+  permissions: [UserPermission!]
+}
+
+"""A Datadog organization."""
+type Organization {
+  id: ID!
+  name: String!
+  publicId: String
+  description: String
+  billingPlanId: String
+  created: DateTime
+  settings: OrganizationSettings
+  subscription: JSON
+  billing: JSON
+}
+
+type OrganizationSettings {
+  samlIdpInitiatedLogin: JSON
+  samlStrictMode: JSON
+  saml: JSON
+  samlCanBeEnabled: Boolean
+  samlIdpEndpoint: String
+  samlLoginUrl: String
+  samlIdpMetadataUploaded: Boolean
+  samlAutocreateUsersEnabled: Boolean
+  samlAutocreateAccessRole: String
+}
+
+input CreateUserInput {
+  email: String!
+  name: String
+  title: String
+  roles: [ID!]
+  serviceAccount: Boolean
+}
+
+# ─────────────────────────────────────────────
+# API Keys and App Keys
+# ─────────────────────────────────────────────
+
+"""A Datadog API key for authenticating API requests."""
+type APIKey {
+  id: ID!
+  name: String!
+  key: String
+  last4: String
+  created: DateTime
+  modified: DateTime
+  createdBy: User
+  modifiedBy: User
+  category: String
+  remoteConfigReadEnabled: Boolean
+}
+
+"""A Datadog application key associated with a user."""
+type AppKey {
+  id: ID!
+  name: String!
+  key: String
+  last4: String
+  created: DateTime
+  createdBy: User
+  scopes: [String!]
+  hash: String
+}
+
+"""A request for elevated access or permissions."""
+type AccessRequest {
+  id: ID!
+  requestor: User
+  resource: String!
+  scope: String
+  status: String!
+  created: DateTime
+}
+
+input CreateAPIKeyInput {
+  name: String!
+  remoteConfigReadEnabled: Boolean
+}
+
+# ─────────────────────────────────────────────
+# Integrations and Webhooks
+# ─────────────────────────────────────────────
+
+"""A configured Datadog integration with a third-party service."""
+type Integration {
+  id: ID!
+  type: String!
+  attributes: JSON
+  isInstalled: Boolean
+}
+
+"""A Datadog webhook endpoint for outbound notifications."""
+type Webhook {
+  name: String!
+  url: String!
+  customHeaders: String
+  encodeAs: String
+  payload: String
+}
+
+input CreateWebhookInput {
+  name: String!
+  url: String!
+  customHeaders: String
+  encodeAs: String
+  payload: String
+}
+
+# ─────────────────────────────────────────────
+# Usage and Billing
+# ─────────────────────────────────────────────
+
+"""A summary of Datadog usage across all products."""
+type UsageSummary {
+  startDate: DateTime!
+  endDate: DateTime!
+  agentHostTop99pSum: Float
+  apmAzureAppServiceHostTop99pSum: Float
+  apmFargateCountAvgSum: Float
+  apmHostTop99pSum: Float
+  appsecFargateCountAvgSum: Float
+  auditLogsLinesIndexedSum: Float
+  avgProfiledFargateTasksSum: Float
+  awsHostTop99pSum: Float
+  awsLambdaFuncCount: Float
+  awsLambdaInvocationsSum: Float
+  azureHostTop99pSum: Float
+  billableIngestedBytesSum: Float
+  browserChecksSum: Float
+  ciPipelineIndexedSpansSum: Float
+  ciTestIndexedSpansSum: Float
+  ciVisibilityItrCommittersHwmSum: Float
+  cloudCostManagementHostCountAvgSum: Float
+  containerAvgSum: Float
+  containerExclAgentAvgSum: Float
+  containerHwmSum: Float
+  cspmAasHostTop99pSum: Float
+  cspmAwsHostTop99pSum: Float
+  cspmAzureHostTop99pSum: Float
+  cspmContainerAvgSum: Float
+  cspmGcpHostTop99pSum: Float
+  cspmHostTop99pSum: Float
+  customTsSum: Float
+  cwsContainerAvgSum: Float
+  cwsHostTop99pSum: Float
+  dbmHostTop99pSum: Float
+  dbmQueriesAvgSum: Float
+  fargateTasksCountAvgSum: Float
+  fargateTasksCountHwmSum: Float
+  gcpHostTop99pSum: Float
+  herokuHostTop99pSum: Float
+  incidentManagementMonthlyActiveUsersHwmSum: Float
+  indexedEventsCountSum: Float
+  infraHostTop99pSum: Float
+  ingestedEventsBytesSum: Float
+  iotDeviceAggSum: Float
+  iotDeviceTop99pSum: Float
+  mobileRumLiteSessionCountSum: Float
+  mobileRumSessionCountSum: Float
+  netflowIndexedEventsCountSum: Float
+  npmHostTop99pSum: Float
+  obsInfraHostTop99pSum: Float
+  onlineArchiveEventsCountSum: Float
+  opentelemetryApmHostTop99pSum: Float
+  opentelemetryHostTop99pSum: Float
+  profContainerSum: Float
+  profHostTop99pSum: Float
+  rumBrowserAndMobileSessionCount: Float
+  rumSessionCountSum: Float
+  sdsLogsScannedBytesSum: Float
+  sdsServicesCountSum: Float
+  serverlessAppsAzureCountAvgSum: Float
+  serverlessAppsGoogleCountAvgSum: Float
+  serverlessAppsGoogleHwmSum: Float
+  syntheticsBrowserCheckCallsCountSum: Float
+  syntheticsCheckCallsCountSum: Float
+  syntheticsMobileTestRunsSum: Float
+  syntheticsParallelTestingMaxSlotsHwmSum: Float
+  traceSearchIndexedEventsCountSum: Float
+  twolIngestedEventsBytesSum: Float
+  universalServiceMonitoringHostTop99pSum: Float
+  vsphereHostTop99pSum: Float
+  vulnManagementHostCountAvgSum: Float
+  workflowExecutionsUsageSum: Float
+  usage: [Usage!]
+}
+
+"""Hourly usage data for a single product facet."""
+type Usage {
+  hour: DateTime!
+  orgName: String
+  publicId: String
+  region: String
+  agentHostTop99p: Float
+  apmHostTop99p: Float
+  browserChecks: Float
+  containerHwm: Float
+  customTsAvg: Float
+  fargateTasksCountHwm: Float
+  gcpHostTop99p: Float
+  infraHostTop99p: Float
+  iotDeviceAggSum: Float
+  mobileRumSessionCountSum: Float
+  npmHostTop99p: Float
+  rumSessionCountSum: Float
+}
+
+"""Billable usage summary for billing reconciliation."""
+type BillableSummary {
+  startDate: DateTime!
+  endDate: DateTime!
+  usage: [BillableUsage!]
+}
+
+type BillableUsage {
+  billingDimension: String!
+  usage: [BillableUsageItem!]
+}
+
+type BillableUsageItem {
+  timestamp: DateTime!
+  quantity: Float
+  percentageInAccount: Float
+  updatedAt: DateTime
+}
+
+"""A cloud cost data point from Cloud Cost Management."""
+type CloudCost {
+  timestamp: DateTime!
+  metricName: String!
+  value: Float!
+  tags: [String!]
+  account: String
+  service: String
+  region: String
+}
+
+input CloudCostFilter {
+  from: DateTime!
+  to: DateTime!
+  tagFilters: [String!]
+}
+
+# ─────────────────────────────────────────────
+# Service Catalog
+# ─────────────────────────────────────────────
+
+"""The Datadog Software / Service Catalog."""
+type ServiceCatalog {
+  services: [ServiceDefinition!]!
+  totalCount: Int!
+}
+
+"""A service definition in the Datadog Service Catalog."""
+type ServiceDefinition {
+  id: ID!
+  schema: ServiceDefinitionSchema!
+  meta: ServiceDefinitionMeta
+  rawSchema: JSON
+}
+
+type ServiceDefinitionSchema {
+  schemaVersion: String!
+  ddService: String!
+  team: String
+  description: String
+  tier: String
+  lifecycle: String
+  contacts: [ServiceContact!]
+  repos: [ServiceRepo!]
+  tags: [String!]
+  integrations: JSON
+  extensions: JSON
+  languages: [String!]
+  links: [ServiceLink!]
+}
+
+type ServiceContact {
+  name: String
+  type: String!
+  contact: String!
+}
+
+type ServiceRepo {
+  name: String
+  provider: String!
+  url: String!
+}
+
+type ServiceLink {
+  name: String!
+  type: String!
+  url: String!
+  provider: String
+}
+
+type ServiceDefinitionMeta {
+  lastModifiedTime: DateTime
+  githubHtmlUrl: String
+  warnings: [JSON!]
+  ingressUrls: [String!]
+  origin: String
+  originDetail: String
+}
+
+# ─────────────────────────────────────────────
+# Shared / Utility Types
+# ─────────────────────────────────────────────
+
+"""Identifies the author or creator of a Datadog resource."""
+type Creator {
+  id: ID
+  email: String
+  handle: String
+  name: String
+}
+
+"""A page cursor for paginated results."""
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+  totalCount: Int
+}
+
+# ─────────────────────────────────────────────
+# Root Types
+# ─────────────────────────────────────────────
+
+type Query {
+  """List metrics matching a filter."""
+  metrics(filter: MetricFilter): [Metric!]!
+
+  """Fetch metadata for a specific metric by name."""
+  metric(metricName: String!): Metric
+
+  """List hosts matching a filter."""
+  hosts(filter: HostFilter): [Host!]!
+
+  """Fetch a host by name."""
+  host(hostName: String!): Host
+
+  """List all dashboards."""
+  dashboards: [Dashboard!]!
+
+  """Fetch a specific dashboard by ID."""
+  dashboard(id: ID!): Dashboard
+
+  """List monitors matching a filter."""
+  monitors(filter: MonitorFilter): [Monitor!]!
+
+  """Fetch a specific monitor by ID."""
+  monitor(id: ID!): Monitor
+
+  """List downtimes."""
+  downtimes: [Downtime!]!
+
+  """List SLOs matching a filter."""
+  slos(filter: SLOFilter): [SLO!]!
+
+  """Fetch a specific SLO with history."""
+  slo(id: ID!, fromTs: DateTime!, toTs: DateTime!): SLO
+
+  """Search log events."""
+  logs(query: LogQuery!): [Log!]!
+
+  """List log indexes."""
+  logIndexes: [LogIndex!]!
+
+  """List log pipelines."""
+  logPipelines: [LogPipeline!]!
+
+  """List log archives."""
+  logArchives: [LogArchive!]!
+
+  """Search events in the event stream."""
+  events(query: EventQueryInput!): [Event!]!
+
+  """Search APM traces."""
+  traces(query: JSON!): [APMTrace!]!
+
+  """List APM services."""
+  apmServices(env: String, start: DateTime!, end: DateTime!): [APMService!]!
+
+  """Search security signals."""
+  securitySignals(filter: SecurityFilter!): [SecuritySignal!]!
+
+  """List security detection rules."""
+  securityRules: [SecurityRule!]!
+
+  """List incidents matching a filter."""
+  incidents(filter: IncidentFilter): [Incident!]!
+
+  """Fetch a specific incident."""
+  incident(id: ID!): Incident
+
+  """List organization users."""
+  users: [User!]!
+
+  """Fetch a specific user."""
+  user(id: ID!): User
+
+  """List teams."""
+  teams: [Team!]!
+
+  """List roles."""
+  roles: [Role!]!
+
+  """Fetch the current organization."""
+  organization: Organization
+
+  """List API keys."""
+  apiKeys: [APIKey!]!
+
+  """List application keys."""
+  appKeys: [AppKey!]!
+
+  """Retrieve usage summary for a date range."""
+  usageSummary(startMonth: String!, endMonth: String): UsageSummary
+
+  """Query cloud cost data."""
+  cloudCosts(filter: CloudCostFilter!): [CloudCost!]!
+
+  """List service catalog entries."""
+  serviceCatalog: ServiceCatalog
+
+  """Fetch a service definition by service name."""
+  serviceDefinition(serviceName: String!): ServiceDefinition
+
+  """List configured integrations."""
+  integrations: [Integration!]!
+
+  """List configured webhooks."""
+  webhooks: [Webhook!]!
+
+  """Get SLO corrections for an SLO."""
+  sloCorrections(sloId: ID!): [SLOCorrection!]!
+
+  """Get infrastructure map."""
+  infrastructureMap(filter: JSON): InfrastructureMap
+}
+
+type Mutation {
+  """Create a new monitor."""
+  createMonitor(input: CreateMonitorInput!): Monitor!
+
+  """Update an existing monitor."""
+  updateMonitor(id: ID!, input: UpdateMonitorInput!): Monitor!
+
+  """Delete a monitor."""
+  deleteMonitor(id: ID!): Boolean!
+
+  """Mute a monitor."""
+  muteMonitor(id: ID!, input: MuteInput!): Monitor!
+
+  """Unmute a monitor."""
+  unmuteMonitor(id: ID!): Monitor!
+
+  """Schedule a downtime."""
+  createDowntime(input: CreateDowntimeInput!): Downtime!
+
+  """Cancel a downtime."""
+  cancelDowntime(id: ID!): Boolean!
+
+  """Create a new dashboard."""
+  createDashboard(input: CreateDashboardInput!): Dashboard!
+
+  """Update a dashboard."""
+  updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
+
+  """Delete a dashboard."""
+  deleteDashboard(id: ID!): Boolean!
+
+  """Create a new SLO."""
+  createSLO(input: CreateSLOInput!): SLO!
+
+  """Update an SLO."""
+  updateSLO(id: ID!, input: UpdateSLOInput!): SLO!
+
+  """Delete an SLO."""
+  deleteSLO(id: ID!): Boolean!
+
+  """Add an SLO correction window."""
+  createSLOCorrection(input: CreateSLOCorrectionInput!): SLOCorrection!
+
+  """Declare an incident."""
+  createIncident(input: CreateIncidentInput!): Incident!
+
+  """Update an incident."""
+  updateIncident(id: ID!, input: UpdateIncidentInput!): Incident!
+
+  """Resolve an incident."""
+  resolveIncident(id: ID!): Incident!
+
+  """Invite a user to the organization."""
+  createUser(input: CreateUserInput!): User!
+
+  """Disable a user."""
+  disableUser(id: ID!): Boolean!
+
+  """Create an API key."""
+  createAPIKey(input: CreateAPIKeyInput!): APIKey!
+
+  """Delete an API key."""
+  deleteAPIKey(id: ID!): Boolean!
+
+  """Register a webhook."""
+  createWebhook(input: CreateWebhookInput!): Webhook!
+
+  """Delete a webhook."""
+  deleteWebhook(name: String!): Boolean!
+
+  """Mute a host."""
+  muteHost(hostName: String!, message: String, end: DateTime): HostMute!
+
+  """Unmute a host."""
+  unmuteHost(hostName: String!): Boolean!
+}
