@@ -1,0 +1,202 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Datadog Metrics API",
+    "version": "v2"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "DD-API-KEY",
+      "value": "{{DD-API-KEY}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Metrics",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Datadog Submit Metrics",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/series",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Submits metrics data points to the Datadog platform. The body should contain a series of metric submissions, each with a metric name, type, data points (timestamp and value pairs), tags, and optional host and resource information. Supports count, rate, gauge, and distribution metric types. The maximum payload size is 512 KB (uncompressed). Each metric series can contain up to 100 data points."
+        },
+        {
+          "info": {
+            "name": "Datadog Query Timeseries Data",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/query/timeseries",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Queries timeseries metric data for the specified time range and metric queries. Supports multiple metric queries in a single request. Returns time series data including timestamps, values, and associated metadata. The query uses Datadog's metrics query language supporting rollup, aggregation, and arithmetic operations."
+        },
+        {
+          "info": {
+            "name": "Datadog Query Scalar Data",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/query/scalar",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Queries scalar metric data for the specified time range and returns a single aggregated value per query formula. Useful for computing summary statistics such as averages, sums, or percentiles over a time window. Supports multiple formulas and metric queries in a single request."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Metric Metadata",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Datadog List Active Metrics",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.datadoghq.com/api/v1/metrics",
+            "params": [
+              {
+                "name": "from",
+                "value": "42",
+                "type": "query",
+                "description": "POSIX timestamp (seconds) indicating the start of the time window to query active metrics"
+              },
+              {
+                "name": "host",
+                "value": "example_value",
+                "type": "query",
+                "description": "Filter metrics by the hostname that is actively reporting the metric"
+              },
+              {
+                "name": "tag_filter",
+                "value": "env:production",
+                "type": "query",
+                "description": "Filter metrics by tag key or key:value pair (e.g., env:prod)"
+              }
+            ]
+          },
+          "docs": "Returns the list of actively reporting metric names for a given hour. Optionally filters by host and metric name prefix. Metrics are considered active if they reported at least one data point within the last 48 hours. Useful for metric discovery and auditing."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Metric Tags",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Datadog List Tags by Metric Name",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.datadoghq.com/api/v2/metrics/:metric_name/tags",
+            "params": [
+              {
+                "name": "metric_name",
+                "value": "",
+                "type": "path",
+                "description": "The name of the metric to manage tag configuration for (e.g., system.cpu.user)"
+              }
+            ]
+          },
+          "docs": "Returns the tag configuration for a specified metric including all configured tag keys, aggregation types, and exclude percentiles setting. Only available for custom metrics with tag configurations."
+        },
+        {
+          "info": {
+            "name": "Datadog Create a Tag Configuration",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/metrics/:metric_name/tags",
+            "params": [
+              {
+                "name": "metric_name",
+                "value": "",
+                "type": "path",
+                "description": "The name of the metric to manage tag configuration for (e.g., system.cpu.user)"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a tag configuration for a specified custom metric. Allows specifying which tag keys to include, the metric type, whether to exclude percentile aggregations, and aggregation settings. Tag configurations reduce the number of custom metrics by limiting which tag combinations are stored."
+        },
+        {
+          "info": {
+            "name": "Datadog Update a Tag Configuration",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.datadoghq.com/api/v2/metrics/:metric_name/tags",
+            "params": [
+              {
+                "name": "metric_name",
+                "value": "",
+                "type": "path",
+                "description": "The name of the metric to manage tag configuration for (e.g., system.cpu.user)"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates the tag configuration for a specified custom metric. Supports partial updates using JSON merge patch semantics. Allows changing the set of tag keys, aggregation types, and exclude percentiles settings."
+        },
+        {
+          "info": {
+            "name": "Datadog Delete a Tag Configuration",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.datadoghq.com/api/v2/metrics/:metric_name/tags",
+            "params": [
+              {
+                "name": "metric_name",
+                "value": "",
+                "type": "path",
+                "description": "The name of the metric to manage tag configuration for (e.g., system.cpu.user)"
+              }
+            ]
+          },
+          "docs": "Deletes the tag configuration for a specified custom metric. After deletion, all tag combinations for the metric will be stored again, which may increase custom metric usage. This action cannot be undone."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

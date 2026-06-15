@@ -1,0 +1,124 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Datadog Events API",
+    "version": "v2"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "DD-API-KEY",
+      "value": "{{DD-API-KEY}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Events",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Datadog Get a List of Events",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.datadoghq.com/api/v2/events",
+            "params": [
+              {
+                "name": "filter[query]",
+                "value": "avg:system.cpu.user{*}",
+                "type": "query",
+                "description": "A Datadog events search query to filter events (e.g., source:aws status:error)"
+              },
+              {
+                "name": "filter[from]",
+                "value": "example_value",
+                "type": "query",
+                "description": "The start of the search time range as an ISO 8601 timestamp or relative time (e.g., now-1h)"
+              },
+              {
+                "name": "filter[to]",
+                "value": "example_value",
+                "type": "query",
+                "description": "The end of the search time range as an ISO 8601 timestamp or relative time (e.g., now)"
+              },
+              {
+                "name": "sort",
+                "value": "timestamp",
+                "type": "query",
+                "description": "The sort order for events, either ascending or descending by timestamp"
+              },
+              {
+                "name": "page[cursor]",
+                "value": "example_value",
+                "type": "query",
+                "description": "A cursor token from a previous response to retrieve the next page of events"
+              },
+              {
+                "name": "page[limit]",
+                "value": "42",
+                "type": "query",
+                "description": "The maximum number of events to return per page (default 10, max 1000)"
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of events from the Events Explorer matching the specified search criteria. Supports filtering by text search, tags, time range, sources, alert types, and priorities. Results are sorted by timestamp in descending order by default. Use cursor-based pagination for large result sets. The v2 API provides richer event attributes and improved search capabilities compared to v1."
+        },
+        {
+          "info": {
+            "name": "Datadog Post an Event",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/events",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new event in the Datadog Events Explorer. Events are useful for correlating infrastructure changes with metric anomalies. Common use cases include deployment markers, configuration changes, scaling events, and custom alerting from external systems. Events have a title, text body, priority, optional host and tag associations, and an alert type for visual categorization. The event timestamp defaults to the current time if not specified."
+        },
+        {
+          "info": {
+            "name": "Datadog Get an Event",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.datadoghq.com/api/v2/events/:event_id",
+            "params": [
+              {
+                "name": "event_id",
+                "value": "",
+                "type": "path",
+                "description": "The unique string identifier of the event to retrieve"
+              }
+            ]
+          },
+          "docs": "Returns the full details of a specific event identified by its unique event ID. Includes the event title, text, timestamp, source, tags, alert type, priority, and associated hosts. The event ID is returned when creating events or from list event responses."
+        },
+        {
+          "info": {
+            "name": "Datadog Search Events",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.datadoghq.com/api/v2/events/search",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Searches events in the Events Explorer using a structured request body with full support for Datadog's events query language. Supports filtering by text, tags, sources, alert types, priorities, time ranges, and custom attributes. Returns paginated results with cursor-based pagination for large result sets. More powerful than the GET list endpoint for complex queries."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
