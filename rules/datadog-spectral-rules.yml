@@ -1,77 +1,195 @@
+# datadog — Spectral ruleset (strengthened)
+# Plain Spectral. Existing hand-authored rules preserved; measured rules added
+# from this provider's own OpenAPI conventions by strengthen_ruleset.py,
+# then self-validated against the spec.
+#
+# Provenance:
+#   - servers-https-only: 88% of servers already https (warn)
+#   - path-params-casing: snake @ 100% (n=349)
+#   - operationid-casing: pascal @ 94% (n=558)
+#   - schema-names-casing: pascal @ 100% (n=2789)
+#   - schema-properties-casing: snake @ 94% (n=5938)
+#   - security: global (root) — NOT emitting operation-security-required
+#   - error-schema-defined: APIErrorResponse
+#   - operation-documents-403: 92% adherence
+#   - operation-documents-429: 94% adherence
+#   - pagination params observed: ['count', 'limit', 'page', 'page_size', 'size']
+#   - merge: kept 19 existing, added 6 measured, upgraded 0
+#   - added: operationid-casing, schema-names-casing, schema-properties-casing, error-schema-defined, operation-documents-403, operation-documents-429
+extends:
+  - spectral:oas
 rules:
   info-title-required:
     severity: error
     given: $.info
-    then: {field: title, function: truthy}
+    then:
+      field: title
+      function: truthy
   info-title-format:
     severity: warn
     given: $.info.title
-    then: {function: pattern, functionOptions: {match: "^Datadog "}}
+    then:
+      function: pattern
+      functionOptions:
+        match: '^Datadog '
   info-description-required:
     severity: error
     given: $.info
-    then: {field: description, function: truthy}
+    then:
+      field: description
+      function: truthy
   info-version-required:
     severity: error
     given: $.info
-    then: {field: version, function: truthy}
+    then:
+      field: version
+      function: truthy
   servers-defined:
     severity: error
     given: $
-    then: {field: servers, function: truthy}
+    then:
+      field: servers
+      function: truthy
   servers-https-only:
     severity: error
     given: $.servers[*].url
-    then: {function: pattern, functionOptions: {match: "^https://"}}
+    then:
+      function: pattern
+      functionOptions:
+        match: ^https://
   paths-no-trailing-slash:
     severity: error
     given: $.paths
-    then: {field: "@key", function: pattern, functionOptions: {notMatch: "\\/$"}}
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        notMatch: \/$
   paths-version-prefix:
     severity: info
     given: $.paths
-    then: {field: "@key", function: pattern, functionOptions: {match: "^\\/api\\/v[0-9]|^\\/v[0-9]"}}
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        match: ^\/api\/v[0-9]|^\/v[0-9]
   operation-description-required:
     severity: error
     given: $.paths[*][get,post,put,patch,delete]
-    then: {field: description, function: truthy}
+    then:
+      field: description
+      function: truthy
   operation-operationid-required:
     severity: error
     given: $.paths[*][get,post,put,patch,delete]
-    then: {field: operationId, function: truthy}
+    then:
+      field: operationId
+      function: truthy
   operation-operationid-unique:
     severity: error
     given: $
-    then: {function: oasOpId}
+    then:
+      function: oasOpId
   operation-tags-required:
     severity: warn
     given: $.paths[*][get,post,put,patch,delete]
-    then: {field: tags, function: truthy}
+    then:
+      field: tags
+      function: truthy
   tags-title-case:
     severity: info
     given: $.tags[*].name
-    then: {function: pattern, functionOptions: {match: "^[A-Z][a-zA-Z0-9]*(\\s[A-Za-z0-9]+)*$"}}
+    then:
+      function: pattern
+      functionOptions:
+        match: ^[A-Z][a-zA-Z0-9]*(\s[A-Za-z0-9]+)*$
   parameter-description-required:
     severity: error
     given: $.paths[*][get,post,put,patch,delete].parameters[*]
-    then: {field: description, function: truthy}
+    then:
+      field: description
+      function: truthy
   response-success-required:
     severity: error
     given: $.paths[*][get,post,put,patch,delete].responses
-    then: {function: schema, functionOptions: {schema: {anyOf: [{required: ["200"]}, {required: ["201"]}, {required: ["204"]}]}}}
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          anyOf:
+          - required:
+            - '200'
+          - required:
+            - '201'
+          - required:
+            - '204'
   response-description-required:
     severity: error
     given: $.paths[*][get,post,put,patch,delete].responses[*]
-    then: {field: description, function: truthy}
+    then:
+      field: description
+      function: truthy
   security-schemes-defined:
     severity: warn
     given: $.components
-    then: {field: securitySchemes, function: truthy}
+    then:
+      field: securitySchemes
+      function: truthy
   get-no-request-body:
     severity: error
     given: $.paths[*].get
-    then: {field: requestBody, function: falsy}
+    then:
+      field: requestBody
+      function: falsy
   no-empty-descriptions:
     severity: error
-    given: "$..description"
-    then: {function: truthy}
+    given: $..description
+    then:
+      function: truthy
+  operationid-casing:
+    description: Operation IDs should be PascalCase (the dominant convention in this API).
+    severity: warn
+    given: $.paths[*][get,post,put,patch,delete].operationId
+    then:
+      function: pattern
+      functionOptions:
+        match: ^[A-Z][A-Za-z0-9]*$
+  schema-names-casing:
+    description: Component schema names should be PascalCase (the dominant convention in this API).
+    severity: warn
+    given: $.components.schemas
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        match: ^[A-Z][A-Za-z0-9]*$
+  schema-properties-casing:
+    description: Schema properties should be snake_case (the dominant convention in this API).
+    severity: warn
+    given: $.components.schemas[*].properties
+    then:
+      field: '@key'
+      function: casing
+      functionOptions:
+        type: snake
+  error-schema-defined:
+    description: A shared error schema (APIErrorResponse) should be defined for error payloads.
+    severity: warn
+    given: $.components.schemas
+    then:
+      field: APIErrorResponse
+      function: truthy
+  operation-documents-403:
+    description: Operations should document a 403 response (documented on 92% of this API's operations).
+    severity: warn
+    given: $.paths[*][get,post,put,patch,delete].responses
+    then:
+      field: '403'
+      function: truthy
+  operation-documents-429:
+    description: Operations should document a 429 response (documented on 94% of this API's operations).
+    severity: warn
+    given: $.paths[*][get,post,put,patch,delete].responses
+    then:
+      field: '429'
+      function: truthy
