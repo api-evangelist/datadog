@@ -1,0 +1,1137 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Post API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Post
+paths:
+  /api/v2/agentless_scanning/accounts/aws:
+    post:
+      description: Activate Agentless scan options for an AWS account.
+      operationId: CreateAwsScanOptions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwsScanOptionsCreateRequest'
+        description: The definition of the new scan options.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AwsScanOptionsResponse'
+          description: Agentless scan options enabled successfully.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Post Aws Scan Options
+      tags:
+      - Post
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-undo:
+        operationId: DeleteAwsScanOptions
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/agentless_scanning/ondemand/aws:
+    post:
+      description: Trigger the scan of an AWS resource with a high priority. Agentless scanning must be activated for the AWS account containing the resource to scan.
+      operationId: CreateAwsOnDemandTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwsOnDemandCreateRequest'
+        description: The definition of the on demand task.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AwsOnDemandResponse'
+          description: AWS on demand task created successfully.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Post an Aws on Demand Task
+      tags:
+      - Post
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_findings_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/events:
+    x-merge-override:
+      get: false
+      post: false
+    post:
+      description: 'This endpoint allows you to post events.
+
+
+        ✅ **Only events with the `change` category** are in General Availability. See [Change Tracking](https://docs.datadoghq.com/change_tracking) for more details.
+
+
+        ❌ For use cases involving other event categories, please use the V1 endpoint.'
+      operationId: CreateEvent
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  data:
+                    attributes:
+                      attributes:
+                        author:
+                          name: datadog@datadog.com
+                          type: user
+                        change_metadata:
+                          dd:
+                            team: datadog_team
+                            user_email: datadog@datadog.com
+                            user_id: datadog_user_id
+                            user_name: datadog_username
+                          resource_link: datadog.com/feature/fallback_payments_test
+                        changed_resource:
+                          name: fallback_payments_test
+                          type: feature_flag
+                        impacted_resources:
+                        - name: payments_api
+                          type: service
+                        new_value:
+                          enabled: true
+                          percentage: 50%
+                          rule:
+                            datacenter: devcycle.us1.prod
+                        prev_value:
+                          enabled: true
+                          percentage: 10%
+                          rule:
+                            datacenter: devcycle.us1.prod
+                      category: change
+                      message: payment_processed feature flag has been enabled
+                      tags:
+                      - env:test
+                      title: payment_processed feature flag updated
+                    type: event
+            schema:
+              $ref: '#/components/schemas/EventCreateRequestPayload'
+        description: Event request object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCreateResponsePayload'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      summary: Datadog Post an Event
+      tags:
+      - Post
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-undo:
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/events/search:
+    post:
+      description: 'List endpoint returns logs that match a log search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to search and filter your logs.
+
+
+        **If you are considering archiving logs for your organization,
+
+        consider use of the Datadog archive capabilities instead of the log list API.
+
+        See [Datadog Logs Archive documentation][2].**
+
+
+        [1]: /logs/guide/collect-multiple-logs-with-pagination
+
+        [2]: https://docs.datadoghq.com/logs/archives'
+      operationId: ListLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsListRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Search Logs (post)
+      tags:
+      - Post
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    AwsScanOptionsType:
+      default: aws_scan_options
+      description: The type of the resource. The value should always be `aws_scan_options`.
+      enum:
+      - aws_scan_options
+      example: aws_scan_options
+      type: string
+      x-enum-varnames:
+      - AWS_SCAN_OPTIONS
+    LogsAggregateResponseStatus:
+      description: The status of the response
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    ChangeEventCustomAttributesImpactedResourcesItemsType:
+      description: Resource's type.
+      enum:
+      - service
+      example: service
+      type: string
+      x-enum-varnames:
+      - SERVICE
+    EventCreateResponseAttributes:
+      description: JSON object containing all events attributes and their associated values.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventCreateResponseAttributesAttributes'
+      type: object
+    AwsScanOptionsCreateRequest:
+      description: Request object that includes the scan options to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsScanOptionsCreateData'
+      required:
+      - data
+      type: object
+    LogsResponseMetadata:
+      description: The metadata associated with a request
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/LogsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/LogsAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/LogsWarning'
+          type: array
+      type: object
+    ChangeEventCustomAttributesImpactedResourcesItems:
+      description: Object representing a uniquely identified resource. Only the resource type `service` is supported.
+      properties:
+        name:
+          description: Resource's name.
+          example: payments_api
+          type: string
+        type:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItemsType'
+      required:
+      - type
+      - name
+      type: object
+    AwsScanOptionsAttributes:
+      description: Attributes for the AWS scan options.
+      properties:
+        lambda:
+          description: Indicates if scanning of Lambda functions is enabled.
+          example: true
+          type: boolean
+        sensitive_data:
+          description: Indicates if scanning for sensitive data is enabled.
+          example: false
+          type: boolean
+        vuln_containers_os:
+          description: Indicates if scanning for vulnerabilities in containers is enabled.
+          example: true
+          type: boolean
+        vuln_host_os:
+          description: Indicates if scanning for vulnerabilities in hosts is enabled.
+          example: true
+          type: boolean
+      type: object
+    ChangeEventCustomAttributes:
+      description: Object representing custom change event attributes.
+      properties:
+        author:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthor'
+        change_metadata:
+          additionalProperties: {}
+          description: Free form object with information related to the `change` event. Can be arbitrarily nested and contain any valid JSON.
+          example:
+            dd:
+              team: datadog_team
+              user_email: datadog@datadog.com
+              user_id: datadog_user_id
+              user_name: datadog_username
+            resource_link: datadog.com/feature/fallback_payments_test
+          type: object
+        changed_resource:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResource'
+        impacted_resources:
+          description: 'A list of resources impacted by this change. It is recommended to provide an impacted resource to display
+
+            the change event at the right location. Only resources of type `service` are supported.'
+          example:
+          - name: payments_api
+            type: service
+          items:
+            $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItems'
+          type: array
+        new_value:
+          additionalProperties: {}
+          description: Free form object to track new value of the changed resource.
+          example:
+            enabled: true
+            percentage: 50%
+            rule:
+              datacenter: devcycle.us1.prod
+          type: object
+        prev_value:
+          additionalProperties: {}
+          description: Free form object to track previous value of the changed resource.
+          example:
+            enabled: true
+            percentage: 10%
+            rule:
+              datacenter: devcycle.us1.prod
+          type: object
+      required:
+      - changed_resource
+      type: object
+    AwsScanOptionsCreateData:
+      description: Object for the scan options of a single AWS account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsScanOptionsCreateAttributes'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        type:
+          $ref: '#/components/schemas/AwsScanOptionsType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    AwsOnDemandData:
+      description: Single AWS on demand task.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsOnDemandAttributes'
+        id:
+          description: The UUID of the task.
+          example: 6d09294c-9ad9-42fd-a759-a0c1599b4828
+          type: string
+        type:
+          $ref: '#/components/schemas/AwsOnDemandType'
+      type: object
+    AwsOnDemandAttributes:
+      description: Attributes for the AWS on demand task.
+      properties:
+        arn:
+          description: The arn of the resource to scan.
+          example: arn:aws:ec2:us-east-1:727000456123:instance/i-0eabb50529b67a1ba
+          type: string
+        assigned_at:
+          description: Specifies the assignment timestamp if the task has been already assigned to a scanner.
+          example: '2025-02-11T18:25:04.550564Z'
+          type: string
+        created_at:
+          description: The task submission timestamp.
+          example: '2025-02-11T18:13:24.576915Z'
+          type: string
+        status:
+          description: 'Indicates the status of the task.
+
+            QUEUED: the task has been submitted successfully and the resource has not been assigned to a scanner yet.
+
+            ASSIGNED: the task has been assigned.
+
+            ABORTED: the scan has been aborted after a period of time due to technical reasons, such as resource not found, insufficient permissions, or the absence of a configured scanner.'
+          example: QUEUED
+          type: string
+      type: object
+    LogAttributes:
+      description: JSON object containing all log attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from your log.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        host:
+          description: Name of the machine from where the logs are being sent.
+          example: i-0123
+          type: string
+        message:
+          description: 'The message [reserved attribute](https://docs.datadoghq.com/logs/log_collection/#reserved-attributes)
+
+            of your log. By default, Datadog ingests the value of the message attribute as the body of the log entry.
+
+            That value is then highlighted and displayed in the Logstream, where it is indexed for full text search.'
+          example: Host connected to remote
+          type: string
+        service:
+          description: 'The name of the application or service generating the log events.
+
+            It is used to switch from Logs to APM, so make sure you define the same
+
+            value when you use both products.'
+          example: agent
+          type: string
+        status:
+          description: Status of the message associated with your log.
+          example: INFO
+          type: string
+        tags:
+          description: Array of tags associated with your log.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your log.
+            type: string
+          type: array
+        timestamp:
+          description: Timestamp of your log.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    Log:
+      description: Object description of a log after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogAttributes'
+        id:
+          description: Unique ID of the Log.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/LogType'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    EventCreateResponsePayload:
+      description: Response containing information about created event.
+      properties:
+        data:
+          $ref: '#/components/schemas/EventCreateResponse'
+      type: object
+    LogsResponseMetadataPage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    AwsOnDemandResponse:
+      description: Response object that includes an AWS on demand task.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsOnDemandData'
+      type: object
+    LogType:
+      default: log
+      description: Type of the event.
+      enum:
+      - log
+      example: log
+      type: string
+      x-enum-varnames:
+      - LOG
+    AwsOnDemandCreateData:
+      description: Object for a single AWS on demand task.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsOnDemandCreateAttributes'
+        type:
+          $ref: '#/components/schemas/AwsOnDemandType'
+      required:
+      - type
+      - attributes
+      type: object
+    EventPayloadAttributes:
+      description: JSON object for custom attributes. Schema are different per each event category.
+      oneOf:
+      - $ref: '#/components/schemas/ChangeEventCustomAttributes'
+    LogsListResponse:
+      description: Response object with all logs matching the request and pagination information.
+      properties:
+        data:
+          description: Array of logs matching the request.
+          items:
+            $ref: '#/components/schemas/Log'
+          type: array
+        links:
+          $ref: '#/components/schemas/LogsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/LogsResponseMetadata'
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    LogsSort:
+      description: Sort parameters when querying logs.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    EventCreateResponseAttributesAttributes:
+      description: JSON object of attributes from your events.
+      properties:
+        evt:
+          $ref: '#/components/schemas/EventCreateResponseAttributesAttributesEvt'
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    LogsWarning:
+      description: A warning message indicating something that went wrong with the query
+      properties:
+        code:
+          description: A unique code for this type of warning
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    LogsStorageTier:
+      default: indexes
+      description: Specifies storage type as indexes, online-archives or flex
+      enum:
+      - indexes
+      - online-archives
+      - flex
+      example: indexes
+      type: string
+      x-enum-varnames:
+      - INDEXES
+      - ONLINE_ARCHIVES
+      - FLEX
+    AwsScanOptionsCreateAttributes:
+      description: Attributes for the AWS scan options to create.
+      properties:
+        lambda:
+          description: Indicates if scanning of Lambda functions is enabled.
+          example: true
+          type: boolean
+        sensitive_data:
+          description: Indicates if scanning for sensitive data is enabled.
+          example: false
+          type: boolean
+        vuln_containers_os:
+          description: Indicates if scanning for vulnerabilities in containers is enabled.
+          example: true
+          type: boolean
+        vuln_host_os:
+          description: Indicates if scanning for vulnerabilities in hosts is enabled.
+          example: true
+          type: boolean
+      required:
+      - lambda
+      - sensitive_data
+      - vuln_containers_os
+      - vuln_host_os
+      type: object
+    AwsScanOptionsResponse:
+      description: Response object that includes the scan options of an AWS account.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsScanOptionsData'
+      type: object
+    AwsOnDemandCreateRequest:
+      description: Request object that includes the on demand task to submit.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsOnDemandCreateData'
+      required:
+      - data
+      type: object
+    EventCreateRequestType:
+      description: Entity type.
+      enum:
+      - event
+      example: event
+      type: string
+      x-enum-varnames:
+      - EVENT
+    ChangeEventCustomAttributesAuthorType:
+      description: Author's type.
+      enum:
+      - user
+      - system
+      example: user
+      type: string
+      x-enum-varnames:
+      - USER
+      - SYSTEM
+    EventCreateRequest:
+      description: Object representing an event creation request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventPayload'
+        type:
+          $ref: '#/components/schemas/EventCreateRequestType'
+      type: object
+    ChangeEventCustomAttributesAuthor:
+      description: Object representing the entity which made the change. Optional field but if provided should include `type` and `name`.
+      properties:
+        name:
+          description: Author's name. Limited to 128 characters.
+          example: datadog@datadog.com
+          maxLength: 128
+          type: string
+        type:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthorType'
+      required:
+      - name
+      - type
+      type: object
+    LogsListRequest:
+      description: The request for a logs list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/LogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/LogsListRequestPage'
+        sort:
+          $ref: '#/components/schemas/LogsSort'
+      type: object
+    AwsScanOptionsData:
+      description: Single AWS Scan Options entry.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsScanOptionsAttributes'
+        id:
+          description: The ID of the AWS account.
+          example: '184366314700'
+          type: string
+        type:
+          $ref: '#/components/schemas/AwsScanOptionsType'
+      type: object
+    LogsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/logs/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    EventCreateRequestPayload:
+      description: Payload for creating an event.
+      properties:
+        data:
+          $ref: '#/components/schemas/EventCreateRequest'
+      type: object
+    AwsAccountId:
+      description: The ID of the AWS account.
+      example: '123456789012'
+      type: string
+    EventPayload:
+      description: Event attributes.
+      properties:
+        aggregation_key:
+          description: An arbitrary string to use for aggregation when correlating events. Limited to 100 characters.
+          maxLength: 100
+          type: string
+          example: example_value
+        attributes:
+          $ref: '#/components/schemas/EventPayloadAttributes'
+        category:
+          $ref: '#/components/schemas/EventCategory'
+        message:
+          description: The body of the event. Limited to 4000 characters.
+          example: payment_processed feature flag has been enabled
+          maxLength: 4000
+          type: string
+        tags:
+          description: 'A list of tags to apply to the event.
+
+            Refer to [Tags docs](https://docs.datadoghq.com/getting_started/tagging/).'
+          example:
+          - env:test
+          items:
+            description: A tag.
+            type: string
+          type: array
+        timestamp:
+          description: 'Timestamp when the event occurred. Must follow [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format.
+
+            For example `"2017-01-15T01:30:15.010000Z"`.
+
+            Defaults to the timestamp of receipt. Limited to values no older than 18 hours.'
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        title:
+          description: The event title. Limited to 500 characters.
+          example: payment_processed feature flag updated
+          maxLength: 500
+          type: string
+      required:
+      - title
+      - category
+      - attributes
+      type: object
+    AwsOnDemandCreateAttributes:
+      description: Attributes for the AWS on demand task.
+      properties:
+        arn:
+          description: The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets.
+          example: arn:aws:ec2:us-east-1:727000456123:instance/i-0eabb50529b67a1ba
+          type: string
+      required:
+      - arn
+      type: object
+    LogsListRequestPage:
+      description: Paging attributes for listing logs.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    AwsOnDemandType:
+      default: aws_resource
+      description: The type of the on demand task. The value should always be `aws_resource`.
+      enum:
+      - aws_resource
+      example: aws_resource
+      type: string
+      x-enum-varnames:
+      - AWS_RESOURCE
+    EventCreateResponseAttributesAttributesEvt:
+      description: JSON object of event system attributes.
+      properties:
+        id:
+          description: Event id
+          type: string
+          example: abc-123-def
+      type: object
+    ChangeEventCustomAttributesChangedResourceType:
+      description: Resource's type.
+      enum:
+      - feature_flag
+      - configuration
+      example: feature_flag
+      type: string
+      x-enum-varnames:
+      - FEATURE_FLAG
+      - CONFIGURATION
+    EventCategory:
+      description: Event category to identify the type of event. Only the value `change` is supported. Support for other categories are coming. please reach out to datadog support if you're interested.
+      enum:
+      - change
+      example: change
+      type: string
+      x-enum-varnames:
+      - CHANGE
+    LogsQueryOptions:
+      deprecated: true
+      description: 'Global query options that are used during the query.
+
+        Note: These fields are currently deprecated and do not affect the query results.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    ChangeEventCustomAttributesChangedResource:
+      description: Object representing a uniquely identified resource.
+      properties:
+        name:
+          description: Resource's name.
+          example: fallback_payments_test
+          type: string
+        type:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResourceType'
+      required:
+      - type
+      - name
+      type: object
+    EventCreateResponse:
+      description: Object containing an event response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventCreateResponseAttributes'
+        type:
+          description: Event type
+          example: event
+          type: string
+      type: object
+    LogsQueryFilter:
+      description: The search and filter query settings
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now-15m
+          type: string
+        indexes:
+          default:
+          - '*'
+          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
+          example:
+          - main
+          - web
+          items:
+            description: The name of a log index.
+            type: string
+          type: array
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        storage_tier:
+          $ref: '#/components/schemas/LogsStorageTier'
+        to:
+          default: now
+          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

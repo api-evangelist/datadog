@@ -1,0 +1,909 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Assets API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Assets
+paths:
+  /api/v2/metrics/{metric_name}/assets:
+    get:
+      description: Returns dashboards, monitors, notebooks, and SLOs that a metric is stored in, if any.  Updated every 24 hours.
+      operationId: ListMetricAssets
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricAssetsResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Related Assets to a Metric
+      tags:
+      - Assets
+      x-menu-order: 12
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security/assets:
+    get:
+      description: 'Get a list of vulnerable assets.
+
+
+        ### Pagination
+
+
+        Please review the [Pagination section for the "List Vulnerabilities"](#pagination) endpoint.
+
+
+        ### Filtering
+
+
+        Please review the [Filtering section for the "List Vulnerabilities"](#filtering) endpoint.
+
+
+        ### Metadata
+
+
+        Please review the [Metadata section for the "List Vulnerabilities"](#metadata) endpoint.
+
+        '
+      operationId: ListVulnerableAssets
+      parameters:
+      - description: Its value must come from the `links` section of the response of the first request. Do not manually edit it.
+        example: b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+        in: query
+        name: page[token]
+        required: false
+        schema:
+          type: string
+      - description: The page number to be retrieved. It should be equal or greater than `1`
+        example: 1
+        in: query
+        name: page[number]
+        required: false
+        schema:
+          format: int64
+          minimum: 1
+          type: integer
+      - description: Filter by name.
+        example: datadog-agent
+        in: query
+        name: filter[name]
+        required: false
+        schema:
+          type: string
+      - description: Filter by type.
+        example: Host
+        in: query
+        name: filter[type]
+        required: false
+        schema:
+          $ref: '#/components/schemas/AssetType'
+      - description: Filter by the first version of the asset since it has been vulnerable.
+        example: v1.15.1
+        in: query
+        name: filter[version.first]
+        required: false
+        schema:
+          type: string
+      - description: Filter by the last detected version of the asset.
+        example: v1.15.1
+        in: query
+        name: filter[version.last]
+        required: false
+        schema:
+          type: string
+      - description: Filter by the repository url associated to the asset.
+        example: github.com/DataDog/datadog-agent.git
+        in: query
+        name: filter[repository_url]
+        required: false
+        schema:
+          type: string
+      - description: Filter whether the asset is in production or not.
+        example: false
+        in: query
+        name: filter[risks.in_production]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter whether the asset (Service) is under attack or not.
+        example: false
+        in: query
+        name: filter[risks.under_attack]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter whether the asset (Host) is publicly accessible or not.
+        example: false
+        in: query
+        name: filter[risks.is_publicly_accessible]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter whether the asset (Host) has privileged access or not.
+        example: false
+        in: query
+        name: filter[risks.has_privileged_access]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter whether the asset (Host)  has access to sensitive data or not.
+        example: false
+        in: query
+        name: filter[risks.has_access_to_sensitive_data]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter by environment.
+        example: staging
+        in: query
+        name: filter[environments]
+        required: false
+        schema:
+          type: string
+      - description: Filter by architecture.
+        example: arm64
+        in: query
+        name: filter[arch]
+        required: false
+        schema:
+          type: string
+      - description: Filter by operating system name.
+        example: ubuntu
+        in: query
+        name: filter[operating_system.name]
+        required: false
+        schema:
+          type: string
+      - description: Filter by operating system version.
+        example: '24.04'
+        in: query
+        name: filter[operating_system.version]
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListVulnerableAssetsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: 'Bad request: The server cannot process the request due to invalid syntax in the request.'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: 'Forbidden: Access denied'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: 'Not found: There is no request associated with the provided token.'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - appsec_vm_read
+      summary: Datadog List Vulnerable Assets
+      tags:
+      - Assets
+      x-menu-order: 26
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is a private preview.
+
+        If you are interested in accessing this API, [fill out this form](https://forms.gle/kMYC1sDr6WDUBDsx9).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    MetricName:
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    MetricMonitorType:
+      description: Monitor resource type.
+      enum:
+      - monitors
+      example: monitors
+      type: string
+      x-enum-varnames:
+      - MONITORS
+    MetricAssetSLORelationship:
+      description: An object of type `slos` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricSLOID'
+        type:
+          $ref: '#/components/schemas/MetricSLOType'
+      type: object
+    AssetRisks:
+      description: Asset risks.
+      properties:
+        has_access_to_sensitive_data:
+          description: Whether the asset has access to sensitive data or not.
+          example: false
+          type: boolean
+        has_privileged_access:
+          description: Whether the asset has privileged access or not.
+          example: false
+          type: boolean
+        in_production:
+          description: Whether the asset is in production or not.
+          example: false
+          type: boolean
+        is_publicly_accessible:
+          description: Whether the asset is publicly accessible or not.
+          example: false
+          type: boolean
+        under_attack:
+          description: Whether the asset is under attack or not.
+          example: false
+          type: boolean
+      required:
+      - in_production
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    MetricMonitorAsset:
+      description: A monitor object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricMonitorID'
+        type:
+          $ref: '#/components/schemas/MetricMonitorType'
+      required:
+      - id
+      - type
+      type: object
+    MetricDashboardAttributes:
+      description: Attributes related to the dashboard, including title, popularity, and url.
+      properties:
+        popularity:
+          description: Value from 0 to 5 that ranks popularity of the dashboard.
+          format: double
+          maximum: 5
+          minimum: 0
+          type: number
+          example: 95.5
+        title:
+          description: Title of the asset.
+          type: string
+          example: Example Monitor
+        url:
+          description: URL path of the asset.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    MetricAssetSLORelationships:
+      description: An object containing a list of SLOs that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of SLOs that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetSLORelationship'
+          type: array
+      type: object
+    Links:
+      description: The JSON:API links related to pagination.
+      properties:
+        first:
+          description: First page link.
+          example: https://api.datadoghq.com/api/v2/security/vulnerabilities?page%5Bnumber%5D=1&page%5Btoken%5D=b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+          type: string
+        last:
+          description: Last page link.
+          example: https://api.datadoghq.com/api/v2/security/vulnerabilities?page%5Bnumber%5D=15&page%5Btoken%5D=b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+          type: string
+        next:
+          description: Next page link.
+          example: https://api.datadoghq.com/api/v2/security/vulnerabilities?page%5Bnumber%5D=16&page%5Btoken%5D=b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+          type: string
+        previous:
+          description: Previous page link.
+          example: https://api.datadoghq.com/api/v2/security/vulnerabilities?page%5Bnumber%5D=14&page%5Btoken%5D=b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+          type: string
+        self:
+          description: Request link.
+          example: https://api.datadoghq.com/api/v2/security/vulnerabilities?filter%5Btool%5D=Infra
+          type: string
+      required:
+      - self
+      - first
+      - last
+      type: object
+    MetricAssetDashboardRelationships:
+      description: An object containing the list of dashboards that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of dashboards that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetDashboardRelationship'
+          type: array
+      type: object
+    MetricSLOAsset:
+      description: A SLO object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricSLOID'
+        type:
+          $ref: '#/components/schemas/MetricSLOType'
+      required:
+      - id
+      - type
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MetricAssetAttributes:
+      description: Assets related to the object, including title and url.
+      properties:
+        title:
+          description: Title of the asset.
+          type: string
+          example: Example Monitor
+        url:
+          description: URL path of the asset.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    MetricNotebookID:
+      description: The related notebook's ID.
+      example: '12345'
+      type: string
+    AssetOperatingSystem:
+      description: Asset operating system.
+      properties:
+        description:
+          description: Operating system version.
+          example: '24.04'
+          type: string
+        name:
+          description: Operating system name.
+          example: ubuntu
+          type: string
+      required:
+      - name
+      type: object
+    MetricAssetResponseRelationships:
+      description: Relationships to assets related to the metric.
+      properties:
+        dashboards:
+          $ref: '#/components/schemas/MetricAssetDashboardRelationships'
+        monitors:
+          $ref: '#/components/schemas/MetricAssetMonitorRelationships'
+        notebooks:
+          $ref: '#/components/schemas/MetricAssetNotebookRelationships'
+        slos:
+          $ref: '#/components/schemas/MetricAssetSLORelationships'
+      type: object
+    AssetEntityType:
+      description: The JSON:API type.
+      enum:
+      - assets
+      example: assets
+      type: string
+      x-enum-varnames:
+      - ASSETS
+    MetricAssetDashboardRelationship:
+      description: An object of type `dashboard` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricDashboardID'
+        type:
+          $ref: '#/components/schemas/MetricDashboardType'
+      type: object
+    MetricNotebookType:
+      description: Notebook resource type.
+      enum:
+      - notebooks
+      example: notebooks
+      type: string
+      x-enum-varnames:
+      - NOTEBOOKS
+    MetricDashboardID:
+      description: The related dashboard's ID.
+      example: xxx-yyy-zzz
+      type: string
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    MetricAssetMonitorRelationship:
+      description: An object of type `monitor` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricMonitorID'
+        type:
+          $ref: '#/components/schemas/MetricMonitorType'
+      type: object
+    MetricAssetResponseData:
+      description: Metric assets response data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricName'
+        relationships:
+          $ref: '#/components/schemas/MetricAssetResponseRelationships'
+        type:
+          $ref: '#/components/schemas/MetricType'
+      required:
+      - id
+      - type
+      type: object
+    MetricDashboardAsset:
+      description: A dashboard object with title and popularity.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricDashboardAttributes'
+        id:
+          $ref: '#/components/schemas/MetricDashboardID'
+        type:
+          $ref: '#/components/schemas/MetricDashboardType'
+      required:
+      - id
+      - type
+      type: object
+    MetricMonitorID:
+      description: The related monitor's ID.
+      example: '1775073'
+      type: string
+    AssetType:
+      description: The asset type
+      enum:
+      - Repository
+      - Service
+      - Host
+      - HostImage
+      - Image
+      example: Repository
+      type: string
+      x-enum-varnames:
+      - REPOSITORY
+      - SERVICE
+      - HOST
+      - HOSTIMAGE
+      - IMAGE
+    Asset:
+      description: A single vulnerable asset
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AssetAttributes'
+        id:
+          description: The unique ID for this asset.
+          example: Repository|github.com/DataDog/datadog-agent.git
+          type: string
+        type:
+          $ref: '#/components/schemas/AssetEntityType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    Metadata:
+      description: The metadata related to this request.
+      properties:
+        count:
+          description: Number of entities included in the response.
+          example: 150
+          format: int64
+          type: integer
+        token:
+          description: The token that identifies the request.
+          example: b82cef018aab81ed1d4bb4xb35xxfc065da7efa685fbcecdbd338f3015e3afabbbfa3a911b4984_721ee28a-zecb-4e45-9960-c42065b574f4
+          type: string
+        total:
+          description: Total number of entities across all pages.
+          example: 152431
+          format: int64
+          type: integer
+      required:
+      - count
+      - total
+      - token
+      type: object
+    MetricAssetNotebookRelationships:
+      description: An object containing the list of notebooks that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of notebooks that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetNotebookRelationship'
+          type: array
+      type: object
+    MetricSLOID:
+      description: The SLO ID.
+      example: 9ffef113b389520db54391d67d652dfb
+      type: string
+    MetricAssetMonitorRelationships:
+      description: A object containing the list of monitors that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of monitors that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetMonitorRelationship'
+          type: array
+      type: object
+    MetricAssetsResponse:
+      description: Response object that includes related dashboards, monitors, notebooks, and SLOs.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricAssetResponseData'
+        included:
+          description: Array of objects related to the metric assets.
+          items:
+            $ref: '#/components/schemas/MetricAssetResponseIncluded'
+          type: array
+      type: object
+    MetricDashboardType:
+      description: Dashboard resource type.
+      enum:
+      - dashboards
+      example: dashboards
+      type: string
+      x-enum-varnames:
+      - DASHBOARDS
+    AssetAttributes:
+      description: The JSON:API attributes of the asset.
+      properties:
+        arch:
+          description: Asset architecture.
+          example: arm64
+          type: string
+        environments:
+          description: List of environments where the asset is deployed.
+          example:
+          - staging
+          items:
+            example: staging
+            type: string
+          type: array
+        name:
+          description: Asset name.
+          example: github.com/DataDog/datadog-agent.git
+          type: string
+        operating_system:
+          $ref: '#/components/schemas/AssetOperatingSystem'
+        risks:
+          $ref: '#/components/schemas/AssetRisks'
+        type:
+          $ref: '#/components/schemas/AssetType'
+        version:
+          $ref: '#/components/schemas/AssetVersion'
+      required:
+      - name
+      - type
+      - risks
+      - environments
+      type: object
+    MetricType:
+      default: metrics
+      description: The metric resource type.
+      enum:
+      - metrics
+      example: metrics
+      type: string
+      x-enum-varnames:
+      - METRICS
+    MetricNotebookAsset:
+      description: A notebook object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricNotebookID'
+        type:
+          $ref: '#/components/schemas/MetricNotebookType'
+      required:
+      - id
+      - type
+      type: object
+    MetricAssetNotebookRelationship:
+      description: An object of type `notebook` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricNotebookID'
+        type:
+          $ref: '#/components/schemas/MetricNotebookType'
+      type: object
+    MetricAssetResponseIncluded:
+      description: List of included assets with full set of attributes.
+      oneOf:
+      - $ref: '#/components/schemas/MetricDashboardAsset'
+      - $ref: '#/components/schemas/MetricMonitorAsset'
+      - $ref: '#/components/schemas/MetricNotebookAsset'
+      - $ref: '#/components/schemas/MetricSLOAsset'
+    MetricSLOType:
+      description: SLO resource type.
+      enum:
+      - slos
+      example: slos
+      type: string
+      x-enum-varnames:
+      - SLOS
+    ListVulnerableAssetsResponse:
+      description: The expected response schema when listing vulnerable assets.
+      properties:
+        data:
+          description: List of vulnerable assets.
+          items:
+            $ref: '#/components/schemas/Asset'
+          type: array
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Metadata'
+      required:
+      - data
+      type: object
+    AssetVersion:
+      description: Asset version.
+      properties:
+        first:
+          description: Asset first version.
+          example: _latest
+          type: string
+        last:
+          description: Asset last version.
+          example: _latest
+          type: string
+      type: object
+  parameters:
+    MetricName:
+      description: The name of the metric.
+      example: dist.http.endpoint.request
+      in: path
+      name: metric_name
+      required: true
+      schema:
+        type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

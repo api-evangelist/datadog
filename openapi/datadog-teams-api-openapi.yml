@@ -1,0 +1,3580 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Teams API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- description: View and manage teams within Datadog. See the [Teams page](https://docs.datadoghq.com/account_management/teams/) for more information.
+  name: Teams
+paths:
+  /api/v2/on-call/teams/{team_id}/on-call:
+    get:
+      description: Get a team's on-call users at a given time
+      operationId: GetTeamOnCallUsers
+      parameters:
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `responders`, `escalations`, `escalations.responders`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The team ID
+        in: path
+        name: team_id
+        required: true
+        schema:
+          example: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: string
+        example: 27590dae-47be-4a7d-9abf-8f4e45124020
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamOnCallResponders'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get Team On-call Users
+      tags:
+      - Teams
+      x-menu-order: 12
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/teams/{team_id}/routing-rules:
+    get:
+      description: Get a team's On-Call routing rules
+      operationId: GetOnCallTeamRoutingRules
+      parameters:
+      - description: The team ID
+        in: path
+        name: team_id
+        required: true
+        schema:
+          example: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: string
+        example: 27590dae-47be-4a7d-9abf-8f4e45124020
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamRoutingRules'
+          description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get On-call Team Routing Rules
+      tags:
+      - Teams
+      x-menu-order: 9
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Set a team's On-Call routing rules
+      operationId: SetOnCallTeamRoutingRules
+      parameters:
+      - description: The team ID
+        in: path
+        name: team_id
+        required: true
+        schema:
+          example: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: string
+        example: 27590dae-47be-4a7d-9abf-8f4e45124020
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRoutingRulesRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamRoutingRules'
+          description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Set On-call Team Routing Rules
+      tags:
+      - Teams
+      x-given:
+        routing_rules:
+          parameters:
+          - name: team_id
+            source: dd_team.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"team_routing_rules\",\n    \"id\": \"{{ dd_team.data.id }}\",\n    \"attributes\": {\n      \"rules\": [\n        {\n          \"query\": \"\",\n          \"policy_id\": \"{{ escalation_policy.data.id }}\",\n          \"urgency\": \"low\",\n          \"actions\": []\n        }\n      ]\n    }\n  }\n}"
+          step: there are valid "routing_rules" in the system
+      x-menu-order: 10
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team:
+    x-merge-override:
+      get: false
+      post: false
+    get:
+      description: 'Get all teams.
+
+        Can be used to search for teams using the `filter[keyword]` and `filter[me]` query parameters.'
+      operationId: ListTeams
+      parameters:
+      - $ref: '#/components/parameters/PageNumber'
+      - $ref: '#/components/parameters/PageSize'
+      - description: Specifies the order of the returned teams
+        in: query
+        name: sort
+        required: false
+        schema:
+          $ref: '#/components/schemas/ListTeamsSort'
+        example: example_value
+      - description: 'Included related resources optionally requested. Allowed enum values: `team_links, user_team_permissions`'
+        in: query
+        name: include
+        required: false
+        schema:
+          items:
+            $ref: '#/components/schemas/ListTeamsInclude'
+          type: array
+      - description: Search query. Can be team name, team handle, or email of team member
+        in: query
+        name: filter[keyword]
+        required: false
+        schema:
+          type: string
+        example: example_value
+      - description: When true, only returns teams the current user belongs to
+        in: query
+        name: filter[me]
+        required: false
+        schema:
+          type: boolean
+        example: true
+      - description: List of fields that need to be fetched.
+        explode: false
+        in: query
+        name: fields[team]
+        required: false
+        schema:
+          items:
+            $ref: '#/components/schemas/TeamsField'
+          type: array
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get All Teams
+      tags:
+      - Teams
+      x-menu-order: 1
+      x-pagination:
+        limitParam: page[size]
+        pageParam: page[number]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a new team.
+
+        User IDs passed through the `users` relationship field are added to the team.'
+      operationId: CreateTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+          description: CREATED
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+        - teams_manage
+      summary: Datadog Create a Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-given:
+        dd_team:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"handle\": \"test-handle-{{ unique_hash }}\",\n      \"name\": \"test-name-{{ unique_hash }}\"\n    },\n    \"type\": \"team\"\n  }\n}"
+          step: there is a valid "dd_team" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: AND
+        permissions:
+        - teams_read
+        - teams_manage
+      x-undo:
+        operationId: DeleteTeam
+        parameters:
+        - name: team_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}:
+    x-merge-override:
+      delete: true
+      get: false
+      patch: false
+    delete:
+      description: Remove a team using the team's `id`.
+      operationId: DeleteTeam
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+        - teams_manage
+      summary: Datadog Remove a Team
+      tags:
+      - Teams
+      x-menu-order: 5
+      x-permission:
+        operator: AND
+        permissions:
+        - teams_read
+        - teams_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a single team using the team's `id`.
+      operationId: GetTeam
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get a Team
+      tags:
+      - Teams
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a team using the team''s `id`.
+
+        If the `team_links` relationship is present, the associated links are updated to be in the order they appear in the array, and any existing team links not present are removed.'
+      operationId: UpdateTeam
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Update a Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/links:
+    get:
+      description: Get all links for a given team.
+      operationId: GetTeamLinks
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamLinksResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get Links for a Team
+      tags:
+      - Teams
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Add a new link to a team.
+      operationId: CreateTeamLink
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamLinkCreateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamLinkResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Create a Team Link
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-given:
+        team_link:
+          parameters:
+          - name: team_id
+            source: dd_team.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"label\": \"{{unique}}\",\n      \"url\": \"https://example.com\",\n      \"position\": 0\n    },\n    \"type\": \"team_links\"\n  }\n}"
+          step: there is a valid "team_link" in the system
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        operationId: DeleteTeamLink
+        parameters:
+        - name: team_id
+          source: data.attributes.team_id
+        - name: link_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/links/{link_id}:
+    delete:
+      description: Remove a link from a team.
+      operationId: DeleteTeamLink
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: link_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Remove a Team Link
+      tags:
+      - Teams
+      x-menu-order: 14
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a single link for a team.
+      operationId: GetTeamLink
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: link_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamLinkResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get a Team Link
+      tags:
+      - Teams
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update a team link.
+      operationId: UpdateTeamLink
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: link_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamLinkCreateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamLinkResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Update a Team Link
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-menu-order: 13
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/memberships:
+    get:
+      description: Get a paginated list of members for a team
+      operationId: GetTeamMemberships
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - description: Specifies the order of returned team memberships
+        in: query
+        name: sort
+        required: false
+        schema:
+          $ref: '#/components/schemas/GetTeamMembershipsSort'
+        example: example_value
+      - description: Search query, can be user email or name
+        in: query
+        name: filter[keyword]
+        required: false
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamsResponse'
+          description: Represents a user's association to a team
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get Team Memberships
+      tags:
+      - Teams
+      x-menu-order: 6
+      x-pagination:
+        limitParam: page[size]
+        pageParam: page[number]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Add a user to a team.
+      operationId: CreateTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTeamRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamResponse'
+          description: Represents a user's association to a team
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Add a User to a Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-given:
+        team_membership:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"role\": \"admin\"\n    },\n    \"relationships\": {\n      \"user\": {\n        \"data\": {\n          \"id\": \"{{user.data.id}}\",\n          \"type\": \"users\"\n        }\n      }\n    },\n    \"type\": \"team_memberships\"\n  }\n}"
+          step: there is a valid "team_membership" in the system
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        operationId: DeleteTeamMembership
+        parameters:
+        - name: team_id
+          template: '{{team.data.id}}'
+        - name: user_id
+          source: data.relationships.user.data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/memberships/{user_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: Remove a user from a team.
+      operationId: DeleteTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Remove a User from a Team
+      tags:
+      - Teams
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update a user's membership attributes on a team.
+      operationId: UpdateTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTeamUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamResponse'
+          description: Represents a user's association to a team
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Update a User's Membership Attributes on a Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/permission-settings:
+    get:
+      description: Get all permission settings for a given team.
+      operationId: GetTeamPermissionSettings
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamPermissionSettingsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get Permission Settings for a Team
+      tags:
+      - Teams
+      x-menu-order: 17
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/permission-settings/{action}:
+    put:
+      description: Update a team permission setting for a given team.
+      operationId: UpdateTeamPermissionSetting
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: action
+        required: true
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamPermissionSettingUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamPermissionSettingResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Update Permission Setting for Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-menu-order: 18
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/teams:
+    get:
+      deprecated: true
+      description: Get all incident teams for the requesting user's organization. If the `include[users]` query parameter is provided, the included attribute will contain the users related to these incident teams.
+      operationId: ListIncidentTeams
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIncludeQueryParameter'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageOffset'
+      - $ref: '#/components/parameters/IncidentTeamSearchQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get a List of All Incident Teams
+      tags:
+      - Teams
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      deprecated: true
+      description: Creates a new incident team.
+      operationId: CreateIncidentTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTeamCreateRequest'
+        description: Incident Team Payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Create a New Incident Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-given:
+        team:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n     },\n     \"type\": \"teams\"\n  }\n}"
+          step: there is a valid "team" in the system
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        operationId: DeleteIncidentTeam
+        parameters:
+        - name: team_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/teams/{team_id}:
+    delete:
+      deprecated: true
+      description: Deletes an existing incident team.
+      operationId: DeleteIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Delete an Existing Incident Team
+      tags:
+      - Teams
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      deprecated: true
+      description: 'Get details of an incident team. If the `include[users]` query parameter is provided,
+
+        the included attribute will contain the users related to these incident teams.'
+      operationId: GetIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      - $ref: '#/components/parameters/IncidentTeamIncludeQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Details of an Incident Team
+      tags:
+      - Teams
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      deprecated: true
+      description: Updates an existing incident team. Only provide the attributes which should be updated as this request is a partial update.
+      operationId: UpdateIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTeamUpdateRequest'
+        description: Incident Team Payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Update an Existing Incident Team
+      tags:
+      - Teams
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    UserTeamUpdate:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - type
+      type: object
+    SendTeamsMessageActionType:
+      default: send_teams_message
+      description: Indicates that the action is a send Microsoft Teams message action.
+      enum:
+      - send_teams_message
+      example: send_teams_message
+      type: string
+      x-enum-varnames:
+      - SEND_TEAMS_MESSAGE
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserTeamRelationships:
+      description: Relationship between membership and a user
+      properties:
+        team:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeam'
+        user:
+          $ref: '#/components/schemas/RelationshipToUserTeamUser'
+      type: object
+    RoutingRule:
+      description: Represents a routing rule, including its attributes, relationships, and unique identifier.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoutingRuleAttributes'
+        id:
+          description: Specifies the unique identifier of this routing rule.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoutingRuleRelationships'
+        type:
+          $ref: '#/components/schemas/RoutingRuleType'
+      required:
+      - type
+      type: object
+    TeamOnCallRespondersDataRelationships:
+      description: Relationship objects linked to a team's on-call responder configuration, including escalations and responders.
+      properties:
+        escalations:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalations'
+        responders:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsResponders'
+      type: object
+    TeamLinkAttributes:
+      description: Team link attributes
+      properties:
+        label:
+          description: The link's label
+          example: Link label
+          maxLength: 256
+          type: string
+        position:
+          description: The link's position, used to sort links for the team
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+        team_id:
+          description: ID of the team the link is associated with
+          readOnly: true
+          type: string
+          example: abc-123-def
+        url:
+          description: The URL for the link
+          example: https://example.com
+          type: string
+      required:
+      - label
+      - url
+      type: object
+    RelationshipToUserTeamPermission:
+      description: Relationship between a user team permission and a team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    TeamLinkCreateRequest:
+      description: Team link create request
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamLinkCreate'
+      required:
+      - data
+      type: object
+    TeamLink:
+      description: Team link
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamLinkAttributes'
+        id:
+          description: The team link's identifier
+          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamLinkType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentTeamUpdateAttributes:
+      description: The incident team's attributes for an update request.
+      properties:
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      required:
+      - name
+      type: object
+    RelationshipToTeamLinks:
+      description: Relationship between a team and a team link
+      properties:
+        data:
+          description: Related team links
+          items:
+            $ref: '#/components/schemas/RelationshipToTeamLinkData'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    TeamLinksResponse:
+      description: Team links response
+      properties:
+        data:
+          description: Team links response data
+          items:
+            $ref: '#/components/schemas/TeamLink'
+          type: array
+      type: object
+    TeamPermissionSettingSerializerAction:
+      description: The identifier for the action
+      enum:
+      - manage_membership
+      - edit
+      readOnly: true
+      type: string
+      x-enum-varnames:
+      - MANAGE_MEMBERSHIP
+      - EDIT
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamOnCallRespondersDataRelationshipsRespondersDataItems:
+      description: Represents a user responder associated with the on-call team.
+      properties:
+        id:
+          description: Unique identifier of the responder.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsRespondersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    TeamsResponseMeta:
+      description: Teams response metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/TeamsResponseMetaPagination'
+      type: object
+    TeamRoutingRulesData:
+      description: Represents the top-level data object for team routing rules, containing the ID, relationships, and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of this team routing rules record.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationships'
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesDataType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    UserTeamPermissionType:
+      default: user_team_permissions
+      description: User team permission type
+      enum:
+      - user_team_permissions
+      example: user_team_permissions
+      type: string
+      x-enum-varnames:
+      - USER_TEAM_PERMISSIONS
+    UserTeamRole:
+      description: The user's role within the team
+      enum:
+      - admin
+      nullable: true
+      type: string
+      x-enum-varnames:
+      - ADMIN
+    EscalationRelationships:
+      description: Contains the relationships of an escalation object, including its responders.
+      properties:
+        responders:
+          $ref: '#/components/schemas/EscalationRelationshipsResponders'
+      type: object
+    TeamCreate:
+      description: Team create
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/TeamCreateRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - type
+      type: object
+    TeamOnCallRespondersDataRelationshipsResponders:
+      description: Defines the list of users assigned as on-call responders for the team.
+      properties:
+        data:
+          description: Array of user references associated as responders.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsRespondersDataItems'
+          type: array
+      type: object
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    TeamLinkResponse:
+      description: Team link response
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamLink'
+      type: object
+    IncidentTeamCreateRequest:
+      description: Create request with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamCreateData'
+      required:
+      - data
+      type: object
+    IncidentTeamResponseAttributes:
+      description: The incident team's attributes from a response.
+      properties:
+        created:
+          description: Timestamp of when the incident team was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified:
+          description: Timestamp of when the incident team was modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      type: object
+    TeamRelationships:
+      description: Resources related to a team
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+        user_team_permissions:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
+      type: object
+    RoutingRuleAttributes:
+      description: Defines the configurable attributes of a routing rule, such as actions, query, time restriction, and urgency.
+      properties:
+        actions:
+          description: Specifies the list of actions to perform when the routing rule matches.
+          items:
+            $ref: '#/components/schemas/RoutingRuleAction'
+          type: array
+        query:
+          description: Defines the query or condition that triggers this routing rule.
+          type: string
+          example: avg:system.cpu.user{*}
+        time_restriction:
+          $ref: '#/components/schemas/TimeRestrictions'
+          nullable: true
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamUpdateRequest:
+      description: Team update request
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamUpdate'
+      required:
+      - data
+      type: object
+    TeamRoutingRules:
+      description: Represents a complete set of team routing rules, including data and optionally included related resources.
+      example:
+        data:
+          id: 27590dae-47be-4a7d-9abf-8f4e45124020
+          relationships:
+            rules:
+              data:
+              - id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+                type: team_routing_rules
+              - id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+                type: team_routing_rules
+          type: team_routing_rules
+        included:
+        - attributes:
+            actions: null
+            query: tags.service:test
+            time_restriction:
+              restrictions:
+              - end_day: monday
+                end_time: '17:00:00'
+                start_day: monday
+                start_time: 09:00:00
+              - end_day: tuesday
+                end_time: '17:00:00'
+                start_day: tuesday
+                start_time: 09:00:00
+              time_zone: ''
+            urgency: high
+          id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+          relationships:
+            policy:
+              data: null
+          type: team_routing_rules
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamRoutingRulesData'
+        included:
+          description: Provides related routing rules or other included resources.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesIncluded'
+          type: array
+      type: object
+    TimeRestriction:
+      description: Defines a single time restriction rule with start and end times and the applicable weekdays.
+      properties:
+        end_day:
+          $ref: '#/components/schemas/Weekday'
+        end_time:
+          description: Specifies the ending time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        start_day:
+          $ref: '#/components/schemas/Weekday'
+        start_time:
+          description: Specifies the starting time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+      type: object
+    IncidentResponseMetaPagination:
+      description: Pagination properties.
+      properties:
+        next_offset:
+          description: The index of the first element in the next page of results. Equal to page size added to the current offset.
+          example: 1000
+          format: int64
+          type: integer
+        offset:
+          description: The index of the first element in the results.
+          example: 10
+          format: int64
+          type: integer
+        size:
+          description: Maximum size of pages to return.
+          example: 1000
+          format: int64
+          type: integer
+      type: object
+    TeamRoutingRulesRequestDataAttributes:
+      description: Represents the attributes of a request to update or create team routing rules.
+      properties:
+        rules:
+          description: A list of routing rule items that define how incoming pages should be handled.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesRequestRule'
+          type: array
+      type: object
+    TeamPermissionSettingValues:
+      description: Possible values for action
+      items:
+        $ref: '#/components/schemas/TeamPermissionSettingValue'
+      readOnly: true
+      type: array
+    EscalationRelationshipsRespondersDataItemsType:
+      default: users
+      description: Represents the resource type for users assigned as responders in an escalation step.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    TeamLinkCreate:
+      description: Team link create
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamLinkAttributes'
+        type:
+          $ref: '#/components/schemas/TeamLinkType'
+      required:
+      - attributes
+      - type
+      type: object
+    TeamUpdateAttributes:
+      description: Team update attributes
+      properties:
+        avatar:
+          description: Unicode representation of the avatar for the team, limited to a single grapheme
+          example: 🥑
+          nullable: true
+          type: string
+        banner:
+          description: Banner selection for the team
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        description:
+          description: Free-form markdown description/content for the team's homepage
+          type: string
+          example: example_value
+        handle:
+          description: The team's identifier
+          example: example-team
+          maxLength: 195
+          type: string
+        hidden_modules:
+          description: Collection of hidden modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+        name:
+          description: The name of the team
+          example: Example Team
+          maxLength: 200
+          type: string
+        visible_modules:
+          description: Collection of visible modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+      required:
+      - handle
+      - name
+      type: object
+    TeamPermissionSettingUpdateAttributes:
+      description: Team permission setting update attributes
+      properties:
+        value:
+          $ref: '#/components/schemas/TeamPermissionSettingValue'
+      type: object
+    TeamUpdateRelationships:
+      description: Team update relationships
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+      type: object
+    RelationshipToUserTeamTeamData:
+      description: The team associated with the membership
+      properties:
+        id:
+          description: The ID of the team associated with the membership
+          example: d7e15d9d-d346-43da-81d8-3d9e71d9a5e9
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamTeamType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentTeamIncludedItems:
+      description: An object related to an incident team which is present in the included payload.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    SendSlackMessageActionType:
+      default: send_slack_message
+      description: Indicates that the action is a send Slack message action.
+      enum:
+      - send_slack_message
+      example: send_slack_message
+      type: string
+      x-enum-varnames:
+      - SEND_SLACK_MESSAGE
+    TeamCreateRequest:
+      description: Request to create a team
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamCreate'
+      required:
+      - data
+      type: object
+    TeamPermissionSetting:
+      description: Team permission setting
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamPermissionSettingAttributes'
+        id:
+          description: The team permission setting's identifier
+          example: TeamPermission-aeadc05e-98a8-11ec-ac2c-da7ad0900001-edit
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamPermissionSettingType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentResponseMeta:
+      description: The metadata object containing pagination metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/IncidentResponseMetaPagination'
+      readOnly: true
+      type: object
+    RoutingRuleRelationships:
+      description: Specifies relationships for a routing rule, linking to associated policy resources.
+      properties:
+        policy:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicy'
+      type: object
+    ListTeamsInclude:
+      description: Included related resources optionally requested.
+      enum:
+      - team_links
+      - user_team_permissions
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+      - USER_TEAM_PERMISSIONS
+    TeamCreateAttributes:
+      description: Team creation attributes
+      properties:
+        avatar:
+          description: Unicode representation of the avatar for the team, limited to a single grapheme
+          example: 🥑
+          nullable: true
+          type: string
+        banner:
+          description: Banner selection for the team
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        description:
+          description: Free-form markdown description/content for the team's homepage
+          type: string
+          example: example_value
+        handle:
+          description: The team's identifier
+          example: example-team
+          maxLength: 195
+          type: string
+        hidden_modules:
+          description: Collection of hidden modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+        name:
+          description: The name of the team
+          example: Example Team
+          maxLength: 200
+          type: string
+        visible_modules:
+          description: Collection of visible modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+      required:
+      - handle
+      - name
+      type: object
+    UserTeamType:
+      default: team_memberships
+      description: Team membership type
+      enum:
+      - team_memberships
+      example: team_memberships
+      type: string
+      x-enum-varnames:
+      - TEAM_MEMBERSHIPS
+    TimeRestrictions:
+      description: Holds time zone information and a list of time restrictions for a routing rule.
+      properties:
+        restrictions:
+          description: Defines the list of time-based restrictions.
+          items:
+            $ref: '#/components/schemas/TimeRestriction'
+          type: array
+        time_zone:
+          description: Specifies the time zone applicable to the restrictions.
+          example: ''
+          type: string
+      required:
+      - time_zone
+      - restrictions
+      type: object
+    TeamOnCallRespondersDataRelationshipsEscalationsDataItemsType:
+      default: escalation_policy_steps
+      description: Identifies the resource type for escalation policy steps linked to a team's on-call configuration.
+      enum:
+      - escalation_policy_steps
+      example: escalation_policy_steps
+      type: string
+      x-enum-varnames:
+      - ESCALATION_POLICY_STEPS
+    TeamsField:
+      description: Supported teams field.
+      enum:
+      - id
+      - name
+      - handle
+      - summary
+      - description
+      - avatar
+      - banner
+      - visible_modules
+      - hidden_modules
+      - created_at
+      - modified_at
+      - user_count
+      - link_count
+      - team_links
+      - user_team_permissions
+      type: string
+      x-enum-varnames:
+      - ID
+      - NAME
+      - HANDLE
+      - SUMMARY
+      - DESCRIPTION
+      - AVATAR
+      - BANNER
+      - VISIBLE_MODULES
+      - HIDDEN_MODULES
+      - CREATED_AT
+      - MODIFIED_AT
+      - USER_COUNT
+      - LINK_COUNT
+      - TEAM_LINKS
+      - USER_TEAM_PERMISSIONS
+    TeamType:
+      default: team
+      description: Team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    EscalationRelationshipsRespondersDataItems:
+      description: Represents a user assigned to an escalation step.
+      properties:
+        id:
+          description: Unique identifier of the user assigned to the escalation step.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/EscalationRelationshipsRespondersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    UserTeamRequest:
+      description: Team membership request
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeamCreate'
+      required:
+      - data
+      type: object
+    TeamRoutingRulesDataRelationshipsRulesDataItemsType:
+      default: team_routing_rules
+      description: Indicates that the resource is of type 'team_routing_rules'.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    IncidentTeamsResponse:
+      description: Response with a list of incident team payloads.
+      properties:
+        data:
+          description: An array of incident teams.
+          example:
+          - attributes:
+              name: team name
+            id: 00000000-7ea3-0000-0000-000000000000
+            type: teams
+          items:
+            $ref: '#/components/schemas/IncidentTeamResponseData'
+          type: array
+        included:
+          description: Included related resources which the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentTeamIncludedItems'
+          readOnly: true
+          type: array
+        meta:
+          $ref: '#/components/schemas/IncidentResponseMeta'
+      required:
+      - data
+      type: object
+    TeamOnCallResponders:
+      description: Root object representing a team's on-call responder configuration.
+      example:
+        data:
+          id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          relationships:
+            escalations:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: escalation_policy_steps
+            responders:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: users
+          type: team_oncall_responders
+        included:
+        - attributes:
+            email: test@test.com
+            name: Test User
+            status: active
+          id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          type: users
+        - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          relationships:
+            responders:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: users
+          type: escalation_policy_steps
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamOnCallRespondersData'
+        included:
+          description: The `TeamOnCallResponders` `included`.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersIncluded'
+          type: array
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    UserTeamAttributes:
+      description: Team membership attributes
+      properties:
+        provisioned_by:
+          description: 'The mechanism responsible for provisioning the team relationship.
+
+            Possible values: null for added by a user, "service_account" if added by a service account, and "saml_mapping" if provisioned via SAML mapping.'
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        provisioned_by_id:
+          description: UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.
+          nullable: true
+          readOnly: true
+          type: string
+          example: abc-123-def
+        role:
+          $ref: '#/components/schemas/UserTeamRole'
+      type: object
+    TeamPermissionSettingValue:
+      description: What type of user is allowed to perform the specified action
+      enum:
+      - admins
+      - members
+      - organization
+      - user_access_manage
+      - teams_manage
+      type: string
+      x-enum-varnames:
+      - ADMINS
+      - MEMBERS
+      - ORGANIZATION
+      - USER_ACCESS_MANAGE
+      - TEAMS_MANAGE
+    RoutingRuleAction:
+      description: Defines an action that is executed when a routing rule matches certain criteria.
+      oneOf:
+      - $ref: '#/components/schemas/SendSlackMessageAction'
+      - $ref: '#/components/schemas/SendTeamsMessageAction'
+    TeamOnCallRespondersDataRelationshipsEscalationsDataItems:
+      description: Represents a link to a specific escalation policy step associated with the on-call team.
+      properties:
+        id:
+          description: Unique identifier of the escalation step.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalationsDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    UserTeamPermission:
+      description: A user's permissions for a given team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamPermissionAttributes'
+        id:
+          description: The user team permission's identifier
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamsResponseLinks:
+      description: Teams response links.
+      properties:
+        first:
+          description: First link.
+          type: string
+          example: example_value
+        last:
+          description: Last link.
+          nullable: true
+          type: string
+          example: example_value
+        next:
+          description: Next link.
+          type: string
+          example: example_value
+        prev:
+          description: Previous link.
+          nullable: true
+          type: string
+          example: example_value
+        self:
+          description: Current link.
+          type: string
+          example: example_value
+      type: object
+    UserTeam:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        id:
+          description: The ID of a user's relationship with a team
+          example: TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835
+          type: string
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUserTeamPermissionData:
+      description: Related user team permission data
+      properties:
+        id:
+          description: The ID of the user team permission
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamUpdate:
+      description: Team update request
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamUpdateAttributes'
+        relationships:
+          $ref: '#/components/schemas/TeamUpdateRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - type
+      type: object
+    TeamPermissionSettingType:
+      default: team_permission_settings
+      description: Team permission setting type
+      enum:
+      - team_permission_settings
+      example: team_permission_settings
+      type: string
+      x-enum-varnames:
+      - TEAM_PERMISSION_SETTINGS
+    Weekday:
+      description: A day of the week.
+      enum:
+      - monday
+      - tuesday
+      - wednesday
+      - thursday
+      - friday
+      - saturday
+      - sunday
+      type: string
+      x-enum-varnames:
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      - SATURDAY
+      - SUNDAY
+    TeamRoutingRulesDataRelationshipsRulesDataItems:
+      description: Defines a relationship item to link a routing rule by its ID and type.
+      properties:
+        id:
+          description: Specifies the unique identifier for the related routing rule.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    TeamRoutingRulesRequestData:
+      description: Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataAttributes'
+        id:
+          description: Specifies the unique identifier for this set of team routing rules.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataType'
+      required:
+      - type
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    TeamCreateRelationships:
+      description: Relationships formed with the team on creation
+      properties:
+        users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+      type: object
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    TeamOnCallRespondersDataRelationshipsRespondersDataItemsType:
+      default: users
+      description: Identifies the resource type for individual user entities associated with on-call response.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    RelationshipToUserTeamTeam:
+      description: Relationship between team membership and team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeamData'
+      required:
+      - data
+      type: object
+    UserTeamResponse:
+      description: Team membership response
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeam'
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+      type: object
+    IncidentTeamUpdateRequest:
+      description: Update request with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamUpdateData'
+      required:
+      - data
+      type: object
+    RoutingRuleRelationshipsPolicyData:
+      description: Represents the policy data reference, containing the policy's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the policy.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyDataType'
+      required:
+      - type
+      - id
+      type: object
+    TeamResponse:
+      description: Response with a team
+      properties:
+        data:
+          $ref: '#/components/schemas/Team'
+      type: object
+    IncidentTeamResponse:
+      description: Response with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamResponseData'
+        included:
+          description: Included objects from relationships.
+          items:
+            $ref: '#/components/schemas/IncidentTeamIncludedItems'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    TeamPermissionSettingResponse:
+      description: Team permission setting response
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamPermissionSetting'
+      type: object
+    UserTeamPermissionAttributes:
+      description: User team permission attributes
+      properties:
+        permissions:
+          description: Object of team permission actions and boolean values that a logged in user can perform on this team.
+          readOnly: true
+          type: object
+      type: object
+    IncidentTeamUpdateData:
+      description: Incident Team data for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamUpdateAttributes'
+        id:
+          description: The incident team's ID.
+          example: 00000000-7ea3-0000-0001-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      required:
+      - type
+      type: object
+    TeamPermissionSettingUpdate:
+      description: Team permission setting update
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamPermissionSettingUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/TeamPermissionSettingType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesDataRelationships:
+      description: Specifies relationships for team routing rules, including rule references.
+      properties:
+        rules:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRules'
+      type: object
+    TeamOnCallRespondersData:
+      description: Defines the main on-call responder object for a team, including relationships and metadata.
+      properties:
+        id:
+          description: Unique identifier of the on-call responder configuration.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationships'
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataType'
+      required:
+      - type
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamRoutingRulesRequest:
+      description: Represents a request to create or update team routing rules, including the data payload.
+      example:
+        data:
+          attributes:
+            rules:
+            - actions: null
+              policy_id: ''
+              query: tags.service:test
+              time_restriction:
+                restrictions:
+                - end_day: monday
+                  end_time: '17:00:00'
+                  start_day: monday
+                  start_time: 09:00:00
+                - end_day: tuesday
+                  end_time: '17:00:00'
+                  start_day: tuesday
+                  start_time: 09:00:00
+                time_zone: ''
+              urgency: high
+            - actions:
+              - channel: channel
+                type: send_slack_message
+                workspace: workspace
+              policy_id: fad4eee1-13f5-40d8-886b-4e56d8d5d1c6
+              query: ''
+              time_restriction: null
+              urgency: low
+          id: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: team_routing_rules
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestData'
+      type: object
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    EscalationRelationshipsResponders:
+      description: Lists the users involved in a specific step of the escalation policy.
+      properties:
+        data:
+          description: Array of user references assigned as responders for this escalation step.
+          items:
+            $ref: '#/components/schemas/EscalationRelationshipsRespondersDataItems'
+          type: array
+      type: object
+    TeamsResponseMetaPagination:
+      description: Teams response metadata.
+      properties:
+        first_offset:
+          description: The first offset.
+          format: int64
+          type: integer
+          example: 42
+        last_offset:
+          description: The last offset.
+          format: int64
+          type: integer
+          example: 42
+        limit:
+          description: Pagination limit.
+          format: int64
+          type: integer
+          example: 42
+        next_offset:
+          description: The next offset.
+          format: int64
+          type: integer
+          example: 42
+        offset:
+          description: The offset.
+          format: int64
+          type: integer
+          example: 42
+        prev_offset:
+          description: The previous offset.
+          format: int64
+          type: integer
+          example: 42
+        total:
+          description: Total results.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          description: Offset type.
+          type: string
+          example: metric alert
+      type: object
+    Urgency:
+      description: Specifies the level of urgency for a routing rule (low, high, or dynamic).
+      enum:
+      - low
+      - high
+      - dynamic
+      example: low
+      type: string
+      x-enum-varnames:
+      - LOW
+      - HIGH
+      - DYNAMIC
+    TeamOnCallRespondersDataRelationshipsEscalations:
+      description: Defines the escalation policy steps linked to the team's on-call configuration.
+      properties:
+        data:
+          description: Array of escalation step references.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalationsDataItems'
+          type: array
+      type: object
+    TeamAttributes:
+      description: Team attributes
+      properties:
+        avatar:
+          description: Unicode representation of the avatar for the team, limited to a single grapheme
+          example: 🥑
+          nullable: true
+          type: string
+        banner:
+          description: Banner selection for the team
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        created_at:
+          description: Creation date of the team
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Free-form markdown description/content for the team's homepage
+          nullable: true
+          type: string
+          example: example_value
+        handle:
+          description: The team's identifier
+          example: example-team
+          maxLength: 195
+          type: string
+        hidden_modules:
+          description: Collection of hidden modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+        link_count:
+          description: The number of links belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        modified_at:
+          description: Modification date of the team
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: The name of the team
+          example: Example Team
+          maxLength: 200
+          type: string
+        summary:
+          description: A brief summary of the team, derived from the `description`
+          maxLength: 120
+          nullable: true
+          type: string
+          example: example_value
+        user_count:
+          description: The number of users belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        visible_modules:
+          description: Collection of visible modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+      required:
+      - handle
+      - name
+      type: object
+    UserTeamTeamType:
+      default: team
+      description: User team team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    IncidentTeamResponseData:
+      description: Incident Team data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamResponseAttributes'
+        id:
+          description: The incident team's ID.
+          example: 00000000-7ea3-0000-000a-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      type: object
+    RelationshipToTeamLinkData:
+      description: Relationship between a link and a team
+      properties:
+        id:
+          description: The team link's identifier
+          example: f9bb8444-af7f-11ec-ac2c-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamLinkType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamOnCallRespondersDataType:
+      default: team_oncall_responders
+      description: Represents the resource type for a group of users assigned to handle on-call duties within a team.
+      enum:
+      - team_oncall_responders
+      example: team_oncall_responders
+      type: string
+      x-enum-varnames:
+      - TEAM_ONCALL_RESPONDERS
+    SendTeamsMessageAction:
+      description: Sends a message to a Microsoft Teams channel.
+      properties:
+        channel:
+          description: The channel ID.
+          example: CHANNEL
+          type: string
+        team:
+          description: The team ID.
+          example: TEAM
+          type: string
+        tenant:
+          description: The tenant ID.
+          example: TENANT
+          type: string
+        type:
+          $ref: '#/components/schemas/SendTeamsMessageActionType'
+      required:
+      - type
+      - channel
+      - tenant
+      - team
+      type: object
+    TeamsResponse:
+      description: Response with multiple teams
+      properties:
+        data:
+          description: Teams response data
+          items:
+            $ref: '#/components/schemas/Team'
+          type: array
+        included:
+          description: Resources related to the team
+          items:
+            $ref: '#/components/schemas/TeamIncluded'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/TeamsResponseMeta'
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToUserTeamUser:
+      description: Relationship between team membership and user
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamUserData'
+      required:
+      - data
+      type: object
+    EscalationType:
+      default: escalation_policy_steps
+      description: Represents the resource type for individual steps in an escalation policy used during incident response.
+      enum:
+      - escalation_policy_steps
+      example: escalation_policy_steps
+      type: string
+      x-enum-varnames:
+      - ESCALATION_POLICY_STEPS
+    TeamRoutingRulesRequestDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    RoutingRuleRelationshipsPolicyDataType:
+      default: policies
+      description: Indicates that the resource is of type 'policies'.
+      enum:
+      - policies
+      example: policies
+      type: string
+      x-enum-varnames:
+      - POLICIES
+    IncidentTeamCreateData:
+      description: Incident Team data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      required:
+      - type
+      type: object
+    GetTeamMembershipsSort:
+      description: Specifies the order of returned team memberships
+      enum:
+      - manager_name
+      - -manager_name
+      - name
+      - -name
+      - handle
+      - -handle
+      - email
+      - -email
+      type: string
+      x-enum-varnames:
+      - MANAGER_NAME
+      - _MANAGER_NAME
+      - NAME
+      - _NAME
+      - HANDLE
+      - _HANDLE
+      - EMAIL
+      - _EMAIL
+    TeamLinkType:
+      default: team_links
+      description: Team link type
+      enum:
+      - team_links
+      example: team_links
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    TeamRoutingRulesIncluded:
+      description: Represents additional included resources for team routing rules, such as associated routing rules.
+      oneOf:
+      - $ref: '#/components/schemas/RoutingRule'
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserTeamUserType:
+      default: users
+      description: User team user type
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    TeamPermissionSettingAttributes:
+      description: Team permission setting attributes
+      properties:
+        action:
+          $ref: '#/components/schemas/TeamPermissionSettingSerializerAction'
+        editable:
+          description: Whether or not the permission setting is editable by the current user
+          readOnly: true
+          type: boolean
+          example: true
+        options:
+          $ref: '#/components/schemas/TeamPermissionSettingValues'
+        title:
+          description: The team permission name
+          readOnly: true
+          type: string
+          example: Example Monitor
+        value:
+          $ref: '#/components/schemas/TeamPermissionSettingValue'
+      type: object
+    ListTeamsSort:
+      description: Specifies the order of the returned teams
+      enum:
+      - name
+      - -name
+      - user_count
+      - -user_count
+      type: string
+      x-enum-varnames:
+      - NAME
+      - _NAME
+      - USER_COUNT
+      - _USER_COUNT
+    Team:
+      description: A team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamAttributes'
+        id:
+          description: The team's identifier
+          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
+          type: string
+        relationships:
+          $ref: '#/components/schemas/TeamRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamPermissionSettingsResponse:
+      description: Team permission settings response
+      properties:
+        data:
+          description: Team permission settings response data
+          items:
+            $ref: '#/components/schemas/TeamPermissionSetting'
+          type: array
+      type: object
+    TeamOnCallRespondersIncluded:
+      description: Represents an union of related resources included in the response, such as users and escalation steps.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Escalation'
+    IncidentTeamCreateAttributes:
+      description: The incident team's attributes for a create request.
+      properties:
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      required:
+      - name
+      type: object
+    TeamRelationshipsLinks:
+      description: Links attributes.
+      properties:
+        related:
+          description: Related link.
+          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
+          type: string
+      type: object
+    RoutingRuleRelationshipsPolicy:
+      description: Defines the relationship that links a routing rule to a policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyData'
+          nullable: true
+      type: object
+    TeamPermissionSettingUpdateRequest:
+      description: Team permission setting update request
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamPermissionSettingUpdate'
+      required:
+      - data
+      type: object
+    TeamIncluded:
+      description: Included resources related to the team
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/TeamLink'
+      - $ref: '#/components/schemas/UserTeamPermission'
+    Escalation:
+      description: Represents an escalation policy step.
+      properties:
+        id:
+          description: Unique identifier of the escalation step.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/EscalationRelationships'
+        type:
+          $ref: '#/components/schemas/EscalationType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesRequestRule:
+      description: Defines an individual routing rule item that contains the rule data for the request.
+      properties:
+        actions:
+          description: Specifies the list of actions to perform when the routing rule is matched.
+          items:
+            $ref: '#/components/schemas/RoutingRuleAction'
+          type: array
+        policy_id:
+          description: Identifies the policy to be applied when this routing rule matches.
+          type: string
+          example: abc-123-def
+        query:
+          description: Defines the query or condition that triggers this routing rule.
+          type: string
+          example: avg:system.cpu.user{*}
+        time_restriction:
+          $ref: '#/components/schemas/TimeRestrictions'
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+      type: object
+    UserTeamIncluded:
+      description: Included resources related to the team membership
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Team'
+    RelationshipToUserTeamUserData:
+      description: A user's relationship with a team
+      properties:
+        id:
+          description: The ID of the user associated with the team
+          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamUserType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RoutingRuleType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    UserTeamCreate:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - type
+      type: object
+    UserTeamsResponse:
+      description: Team memberships response
+      properties:
+        data:
+          description: Team memberships response data
+          items:
+            $ref: '#/components/schemas/UserTeam'
+          type: array
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/TeamsResponseMeta'
+      type: object
+    TeamRoutingRulesDataRelationshipsRules:
+      description: Holds references to a set of routing rules in a relationship.
+      properties:
+        data:
+          description: An array of references to the routing rules associated with this team.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItems'
+          type: array
+      type: object
+    UserTeamUpdateRequest:
+      description: Team membership request
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeamUpdate'
+      required:
+      - data
+      type: object
+    IncidentRelatedObject:
+      description: Object related to an incident.
+      enum:
+      - users
+      - attachments
+      type: string
+      x-enum-varnames:
+      - USERS
+      - ATTACHMENTS
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    IncidentTeamType:
+      default: teams
+      description: Incident Team resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
+    IncidentTeamRelationships:
+      description: The incident team's relationships.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+      readOnly: true
+      type: object
+    SendSlackMessageAction:
+      description: Sends a message to a Slack channel.
+      properties:
+        channel:
+          description: The channel ID.
+          example: CHANNEL
+          type: string
+        type:
+          $ref: '#/components/schemas/SendSlackMessageActionType'
+        workspace:
+          description: The workspace ID.
+          example: WORKSPACE
+          type: string
+      required:
+      - type
+      - channel
+      - workspace
+      type: object
+  parameters:
+    IncidentTeamIncludeQueryParameter:
+      description: Specifies which types of related objects should be included in the response.
+      in: query
+      name: include
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncidentRelatedObject'
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    PageOffset:
+      description: Specific offset to use as the beginning of the returned page.
+      in: query
+      name: page[offset]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    IncidentTeamSearchQueryParameter:
+      description: A search query that filters teams by name.
+      in: query
+      name: filter
+      required: false
+      schema:
+        example: ExampleTeamName
+        type: string
+    IncidentTeamIDPathParameter:
+      description: The ID of the incident team.
+      in: path
+      name: team_id
+      required: true
+      schema:
+        type: string
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

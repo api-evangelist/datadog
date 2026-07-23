@@ -1,0 +1,470 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Serverless API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Serverless
+paths:
+  /api/v2/csm/onboarding/coverage_analysis/serverless:
+    get:
+      description: 'Get the CSM Coverage Analysis of your Serverless Resources.
+
+        This is calculated based on the number of agents running on your Serverless
+
+        Resources with CSM feature(s) enabled.'
+      operationId: GetCSMServerlessCoverageAnalysis
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsmServerlessCoverageAnalysisResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get the Csm Serverless Coverage Analysis
+      tags:
+      - Serverless
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/csm/onboarding/serverless/agents:
+    get:
+      description: Get the list of all CSM Serverless Agents running on your hosts and containers.
+      operationId: ListAllCSMServerlessAgents
+      parameters:
+      - description: The page index for pagination (zero-based).
+        in: query
+        name: page
+        required: false
+        schema:
+          example: 2
+          format: int32
+          maximum: 1000000
+          minimum: 0
+          type: integer
+        example: 2
+      - description: The number of items to include in a single page.
+        in: query
+        name: size
+        required: false
+        schema:
+          example: 12
+          format: int32
+          maximum: 100
+          minimum: 0
+          type: integer
+        example: 12
+      - description: A search query string to filter results (for example, `hostname:COMP-T2H4J27423`).
+        in: query
+        name: query
+        required: false
+        schema:
+          example: hostname:COMP-T2H4J27423
+          type: string
+        example: hostname:COMP-T2H4J27423
+      - description: The sort direction for results. Use `asc` for ascending or `desc` for descending.
+        in: query
+        name: order_direction
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderDirection'
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsmAgentsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Csm Serverless Agents
+      tags:
+      - Serverless
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CsmServerlessCoverageAnalysisResponse:
+      description: CSM Serverless Resources Coverage Analysis response.
+      properties:
+        data:
+          $ref: '#/components/schemas/CsmServerlessCoverageAnalysisData'
+      type: object
+    CsmServerlessCoverageAnalysisData:
+      description: CSM Serverless Resources Coverage Analysis data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CsmServerlessCoverageAnalysisAttributes'
+        id:
+          description: The ID of your organization.
+          example: 66b3c6b5-5c9a-457e-b1c3-f247ca23afa3
+          type: string
+        type:
+          default: get_serverless_coverage_analysis_response_public_v0
+          description: The type of the resource. The value should always be `get_serverless_coverage_analysis_response_public_v0`.
+          example: get_serverless_coverage_analysis_response_public_v0
+          type: string
+      type: object
+    CSMAgentsType:
+      default: datadog_agent
+      description: The type of the resource. The value should always be `datadog_agent`.
+      enum:
+      - datadog_agent
+      example: datadog_agent
+      type: string
+      x-enum-varnames:
+      - DATADOG_AGENT
+    CsmAgentsResponse:
+      description: Response object that includes a list of CSM Agents.
+      properties:
+        data:
+          description: A list of Agents.
+          items:
+            $ref: '#/components/schemas/CsmAgentData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/CSMAgentsMetadata'
+      type: object
+    OrderDirection:
+      description: The sort direction for results.
+      enum:
+      - asc
+      - desc
+      example: asc
+      type: string
+      x-enum-varnames:
+      - ASC
+      - DESC
+    CsmServerlessCoverageAnalysisAttributes:
+      description: CSM Serverless Resources Coverage Analysis attributes.
+      properties:
+        cws_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        org_id:
+          description: The ID of your organization.
+          example: 123456
+          format: int64
+          type: integer
+        total_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+      type: object
+    CsmAgentsAttributes:
+      description: A CSM Agent returned by the API.
+      properties:
+        agent_version:
+          description: Version of the Datadog Agent.
+          type: string
+          example: example_value
+        aws_fargate:
+          description: AWS Fargate details.
+          type: string
+          example: example_value
+        cluster_name:
+          description: List of cluster names associated with the Agent.
+          items:
+            type: string
+          type: array
+        datadog_agent:
+          description: Unique identifier for the Datadog Agent.
+          type: string
+          example: example_value
+        ecs_fargate_task_arn:
+          description: ARN of the ECS Fargate task.
+          type: string
+          example: example_value
+        envs:
+          description: List of environments associated with the Agent.
+          items:
+            type: string
+          nullable: true
+          type: array
+        host_id:
+          description: ID of the host.
+          format: int64
+          type: integer
+          example: 42
+        hostname:
+          description: Name of the host.
+          type: string
+          example: Example Monitor
+        install_method_installer_version:
+          description: Version of the installer used for installing the Datadog Agent.
+          type: string
+          example: example_value
+        install_method_tool:
+          description: Tool used for installing the Datadog Agent.
+          type: string
+          example: example_value
+        is_csm_vm_containers_enabled:
+          description: Indicates if CSM VM Containers is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        is_csm_vm_hosts_enabled:
+          description: Indicates if CSM VM Hosts is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        is_cspm_enabled:
+          description: Indicates if CSPM is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        is_cws_enabled:
+          description: Indicates if CWS is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        is_cws_remote_configuration_enabled:
+          description: Indicates if CWS Remote Configuration is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        is_remote_configuration_enabled:
+          description: Indicates if Remote Configuration is enabled.
+          nullable: true
+          type: boolean
+          example: true
+        os:
+          description: Operating system of the host.
+          type: string
+          example: example_value
+      type: object
+    CsmCoverageAnalysis:
+      description: CSM Coverage Analysis.
+      properties:
+        configured_resources_count:
+          description: The number of fully configured resources.
+          example: 8
+          format: int64
+          type: integer
+        coverage:
+          description: The coverage percentage.
+          example: 0.8
+          format: double
+          type: number
+        partially_configured_resources_count:
+          description: The number of partially configured resources.
+          example: 0
+          format: int64
+          type: integer
+        total_resources_count:
+          description: The total number of resources.
+          example: 10
+          format: int64
+          type: integer
+      type: object
+    CsmAgentData:
+      description: Single Agent Data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CsmAgentsAttributes'
+        id:
+          description: The ID of the Agent.
+          example: fffffc5505f6a006fdf7cf5aae053653
+          type: string
+        type:
+          $ref: '#/components/schemas/CSMAgentsType'
+      type: object
+    CSMAgentsMetadata:
+      description: Metadata related to the paginated response.
+      properties:
+        page_index:
+          description: The index of the current page in the paginated results.
+          example: 0
+          format: int64
+          type: integer
+        page_size:
+          description: The number of items per page in the paginated results.
+          example: 10
+          format: int64
+          type: integer
+        total_filtered:
+          description: Total number of items that match the filter criteria.
+          example: 128697
+          format: int64
+          type: integer
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

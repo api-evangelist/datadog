@@ -1,0 +1,2173 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Add API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Add
+paths:
+  /api/v2/dashboard/lists/manual/{dashboard_list_id}/dashboards:
+    post:
+      description: Add dashboards to an existing dashboard list.
+      operationId: CreateDashboardListItems
+      parameters:
+      - description: ID of the dashboard list to add items to.
+        in: path
+        name: dashboard_list_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        example: 42
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardListAddItemsRequest'
+        description: Dashboards to add to the dashboard list.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardListAddItemsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Items to a Dashboard List
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        dashboard_list_dashboard:
+          parameters:
+          - name: dashboard_list_id
+            source: dashboard_list.id
+          - name: body
+            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ dashboard.id }}\",\n      \"type\": \"custom_timeboard\"\n    }\n  ]\n}"
+          step: the "dashboard_list" has the "dashboard"
+        dashboard_list_screenboard_dashboard:
+          parameters:
+          - name: dashboard_list_id
+            source: dashboard_list.id
+          - name: body
+            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ screenboard_dashboard.id }}\",\n      \"type\": \"custom_screenboard\"\n    }\n  ]\n}"
+          step: the "dashboard_list" has the "screenboard_dashboard"
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/cloudflare/accounts:
+    x-merge-override:
+      get: true
+    post:
+      description: Create a Cloudflare account.
+      operationId: CreateCloudflareAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudflareAccountCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudflareAccountResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Cloudflare Account
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        cloudflare_account:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"cloudflare-accounts\",\n    \"attributes\": {\n      \"api_key\": \"fakekey\",\n      \"name\": \"{{ unique_lower_alnum }}\",\n      \"email\": \"dev@datadog.com\",\n      \"zones\": [\"zone-id-1\", \"zone-id-2\"],\n      \"resources\": [\"web\", \"dns\"]\n    }\n  }\n}"
+          step: there is a valid "cloudflare_account" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteCloudflareAccount
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/confluent-cloud/accounts:
+    post:
+      description: Create a Confluent account.
+      operationId: CreateConfluentAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfluentAccountCreateRequest'
+        description: Confluent payload
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfluentAccountResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Confluent Account
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        confluent_account:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"confluent-cloud-accounts\",\n    \"attributes\": {\n      \"api_key\": \"{{ unique_alnum }}\",\n      \"api_secret\": \"test-api-secret\",\n      \"tags\": [\n        \"tag1\",\n        \"tag2:val2\"\n      ],\n      \"resources\": [\n        {\n          \"id\": \"test-resource-id\",\n          \"resource_type\": \"kafka\",\n          \"tags\": [\n            \"tag1\",\n            \"tag2:val2\"\n          ]\n        }\n      ]\n    }\n  }\n}"
+          step: there is a valid "confluent_account" in the system
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteConfluentAccount
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/confluent-cloud/accounts/{account_id}/resources:
+    post:
+      description: Create a Confluent resource for the account associated with the provided ID.
+      operationId: CreateConfluentResource
+      parameters:
+      - $ref: '#/components/parameters/ConfluentAccountID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfluentResourceRequest'
+        description: Confluent payload
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfluentResourceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Resource to Confluent Account
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/fastly/accounts:
+    x-merge-override:
+      get: true
+    post:
+      description: Create a Fastly account.
+      operationId: CreateFastlyAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FastlyAccountCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FastlyAccountResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Fastly Account
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        fastly_account:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"fastly-accounts\",\n    \"attributes\": {\n      \"api_key\": \"{{ unique_alnum }}\",\n      \"name\": \"{{ unique }}\",\n      \"services\": []\n    }\n  }\n}"
+          step: there is a valid "fastly_account" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteFastlyAccount
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/fastly/accounts/{account_id}/services:
+    x-merge-override:
+      get: true
+      post: true
+    post:
+      description: Create a Fastly service for an account.
+      operationId: CreateFastlyService
+      parameters:
+      - $ref: '#/components/parameters/FastlyAccountID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FastlyServiceRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FastlyServiceResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Fastly Service
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteFastlyService
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/okta/accounts:
+    x-merge-override:
+      get: true
+    post:
+      description: Create an Okta account.
+      operationId: CreateOktaAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OktaAccountRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OktaAccountResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Okta Account
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        okta_account:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"okta-accounts\",\n    \"attributes\": {\n      \"auth_method\": \"oauth\",\n      \"name\": \"{{ unique_lower_alnum }}\",\n      \"domain\": \"https://dev-test.okta.com/\",\n      \"client_id\": \"fakeclientid\",\n      \"client_secret\": \"fakeclientsecret\"\n    }\n  }\n}"
+          step: there is a valid "okta_account" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteOktaAccount
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/users:
+    post:
+      description: Adds a user to a role.
+      operationId: AddUserToRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Add a User to a Role
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        permission_role:
+          parameters:
+          - name: role_id
+            source: role.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ user.data.id }}\",\n    \"type\": \"{{ user.data.type }}\"\n  }\n}"
+          step: the "user" has the "role"
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/memberships:
+    post:
+      description: Add a user to a team.
+      operationId: CreateTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTeamRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamResponse'
+          description: Represents a user's association to a team
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Add a User to a Team
+      tags:
+      - Add
+      x-codegen-request-body-name: body
+      x-given:
+        team_membership:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"role\": \"admin\"\n    },\n    \"relationships\": {\n      \"user\": {\n        \"data\": {\n          \"id\": \"{{user.data.id}}\",\n          \"type\": \"users\"\n        }\n      }\n    },\n    \"type\": \"team_memberships\"\n  }\n}"
+          step: there is a valid "team_membership" in the system
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        operationId: DeleteTeamMembership
+        parameters:
+        - name: team_id
+          template: '{{team.data.id}}'
+        - name: user_id
+          source: data.relationships.user.data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    FastlyServiceAttributes:
+      description: Attributes object for Fastly service requests.
+      properties:
+        tags:
+          description: A list of tags for the Fastly service.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserTeamRelationships:
+      description: Relationship between membership and a user
+      properties:
+        team:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeam'
+        user:
+          $ref: '#/components/schemas/RelationshipToUserTeamUser'
+      type: object
+    FastlyServiceResponse:
+      description: The expected response schema when getting a Fastly service.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyServiceData'
+      type: object
+    RelationshipToUserTeamPermission:
+      description: Relationship between a user team permission and a team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    FastlyAccountResponse:
+      description: The expected response schema when getting a Fastly account.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyAccountResponseData'
+      type: object
+    OrganizationAttributes:
+      description: Attributes of the organization.
+      properties:
+        created_at:
+          description: Creation time of the organization.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the organization.
+          type: string
+          example: example_value
+        disabled:
+          description: Whether or not the organization is disabled.
+          type: boolean
+          example: true
+        modified_at:
+          description: Time of last organization modification.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the organization.
+          type: string
+          example: Example Monitor
+        public_id:
+          description: Public ID of the organization.
+          type: string
+          example: abc-123-def
+        sharing:
+          description: Sharing type of the organization.
+          type: string
+          example: example_value
+        url:
+          description: URL of the site that this organization exists at.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    PermissionAttributes:
+      description: Attributes of a permission.
+      properties:
+        created:
+          description: Creation time of the permission.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the permission.
+          type: string
+          example: example_value
+        display_name:
+          description: Displayed name for the permission.
+          type: string
+          example: Example Monitor
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
+      type: object
+    RelationshipToTeamLinks:
+      description: Relationship between a team and a team link
+      properties:
+        data:
+          description: Related team links
+          items:
+            $ref: '#/components/schemas/RelationshipToTeamLinkData'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    UserResponseIncludedItem:
+      description: An object related to a user.
+      oneOf:
+      - $ref: '#/components/schemas/Organization'
+      - $ref: '#/components/schemas/Permission'
+      - $ref: '#/components/schemas/Role'
+    FastlyAccountCreateRequest:
+      description: Payload schema when adding a Fastly account.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyAccountCreateRequestData'
+      required:
+      - data
+      type: object
+    FastlyServiceType:
+      default: fastly-services
+      description: The JSON:API type for this API. Should always be `fastly-services`.
+      enum:
+      - fastly-services
+      example: fastly-services
+      type: string
+      x-enum-varnames:
+      - FASTLY_SERVICES
+    DashboardListAddItemsRequest:
+      description: Request containing a list of dashboards to add.
+      properties:
+        dashboards:
+          description: List of dashboards to add the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemRequest'
+          type: array
+      type: object
+    RoleAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: Number of users with that role.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      type: object
+    OktaAccountType:
+      default: okta-accounts
+      description: Account type for an Okta account.
+      enum:
+      - okta-accounts
+      example: okta-accounts
+      type: string
+      x-enum-varnames:
+      - OKTA_ACCOUNTS
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    UserTeamPermissionType:
+      default: user_team_permissions
+      description: User team permission type
+      enum:
+      - user_team_permissions
+      example: user_team_permissions
+      type: string
+      x-enum-varnames:
+      - USER_TEAM_PERMISSIONS
+    UserTeamRole:
+      description: The user's role within the team
+      enum:
+      - admin
+      nullable: true
+      type: string
+      x-enum-varnames:
+      - ADMIN
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamRelationships:
+      description: Resources related to a team
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+        user_team_permissions:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    FastlyService:
+      description: The schema representation of a Fastly service.
+      properties:
+        id:
+          description: The ID of the Fastly service
+          example: 6abc7de6893AbcDe9fghIj
+          type: string
+        tags:
+          description: A list of tags for the Fastly service.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - id
+      type: object
+    ConfluentAccountCreateRequestData:
+      description: The data body for adding a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    ConfluentResourceType:
+      default: confluent-cloud-resources
+      description: The JSON:API type for this request.
+      enum:
+      - confluent-cloud-resources
+      example: confluent-cloud-resources
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_RESOURCES
+    DashboardListItemRequest:
+      description: A dashboard within a list.
+      properties:
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
+          type: string
+        type:
+          $ref: '#/components/schemas/DashboardType'
+      required:
+      - type
+      - id
+      type: object
+    ConfluentAccountResponseData:
+      description: An API key and API secret pair that represents a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountResponseAttributes'
+        id:
+          description: A randomly generated ID associated with a Confluent account.
+          example: account_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UsersResponse:
+      description: Response containing information about multiple users.
+      properties:
+        data:
+          description: Array of returned users.
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+        included:
+          description: Array of objects related to the users.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ResponseMetaAttributes'
+      readOnly: true
+      type: object
+    ConfluentResourceRequestData:
+      description: JSON:API request for updating a Confluent resource.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentResourceRequestAttributes'
+        id:
+          description: The ID associated with a Confluent resource.
+          example: resource-id-123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUserTeamTeamData:
+      description: The team associated with the membership
+      properties:
+        id:
+          description: The ID of the team associated with the membership
+          example: d7e15d9d-d346-43da-81d8-3d9e71d9a5e9
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamTeamType'
+      required:
+      - id
+      - type
+      type: object
+    ConfluentAccountCreateRequest:
+      description: Payload schema when adding a Confluent account.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentAccountCreateRequestData'
+      required:
+      - data
+      type: object
+    ConfluentAccountResourceAttributes:
+      description: Attributes object for updating a Confluent resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        id:
+          description: The ID associated with a Confluent resource.
+          example: resource-id-123
+          type: string
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+      x-merge-override:
+        required: false
+    OktaAccount:
+      description: Schema for an Okta account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OktaAccountAttributes'
+        id:
+          description: The ID of the Okta account, a UUID hash of the account name.
+          example: f749daaf-682e-4208-a38d-c9b43162c609
+          type: string
+        type:
+          $ref: '#/components/schemas/OktaAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    UserTeamType:
+      default: team_memberships
+      description: Team membership type
+      enum:
+      - team_memberships
+      example: team_memberships
+      type: string
+      x-enum-varnames:
+      - TEAM_MEMBERSHIPS
+    FastlyAccountCreateRequestAttributes:
+      description: Attributes object for creating a Fastly account.
+      properties:
+        api_key:
+          description: The API key for the Fastly account.
+          example: ABCDEFG123
+          type: string
+        name:
+          description: The name of the Fastly account.
+          example: test-name
+          type: string
+        services:
+          description: A list of services belonging to the parent account.
+          items:
+            $ref: '#/components/schemas/FastlyService'
+          type: array
+      required:
+      - api_key
+      - name
+      type: object
+    TeamType:
+      default: team
+      description: Team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    UserTeamRequest:
+      description: Team membership request
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeamCreate'
+      required:
+      - data
+      type: object
+    CloudflareAccountCreateRequestData:
+      description: Data object for creating a Cloudflare account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudflareAccountCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/CloudflareAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    CloudflareAccountResponseData:
+      description: Data object of a Cloudflare account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudflareAccountResponseAttributes'
+        id:
+          description: The ID of the Cloudflare account, a hash of the account name.
+          example: c1a8e059bfd1e911cf10b626340c9a54
+          type: string
+        type:
+          $ref: '#/components/schemas/CloudflareAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    DashboardListItemResponse:
+      description: A dashboard within a list.
+      properties:
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
+          readOnly: true
+          type: string
+        type:
+          $ref: '#/components/schemas/DashboardType'
+      required:
+      - type
+      - id
+      type: object
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    ConfluentAccountCreateRequestAttributes:
+      description: Attributes associated with the account creation request.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        api_secret:
+          description: The API secret associated with your Confluent account.
+          example: test-api-secret-123
+          type: string
+        resources:
+          description: A list of Confluent resources associated with the Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentAccountResourceAttributes'
+          type: array
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      - api_secret
+      type: object
+    UserTeamAttributes:
+      description: Team membership attributes
+      properties:
+        provisioned_by:
+          description: 'The mechanism responsible for provisioning the team relationship.
+
+            Possible values: null for added by a user, "service_account" if added by a service account, and "saml_mapping" if provisioned via SAML mapping.'
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        provisioned_by_id:
+          description: UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.
+          nullable: true
+          readOnly: true
+          type: string
+          example: abc-123-def
+        role:
+          $ref: '#/components/schemas/UserTeamRole'
+      type: object
+    CloudflareAccountCreateRequest:
+      description: Payload schema when adding a Cloudflare account.
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudflareAccountCreateRequestData'
+      required:
+      - data
+      type: object
+    UserTeam:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        id:
+          description: The ID of a user's relationship with a team
+          example: TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835
+          type: string
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    OktaAccountRequest:
+      description: Request object for an Okta account.
+      properties:
+        data:
+          $ref: '#/components/schemas/OktaAccount'
+      required:
+      - data
+      type: object
+    RelationshipToUserTeamPermissionData:
+      description: Related user team permission data
+      properties:
+        id:
+          description: The ID of the user team permission
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    CloudflareAccountCreateRequestAttributes:
+      description: Attributes object for creating a Cloudflare account.
+      properties:
+        api_key:
+          description: The API key (or token) for the Cloudflare account.
+          example: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+          type: string
+        email:
+          description: The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.
+          example: test-email@example.com
+          type: string
+        name:
+          description: The name of the Cloudflare account.
+          example: test-name
+          type: string
+        resources:
+          description: An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.
+          example:
+          - web
+          - dns
+          - lb
+          - worker
+          items:
+            type: string
+          type: array
+        zones:
+          description: An allowlist of zones to restrict pulling metrics for.
+          example:
+          - zone_id_1
+          - zone_id_2
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      - name
+      type: object
+    CloudflareAccountResponse:
+      description: The expected response schema when getting a Cloudflare account.
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudflareAccountResponseData'
+      type: object
+    DashboardType:
+      description: The type of the dashboard.
+      enum:
+      - custom_timeboard
+      - custom_screenboard
+      - integration_screenboard
+      - integration_timeboard
+      - host_timeboard
+      example: host_timeboard
+      type: string
+      x-enum-varnames:
+      - CUSTOM_TIMEBOARD
+      - CUSTOM_SCREENBOARD
+      - INTEGRATION_SCREENBOARD
+      - INTEGRATION_TIMEBOARD
+      - HOST_TIMEBOARD
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ConfluentResourceResponseAttributes:
+      description: Model representation of a Confluent Cloud resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+      x-merge-override:
+        required: false
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    CloudflareAccountResponseAttributes:
+      description: Attributes object of a Cloudflare account.
+      properties:
+        email:
+          description: The email associated with the Cloudflare account.
+          example: test-email@example.com
+          type: string
+        name:
+          description: The name of the Cloudflare account.
+          example: test-name
+          type: string
+        resources:
+          description: An allowlist of resources, such as `web`, `dns`, `lb` (load balancer), `worker`, that restricts pulling metrics from those resources.
+          example:
+          - web
+          - dns
+          - lb
+          - worker
+          items:
+            type: string
+          type: array
+        zones:
+          description: An allowlist of zones to restrict pulling metrics for.
+          example:
+          - zone_id_1
+          - zone_id_2
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      type: object
+    ConfluentResourceResponse:
+      description: Response schema when interacting with a Confluent resource.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentResourceResponseData'
+      type: object
+    RelationshipToUserTeamTeam:
+      description: Relationship between team membership and team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeamData'
+      required:
+      - data
+      type: object
+    UserTeamResponse:
+      description: Team membership response
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeam'
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+      type: object
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    FastlyAccounResponseAttributes:
+      description: Attributes object of a Fastly account.
+      properties:
+        name:
+          description: The name of the Fastly account.
+          example: test-name
+          type: string
+        services:
+          description: A list of services belonging to the parent account.
+          items:
+            $ref: '#/components/schemas/FastlyService'
+          type: array
+      required:
+      - name
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    OktaAccountAttributes:
+      description: Attributes object for an Okta account.
+      properties:
+        api_key:
+          description: The API key of the Okta account.
+          type: string
+          writeOnly: true
+          example: example_value
+        auth_method:
+          description: The authorization method for an Okta account.
+          example: oauth
+          type: string
+        client_id:
+          description: The Client ID of an Okta app integration.
+          type: string
+          example: abc-123-def
+        client_secret:
+          description: The client secret of an Okta app integration.
+          type: string
+          writeOnly: true
+          example: example_value
+        domain:
+          description: The domain of the Okta account.
+          example: https://example.okta.com/
+          type: string
+        name:
+          description: The name of the Okta account.
+          example: Okta-Prod
+          type: string
+      required:
+      - auth_method
+      - domain
+      - name
+      type: object
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    FastlyAccountResponseData:
+      description: Data object of a Fastly account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyAccounResponseAttributes'
+        id:
+          description: The ID of the Fastly account, a hash of the account name.
+          example: abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/FastlyAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ConfluentResourceRequestAttributes:
+      description: Attributes object for updating a Confluent resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+    UserTeamTeamType:
+      default: team
+      description: User team team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    TeamAttributes:
+      description: Team attributes
+      properties:
+        avatar:
+          description: Unicode representation of the avatar for the team, limited to a single grapheme
+          example: 🥑
+          nullable: true
+          type: string
+        banner:
+          description: Banner selection for the team
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        created_at:
+          description: Creation date of the team
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Free-form markdown description/content for the team's homepage
+          nullable: true
+          type: string
+          example: example_value
+        handle:
+          description: The team's identifier
+          example: example-team
+          maxLength: 195
+          type: string
+        hidden_modules:
+          description: Collection of hidden modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+        link_count:
+          description: The number of links belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        modified_at:
+          description: Modification date of the team
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: The name of the team
+          example: Example Team
+          maxLength: 200
+          type: string
+        summary:
+          description: A brief summary of the team, derived from the `description`
+          maxLength: 120
+          nullable: true
+          type: string
+          example: example_value
+        user_count:
+          description: The number of users belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        visible_modules:
+          description: Collection of visible modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+      required:
+      - handle
+      - name
+      type: object
+    Organization:
+      description: Organization object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OrganizationAttributes'
+        id:
+          description: ID of the organization.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - type
+      type: object
+    Role:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ConfluentAccountType:
+      default: confluent-cloud-accounts
+      description: The JSON:API type for this API. Should always be `confluent-cloud-accounts`.
+      enum:
+      - confluent-cloud-accounts
+      example: confluent-cloud-accounts
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_ACCOUNTS
+    RelationshipToTeamLinkData:
+      description: Relationship between a link and a team
+      properties:
+        id:
+          description: The team link's identifier
+          example: f9bb8444-af7f-11ec-ac2c-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamLinkType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    FastlyAccountType:
+      default: fastly-accounts
+      description: The JSON:API type for this API. Should always be `fastly-accounts`.
+      enum:
+      - fastly-accounts
+      example: fastly-accounts
+      type: string
+      x-enum-varnames:
+      - FASTLY_ACCOUNTS
+    RelationshipToUserTeamUser:
+      description: Relationship between team membership and user
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamUserData'
+      required:
+      - data
+      type: object
+    ConfluentResourceResponseData:
+      description: Confluent Cloud resource data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    OktaAccountResponse:
+      description: Response object for an Okta account.
+      properties:
+        data:
+          $ref: '#/components/schemas/OktaAccount'
+      type: object
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    TeamLinkType:
+      default: team_links
+      description: Team link type
+      enum:
+      - team_links
+      example: team_links
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+    CloudflareAccountType:
+      default: cloudflare-accounts
+      description: The JSON:API type for this API. Should always be `cloudflare-accounts`.
+      enum:
+      - cloudflare-accounts
+      example: cloudflare-accounts
+      type: string
+      x-enum-varnames:
+      - CLOUDFLARE_ACCOUNTS
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    UserTeamUserType:
+      default: users
+      description: User team user type
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    Team:
+      description: A team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamAttributes'
+        id:
+          description: The team's identifier
+          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
+          type: string
+        relationships:
+          $ref: '#/components/schemas/TeamRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    Pagination:
+      description: Pagination object.
+      properties:
+        total_count:
+          description: Total count.
+          format: int64
+          type: integer
+          example: 42
+        total_filtered_count:
+          description: Total count of elements matched by the filter.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    TeamRelationshipsLinks:
+      description: Links attributes.
+      properties:
+        related:
+          description: Related link.
+          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
+          type: string
+      type: object
+    FastlyServiceData:
+      description: Data object for Fastly service requests.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyServiceAttributes'
+        id:
+          description: The ID of the Fastly service.
+          example: abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/FastlyServiceType'
+      required:
+      - id
+      - type
+      type: object
+    ConfluentAccountResponseAttributes:
+      description: The attributes of a Confluent account.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        resources:
+          description: A list of Confluent resources associated with the Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+          type: array
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      type: object
+    FastlyServiceRequest:
+      description: Payload schema for Fastly service requests.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyServiceData'
+      required:
+      - data
+      type: object
+    UserTeamIncluded:
+      description: Included resources related to the team membership
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Team'
+    DashboardListAddItemsResponse:
+      description: Response containing a list of added dashboards.
+      properties:
+        added_dashboards_to_list:
+          description: List of dashboards added to the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemResponse'
+          type: array
+      type: object
+    RelationshipToUserTeamUserData:
+      description: A user's relationship with a team
+      properties:
+        id:
+          description: The ID of the user associated with the team
+          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamUserType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UserTeamCreate:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - type
+      type: object
+    ConfluentResourceRequest:
+      description: The JSON:API request for updating a Confluent resource.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentResourceRequestData'
+      required:
+      - data
+      type: object
+    ConfluentAccountResponse:
+      description: The expected response schema when getting a Confluent account.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentAccountResponseData'
+      type: object
+    ResponseMetaAttributes:
+      description: Object describing meta attributes of response.
+      properties:
+        page:
+          $ref: '#/components/schemas/Pagination'
+      type: object
+      x-merge-override:
+        properties: false
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    FastlyAccountCreateRequestData:
+      description: Data object for creating a Fastly account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyAccountCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/FastlyAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  parameters:
+    ConfluentAccountID:
+      description: Confluent Account ID.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+    FastlyAccountID:
+      description: Fastly Account id.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

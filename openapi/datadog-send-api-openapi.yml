@@ -1,0 +1,1877 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Send API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Send
+paths:
+  /api/v2/ci/pipeline:
+    post:
+      description: 'Send your pipeline event to your Datadog platform over HTTP. For details about how pipeline executions are modeled and what execution types we support, see [Pipeline Data Model And Execution Types](https://docs.datadoghq.com/continuous_integration/guides/pipeline_data_model/).
+
+
+        Pipeline events can be submitted with a timestamp that is up to 18 hours in the past.'
+      operationId: CreateCIAppPipelineEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CIAppCreatePipelineEventRequest'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request accepted for processing
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Forbidden
+        '408':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Request Timeout
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Payload Too Large
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPCIAppErrors'
+          description: Service Unavailable
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send Pipeline Event
+      tags:
+      - Send
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/dora/deployment:
+    post:
+      description: 'Use this API endpoint to provide data about deployments for DORA metrics.
+
+
+        This is necessary for:
+
+        - Deployment Frequency
+
+        - Change Lead Time
+
+        - Change Failure Rate'
+      operationId: CreateDORADeployment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DORADeploymentRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORADeploymentResponse'
+          description: OK
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORADeploymentResponse'
+          description: OK - but delayed due to incident
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send a Deployment Event for Dora Metrics
+      tags:
+      - Send
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/dora/incident:
+    post:
+      description: 'Use this API endpoint to provide failure data for DORA metrics.
+
+
+        This is necessary for:
+
+        - Change Failure Rate
+
+        - Time to Restore'
+      operationId: CreateDORAIncident
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DORAIncidentRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK - but delayed due to incident
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send an Incident Event for Dora Metrics
+      tags:
+      - Send
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs:
+    post:
+      description: 'Send your logs to your Datadog platform over HTTP. Limits per HTTP request are:
+
+
+        - Maximum content size per payload (uncompressed): 5MB
+
+        - Maximum size for a single log: 1MB
+
+        - Maximum array size if sending multiple logs in an array: 1000 entries
+
+
+        Any log exceeding 1MB is accepted and truncated by Datadog:
+
+        - For a single log request, the API truncates the log at 1MB and returns a 2xx.
+
+        - For a multi-logs request, the API processes all logs, truncates only logs larger than 1MB, and returns a 2xx.
+
+
+        Datadog recommends sending your logs compressed.
+
+        Add the `Content-Encoding: gzip` header to the request when sending compressed logs.
+
+        Log events can be submitted with a timestamp that is up to 18 hours in the past.
+
+
+        The status codes answered by the HTTP API are:
+
+        - 202: Accepted: the request has been accepted for processing
+
+        - 400: Bad request (likely an issue in the payload formatting)
+
+        - 401: Unauthorized (likely a missing API Key)
+
+        - 403: Permission issue (likely using an invalid API Key)
+
+        - 408: Request Timeout, request should be retried after some time
+
+        - 413: Payload too large (batch is above 5MB uncompressed)
+
+        - 429: Too Many Requests, request should be retried after some time
+
+        - 500: Internal Server Error, the server encountered an unexpected condition that prevented it from fulfilling the request, request should be retried after some time
+
+        - 503: Service Unavailable, the server is not ready to handle the request probably because it is overloaded, request should be retried after some time'
+      operationId: SubmitLog
+      parameters:
+      - description: HTTP header used to compress the media-type.
+        in: header
+        name: Content-Encoding
+        required: false
+        schema:
+          $ref: '#/components/schemas/ContentEncoding'
+        example: example_value
+      - description: Log tags can be passed as query parameters with `text/plain` content type.
+        example: env:prod,user:my-user
+        in: query
+        name: ddtags
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            examples:
+              multi-json-messages:
+                description: Pass multiple log objects at once.
+                summary: Multi JSON Messages
+                value:
+                - ddsource: nginx
+                  ddtags: env:staging,version:5.1
+                  hostname: i-012345678
+                  message: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello
+                  service: payment
+                - ddsource: nginx
+                  ddtags: env:staging,version:5.1
+                  hostname: i-012345679
+                  message: 2019-11-19T14:37:58,995 INFO [process.name][20081] World
+                  service: payment
+              simple-json-message:
+                description: Log attributes can be passed as `key:value` pairs in valid JSON messages.
+                summary: Simple JSON Message
+                value:
+                  ddsource: nginx
+                  ddtags: env:staging,version:5.1
+                  hostname: i-012345678
+                  message: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
+                  service: payment
+            schema:
+              $ref: '#/components/schemas/HTTPLog'
+          application/logplex-1:
+            examples:
+              multi-raw-message:
+                description: Submit log messages.
+                summary: Multi Logplex Messages
+                value: '2019-11-19T14:37:58,995 INFO [process.name][20081] Hello
+
+                  2019-11-19T14:37:58,995 INFO [process.name][20081] World'
+              simple-logplex-message:
+                description: Submit log string.
+                summary: Simple Logplex Message
+                value: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
+            schema:
+              type: string
+          text/plain:
+            examples:
+              multi-raw-message:
+                description: Submit log string.
+                summary: Multi Raw Messages
+                value: '2019-11-19T14:37:58,995 INFO [process.name][20081] Hello
+
+                  2019-11-19T14:37:58,995 INFO [process.name][20081] World
+
+                  '
+              simple-raw-message:
+                description: 'Submit log string. Log attributes can be passed as query parameters in the URL. This enables the addition of tags or the source by using the `ddtags` and `ddsource` parameters: `?host=my-hostname&service=my-service&ddsource=my-source&ddtags=env:prod,user:my-user`.'
+                summary: Simple Raw Message
+                value: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
+            schema:
+              type: string
+        description: Log to send (JSON format).
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request accepted for processing (always 202 empty JSON).
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Forbidden
+        '408':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Request Timeout
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Payload Too Large
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPLogErrors'
+          description: Service Unavailable
+      security:
+      - apiKeyAuth: []
+      servers:
+      - url: https://{subdomain}.{site}
+        variables:
+          site:
+            default: datadoghq.com
+            description: The regional site for customers.
+            enum:
+            - datadoghq.com
+            - us3.datadoghq.com
+            - us5.datadoghq.com
+            - ap1.datadoghq.com
+            - datadoghq.eu
+            - ddog-gov.com
+          subdomain:
+            default: http-intake.logs
+            description: The subdomain where the API is deployed.
+      - url: '{protocol}://{name}'
+        variables:
+          name:
+            default: http-intake.logs.datadoghq.com
+            description: Full site DNS name.
+          protocol:
+            default: https
+            description: The protocol for accessing the API.
+      - url: https://{subdomain}.{site}
+        variables:
+          site:
+            default: datadoghq.com
+            description: Any Datadog deployment.
+          subdomain:
+            default: http-intake.logs
+            description: The subdomain where the API is deployed.
+      summary: Datadog Send Logs
+      tags:
+      - Send
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/user_invitations:
+    post:
+      description: Sends emails to one or more users inviting them to join the organization.
+      operationId: SendInvitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInvitationsRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInvitationsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_invite
+      summary: Datadog Send Invitation Emails
+      tags:
+      - Send
+      x-codegen-request-body-name: body
+      x-given:
+        user_invitation:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": [\n    {\n      \"relationships\": {\"user\": {\"data\": {\n        \"id\": \"{{ user.data.id }}\",\n        \"type\": \"{{ user.data.type }}\"\n      }}},\n      \"type\": \"user_invitations\"\n    }\n  ]\n}"
+          source: data[0]
+          step: the "user" has a "user_invitation"
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_invite
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    GitCommitSHA:
+      description: Git Commit SHA.
+      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
+      pattern: ^[a-fA-F0-9]{40,}$
+      type: string
+    CIAppPipelineEventPipelineInProgressStatus:
+      description: The in progress status of the pipeline.
+      enum:
+      - running
+      example: running
+      type: string
+      x-enum-varnames:
+      - RUNNING
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    CIAppCreatePipelineEventRequestDataType:
+      default: cipipeline_resource_request
+      description: Type of the event.
+      enum:
+      - cipipeline_resource_request
+      example: cipipeline_resource_request
+      type: string
+      x-enum-varnames:
+      - CIPIPELINE_RESOURCE_REQUEST
+    DORADeploymentResponse:
+      description: Response after receiving a DORA deployment event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORADeploymentResponseData'
+      required:
+      - data
+      type: object
+    UserInvitationData:
+      description: Object to create a user invitation.
+      properties:
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      required:
+      - type
+      - relationships
+      type: object
+      x-merge-override:
+        required: false
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    CIAppPipelineEventParameters:
+      additionalProperties:
+        type: string
+      description: A map of key-value parameters or environment variables that were defined for the pipeline.
+      example:
+        LOG_LEVEL: debug
+      nullable: true
+      type: object
+    HTTPLog:
+      description: Structured log message.
+      items:
+        $ref: '#/components/schemas/HTTPLogItem'
+      type: array
+    CIAppPipelineEventPipelineStatus:
+      description: The final status of the pipeline.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      - blocked
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
+      - BLOCKED
+    CIAppCreatePipelineEventRequestAttributesResource:
+      description: Details of the CI pipeline event.
+      example: Details TBD
+      oneOf:
+      - $ref: '#/components/schemas/CIAppPipelineEventPipeline'
+      - $ref: '#/components/schemas/CIAppPipelineEventStage'
+      - $ref: '#/components/schemas/CIAppPipelineEventJob'
+      - $ref: '#/components/schemas/CIAppPipelineEventStep'
+    CIAppPipelineEventStageStatus:
+      description: The final status of the stage.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
+    CIAppCIError:
+      description: Contains information of the CI error.
+      nullable: true
+      properties:
+        domain:
+          $ref: '#/components/schemas/CIAppCIErrorDomain'
+        message:
+          description: Error message.
+          maxLength: 5000
+          nullable: true
+          type: string
+          example: CPU usage is high on {{host.name}}
+        stack:
+          description: The stack trace of the reported errors.
+          nullable: true
+          type: string
+          example: example_value
+        type:
+          description: Short description of the error type.
+          maxLength: 100
+          nullable: true
+          type: string
+          example: metric alert
+      type: object
+    CIAppPipelineEventTags:
+      description: A list of user-defined tags. The tags must follow the `key:value` pattern.
+      example:
+      - team:backend
+      - type:deployment
+      items:
+        description: Tags in the form of `key:value`.
+        type: string
+      nullable: true
+      type: array
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    DORADeploymentType:
+      default: dora_deployment
+      description: JSON:API type for DORA deployment events.
+      enum:
+      - dora_deployment
+      example: dora_deployment
+      type: string
+      x-enum-varnames:
+      - DORA_DEPLOYMENT
+    DORADeploymentRequestAttributes:
+      description: Attributes to create a DORA deployment event.
+      properties:
+        env:
+          description: Environment name to where the service was deployed.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the deployment finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Deployment ID.
+          type: string
+          example: abc-123-def
+        service:
+          description: Service name.
+          example: shopist
+          type: string
+        started_at:
+          description: Unix timestamp when the deployment started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the deployed service. If not provided, this is automatically populated with the team associated with the service in the Service Catalog.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
+      required:
+      - service
+      - started_at
+      - finished_at
+      type: object
+    CIAppPipelineEventMetrics:
+      description: A list of user-defined metrics. The metrics must follow the `key:value` pattern and the value must be numeric.
+      example:
+      - bundle_size:370
+      - build_time:50021
+      items:
+        description: Metrics in the form of `key:value`. The value needs to be numeric.
+        type: string
+      nullable: true
+      type: array
+    DORAGitInfo:
+      description: Git info for DORA Metrics events.
+      properties:
+        commit_sha:
+          $ref: '#/components/schemas/GitCommitSHA'
+        repository_url:
+          $ref: '#/components/schemas/GitRepositoryURL'
+      required:
+      - repository_url
+      - commit_sha
+      type: object
+    CIAppPipelineEventParentPipeline:
+      description: If the pipeline is triggered as child of another pipeline, this should contain the details of the parent pipeline.
+      nullable: true
+      properties:
+        id:
+          description: UUID of a pipeline.
+          example: 93bfeb70-af47-424d-908a-948d3f08e37f
+          type: string
+        url:
+          description: The URL to look at the pipeline in the CI provider UI.
+          example: https://ci-platform.com/pipelines/123456789
+          type: string
+      required:
+      - id
+      type: object
+    CIAppPipelineEventStepLevel:
+      default: step
+      description: Used to distinguish between pipelines, stages, jobs and steps.
+      enum:
+      - step
+      example: step
+      type: string
+      x-enum-varnames:
+      - STEP
+    CIAppPipelineEventJobLevel:
+      default: job
+      description: Used to distinguish between pipelines, stages, jobs, and steps.
+      enum:
+      - job
+      example: job
+      type: string
+      x-enum-varnames:
+      - JOB
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
+      enum:
+      - user_invitations
+      example: user_invitations
+      type: string
+      x-enum-varnames:
+      - USER_INVITATIONS
+    UserInvitationsResponse:
+      description: User invitations as returned by the API.
+      properties:
+        data:
+          description: Array of user invitations.
+          items:
+            $ref: '#/components/schemas/UserInvitationResponseData'
+          type: array
+      type: object
+    DORAIncidentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAIncidentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    HTTPCIAppError:
+      description: List of errors.
+      properties:
+        detail:
+          description: Error message.
+          example: Malformed payload
+          type: string
+        status:
+          description: Error code.
+          example: '400'
+          type: string
+        title:
+          description: Error title.
+          example: Bad Request
+          type: string
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    CIAppPipelineEventStep:
+      description: Details of a CI step.
+      properties:
+        end:
+          description: Time when the step run finished. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        id:
+          description: UUID for the step. It has to be unique within each pipeline execution.
+          example: c2d517a8-4f3a-4b41-b4ae-69df0c864c79
+          type: string
+        job_id:
+          description: The parent job UUID (if applicable).
+          nullable: true
+          type: string
+          example: abc-123-def
+        job_name:
+          description: The parent job name (if applicable).
+          nullable: true
+          type: string
+          example: Example Monitor
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventStepLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: The name for the step.
+          example: test-server
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        pipeline_name:
+          description: The parent pipeline name.
+          example: Build
+          type: string
+        pipeline_unique_id:
+          description: The parent pipeline UUID.
+          example: 76b572af-a078-42b2-a08a-cc28f98b944f
+          type: string
+        stage_id:
+          description: The parent stage UUID (if applicable).
+          nullable: true
+          type: string
+          example: abc-123-def
+        stage_name:
+          description: The parent stage name (if applicable).
+          nullable: true
+          type: string
+          example: Example Monitor
+        start:
+          description: Time when the step run started. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventStepStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+        url:
+          description: The URL to look at the step in the CI provider UI.
+          nullable: true
+          type: string
+          example: https://app.datadoghq.com
+      required:
+      - level
+      - id
+      - name
+      - pipeline_unique_id
+      - pipeline_name
+      - start
+      - end
+      - status
+      type: object
+    CIAppPipelineEventFinishedPipeline:
+      description: Details of a finished pipeline.
+      properties:
+        end:
+          description: Time when the pipeline run finished. It cannot be older than 18 hours in the past from the current time. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        is_manual:
+          description: Whether or not the pipeline was triggered manually by the user.
+          example: false
+          nullable: true
+          type: boolean
+        is_resumed:
+          description: Whether or not the pipeline was resumed after being blocked.
+          example: false
+          nullable: true
+          type: boolean
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventPipelineLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: Name of the pipeline. All pipeline runs for the builds should have the same name.
+          example: Deploy to AWS
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        parent_pipeline:
+          $ref: '#/components/schemas/CIAppPipelineEventParentPipeline'
+        partial_retry:
+          description: 'Whether or not the pipeline was a partial retry of a previous attempt. A partial retry is one
+
+            which only runs a subset of the original jobs.'
+          example: false
+          type: boolean
+        pipeline_id:
+          description: 'Any ID used in the provider to identify the pipeline run even if it is not unique across retries.
+
+            If the `pipeline_id` is unique, then both `unique_id` and `pipeline_id` can be set to the same value.'
+          example: '#023'
+          type: string
+        previous_attempt:
+          $ref: '#/components/schemas/CIAppPipelineEventPreviousPipeline'
+        queue_time:
+          description: The queue time in milliseconds, if applicable.
+          example: 1004
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+        start:
+          description: Time when the pipeline run started (it should not include any queue time). The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventPipelineStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+        unique_id:
+          description: 'UUID of the pipeline run. The ID has to be unique across retries and pipelines,
+
+            including partial retries.'
+          example: 3eacb6f3-ff04-4e10-8a9c-46e6d054024a
+          type: string
+        url:
+          description: The URL to look at the pipeline in the CI provider UI.
+          example: https://my-ci-provider.example/pipelines/my-pipeline/run/1
+          type: string
+      required:
+      - level
+      - unique_id
+      - name
+      - url
+      - start
+      - end
+      - status
+      - partial_retry
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    CIAppGitInfo:
+      description: 'If pipelines are triggered due to actions to a Git repository, then all payloads must contain this.
+
+        Note that either `tag` or `branch` has to be provided, but not both.'
+      nullable: true
+      properties:
+        author_email:
+          description: The commit author email.
+          example: author@example.com
+          type: string
+        author_name:
+          description: The commit author name.
+          example: John Doe
+          nullable: true
+          type: string
+        author_time:
+          description: The commit author timestamp in RFC3339 format.
+          example: '2023-05-31T15:30:00Z'
+          nullable: true
+          type: string
+        branch:
+          description: The branch name (if a tag use the tag parameter).
+          example: feature-1
+          nullable: true
+          type: string
+        commit_time:
+          description: The commit timestamp in RFC3339 format.
+          example: '2023-05-31T15:30:00Z'
+          nullable: true
+          type: string
+        committer_email:
+          description: The committer email.
+          example: committer@example.com
+          nullable: true
+          type: string
+        committer_name:
+          description: The committer name.
+          nullable: true
+          type: string
+          example: Example Monitor
+        default_branch:
+          description: The Git repository's default branch.
+          example: main
+          nullable: true
+          type: string
+        message:
+          description: The commit message.
+          example: Instrumenting tests with CI Visibility.
+          nullable: true
+          type: string
+        repository_url:
+          description: The URL of the repository.
+          example: https://github.com/username/repository
+          type: string
+        sha:
+          description: The git commit SHA.
+          example: da39a3ee5e6b4b0d3255bfef95601890afd80709
+          pattern: ^[a-fA-F0-9]{40}$
+          type: string
+        tag:
+          description: The tag name (if a branch use the branch parameter).
+          example: v1.0.0
+          nullable: true
+          type: string
+      required:
+      - repository_url
+      - sha
+      - author_email
+      type: object
+    CIAppPipelineEventStage:
+      description: Details of a CI stage.
+      properties:
+        dependencies:
+          description: A list of stage IDs that this stage depends on.
+          example:
+          - f7e6a006-a029-46c3-b0cc-742c9d7d363b
+          - c8a69849-3c3b-4721-8b33-3e8ec2df1ebe
+          items:
+            description: A list of stage IDs.
+            type: string
+          nullable: true
+          type: array
+        end:
+          description: Time when the stage run finished. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        id:
+          description: UUID for the stage. It has to be unique at least in the pipeline scope.
+          example: 562bdbbb-7cab-48c8-851c-b24ca14628bf
+          type: string
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventStageLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: The name for the stage.
+          example: build
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        pipeline_name:
+          description: The parent pipeline name.
+          example: Build
+          type: string
+        pipeline_unique_id:
+          description: The parent pipeline UUID.
+          example: 76b572af-a078-42b2-a08a-cc28f98b944f
+          type: string
+        queue_time:
+          description: The queue time in milliseconds, if applicable.
+          example: 1004
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+        start:
+          description: Time when the stage run started (it should not include any queue time). The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventStageStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+      required:
+      - level
+      - id
+      - name
+      - pipeline_unique_id
+      - pipeline_name
+      - start
+      - end
+      - status
+      type: object
+    DORADeploymentRequest:
+      description: Request to create a DORA deployment event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORADeploymentRequestData'
+      required:
+      - data
+      type: object
+    DORAIncidentRequest:
+      description: Request to create a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentRequestData'
+      required:
+      - data
+      type: object
+    DORADeploymentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORADeploymentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    DORAIncidentResponse:
+      description: Response after receiving a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentResponseData'
+      required:
+      - data
+      type: object
+    CIAppPipelineEventPreviousPipeline:
+      description: If the pipeline is a retry, this should contain the details of the previous attempt.
+      nullable: true
+      properties:
+        id:
+          description: UUID of a pipeline.
+          example: 93bfeb70-af47-424d-908a-948d3f08e37f
+          type: string
+        url:
+          description: The URL to look at the pipeline in the CI provider UI.
+          example: https://ci-platform.com/pipelines/123456789
+          type: string
+      required:
+      - id
+      type: object
+    HTTPLogError:
+      description: List of errors.
+      properties:
+        detail:
+          description: Error message.
+          example: Malformed payload
+          type: string
+        status:
+          description: Error code.
+          example: '400'
+          type: string
+        title:
+          description: Error title.
+          example: Bad Request
+          type: string
+      type: object
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
+      properties:
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      required:
+      - user
+      type: object
+    CIAppPipelineEventJob:
+      description: Details of a CI job.
+      properties:
+        dependencies:
+          description: A list of job IDs that this job depends on.
+          example:
+          - f7e6a006-a029-46c3-b0cc-742c9d7d363b
+          - c8a69849-3c3b-4721-8b33-3e8ec2df1ebe
+          items:
+            description: A list of job IDs.
+            type: string
+          nullable: true
+          type: array
+        end:
+          description: Time when the job run finished. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        id:
+          description: The UUID for the job. It has to be unique within each pipeline execution.
+          example: c865bad4-de82-44b8-ade7-2c987528eb54
+          type: string
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventJobLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: The name for the job.
+          example: test
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        pipeline_name:
+          description: The parent pipeline name.
+          example: Build
+          type: string
+        pipeline_unique_id:
+          description: The parent pipeline UUID.
+          example: 76b572af-a078-42b2-a08a-cc28f98b944f
+          type: string
+        queue_time:
+          description: The queue time in milliseconds, if applicable.
+          example: 1004
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+        stage_id:
+          description: The parent stage UUID (if applicable).
+          nullable: true
+          type: string
+          example: abc-123-def
+        stage_name:
+          description: The parent stage name (if applicable).
+          nullable: true
+          type: string
+          example: Example Monitor
+        start:
+          description: Time when the job run instance started (it should not include any queue time). The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventJobStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+        url:
+          description: The URL to look at the job in the CI provider UI.
+          example: https://ci-platform.com/job/your-job-name/build/123
+          type: string
+      required:
+      - level
+      - id
+      - name
+      - pipeline_unique_id
+      - pipeline_name
+      - start
+      - end
+      - status
+      - url
+      type: object
+    CIAppPipelineEventInProgressPipeline:
+      description: Details of a running pipeline.
+      properties:
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        is_manual:
+          description: Whether or not the pipeline was triggered manually by the user.
+          example: false
+          nullable: true
+          type: boolean
+        is_resumed:
+          description: Whether or not the pipeline was resumed after being blocked.
+          example: false
+          nullable: true
+          type: boolean
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventPipelineLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: Name of the pipeline. All pipeline runs for the builds should have the same name.
+          example: Deploy to AWS
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        parent_pipeline:
+          $ref: '#/components/schemas/CIAppPipelineEventParentPipeline'
+        partial_retry:
+          description: 'Whether or not the pipeline was a partial retry of a previous attempt. A partial retry is one
+
+            which only runs a subset of the original jobs.'
+          example: false
+          type: boolean
+        pipeline_id:
+          description: 'Any ID used in the provider to identify the pipeline run even if it is not unique across retries.
+
+            If the `pipeline_id` is unique, then both `unique_id` and `pipeline_id` can be set to the same value.'
+          example: '#023'
+          type: string
+        previous_attempt:
+          $ref: '#/components/schemas/CIAppPipelineEventPreviousPipeline'
+        queue_time:
+          description: The queue time in milliseconds, if applicable.
+          example: 1004
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+        start:
+          description: Time when the pipeline run started (it should not include any queue time). The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventPipelineInProgressStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+        unique_id:
+          description: UUID of the pipeline run. The ID has to be the same as the finished pipeline.
+          example: 3eacb6f3-ff04-4e10-8a9c-46e6d054024a
+          type: string
+        url:
+          description: The URL to look at the pipeline in the CI provider UI.
+          example: https://my-ci-provider.example/pipelines/my-pipeline/run/1
+          type: string
+      required:
+      - level
+      - unique_id
+      - name
+      - url
+      - start
+      - status
+      - partial_retry
+      type: object
+    DORAIncidentRequestAttributes:
+      description: Attributes to create a DORA incident event.
+      properties:
+        env:
+          description: Environment name that was impacted by the incident.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the incident finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Incident ID. Must have at least 16 characters. Required to update a previously sent incident.
+          type: string
+          example: abc-123-def
+        name:
+          description: Incident name.
+          example: Webserver is down failing all requests.
+          type: string
+        services:
+          description: Service names impacted by the incident. If possible, use names registered in the Service Catalog. Required when the team field is not provided.
+          example:
+          - shopist
+          items:
+            type: string
+          type: array
+        severity:
+          description: Incident severity.
+          example: High
+          type: string
+        started_at:
+          description: Unix timestamp when the incident started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the services impacted. If possible, use team handles registered in Datadog. Required when the services field is not provided.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
+      required:
+      - started_at
+      type: object
+    CIAppCIErrorDomain:
+      description: Error category used to differentiate between issues related to the developer or provider environments.
+      enum:
+      - provider
+      - user
+      - unknown
+      type: string
+      x-enum-varnames:
+      - PROVIDER
+      - USER
+      - UNKNOWN
+    DORADeploymentResponseData:
+      description: The JSON:API data.
+      properties:
+        id:
+          description: The ID of the received DORA deployment event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORADeploymentType'
+      required:
+      - id
+      type: object
+    CIAppHostInfo:
+      description: Contains information of the host running the pipeline, stage, job, or step.
+      nullable: true
+      properties:
+        hostname:
+          description: FQDN of the host.
+          example: www.example.com
+          type: string
+        labels:
+          description: A list of labels used to select or identify the node.
+          example:
+          - ubuntu-18.04
+          - n2.large
+          items:
+            type: string
+          type: array
+        name:
+          description: Name for the host.
+          type: string
+          example: Example Monitor
+        workspace:
+          description: The path where the code is checked out.
+          example: /home/workspace/code/my-repo
+          type: string
+      type: object
+    UserInvitationsRequest:
+      description: Object to invite users to join the organization.
+      properties:
+        data:
+          description: List of user invitations.
+          example: []
+          items:
+            $ref: '#/components/schemas/UserInvitationData'
+          type: array
+      required:
+      - data
+      type: object
+    HTTPLogErrors:
+      description: Invalid query performed.
+      properties:
+        errors:
+          description: Structured errors.
+          items:
+            $ref: '#/components/schemas/HTTPLogError'
+          type: array
+      type: object
+    CIAppPipelineEventPipeline:
+      description: Details of the top level pipeline, build, or workflow of your CI.
+      oneOf:
+      - $ref: '#/components/schemas/CIAppPipelineEventFinishedPipeline'
+      - $ref: '#/components/schemas/CIAppPipelineEventInProgressPipeline'
+    DORAIncidentResponseData:
+      description: Response after receiving a DORA incident event.
+      properties:
+        id:
+          description: The ID of the received DORA incident event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORAIncidentType'
+      required:
+      - id
+      type: object
+    GitRepositoryURL:
+      description: Git Repository URL
+      example: https://github.com/organization/example-repository
+      type: string
+    CIAppCreatePipelineEventRequest:
+      description: Request object.
+      properties:
+        data:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestData'
+      type: object
+    UserInvitationDataAttributes:
+      description: Attributes of a user invitation.
+      properties:
+        created_at:
+          description: Creation time of the user invitation.
+          format: date-time
+          type: string
+          example: example_value
+        expires_at:
+          description: Time of invitation expiration.
+          format: date-time
+          type: string
+          example: example_value
+        invite_type:
+          description: Type of invitation.
+          type: string
+          example: metric alert
+        uuid:
+          description: UUID of the user invitation.
+          type: string
+          example: abc-123-def
+      type: object
+    CIAppPipelineEventStepStatus:
+      description: The final status of the step.
+      enum:
+      - success
+      - error
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+    CIAppPipelineEventJobStatus:
+      description: The final status of the job.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
+    CIAppCreatePipelineEventRequestAttributes:
+      description: Attributes of the pipeline event to create.
+      properties:
+        env:
+          description: The Datadog environment.
+          type: string
+          example: example_value
+        provider_name:
+          description: The name of the CI provider. By default, this is "custom".
+          type: string
+          example: abc-123-def
+        resource:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributesResource'
+        service:
+          description: If the CI provider is SaaS, use this to differentiate between instances.
+          type: string
+          example: example_value
+      required:
+      - resource
+      type: object
+    CIAppPipelineEventPipelineLevel:
+      default: pipeline
+      description: Used to distinguish between pipelines, stages, jobs, and steps.
+      enum:
+      - pipeline
+      example: pipeline
+      type: string
+      x-enum-varnames:
+      - PIPELINE
+    DORAIncidentType:
+      default: dora_incident
+      description: JSON:API type for DORA incident events.
+      enum:
+      - dora_incident
+      example: dora_incident
+      type: string
+      x-enum-varnames:
+      - DORA_INCIDENT
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    HTTPCIAppErrors:
+      description: Errors occurred.
+      properties:
+        errors:
+          description: Structured errors.
+          items:
+            $ref: '#/components/schemas/HTTPCIAppError'
+          type: array
+      type: object
+    CIAppCreatePipelineEventRequestData:
+      description: Data of the pipeline event to create.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributes'
+        type:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestDataType'
+      type: object
+    CIAppPipelineEventStageLevel:
+      default: stage
+      description: Used to distinguish between pipelines, stages, jobs and steps.
+      enum:
+      - stage
+      example: stage
+      type: string
+      x-enum-varnames:
+      - STAGE
+    UserInvitationResponseData:
+      description: Object of a user invitation returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserInvitationDataAttributes'
+        id:
+          description: ID of the user invitation.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      type: object
+      x-merge-override:
+        required: false
+    ContentEncoding:
+      description: HTTP header used to compress the media-type.
+      enum:
+      - identity
+      - gzip
+      - deflate
+      type: string
+      x-enum-varnames:
+      - IDENTITY
+      - GZIP
+      - DEFLATE
+    HTTPLogItem:
+      additionalProperties:
+        description: Additional log attributes.
+      description: Logs that are sent over HTTP.
+      properties:
+        ddsource:
+          description: 'The integration name associated with your log: the technology from which the log originated.
+
+            When it matches an integration name, Datadog automatically installs the corresponding parsers and facets.
+
+            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
+          example: nginx
+          type: string
+        ddtags:
+          description: Tags associated with your logs.
+          example: env:staging,version:5.1
+          type: string
+        hostname:
+          description: The name of the originating host of the log.
+          example: i-012345678
+          type: string
+        message:
+          description: 'The message [reserved attribute](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes)
+
+            of your log. By default, Datadog ingests the value of the message attribute as the body of the log entry.
+
+            That value is then highlighted and displayed in the Logstream, where it is indexed for full text search.'
+          example: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
+          type: string
+        service:
+          description: 'The name of the application or service generating the log events.
+
+            It is used to switch from Logs to APM, so make sure you define the same value when you use both products.
+
+            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
+          example: payment
+          type: string
+      required:
+      - message
+      type: object
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

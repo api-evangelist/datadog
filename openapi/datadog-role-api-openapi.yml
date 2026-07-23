@@ -1,0 +1,1758 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Role API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Role
+paths:
+  /api/v2/logs/config/archives/{archive_id}/readers:
+    delete:
+      description: Removes a role from an archive. ([Roles API](https://docs.datadoghq.com/api/v2/roles/))
+      operationId: RemoveRoleFromArchive
+      parameters:
+      - $ref: '#/components/parameters/ArchiveID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Revoke Role from an Archive
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_archives
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a read role to an archive. ([Roles API](https://docs.datadoghq.com/api/v2/roles/))
+      operationId: AddReadRoleToArchive
+      parameters:
+      - $ref: '#/components/parameters/ArchiveID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Grant Role to an Archive
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_archives
+      x-undo:
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/role/{role_id}:
+    get:
+      description: Get restriction query for a given role.
+      operationId: GetRoleRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryRoleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryListResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get Restriction Query for a Given Role
+      tags:
+      - Role
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/{restriction_query_id}/roles:
+    delete:
+      description: Removes a role from a restriction query.
+      operationId: RemoveRoleFromRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Revoke Role from a Restriction Query
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a role to a restriction query.
+      operationId: AddRoleToRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Grant Role to a Restriction Query
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles:
+    post:
+      description: Create a new role for your organization.
+      operationId: CreateRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleCreateResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Create Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-given:
+        role:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n     },\n     \"type\": \"roles\"\n  }\n}"
+          step: there is a valid "role" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        operationId: DeleteRole
+        parameters:
+        - name: role_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}:
+    x-merge-override:
+      delete: true
+      patch: true
+    delete:
+      description: Disables a role.
+      operationId: DeleteRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Delete Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a role in the organization specified by the role’s `role_id`.
+      operationId: GetRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Edit a role. Can only be used with application keys belonging to administrators.
+      operationId: UpdateRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleUpdateResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Update a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/clone:
+    x-merge-override:
+      post: true
+    post:
+      description: Clone an existing role
+      operationId: CloneRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCloneRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Conflict
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Create a New Role by Cloning an Existing Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        operationId: DeleteRole
+        parameters:
+        - name: role_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/permissions:
+    x-merge-override:
+      delete: true
+      get: true
+      post: true
+    get:
+      description: Returns a list of all permissions for a single role.
+      operationId: ListRolePermissions
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog List Permissions for a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a permission to a role.
+      operationId: AddPermissionToRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToPermission'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Grant Permission to a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-given:
+        permission_role:
+          parameters:
+          - name: role_id
+            source: role.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ permission.id }}\",\n    \"type\": \"{{ permission.type }}\"\n  }\n}"
+          step: the "permission" is granted to the "role"
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/users:
+    delete:
+      description: Removes a user from a role.
+      operationId: RemoveUserFromRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Remove a User from a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Gets all users of a role.
+      operationId: ListRoleUsers
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - description: 'User attribute to order results by. Sort order is **ascending** by default.
+
+          Sort order is **descending** if the field is prefixed by a negative sign,
+
+          for example `sort=-name`. Options: `name`, `email`, `status`.'
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: name
+          type: string
+        example: example_value
+      - description: Filter all users by the given string. Defaults to no filtering.
+        in: query
+        name: filter
+        required: false
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get All Users of a Role
+      tags:
+      - Role
+      x-menu-order: 9
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a user to a role.
+      operationId: AddUserToRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Add a User to a Role
+      tags:
+      - Role
+      x-codegen-request-body-name: body
+      x-given:
+        permission_role:
+          parameters:
+          - name: role_id
+            source: role.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ user.data.id }}\",\n    \"type\": \"{{ user.data.type }}\"\n  }\n}"
+          step: the "user" has the "role"
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RoleUpdateData:
+      description: Data related to the update of a role.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleUpdateAttributes'
+        id:
+          description: The unique identifier of the role.
+          example: 00000000-0000-1111-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/RoleRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RestrictionQueryWithoutRelationships:
+      description: Restriction query object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryAttributes'
+        id:
+          description: ID of the restriction query.
+          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
+          type: string
+        type:
+          default: logs_restriction_queries
+          description: Restriction queries type.
+          example: logs_restriction_queries
+          readOnly: true
+          type: string
+      type: object
+    RoleCreateRequest:
+      description: Create a role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoleCreateData'
+      required:
+      - data
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    RelationshipToPermission:
+      description: Relationship to a permissions object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToPermissionData'
+      type: object
+      x-merge-override:
+        required: false
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    RoleUpdateRequest:
+      description: Update a role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoleUpdateData'
+      required:
+      - data
+      type: object
+    RestrictionQueryAttributes:
+      description: Attributes of the restriction query.
+      properties:
+        created_at:
+          description: Creation time of the restriction query.
+          example: '2020-03-17T21:06:44.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        modified_at:
+          description: Time of last restriction query modification.
+          example: '2020-03-17T21:15:15.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        restriction_query:
+          description: The query that defines the restriction. Only the content matching the query can be returned.
+          example: env:sandbox
+          type: string
+      type: object
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    UsersResponse:
+      description: Response containing information about multiple users.
+      properties:
+        data:
+          description: Array of returned users.
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+        included:
+          description: Array of objects related to the users.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ResponseMetaAttributes'
+      readOnly: true
+      type: object
+    OrganizationAttributes:
+      description: Attributes of the organization.
+      properties:
+        created_at:
+          description: Creation time of the organization.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the organization.
+          type: string
+          example: example_value
+        disabled:
+          description: Whether or not the organization is disabled.
+          type: boolean
+          example: true
+        modified_at:
+          description: Time of last organization modification.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the organization.
+          type: string
+          example: Example Monitor
+        public_id:
+          description: Public ID of the organization.
+          type: string
+          example: abc-123-def
+        sharing:
+          description: Sharing type of the organization.
+          type: string
+          example: example_value
+        url:
+          description: URL of the site that this organization exists at.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RelationshipToRole:
+      description: Relationship to role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToRoleData'
+      type: object
+      x-merge-override:
+        required: false
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    RoleRelationships:
+      description: Relationships of the role object.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    RoleCreateData:
+      description: Data related to the creation of a role.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/RoleRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
+    RoleUpdateResponse:
+      description: Response containing information about an updated role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoleUpdateResponseData'
+      type: object
+    RoleCreateAttributes:
+      description: Attributes of the created role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the role.
+          example: developers
+          type: string
+      required:
+      - name
+      type: object
+    Pagination:
+      description: Pagination object.
+      properties:
+        total_count:
+          description: Total count.
+          format: int64
+          type: integer
+          example: 42
+        total_filtered_count:
+          description: Total count of elements matched by the filter.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    PermissionAttributes:
+      description: Attributes of a permission.
+      properties:
+        created:
+          description: Creation time of the permission.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the permission.
+          type: string
+          example: example_value
+        display_name:
+          description: Displayed name for the permission.
+          type: string
+          example: Example Monitor
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
+      type: object
+    RoleUpdateResponseData:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleUpdateAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    RestrictionQueryListResponse:
+      description: Response containing information about multiple restriction queries.
+      properties:
+        data:
+          description: Array of returned restriction queries.
+          items:
+            $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
+          type: array
+      type: object
+    RoleCreateResponseData:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleCreateAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+    RoleCloneAttributes:
+      description: Attributes required to create a new role by cloning an existing one.
+      properties:
+        name:
+          description: Name of the new role that is cloned.
+          example: cloned-role
+          type: string
+      required:
+      - name
+      type: object
+    PermissionsResponse:
+      description: Payload with API-returned permissions.
+      properties:
+        data:
+          description: Array of permissions.
+          items:
+            $ref: '#/components/schemas/Permission'
+          type: array
+      type: object
+    UserResponseIncludedItem:
+      description: An object related to a user.
+      oneOf:
+      - $ref: '#/components/schemas/Organization'
+      - $ref: '#/components/schemas/Permission'
+      - $ref: '#/components/schemas/Role'
+    RoleAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: Number of users with that role.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      type: object
+    RoleUpdateAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: The user count.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+      type: object
+    RoleCloneRequest:
+      description: Request to create a role by cloning an existing role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoleClone'
+      required:
+      - data
+      type: object
+    RoleClone:
+      description: Data for the clone role request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleCloneAttributes'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      - attributes
+      type: object
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    RoleCreateResponse:
+      description: Response containing information about a created role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoleCreateResponseData'
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    RoleResponse:
+      description: Response containing information about a single role.
+      properties:
+        data:
+          $ref: '#/components/schemas/Role'
+      type: object
+    ResponseMetaAttributes:
+      description: Object describing meta attributes of response.
+      properties:
+        page:
+          $ref: '#/components/schemas/Pagination'
+      type: object
+      x-merge-override:
+        properties: false
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    Organization:
+      description: Organization object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OrganizationAttributes'
+        id:
+          description: ID of the organization.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - type
+      type: object
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    Role:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+  parameters:
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    ArchiveID:
+      description: The ID of the archive.
+      in: path
+      name: archive_id
+      required: true
+      schema:
+        type: string
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    RestrictionQueryRoleID:
+      description: The ID of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+    RestrictionQueryID:
+      description: The ID of the restriction query.
+      in: path
+      name: restriction_query_id
+      required: true
+      schema:
+        type: string
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

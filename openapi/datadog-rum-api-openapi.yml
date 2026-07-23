@@ -1,0 +1,1772 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Rum API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- description: Manage your Real User Monitoring (RUM) applications, and search or aggregate your RUM events over HTTP. See the [RUM & Session Replay page](https://docs.datadoghq.com/real_user_monitoring/) for more information
+  name: Rum
+paths:
+  /api/v2/rum/analytics/aggregate:
+    post:
+      description: The API endpoint to aggregate RUM events into buckets of computed metrics and timeseries.
+      operationId: AggregateRUMEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RUMAggregateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMAnalyticsAggregateResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Aggregate Rum Events
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications:
+    x-merge-override:
+      get: false
+      post: false
+    get:
+      description: List all the RUM applications in your organization.
+      operationId: GetRUMApplications
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMApplicationsResponse'
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog List All the Rum Applications
+      tags:
+      - Rum
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - rum_apps_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a new RUM application in your organization.
+      operationId: CreateRUMApplication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RUMApplicationCreateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMApplicationResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a New Rum Application
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-given:
+        rum_application:
+          parameters:
+          - name: body
+            value: "{ \"data\": {\n    \"type\": \"rum_application_create\",\n    \"attributes\": {\n        \"name\": \"test-rum-{{ unique_hash }}\",\n        \"type\": \"ios\"\n    }\n  }\n}"
+          step: there is a valid "rum_application" in the system
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - rum_apps_write
+      x-undo:
+        operationId: DeleteRUMApplication
+        parameters:
+        - name: id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/relationships/retention_filters:
+    patch:
+      description: 'Order RUM retention filters for a RUM application.
+
+        Returns RUM retention filter objects without attributes from the request body when the request is successful.'
+      operationId: OrderRetentionFilters
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFiltersOrderRequest'
+        description: New definition of the RUM retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFiltersOrderResponse'
+          description: Ordered
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Order Rum Retention Filters
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/retention_filters:
+    get:
+      description: Get the list of RUM retention filters for a RUM application.
+      operationId: ListRetentionFilters
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFiltersResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Rum Retention Filters
+      tags:
+      - Rum
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a RUM retention filter for a RUM application.
+
+        Returns RUM retention filter objects from the request body when the request is successful.'
+      operationId: CreateRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFilterCreateRequest'
+        description: The definition of the new RUM retention filter.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Rum Retention Filter
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/retention_filters/{rf_id}:
+    delete:
+      description: Delete a RUM retention filter for a RUM application.
+      operationId: DeleteRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Rum Retention Filter
+      tags:
+      - Rum
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a RUM retention filter for a RUM application.
+      operationId: GetRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Rum Retention Filter
+      tags:
+      - Rum
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a RUM retention filter for a RUM application.
+
+        Returns RUM retention filter objects from the request body when the request is successful.'
+      operationId: UpdateRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFilterUpdateRequest'
+        description: New definition of the RUM retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: Updated
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Rum Retention Filter
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{id}:
+    x-merge-override:
+      delete: true
+      get: false
+      patch: false
+    delete:
+      description: Delete an existing RUM application in your organization.
+      operationId: DeleteRUMApplication
+      parameters:
+      - description: RUM application ID.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Rum Application
+      tags:
+      - Rum
+      x-menu-order: 6
+      x-permission:
+        operator: OR
+        permissions:
+        - rum_apps_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get the RUM application with given ID in your organization.
+      operationId: GetRUMApplication
+      parameters:
+      - description: RUM application ID.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMApplicationResponse'
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Rum Application
+      tags:
+      - Rum
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - rum_apps_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update the RUM application with given ID in your organization.
+      operationId: UpdateRUMApplication
+      parameters:
+      - description: RUM application ID.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RUMApplicationUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMApplicationResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Rum Application
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - rum_apps_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/events:
+    get:
+      description: 'List endpoint returns events that match a RUM search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to see your latest RUM events.
+
+
+        [1]: https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination'
+      operationId: ListRUMEvents
+      parameters:
+      - description: Search query following RUM syntax.
+        example: '@type:session @application_id:xxxx'
+        in: query
+        name: filter[query]
+        required: false
+        schema:
+          type: string
+      - description: Minimum timestamp for requested events.
+        example: '2019-01-02T09:42:36.320Z'
+        in: query
+        name: filter[from]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: Maximum timestamp for requested events.
+        example: '2019-01-03T09:42:36.320Z'
+        in: query
+        name: filter[to]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: Order of events in results.
+        in: query
+        name: sort
+        required: false
+        schema:
+          $ref: '#/components/schemas/RUMSort'
+        example: example_value
+      - description: List following results with a cursor provided in the previous query.
+        example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        in: query
+        name: page[cursor]
+        required: false
+        schema:
+          type: string
+      - description: Maximum number of events in the response.
+        example: 25
+        in: query
+        name: page[limit]
+        required: false
+        schema:
+          default: 10
+          format: int32
+          maximum: 1000
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get a List of Rum Events
+      tags:
+      - Rum
+      x-menu-order: 2
+      x-pagination:
+        cursorParam: page[cursor]
+        cursorPath: meta.page.after
+        limitParam: page[limit]
+        resultsPath: data
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/events/search:
+    post:
+      description: 'List endpoint returns RUM events that match a RUM search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to build complex RUM events filtering and search.
+
+
+        [1]: https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination'
+      operationId: SearchRUMEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RUMSearchEventsRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Search Rum Events
+      tags:
+      - Rum
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RUMApplicationUpdateRequest:
+      description: RUM application update request.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplicationUpdate'
+      required:
+      - data
+      type: object
+    RUMResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    RUMEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from RUM events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        service:
+          description: 'The name of the application or service generating RUM events.
+
+            It is used to switch from RUM to APM, so make sure you define the same
+
+            value when you use both products.'
+          example: web-app
+          type: string
+        tags:
+          description: Array of tags associated with your event.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your event.
+            type: string
+          type: array
+        timestamp:
+          description: Timestamp of your event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    RUMApplicationUpdate:
+      description: RUM application update.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationUpdateAttributes'
+        id:
+          description: RUM application ID.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        type:
+          $ref: '#/components/schemas/RUMApplicationUpdateType'
+      required:
+      - id
+      - type
+      type: object
+    RUMApplicationListType:
+      default: rum_application
+      description: RUM application list type.
+      enum:
+      - rum_application
+      example: rum_application
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION
+    RUMApplicationCreateRequest:
+      description: RUM application creation request attributes.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplicationCreate'
+      required:
+      - data
+      type: object
+    RUMApplicationUpdateType:
+      default: rum_application_update
+      description: RUM application update type.
+      enum:
+      - rum_application_update
+      example: rum_application_update
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION_UPDATE
+    RUMAggregateRequest:
+      description: The object sent with the request to retrieve aggregation buckets of RUM events from your organization.
+      properties:
+        compute:
+          description: The list of metrics or timeseries to compute for the retrieved buckets.
+          items:
+            $ref: '#/components/schemas/RUMCompute'
+          type: array
+        filter:
+          $ref: '#/components/schemas/RUMQueryFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RUMGroupBy'
+          type: array
+        options:
+          $ref: '#/components/schemas/RUMQueryOptions'
+        page:
+          $ref: '#/components/schemas/RUMQueryPageOptions'
+      type: object
+    RUMGroupByTotalBoolean:
+      description: If set to true, creates an additional bucket labeled "$facet_total".
+      type: boolean
+    RUMAggregateBucketValueTimeseries:
+      description: A timeseries array.
+      items:
+        $ref: '#/components/schemas/RUMAggregateBucketValueTimeseriesPoint'
+      type: array
+      x-generate-alias-as-model: true
+    RUMGroupByTotalNumber:
+      description: A number to use as the key value for the total bucket.
+      format: double
+      type: number
+    RUMResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/RUMResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/RUMResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/RUMWarning'
+          type: array
+      type: object
+    RUMAggregateBucketValueSingleString:
+      description: A single string value.
+      type: string
+    RumRetentionFilterAttributes:
+      description: The object describing attributes of a RUM retention filter.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      type: object
+    RUMApplicationCreateAttributes:
+      description: RUM application creation attributes.
+      properties:
+        name:
+          description: Name of the RUM application.
+          example: my_new_rum_application
+          type: string
+        type:
+          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
+          example: browser
+          type: string
+      required:
+      - name
+      type: object
+    RUMGroupByTotal:
+      default: false
+      description: A resulting object to put the given computes in over all the matching records.
+      oneOf:
+      - $ref: '#/components/schemas/RUMGroupByTotalBoolean'
+      - $ref: '#/components/schemas/RUMGroupByTotalString'
+      - $ref: '#/components/schemas/RUMGroupByTotalNumber'
+    RUMSearchEventsRequest:
+      description: The request for a RUM events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/RUMQueryFilter'
+        options:
+          $ref: '#/components/schemas/RUMQueryOptions'
+        page:
+          $ref: '#/components/schemas/RUMQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/RUMSort'
+      type: object
+    RUMQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the RUM search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    RUMApplicationsResponse:
+      description: RUM applications response.
+      properties:
+        data:
+          description: RUM applications array response.
+          items:
+            $ref: '#/components/schemas/RUMApplicationList'
+          type: array
+      type: object
+    RUMQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    RumRetentionFiltersOrderData:
+      description: The RUM retention filter data for ordering.
+      properties:
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
+      type: object
+    RUMAnalyticsAggregateResponse:
+      description: The response object for the RUM events aggregate API endpoint.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMAggregationBucketsResponse'
+        links:
+          $ref: '#/components/schemas/RUMResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RUMResponseMetadata'
+      type: object
+    RUMApplicationResponse:
+      description: RUM application response.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplication'
+      type: object
+    RUMAggregateBucketValue:
+      description: A bucket value, can be either a timeseries or a single value.
+      oneOf:
+      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleString'
+      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleNumber'
+      - $ref: '#/components/schemas/RUMAggregateBucketValueTimeseries'
+    RUMQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    RUMEvent:
+      description: Object description of a RUM event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/RUMEventType'
+      type: object
+    RUMGroupByTotalString:
+      description: A string to use as the key value for the total bucket.
+      type: string
+    RUMAggregationBucketsResponse:
+      description: The query results.
+      properties:
+        buckets:
+          description: The list of matching buckets, one item per bucket.
+          items:
+            $ref: '#/components/schemas/RUMBucketResponse'
+          type: array
+      type: object
+    RUMAggregateSort:
+      description: A sort rule.
+      example:
+        aggregation: count
+        order: asc
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/RUMAggregationFunction'
+        metric:
+          description: The metric to sort by (only used for `type=measure`).
+          example: '@duration'
+          type: string
+        order:
+          $ref: '#/components/schemas/RUMSortOrder'
+        type:
+          $ref: '#/components/schemas/RUMAggregateSortType'
+      type: object
+    RUMApplicationCreateType:
+      default: rum_application_create
+      description: RUM application creation type.
+      enum:
+      - rum_application_create
+      example: rum_application_create
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION_CREATE
+    RUMApplicationType:
+      default: rum_application
+      description: RUM application response type.
+      enum:
+      - rum_application
+      example: rum_application
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION
+    RumRetentionFiltersResponse:
+      description: All RUM retention filters for a RUM application.
+      properties:
+        data:
+          description: A list of RUM retention filters.
+          items:
+            $ref: '#/components/schemas/RumRetentionFilterData'
+          type: array
+      type: object
+    RumRetentionFilterResponse:
+      description: The RUM retention filter object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterData'
+      type: object
+    RUMApplicationList:
+      description: RUM application list.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationListAttributes'
+        id:
+          description: RUM application ID.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        type:
+          $ref: '#/components/schemas/RUMApplicationListType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
+      type: string
+      x-enum-varnames:
+      - RETENTION_FILTERS
+    RumRetentionFiltersOrderResponse:
+      description: The list of RUM retention filter IDs along with type.
+      properties:
+        data:
+          description: A list of RUM retention filter IDs along with type.
+          items:
+            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
+          type: array
+      type: object
+    RUMBucketResponse:
+      description: Bucket values.
+      properties:
+        by:
+          additionalProperties:
+            description: The values for each group-by.
+            type: string
+          description: The key-value pairs for each group-by.
+          example:
+            '@session.type': user
+            '@type': view
+          type: object
+        computes:
+          additionalProperties:
+            $ref: '#/components/schemas/RUMAggregateBucketValue'
+          description: A map of the metric name to value for regular compute, or a list of values for a timeseries.
+          type: object
+      type: object
+    RumRetentionFilterQuery:
+      description: The query string for a RUM retention filter.
+      example: '@session.has_replay:true'
+      type: string
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RumRetentionFilterCreateRequest:
+      description: The RUM retention filter body to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterCreateData'
+      required:
+      - data
+      type: object
+    RUMGroupByMissingString:
+      description: The missing value to use if there is string valued facet.
+      type: string
+    RumRetentionFilterEventType:
+      description: The type of RUM events to filter on.
+      enum:
+      - session
+      - view
+      - action
+      - error
+      - resource
+      - long_task
+      - vital
+      example: session
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - VIEW
+      - ACTION
+      - ERROR
+      - RESOURCE
+      - LONG_TASK
+      - VITAL
+    RUMEventType:
+      default: rum
+      description: Type of the event.
+      enum:
+      - rum
+      example: rum
+      type: string
+      x-enum-varnames:
+      - RUM
+    RUMGroupByMissing:
+      description: The value to use for logs that don't have the facet used to group by.
+      oneOf:
+      - $ref: '#/components/schemas/RUMGroupByMissingString'
+      - $ref: '#/components/schemas/RUMGroupByMissingNumber'
+    RumRetentionFilterSampleRate:
+      description: The sample rate for a RUM retention filter, between 0 and 100.
+      example: 25
+      format: int64
+      maximum: 100
+      minimum: 0
+      type: integer
+    RUMApplicationUpdateAttributes:
+      description: RUM application update attributes.
+      properties:
+        name:
+          description: Name of the RUM application.
+          example: updated_name_for_my_existing_rum_application
+          type: string
+        type:
+          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
+          example: browser
+          type: string
+      type: object
+    RunRetentionFilterName:
+      description: The name of a RUM retention filter.
+      example: Retention filter for session
+      type: string
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
+    RUMAggregateSortType:
+      default: alphabetical
+      description: The type of sorting algorithm.
+      enum:
+      - alphabetical
+      - measure
+      type: string
+      x-enum-varnames:
+      - ALPHABETICAL
+      - MEASURE
+    RumRetentionFilterUpdateRequest:
+      description: The RUM retention filter body to update.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterUpdateData'
+      required:
+      - data
+      type: object
+    RUMGroupBy:
+      description: A group-by rule.
+      properties:
+        facet:
+          description: The name of the facet to use (required).
+          example: '@view.time_spent'
+          type: string
+        histogram:
+          $ref: '#/components/schemas/RUMGroupByHistogram'
+        limit:
+          default: 10
+          description: The maximum buckets to return for this group-by.
+          format: int64
+          type: integer
+          example: 42
+        missing:
+          $ref: '#/components/schemas/RUMGroupByMissing'
+        sort:
+          $ref: '#/components/schemas/RUMAggregateSort'
+        total:
+          $ref: '#/components/schemas/RUMGroupByTotal'
+      required:
+      - facet
+      type: object
+    RUMSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    RumRetentionFilterUpdateData:
+      description: The new RUM retention filter properties to update.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RUMComputeType:
+      default: total
+      description: The type of compute.
+      enum:
+      - timeseries
+      - total
+      type: string
+      x-enum-varnames:
+      - TIMESERIES
+      - TOTAL
+    RUMSortOrder:
+      description: The order to use, ascending or descending.
+      enum:
+      - asc
+      - desc
+      example: asc
+      type: string
+      x-enum-varnames:
+      - ASCENDING
+      - DESCENDING
+    RUMResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RumRetentionFilterEnabled:
+      description: Whether the retention filter is enabled.
+      example: true
+      type: boolean
+    RUMApplication:
+      description: RUM application.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationAttributes'
+        id:
+          description: RUM application ID.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        type:
+          $ref: '#/components/schemas/RUMApplicationType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    RUMApplicationAttributes:
+      description: RUM application attributes.
+      properties:
+        application_id:
+          description: ID of the RUM application.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        client_token:
+          description: Client token of the RUM application.
+          example: abcd1234efgh5678ijkl90abcd1234efgh0
+          type: string
+        created_at:
+          description: Timestamp in ms of the creation date.
+          example: 1659479836169
+          format: int64
+          type: integer
+        created_by_handle:
+          description: Handle of the creator user.
+          example: john.doe
+          type: string
+        hash:
+          description: Hash of the RUM application. Optional.
+          type: string
+          example: example_value
+        is_active:
+          description: Indicates if the RUM application is active.
+          example: true
+          type: boolean
+        name:
+          description: Name of the RUM application.
+          example: my_rum_application
+          type: string
+        org_id:
+          description: Org ID of the RUM application.
+          example: 999
+          format: int32
+          maximum: 2147483647
+          type: integer
+        type:
+          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
+          example: browser
+          type: string
+        updated_at:
+          description: Timestamp in ms of the last update date.
+          example: 1659479836169
+          format: int64
+          type: integer
+        updated_by_handle:
+          description: Handle of the updater user.
+          example: jane.doe
+          type: string
+      required:
+      - application_id
+      - client_token
+      - created_at
+      - created_by_handle
+      - name
+      - org_id
+      - type
+      - updated_at
+      - updated_by_handle
+      type: object
+    RUMAggregateBucketValueSingleNumber:
+      description: A single number value.
+      format: double
+      type: number
+    RumRetentionFilterUpdateAttributes:
+      description: The object describing attributes of a RUM retention filter to update.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      type: object
+    RUMApplicationCreate:
+      description: RUM application creation.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationCreateAttributes'
+        type:
+          $ref: '#/components/schemas/RUMApplicationCreateType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RumRetentionFilterCreateData:
+      description: The new RUM retention filter properties to create.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    RUMApplicationListAttributes:
+      description: RUM application list attributes.
+      properties:
+        application_id:
+          description: ID of the RUM application.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        created_at:
+          description: Timestamp in ms of the creation date.
+          example: 1659479836169
+          format: int64
+          type: integer
+        created_by_handle:
+          description: Handle of the creator user.
+          example: john.doe
+          type: string
+        hash:
+          description: Hash of the RUM application. Optional.
+          type: string
+          example: example_value
+        is_active:
+          description: Indicates if the RUM application is active.
+          example: true
+          type: boolean
+        name:
+          description: Name of the RUM application.
+          example: my_rum_application
+          type: string
+        org_id:
+          description: Org ID of the RUM application.
+          example: 999
+          format: int32
+          maximum: 2147483647
+          type: integer
+        type:
+          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
+          example: browser
+          type: string
+        updated_at:
+          description: Timestamp in ms of the last update date.
+          example: 1659479836169
+          format: int64
+          type: integer
+        updated_by_handle:
+          description: Handle of the updater user.
+          example: jane.doe
+          type: string
+      required:
+      - application_id
+      - created_at
+      - created_by_handle
+      - name
+      - org_id
+      - type
+      - updated_at
+      - updated_by_handle
+      type: object
+    RumRetentionFiltersOrderRequest:
+      description: 'The list of RUM retention filter IDs along with their corresponding type to reorder.
+
+        All retention filter IDs should be included in the list created for a RUM application.'
+      properties:
+        data:
+          description: A list of RUM retention filter IDs along with type.
+          items:
+            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
+          type: array
+      type: object
+    RUMEventsResponse:
+      description: Response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/RUMEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/RUMResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RUMResponseMetadata'
+      type: object
+    RUMAggregateBucketValueTimeseriesPoint:
+      description: A timeseries point.
+      properties:
+        time:
+          description: The time value for this point.
+          example: '2020-06-08T11:55:00.123Z'
+          format: date-time
+          type: string
+        value:
+          description: The value for this point.
+          example: 19
+          format: double
+          type: number
+      type: object
+    RumRetentionFilterData:
+      description: The RUM retention filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      type: object
+    RUMWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    RUMResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RUMAggregationFunction:
+      description: An aggregation function.
+      enum:
+      - count
+      - cardinality
+      - pc75
+      - pc90
+      - pc95
+      - pc98
+      - pc99
+      - sum
+      - min
+      - max
+      - avg
+      - median
+      example: pc90
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - CARDINALITY
+      - PERCENTILE_75
+      - PERCENTILE_90
+      - PERCENTILE_95
+      - PERCENTILE_98
+      - PERCENTILE_99
+      - SUM
+      - MIN
+      - MAX
+      - AVG
+      - MEDIAN
+    RUMGroupByHistogram:
+      description: 'Used to perform a histogram computation (only for measure facets).
+
+        Note: At most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
+      properties:
+        interval:
+          description: The bin size of the histogram buckets.
+          example: 10
+          format: double
+          type: number
+        max:
+          description: 'The maximum value for the measure used in the histogram
+
+            (values greater than this one are filtered out).'
+          example: 100
+          format: double
+          type: number
+        min:
+          description: 'The minimum value for the measure used in the histogram
+
+            (values smaller than this one are filtered out).'
+          example: 50
+          format: double
+          type: number
+      required:
+      - interval
+      - min
+      - max
+      type: object
+    RumRetentionFilterCreateAttributes:
+      description: The object describing attributes of a RUM retention filter to create.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      required:
+      - event_type
+      - name
+      - sample_rate
+      type: object
+    RUMGroupByMissingNumber:
+      description: The missing value to use if there is a number valued facet.
+      format: double
+      type: number
+    RUMCompute:
+      description: A compute rule to compute metrics or timeseries.
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/RUMAggregationFunction'
+        interval:
+          description: 'The time buckets'' size (only used for type=timeseries)
+
+            Defaults to a resolution of 150 points.'
+          example: 5m
+          type: string
+        metric:
+          description: The metric to use.
+          example: '@duration'
+          type: string
+        type:
+          $ref: '#/components/schemas/RUMComputeType'
+      required:
+      - aggregation
+      type: object
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  parameters:
+    RumApplicationIDParameter:
+      description: RUM application ID.
+      in: path
+      name: app_id
+      required: true
+      schema:
+        type: string
+    RumRetentionFilterIDParameter:
+      description: Retention filter ID.
+      in: path
+      name: rf_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

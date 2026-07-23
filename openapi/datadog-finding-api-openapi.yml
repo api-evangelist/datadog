@@ -1,0 +1,462 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Finding API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Finding
+paths:
+  /api/v2/posture_management/findings/{finding_id}:
+    get:
+      description: Returns a single finding with message and resource configuration.
+      operationId: GetFinding
+      parameters:
+      - description: The ID of the finding.
+        in: path
+        name: finding_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: Return the finding for a given snapshot of time (Unix ms).
+        example: 1678721573794
+        in: query
+        name: snapshot_timestamp
+        required: false
+        schema:
+          format: int64
+          minimum: 1
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFindingResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/FindingsBadRequestResponse'
+        '403':
+          $ref: '#/components/responses/FindingsForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/FindingsNotFoundResponse'
+        '429':
+          $ref: '#/components/responses/FindingsTooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_findings_read
+      summary: Datadog Get a Finding
+      tags:
+      - Finding
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    FindingResourceDiscoveryDate:
+      description: The date on which the resource was discovered (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    DetailedFindingAttributes:
+      description: The JSON:API attributes of the detailed finding.
+      properties:
+        evaluation:
+          $ref: '#/components/schemas/FindingEvaluation'
+        evaluation_changed_at:
+          $ref: '#/components/schemas/FindingEvaluationChangedAt'
+        message:
+          description: The remediation message for this finding.
+          example: '## Remediation
+
+
+            ### From the console
+
+
+            1. Go to Storage Account
+
+            2. For each Storage Account, navigate to Data Protection
+
+            3. Select Set soft delete enabled and enter the number of days to retain soft deleted data.'
+          type: string
+        mute:
+          $ref: '#/components/schemas/FindingMute'
+        resource:
+          $ref: '#/components/schemas/FindingResource'
+        resource_configuration:
+          description: The resource configuration for this finding.
+          type: object
+        resource_discovery_date:
+          $ref: '#/components/schemas/FindingResourceDiscoveryDate'
+        resource_type:
+          $ref: '#/components/schemas/FindingResourceType'
+        rule:
+          $ref: '#/components/schemas/FindingRule'
+        status:
+          $ref: '#/components/schemas/FindingStatus'
+        tags:
+          $ref: '#/components/schemas/FindingTags'
+      type: object
+    FindingEvaluationChangedAt:
+      description: The date on which the evaluation for this finding changed (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    FindingResource:
+      description: The resource name of this finding.
+      example: my_resource_name
+      type: string
+    FindingMute:
+      additionalProperties: false
+      description: Information about the mute status of this finding.
+      properties:
+        description:
+          description: Additional information about the reason why this finding is muted or unmuted.
+          example: To be resolved later
+          type: string
+        expiration_date:
+          description: The expiration date of the mute or unmute action (Unix ms).
+          example: 1778721573794
+          format: int64
+          type: integer
+        muted:
+          description: Whether this finding is muted or unmuted.
+          example: true
+          type: boolean
+        reason:
+          $ref: '#/components/schemas/FindingMuteReason'
+        start_date:
+          description: The start of the mute period.
+          example: 1678721573794
+          format: int64
+          type: integer
+        uuid:
+          description: The ID of the user who muted or unmuted this finding.
+          example: e51c9744-d158-11ec-ad23-da7ad0900002
+          type: string
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    DetailedFinding:
+      description: A single finding with with message and resource configuration.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DetailedFindingAttributes'
+        id:
+          $ref: '#/components/schemas/FindingID'
+        type:
+          $ref: '#/components/schemas/DetailedFindingType'
+      type: object
+    DetailedFindingType:
+      default: detailed_finding
+      description: The JSON:API type for findings that have the message and resource configuration.
+      enum:
+      - detailed_finding
+      example: detailed_finding
+      type: string
+      x-enum-varnames:
+      - DETAILED_FINDING
+    FindingTags:
+      description: The tags associated with this finding.
+      example:
+      - cloud_provider:aws
+      - myTag:myValue
+      items:
+        description: The list of tags.
+        type: string
+      type: array
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    FindingResourceType:
+      description: The resource type of this finding.
+      example: azure_storage_account
+      type: string
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    FindingID:
+      description: The unique ID for this finding.
+      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
+      type: string
+    FindingEvaluation:
+      description: The evaluation of the finding.
+      enum:
+      - pass
+      - fail
+      example: pass
+      type: string
+      x-enum-varnames:
+      - PASS
+      - FAIL
+    GetFindingResponse:
+      description: The expected response schema when getting a finding.
+      properties:
+        data:
+          $ref: '#/components/schemas/DetailedFinding'
+      required:
+      - data
+      type: object
+    FindingStatus:
+      description: The status of the finding.
+      enum:
+      - critical
+      - high
+      - medium
+      - low
+      - info
+      example: critical
+      type: string
+      x-enum-varnames:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      - INFO
+    FindingMuteReason:
+      description: The reason why this finding is muted or unmuted.
+      enum:
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
+      example: ACCEPTED_RISK
+      type: string
+      x-enum-varnames:
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
+    FindingRule:
+      additionalProperties: false
+      description: The rule that triggered this finding.
+      properties:
+        id:
+          description: The ID of the rule that triggered this finding.
+          example: dv2-jzf-41i
+          type: string
+        name:
+          description: The name of the rule that triggered this finding.
+          example: Soft delete is enabled for Azure Storage
+          type: string
+      type: object
+  responses:
+    FindingsTooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Too many requests: The rate limit set by the API has been exceeded.'
+    FindingsNotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Not Found: The requested finding cannot be found.'
+    FindingsBadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
+    FindingsForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Forbidden: Access denied'
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

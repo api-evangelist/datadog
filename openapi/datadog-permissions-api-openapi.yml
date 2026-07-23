@@ -1,0 +1,784 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Permissions API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Permissions
+paths:
+  /api/v2/permissions:
+    get:
+      description: Returns a list of all permissions, including name, description, and ID.
+      operationId: ListPermissions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog List Permissions
+      tags:
+      - Permissions
+      x-given:
+        permission:
+          source: data[4]
+          step: there is a valid "permission" in the system
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/permissions:
+    x-merge-override:
+      delete: true
+      get: true
+      post: true
+    delete:
+      description: Removes a permission from a role.
+      operationId: RemovePermissionFromRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToPermission'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Revoke Permission
+      tags:
+      - Permissions
+      x-codegen-request-body-name: body
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Returns a list of all permissions for a single role.
+      operationId: ListRolePermissions
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog List Permissions for a Role
+      tags:
+      - Permissions
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a permission to a role.
+      operationId: AddPermissionToRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToPermission'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Grant Permission to a Role
+      tags:
+      - Permissions
+      x-codegen-request-body-name: body
+      x-given:
+        permission_role:
+          parameters:
+          - name: role_id
+            source: role.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ permission.id }}\",\n    \"type\": \"{{ permission.type }}\"\n  }\n}"
+          step: the "permission" is granted to the "role"
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/permission-settings:
+    get:
+      description: Get all permission settings for a given team.
+      operationId: GetTeamPermissionSettings
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamPermissionSettingsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get Permission Settings for a Team
+      tags:
+      - Permissions
+      x-menu-order: 17
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/permission-settings/{action}:
+    put:
+      description: Update a team permission setting for a given team.
+      operationId: UpdateTeamPermissionSetting
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: action
+        required: true
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamPermissionSettingUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamPermissionSettingResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Update Permission Setting for Team
+      tags:
+      - Permissions
+      x-codegen-request-body-name: body
+      x-menu-order: 18
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users/{user_id}/permissions:
+    x-merge-override:
+      get: true
+    get:
+      description: 'Get a user permission set. Returns a list of the user’s permissions
+
+        granted by the associated user''s roles.'
+      operationId: ListUserPermissions
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get a User Permissions
+      tags:
+      - Permissions
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RelationshipToPermission:
+      description: Relationship to a permissions object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToPermissionData'
+      type: object
+      x-merge-override:
+        required: false
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    TeamPermissionSettingType:
+      default: team_permission_settings
+      description: Team permission setting type
+      enum:
+      - team_permission_settings
+      example: team_permission_settings
+      type: string
+      x-enum-varnames:
+      - TEAM_PERMISSION_SETTINGS
+    TeamPermissionSettingValues:
+      description: Possible values for action
+      items:
+        $ref: '#/components/schemas/TeamPermissionSettingValue'
+      readOnly: true
+      type: array
+    TeamPermissionSettingUpdateAttributes:
+      description: Team permission setting update attributes
+      properties:
+        value:
+          $ref: '#/components/schemas/TeamPermissionSettingValue'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    TeamPermissionSettingAttributes:
+      description: Team permission setting attributes
+      properties:
+        action:
+          $ref: '#/components/schemas/TeamPermissionSettingSerializerAction'
+        editable:
+          description: Whether or not the permission setting is editable by the current user
+          readOnly: true
+          type: boolean
+          example: true
+        options:
+          $ref: '#/components/schemas/TeamPermissionSettingValues'
+        title:
+          description: The team permission name
+          readOnly: true
+          type: string
+          example: Example Monitor
+        value:
+          $ref: '#/components/schemas/TeamPermissionSettingValue'
+      type: object
+    TeamPermissionSettingsResponse:
+      description: Team permission settings response
+      properties:
+        data:
+          description: Team permission settings response data
+          items:
+            $ref: '#/components/schemas/TeamPermissionSetting'
+          type: array
+      type: object
+    TeamPermissionSetting:
+      description: Team permission setting
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamPermissionSettingAttributes'
+        id:
+          description: The team permission setting's identifier
+          example: TeamPermission-aeadc05e-98a8-11ec-ac2c-da7ad0900001-edit
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamPermissionSettingType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    PermissionAttributes:
+      description: Attributes of a permission.
+      properties:
+        created:
+          description: Creation time of the permission.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the permission.
+          type: string
+          example: example_value
+        display_name:
+          description: Displayed name for the permission.
+          type: string
+          example: Example Monitor
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
+      type: object
+    TeamPermissionSettingUpdateRequest:
+      description: Team permission setting update request
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamPermissionSettingUpdate'
+      required:
+      - data
+      type: object
+    PermissionsResponse:
+      description: Payload with API-returned permissions.
+      properties:
+        data:
+          description: Array of permissions.
+          items:
+            $ref: '#/components/schemas/Permission'
+          type: array
+      type: object
+    TeamPermissionSettingResponse:
+      description: Team permission setting response
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamPermissionSetting'
+      type: object
+    TeamPermissionSettingSerializerAction:
+      description: The identifier for the action
+      enum:
+      - manage_membership
+      - edit
+      readOnly: true
+      type: string
+      x-enum-varnames:
+      - MANAGE_MEMBERSHIP
+      - EDIT
+    TeamPermissionSettingUpdate:
+      description: Team permission setting update
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamPermissionSettingUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/TeamPermissionSettingType'
+      required:
+      - type
+      type: object
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    TeamPermissionSettingValue:
+      description: What type of user is allowed to perform the specified action
+      enum:
+      - admins
+      - members
+      - organization
+      - user_access_manage
+      - teams_manage
+      type: string
+      x-enum-varnames:
+      - ADMINS
+      - MEMBERS
+      - ORGANIZATION
+      - USER_ACCESS_MANAGE
+      - TEAMS_MANAGE
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+  parameters:
+    UserID:
+      description: The ID of the user.
+      in: path
+      name: user_id
+      required: true
+      schema:
+        example: 00000000-0000-9999-0000-000000000000
+        type: string
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

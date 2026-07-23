@@ -1,0 +1,479 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Archives API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Archives
+paths:
+  /api/v2/logs/config/archives:
+    get:
+      description: Get the list of configured logs archives with their definitions.
+      operationId: ListLogsArchives
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsArchives'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Archives
+      tags:
+      - Archives
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_archives
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    LogsArchiveDestinationGCS:
+      description: The GCS archive destination.
+      properties:
+        bucket:
+          description: The bucket where the archive will be stored.
+          example: bucket-name
+          type: string
+        integration:
+          $ref: '#/components/schemas/LogsArchiveIntegrationGCS'
+        path:
+          description: The archive path.
+          type: string
+          example: example_value
+        type:
+          $ref: '#/components/schemas/LogsArchiveDestinationGCSType'
+      required:
+      - bucket
+      - integration
+      - type
+      type: object
+    LogsArchiveDestinationGCSType:
+      default: gcs
+      description: Type of the GCS archive destination.
+      enum:
+      - gcs
+      example: gcs
+      type: string
+      x-enum-varnames:
+      - GCS
+    LogsArchiveDestinationAzure:
+      description: The Azure archive destination.
+      properties:
+        container:
+          description: The container where the archive will be stored.
+          example: container-name
+          type: string
+        integration:
+          $ref: '#/components/schemas/LogsArchiveIntegrationAzure'
+        path:
+          description: The archive path.
+          type: string
+          example: example_value
+        region:
+          description: The region where the archive will be stored.
+          type: string
+          example: example_value
+        storage_account:
+          description: The associated storage account.
+          example: account-name
+          type: string
+        type:
+          $ref: '#/components/schemas/LogsArchiveDestinationAzureType'
+      required:
+      - storage_account
+      - container
+      - integration
+      - type
+      type: object
+    LogsArchiveDestinationS3:
+      description: The S3 archive destination.
+      properties:
+        bucket:
+          description: The bucket where the archive will be stored.
+          example: bucket-name
+          type: string
+        encryption:
+          $ref: '#/components/schemas/LogsArchiveEncryptionS3'
+        integration:
+          $ref: '#/components/schemas/LogsArchiveIntegrationS3'
+        path:
+          description: The archive path.
+          type: string
+          example: example_value
+        storage_class:
+          $ref: '#/components/schemas/LogsArchiveStorageClassS3Type'
+        type:
+          $ref: '#/components/schemas/LogsArchiveDestinationS3Type'
+      required:
+      - bucket
+      - integration
+      - type
+      type: object
+    LogsArchiveState:
+      description: The state of the archive.
+      enum:
+      - UNKNOWN
+      - WORKING
+      - FAILING
+      - WORKING_AUTH_LEGACY
+      example: WORKING
+      type: string
+      x-enum-varnames:
+      - UNKNOWN
+      - WORKING
+      - FAILING
+      - WORKING_AUTH_LEGACY
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    LogsArchiveDestination:
+      description: An archive's destination.
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/LogsArchiveDestinationAzure'
+      - $ref: '#/components/schemas/LogsArchiveDestinationGCS'
+      - $ref: '#/components/schemas/LogsArchiveDestinationS3'
+      type: object
+    LogsArchiveAttributes:
+      description: The attributes associated with the archive.
+      properties:
+        destination:
+          $ref: '#/components/schemas/LogsArchiveDestination'
+        include_tags:
+          default: false
+          description: 'To store the tags in the archive, set the value "true".
+
+            If it is set to "false", the tags will be deleted when the logs are sent to the archive.'
+          example: false
+          type: boolean
+        name:
+          description: The archive name.
+          example: Nginx Archive
+          type: string
+        query:
+          description: The archive query/filter. Logs matching this query are included in the archive.
+          example: source:nginx
+          type: string
+        rehydration_max_scan_size_in_gb:
+          description: Maximum scan size for rehydration from this archive.
+          example: 100
+          format: int64
+          nullable: true
+          type: integer
+        rehydration_tags:
+          description: An array of tags to add to rehydrated logs from an archive.
+          example:
+          - team:intake
+          - team:app
+          items:
+            description: A given tag in the `<KEY>:<VALUE>` format.
+            type: string
+          type: array
+        state:
+          $ref: '#/components/schemas/LogsArchiveState'
+      required:
+      - name
+      - query
+      - destination
+      type: object
+    LogsArchiveStorageClassS3Type:
+      default: STANDARD
+      description: The storage class where the archive will be stored.
+      enum:
+      - STANDARD
+      - STANDARD_IA
+      - ONEZONE_IA
+      - INTELLIGENT_TIERING
+      - GLACIER_IR
+      example: STANDARD
+      type: string
+      x-enum-varnames:
+      - STANDARD
+      - STANDARD_IA
+      - ONEZONE_IA
+      - INTELLIGENT_TIERING
+      - GLACIER_IR
+    LogsArchiveDefinition:
+      description: The definition of an archive.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsArchiveAttributes'
+        id:
+          description: The archive ID.
+          example: a2zcMylnM4OCHpYusxIi3g
+          readOnly: true
+          type: string
+        type:
+          default: archives
+          description: The type of the resource. The value should always be archives.
+          example: archives
+          readOnly: true
+          type: string
+      required:
+      - type
+      type: object
+    LogsArchiveEncryptionS3:
+      description: The S3 encryption settings.
+      properties:
+        key:
+          description: An Amazon Resource Name (ARN) used to identify an AWS KMS key.
+          example: arn:aws:kms:us-east-1:012345678901:key/DatadogIntegrationRoleKms
+          type: string
+        type:
+          $ref: '#/components/schemas/LogsArchiveEncryptionS3Type'
+      required:
+      - type
+      type: object
+    LogsArchiveEncryptionS3Type:
+      description: Type of S3 encryption for a destination.
+      enum:
+      - NO_OVERRIDE
+      - SSE_S3
+      - SSE_KMS
+      example: SSE_S3
+      type: string
+      x-enum-varnames:
+      - NO_OVERRIDE
+      - SSE_S3
+      - SSE_KMS
+    LogsArchiveDestinationS3Type:
+      default: s3
+      description: Type of the S3 archive destination.
+      enum:
+      - s3
+      example: s3
+      type: string
+      x-enum-varnames:
+      - S3
+    LogsArchives:
+      description: The available archives.
+      properties:
+        data:
+          description: A list of archives.
+          items:
+            $ref: '#/components/schemas/LogsArchiveDefinition'
+          type: array
+      type: object
+    LogsArchiveIntegrationAzure:
+      description: The Azure archive's integration destination.
+      properties:
+        client_id:
+          description: A client ID.
+          example: aaaaaaaa-1a1a-1a1a-1a1a-aaaaaaaaaaaa
+          type: string
+        tenant_id:
+          description: A tenant ID.
+          example: aaaaaaaa-1a1a-1a1a-1a1a-aaaaaaaaaaaa
+          type: string
+      required:
+      - tenant_id
+      - client_id
+      type: object
+    LogsArchiveIntegrationGCS:
+      description: The GCS archive's integration destination.
+      properties:
+        client_email:
+          description: A client email.
+          example: youremail@example.com
+          type: string
+        project_id:
+          description: A project ID.
+          example: project-id
+          type: string
+      required:
+      - client_email
+      type: object
+    LogsArchiveDestinationAzureType:
+      default: azure
+      description: Type of the Azure archive destination.
+      enum:
+      - azure
+      example: azure
+      type: string
+      x-enum-varnames:
+      - AZURE
+    LogsArchiveIntegrationS3:
+      description: The S3 Archive's integration destination.
+      properties:
+        account_id:
+          description: The account ID for the integration.
+          example: '123456789012'
+          type: string
+        role_name:
+          description: The path of the integration.
+          example: role-name
+          type: string
+      required:
+      - role_name
+      - account_id
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

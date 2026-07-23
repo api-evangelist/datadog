@@ -1,0 +1,414 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Order API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Order
+paths:
+  /api/v2/logs/config/archive-order:
+    get:
+      description: 'Get the current order of your archives.
+
+        This endpoint takes no JSON arguments.'
+      operationId: GetLogsArchiveOrder
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsArchiveOrder'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get Archive Order
+      tags:
+      - Order
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: 'Update the order of your archives. Since logs are processed sequentially, reordering an archive may change
+
+        the structure and content of the data processed by other archives.
+
+
+        **Note**: Using the `PUT` method updates your archive''s order by replacing the current order
+
+        with the new one.'
+      operationId: UpdateLogsArchiveOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsArchiveOrder'
+        description: An object containing the new ordered list of archive IDs.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsArchiveOrder'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update Archive Order
+      tags:
+      - Order
+      x-codegen-request-body-name: body
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_archives
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/relationships/retention_filters:
+    patch:
+      description: 'Order RUM retention filters for a RUM application.
+
+        Returns RUM retention filter objects without attributes from the request body when the request is successful.'
+      operationId: OrderRetentionFilters
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFiltersOrderRequest'
+        description: New definition of the RUM retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFiltersOrderResponse'
+          description: Ordered
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Order Rum Retention Filters
+      tags:
+      - Order
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RumRetentionFiltersOrderRequest:
+      description: 'The list of RUM retention filter IDs along with their corresponding type to reorder.
+
+        All retention filter IDs should be included in the list created for a RUM application.'
+      properties:
+        data:
+          description: A list of RUM retention filter IDs along with type.
+          items:
+            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
+          type: array
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
+    LogsArchiveOrder:
+      description: A ordered list of archive IDs.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsArchiveOrderDefinition'
+      type: object
+    RumRetentionFiltersOrderData:
+      description: The RUM retention filter data for ordering.
+      properties:
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
+      type: object
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
+      type: string
+      x-enum-varnames:
+      - RETENTION_FILTERS
+    LogsArchiveOrderDefinition:
+      description: The definition of an archive order.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsArchiveOrderAttributes'
+        type:
+          $ref: '#/components/schemas/LogsArchiveOrderDefinitionType'
+      required:
+      - type
+      - attributes
+      type: object
+    LogsArchiveOrderAttributes:
+      description: The attributes associated with the archive order.
+      properties:
+        archive_ids:
+          description: 'An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array
+
+            define the overall archives order for Datadog.'
+          example:
+          - a2zcMylnM4OCHpYusxIi1g
+          - a2zcMylnM4OCHpYusxIi2g
+          - a2zcMylnM4OCHpYusxIi3g
+          items:
+            description: A given archive ID.
+            type: string
+          type: array
+      required:
+      - archive_ids
+      type: object
+    LogsArchiveOrderDefinitionType:
+      default: archive_order
+      description: Type of the archive order definition.
+      enum:
+      - archive_order
+      example: archive_order
+      type: string
+      x-enum-varnames:
+      - ARCHIVE_ORDER
+    RumRetentionFiltersOrderResponse:
+      description: The list of RUM retention filter IDs along with type.
+      properties:
+        data:
+          description: A list of RUM retention filter IDs along with type.
+          items:
+            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
+          type: array
+      type: object
+  responses:
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+  parameters:
+    RumApplicationIDParameter:
+      description: RUM application ID.
+      in: path
+      name: app_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

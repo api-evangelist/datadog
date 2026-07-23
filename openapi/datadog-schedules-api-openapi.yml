@@ -1,0 +1,2062 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Schedules API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Schedules
+paths:
+  /api/v2/downtime:
+    post:
+      description: Schedule a downtime.
+      operationId: CreateDowntime
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DowntimeCreateRequest'
+        description: Schedule a downtime request body.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DowntimeResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - monitors_downtime
+      summary: Datadog Schedule a Downtime
+      tags:
+      - Schedules
+      x-codegen-request-body-name: body
+      x-given:
+        downtime_v2:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"message\": \"test message\",\n      \"monitor_identifier\": {\n        \"monitor_tags\": [\"cat:hat\"]\n      },\n      \"scope\": \"test:{{ unique_lower_alnum }}\",\n      \"schedule\": {\n        \"start\": null\n      }\n    },\n    \"type\": \"downtime\"\n  }\n}"
+          step: there is a valid "downtime_v2" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - monitors_downtime
+      x-undo:
+        operationId: CancelDowntime
+        parameters:
+        - name: downtime_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/schedules:
+    post:
+      description: Create a new On-Call schedule
+      operationId: CreateOnCallSchedule
+      parameters:
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Create On-call Schedule
+      tags:
+      - Schedules
+      x-given:
+        schedule:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"layers\": [\n        {\n          \"effective_date\": \"{{ timeISO('now - 10d') }}\",\n          \"end_date\": \"{{ timeISO('now + 10d') }}\",\n          \"interval\": {\n            \"days\": 1\n          },\n          \"members\": [\n            {\n              \"user\": {\n                \"id\": \"{{ user.data.id }}\"\n              }\n            }\n          ],\n          \"name\": \"Layer 1\",\n          \"restrictions\": [\n            {\n              \"end_day\": \"friday\",\n              \"end_time\": \"17:00:00\",\n              \"start_day\": \"monday\",\n              \"start_time\": \"09:00:00\"\n            }\n          ],\n          \"rotation_start\": \"{{ timeISO('now - 5d') }}\"\n        }\n      ],\n      \"name\": \"{{ unique }}\",\n      \"time_zone\": \"America/New_York\"\n    },\n    \"relationships\": {\n      \"teams\": {\n        \"data\": [\n          {\n            \"id\": \"65aea9d0-941c-4607-bf8a-14fc0dac2820\",\n            \"type\": \"teams\"\n          }\n        ]\n      }\n    },\n    \"type\": \"schedules\"\n  }\n}"
+          step: there is a valid "schedule" in the system
+      x-menu-order: 1
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_write
+      x-undo:
+        operationId: DeleteOnCallSchedule
+        parameters:
+        - name: schedule_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/schedules/{schedule_id}:
+    delete:
+      description: Delete an On-Call schedule
+      operationId: DeleteOnCallSchedule
+      parameters:
+      - description: The ID of the schedule
+        in: path
+        name: schedule_id
+        required: true
+        schema:
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Delete On-call Schedule
+      tags:
+      - Schedules
+      x-menu-order: 3
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get an On-Call schedule
+      operationId: GetOnCallSchedule
+      parameters:
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The ID of the schedule
+        in: path
+        name: schedule_id
+        required: true
+        schema:
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+          description: OK
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get On-call Schedule
+      tags:
+      - Schedules
+      x-menu-order: 2
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Update a new On-Call schedule
+      operationId: UpdateOnCallSchedule
+      parameters:
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The ID of the schedule
+        in: path
+        name: schedule_id
+        required: true
+        schema:
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Update On-call Schedule
+      tags:
+      - Schedules
+      x-menu-order: 4
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/schedules/{schedule_id}/on-call:
+    get:
+      description: Retrieves the user who is on-call for the specified schedule at a given time.
+      operationId: GetScheduleOnCallUser
+      parameters:
+      - description: 'Specifies related resources to include in the response as a comma-separated list. Allowed value: `user`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The ID of the schedule.
+        in: path
+        name: schedule_id
+        required: true
+        schema:
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+      - description: Retrieves the on-call user at the given timestamp (ISO-8601). Defaults to the current time if omitted."
+        in: query
+        name: filter[at_ts]
+        schema:
+          example: '2025-05-07T02:53:01Z'
+          type: string
+        example: '2025-05-07T02:53:01Z'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get the Schedule On-call User
+      tags:
+      - Schedules
+      x-menu-order: 11
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ScheduleMemberRelationshipsUserDataType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    DowntimeScheduleRecurrencesCreateRequest:
+      description: A recurring downtime schedule definition.
+      properties:
+        recurrences:
+          description: A list of downtime recurrences.
+          items:
+            $ref: '#/components/schemas/DowntimeScheduleRecurrenceCreateUpdateRequest'
+          type: array
+        timezone:
+          default: UTC
+          description: The timezone in which to schedule the downtime.
+          example: America/New_York
+          type: string
+      required:
+      - recurrences
+      type: object
+    DowntimeRelationshipsMonitorData:
+      description: Data for the monitor.
+      nullable: true
+      properties:
+        id:
+          description: Monitor ID of the downtime.
+          example: '12345'
+          type: string
+        type:
+          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
+      type: object
+    DowntimeScheduleCurrentDowntimeResponse:
+      description: 'The most recent actual start and end dates for a recurring downtime. For a canceled downtime,
+
+        this is the previously occurring downtime. For active downtimes, this is the ongoing downtime, and for scheduled
+
+        downtimes it is the upcoming downtime.'
+      properties:
+        end:
+          description: The end of the current downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          nullable: true
+          type: string
+        start:
+          description: The start of the current downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+      type: object
+    DowntimeScheduleResponse:
+      description: 'The schedule that defines when the monitor starts, stops, and recurs. There are two types of schedules:
+
+        one-time and recurring. Recurring schedules may have up to five RRULE-based recurrences. If no schedules are
+
+        provided, the downtime will begin immediately and never end.'
+      oneOf:
+      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesResponse'
+      - $ref: '#/components/schemas/DowntimeScheduleOneTimeResponse'
+    DowntimeRelationshipsCreatedByData:
+      description: Data for the user who created the downtime.
+      nullable: true
+      properties:
+        id:
+          description: User ID of the downtime creator.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+    ScheduleMemberRelationshipsUserData:
+      description: Points to the user data associated with this schedule member, including an ID and type.
+      properties:
+        id:
+          description: The user's unique identifier.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/ScheduleMemberRelationshipsUserDataType'
+      required:
+      - type
+      - id
+      type: object
+    ScheduleRequestDataAttributesLayersItemsMembersItemsUser:
+      description: Identifies the user participating in this layer as a single object with an `id`.
+      properties:
+        id:
+          description: The user's ID.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+      type: object
+    DowntimeScheduleRecurrenceCreateUpdateRequest:
+      additionalProperties: {}
+      description: An object defining the recurrence of the downtime.
+      properties:
+        duration:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
+        rrule:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: 2020-01-02T03:04
+          nullable: true
+          type: string
+      required:
+      - duration
+      - rrule
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    ScheduleDataAttributes:
+      description: Provides core properties of a schedule object such as its name and time zone.
+      properties:
+        name:
+          description: A short name for the schedule.
+          example: Primary On-Call
+          type: string
+        time_zone:
+          description: The time zone in which this schedule operates.
+          example: America/New_York
+          type: string
+      type: object
+    ScheduleUpdateRequestDataAttributesLayersItems:
+      description: 'Represents a layer within a schedule update, including rotation details, members,
+
+        and optional restrictions.'
+      properties:
+        effective_date:
+          description: When this updated layer takes effect (ISO 8601 format).
+          example: '2025-02-03T05:00:00Z'
+          format: date-time
+          type: string
+        end_date:
+          description: When this updated layer should stop being active (ISO 8601 format).
+          example: '2025-12-31T00:00:00Z'
+          format: date-time
+          type: string
+        id:
+          description: A unique identifier for the layer being updated.
+          example: 00000000-0000-0000-0000-000000000001
+          type: string
+        interval:
+          $ref: '#/components/schemas/LayerAttributesInterval'
+        members:
+          description: The members assigned to this layer.
+          items:
+            $ref: '#/components/schemas/ScheduleRequestDataAttributesLayersItemsMembersItems'
+          type: array
+        name:
+          description: The name for this layer (for example, "Secondary Coverage").
+          example: Primary On-Call Layer
+          type: string
+        restrictions:
+          description: Any time restrictions that define when this layer is active.
+          items:
+            $ref: '#/components/schemas/TimeRestriction'
+          type: array
+        rotation_start:
+          description: The date/time at which the rotation begins (ISO 8601 format).
+          example: '2025-02-01T00:00:00Z'
+          format: date-time
+          type: string
+      required:
+      - effective_date
+      - interval
+      - members
+      - name
+      - rotation_start
+      type: object
+    LayerAttributesInterval:
+      description: Defines how often the rotation repeats, using a combination of days and optional seconds.
+      properties:
+        days:
+          description: The number of days in each rotation cycle.
+          example: 1
+          format: int32
+          maximum: 400
+          type: integer
+        seconds:
+          description: Any additional seconds for the rotation cycle (up to 30 days).
+          example: 300
+          format: int64
+          maximum: 2592000
+          type: integer
+      type: object
+    DowntimeScheduleRecurrenceRrule:
+      description: 'The `RRULE` standard for defining recurring events.
+
+        For example, to have a recurring event on the first day of each month, set the type to `rrule` and set the `FREQ` to `MONTHLY` and `BYMONTHDAY` to `1`.
+
+        Most common `rrule` options from the [iCalendar Spec](https://tools.ietf.org/html/rfc5545) are supported.
+
+
+        **Note**: Attributes specifying the duration in `RRULE` are not supported (for example, `DTSTART`, `DTEND`, `DURATION`).
+
+        More examples available in this [downtime guide](https://docs.datadoghq.com/monitors/guide/suppress-alert-with-downtimes/?tab=api).'
+      example: FREQ=MONTHLY;BYSETPOS=3;BYDAY=WE;INTERVAL=1
+      type: string
+    DowntimeIncludedMonitorType:
+      default: monitors
+      description: Monitor resource type.
+      enum:
+      - monitors
+      example: monitors
+      type: string
+      x-enum-varnames:
+      - MONITORS
+    UserAttributesStatus:
+      description: The user's status.
+      enum:
+      - active
+      - deactivated
+      - pending
+      type: string
+      x-enum-varnames:
+      - ACTIVE
+      - DEACTIVATED
+      - PENDING
+    ScheduleMemberRelationshipsUser:
+      description: Wraps the user data reference for a schedule member.
+      properties:
+        data:
+          $ref: '#/components/schemas/ScheduleMemberRelationshipsUserData'
+      required:
+      - data
+      type: object
+    LayerType:
+      default: layers
+      description: Layers resource type.
+      enum:
+      - layers
+      example: layers
+      type: string
+      x-enum-varnames:
+      - LAYERS
+    DataRelationshipsTeams:
+      description: Associates teams with this schedule in a data structure.
+      properties:
+        data:
+          description: An array of team references for this schedule.
+          items:
+            $ref: '#/components/schemas/DataRelationshipsTeamsDataItems'
+          type: array
+      type: object
+    ScheduleDataRelationshipsLayersDataItems:
+      description: Relates a layer to this schedule, identified by `id` and `type` (must be `layers`).
+      properties:
+        id:
+          description: The unique identifier of the layer in this relationship.
+          example: 00000000-0000-0000-0000-000000000001
+          type: string
+        type:
+          $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    ScheduleCreateRequestDataAttributesLayersItems:
+      description: Describes a schedule layer, including rotation intervals, members, restrictions, and timeline settings.
+      properties:
+        effective_date:
+          description: The date/time when this layer becomes active (in ISO 8601).
+          example: '2025-01-01T00:00:00Z'
+          format: date-time
+          type: string
+        end_date:
+          description: The date/time after which this layer no longer applies (in ISO 8601).
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        interval:
+          $ref: '#/components/schemas/LayerAttributesInterval'
+        members:
+          description: A list of members who participate in this layer's rotation.
+          items:
+            $ref: '#/components/schemas/ScheduleRequestDataAttributesLayersItemsMembersItems'
+          type: array
+        name:
+          description: The name of this layer.
+          example: Primary On-Call Layer
+          type: string
+        restrictions:
+          description: Zero or more time-based restrictions (for example, only weekdays, during business hours).
+          items:
+            $ref: '#/components/schemas/TimeRestriction'
+          type: array
+        rotation_start:
+          description: The date/time when the rotation for this layer starts (in ISO 8601).
+          example: '2025-01-01T00:00:00Z'
+          format: date-time
+          type: string
+      required:
+      - name
+      - interval
+      - rotation_start
+      - effective_date
+      - members
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    LayerAttributes:
+      description: Describes key properties of a Layer, including rotation details, name, start/end times, and any restrictions.
+      properties:
+        effective_date:
+          description: When the layer becomes active (ISO 8601).
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        end_date:
+          description: When the layer ceases to be active (ISO 8601).
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        interval:
+          $ref: '#/components/schemas/LayerAttributesInterval'
+        name:
+          description: The name of this layer.
+          example: Weekend Layer
+          type: string
+        restrictions:
+          description: An optional list of time restrictions for when this layer is in effect.
+          items:
+            $ref: '#/components/schemas/TimeRestriction'
+          type: array
+        rotation_start:
+          description: The date/time when the rotation starts (ISO 8601).
+          format: date-time
+          type: string
+          example: example_value
+      type: object
+    ScheduleCreateRequestDataRelationships:
+      description: Gathers relationship objects for the schedule creation request, including the teams to associate.
+      properties:
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      type: object
+    ScheduleMemberRelationships:
+      description: Defines relationships for a schedule member, primarily referencing a single user.
+      properties:
+        user:
+          $ref: '#/components/schemas/ScheduleMemberRelationshipsUser'
+      type: object
+    ScheduleUpdateRequestDataAttributes:
+      description: Defines the updatable attributes for a schedule, such as name, time zone, and layers.
+      properties:
+        layers:
+          description: The updated list of layers (rotations) for this schedule.
+          items:
+            $ref: '#/components/schemas/ScheduleUpdateRequestDataAttributesLayersItems'
+          type: array
+        name:
+          description: A short name for the schedule.
+          example: Primary On-Call
+          type: string
+        time_zone:
+          description: The time zone used when interpreting rotation times.
+          example: America/New_York
+          type: string
+      required:
+      - name
+      - time_zone
+      - layers
+      type: object
+    DowntimeDisplayTimezone:
+      default: UTC
+      description: 'The timezone in which to display the downtime''s start and end times in Datadog applications. This is not used
+
+        as an offset for scheduling.'
+      example: America/New_York
+      nullable: true
+      type: string
+    ScheduleDataRelationshipsLayersDataItemsType:
+      default: layers
+      description: Layers resource type.
+      enum:
+      - layers
+      example: layers
+      type: string
+      x-enum-varnames:
+      - LAYERS
+    DowntimeResponseAttributes:
+      description: Downtime details.
+      properties:
+        canceled:
+          description: Time that the downtime was canceled.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          nullable: true
+          type: string
+        created:
+          description: Creation time of the downtime.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          type: string
+        display_timezone:
+          $ref: '#/components/schemas/DowntimeDisplayTimezone'
+        message:
+          $ref: '#/components/schemas/DowntimeMessage'
+        modified:
+          description: Time that the downtime was last modified.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          type: string
+        monitor_identifier:
+          $ref: '#/components/schemas/DowntimeMonitorIdentifier'
+        mute_first_recovery_notification:
+          $ref: '#/components/schemas/DowntimeMuteFirstRecoveryNotification'
+        notify_end_states:
+          $ref: '#/components/schemas/DowntimeNotifyEndStates'
+        notify_end_types:
+          $ref: '#/components/schemas/DowntimeNotifyEndTypes'
+        schedule:
+          $ref: '#/components/schemas/DowntimeScheduleResponse'
+        scope:
+          $ref: '#/components/schemas/DowntimeScope'
+        status:
+          $ref: '#/components/schemas/DowntimeStatus'
+      type: object
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    DowntimeCreateRequestAttributes:
+      description: Downtime details.
+      properties:
+        display_timezone:
+          $ref: '#/components/schemas/DowntimeDisplayTimezone'
+        message:
+          $ref: '#/components/schemas/DowntimeMessage'
+        monitor_identifier:
+          $ref: '#/components/schemas/DowntimeMonitorIdentifier'
+        mute_first_recovery_notification:
+          $ref: '#/components/schemas/DowntimeMuteFirstRecoveryNotification'
+        notify_end_states:
+          $ref: '#/components/schemas/DowntimeNotifyEndStates'
+        notify_end_types:
+          $ref: '#/components/schemas/DowntimeNotifyEndTypes'
+        schedule:
+          $ref: '#/components/schemas/DowntimeScheduleCreateRequest'
+        scope:
+          $ref: '#/components/schemas/DowntimeScope'
+      required:
+      - scope
+      - monitor_identifier
+      type: object
+    ScheduleDataRelationshipsLayers:
+      description: Associates layers with this schedule in a data structure.
+      properties:
+        data:
+          description: An array of layer references for this schedule.
+          items:
+            $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItems'
+          type: array
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    DataRelationshipsTeamsDataItemsType:
+      default: teams
+      description: Teams resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
+    TimeRestriction:
+      description: Defines a single time restriction rule with start and end times and the applicable weekdays.
+      properties:
+        end_day:
+          $ref: '#/components/schemas/Weekday'
+        end_time:
+          description: Specifies the ending time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        start_day:
+          $ref: '#/components/schemas/Weekday'
+        start_time:
+          description: Specifies the starting time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+      type: object
+    ScheduleCreateRequest:
+      description: The top-level request body for schedule creation, wrapping a `data` object.
+      example:
+        data:
+          attributes:
+            layers:
+            - effective_date: '2025-02-03T05:00:00Z'
+              end_date: '2025-12-31T00:00:00Z'
+              interval:
+                days: 1
+              members:
+              - user:
+                  id: 00000000-aba1-0000-0000-000000000000
+              name: Layer 1
+              restrictions:
+              - end_day: friday
+                end_time: '17:00:00'
+                start_day: monday
+                start_time: 09:00:00
+              rotation_start: '2025-02-01T00:00:00Z'
+            name: On-Call Schedule
+            time_zone: America/New_York
+          relationships:
+            teams:
+              data:
+              - id: 00000000-da3a-0000-0000-000000000000
+                type: teams
+          type: schedules
+      properties:
+        data:
+          $ref: '#/components/schemas/ScheduleCreateRequestData'
+      required:
+      - data
+      type: object
+    DowntimeMessage:
+      description: 'A message to include with notifications for this downtime. Email notifications can be sent to specific users
+
+        by using the same `@username` notation as events.'
+      example: Message about the downtime
+      nullable: true
+      type: string
+    ShiftDataRelationships:
+      description: The definition of `ShiftDataRelationships` object.
+      properties:
+        user:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUser'
+      type: object
+    ShiftDataAttributes:
+      description: The definition of `ShiftDataAttributes` object.
+      properties:
+        end:
+          description: The end time of the shift.
+          format: date-time
+          type: string
+          example: example_value
+        start:
+          description: The start time of the shift.
+          format: date-time
+          type: string
+          example: example_value
+      type: object
+    ShiftDataType:
+      default: shifts
+      description: Indicates that the resource is of type 'shifts'.
+      enum:
+      - shifts
+      example: shifts
+      type: string
+      x-enum-varnames:
+      - SHIFTS
+    ScheduleDataIncludedItem:
+      description: Any additional resources related to this schedule, such as teams and layers.
+      oneOf:
+      - $ref: '#/components/schemas/TeamReference'
+      - $ref: '#/components/schemas/Layer'
+      - $ref: '#/components/schemas/ScheduleMember'
+      - $ref: '#/components/schemas/ScheduleUser'
+    ShiftDataRelationshipsUserData:
+      description: Represents a reference to the user assigned to this shift, containing the user's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUserDataType'
+      required:
+      - type
+      - id
+      type: object
+    LayerRelationshipsMembers:
+      description: Holds an array of references to the members of a Layer, each containing member IDs.
+      properties:
+        data:
+          description: The list of members who belong to this layer.
+          items:
+            $ref: '#/components/schemas/LayerRelationshipsMembersDataItems'
+          type: array
+      type: object
+    ScheduleUpdateRequestDataType:
+      default: schedules
+      description: Schedules resource type.
+      enum:
+      - schedules
+      example: schedules
+      type: string
+      x-enum-varnames:
+      - SCHEDULES
+    ScheduleUser:
+      description: Represents a user object in the context of a schedule, including their `id`, type, and basic attributes.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleUserAttributes'
+        id:
+          description: The unique user identifier.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ScheduleUserType'
+      required:
+      - type
+      type: object
+    DowntimeMuteFirstRecoveryNotification:
+      description: If the first recovery notification during a downtime should be muted.
+      example: false
+      type: boolean
+    Schedule:
+      description: Top-level container for a schedule object, including both the `data` payload and any related `included` resources (such as teams, layers, or members).
+      example:
+        data:
+          attributes:
+            name: On-Call Schedule
+            time_zone: America/New_York
+          id: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          relationships:
+            layers:
+              data:
+              - id: 00000000-0000-0000-0000-000000000001
+                type: layers
+            teams:
+              data:
+              - id: 00000000-da3a-0000-0000-000000000000
+                type: teams
+          type: schedules
+        included:
+        - attributes:
+            avatar: ''
+            description: Team 1 description
+            handle: team1
+            name: Team 1
+          id: 00000000-da3a-0000-0000-000000000000
+          type: teams
+        - attributes:
+            effective_date: '2025-02-03T05:00:00Z'
+            end_date: '2025-12-31T00:00:00Z'
+            interval:
+              days: 1
+            name: Layer 1
+            restrictions:
+            - end_day: friday
+              end_time: '17:00:00'
+              start_day: monday
+              start_time: 09:00:00
+            rotation_start: '2025-02-01T00:00:00Z'
+          id: 00000000-0000-0000-0000-000000000001
+          relationships:
+            members:
+              data:
+              - id: 00000000-0000-0000-0000-000000000002
+                type: members
+          type: layers
+        - id: 00000000-0000-0000-0000-000000000002
+          relationships:
+            user:
+              data:
+                id: 00000000-aba1-0000-0000-000000000000
+                type: users
+          type: members
+        - attributes:
+            email: foo@bar.com
+            name: User 1
+          id: 00000000-aba1-0000-0000-000000000000
+          type: users
+      properties:
+        data:
+          $ref: '#/components/schemas/ScheduleData'
+        included:
+          description: Any additional resources related to this schedule, such as teams and layers.
+          items:
+            $ref: '#/components/schemas/ScheduleDataIncludedItem'
+          type: array
+      type: object
+    DowntimeCreateRequest:
+      description: Request for creating a downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeCreateRequestData'
+      required:
+      - data
+      type: object
+    ShiftIncluded:
+      description: The definition of `ShiftIncluded` object.
+      oneOf:
+      - $ref: '#/components/schemas/ScheduleUser'
+    ScheduleDataRelationships:
+      description: Groups the relationships for a schedule object, referencing layers and teams.
+      properties:
+        layers:
+          $ref: '#/components/schemas/ScheduleDataRelationshipsLayers'
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      type: object
+    DowntimeScheduleRecurrenceDuration:
+      description: The length of the downtime. Must begin with an integer and end with one of 'm', 'h', d', or 'w'.
+      example: 123d
+      type: string
+    ScheduleUpdateRequestDataRelationships:
+      description: Houses relationships for the schedule update, typically referencing teams.
+      properties:
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      type: object
+    TeamReference:
+      description: Provides a reference to a team, including ID, type, and basic attributes/relationships.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamReferenceAttributes'
+        id:
+          description: The team's unique identifier.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/TeamReferenceType'
+      required:
+      - type
+      type: object
+    DowntimeScheduleRecurrenceResponse:
+      description: An RRULE-based recurring downtime.
+      properties:
+        duration:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
+        rrule:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: 2020-01-02T03:04
+          type: string
+      type: object
+    DowntimeMonitorIdentifier:
+      description: Monitor identifier for the downtime.
+      oneOf:
+      - $ref: '#/components/schemas/DowntimeMonitorIdentifierId'
+      - $ref: '#/components/schemas/DowntimeMonitorIdentifierTags'
+    ScheduleMember:
+      description: Represents a single member entry in a schedule, referencing a specific user.
+      properties:
+        id:
+          description: The unique identifier for this schedule member.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ScheduleMemberRelationships'
+        type:
+          $ref: '#/components/schemas/ScheduleMemberType'
+      required:
+      - type
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    TeamReferenceAttributes:
+      description: Encapsulates the basic attributes of a Team reference, such as name, handle, and an optional avatar or description.
+      properties:
+        avatar:
+          description: URL or reference for the team's avatar (if available).
+          type: string
+          example: example_value
+        description:
+          description: A short text describing the team.
+          type: string
+          example: example_value
+        handle:
+          description: A unique handle/slug for the team.
+          type: string
+          example: example_value
+        name:
+          description: The full, human-readable name of the team.
+          type: string
+          example: Example Monitor
+      type: object
+    DowntimeMonitorIncludedAttributes:
+      description: Attributes of the monitor identified by the downtime.
+      properties:
+        name:
+          description: The name of the monitor identified by the downtime.
+          example: A monitor name
+          type: string
+      type: object
+    ShiftData:
+      description: The definition of `ShiftData` object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ShiftDataAttributes'
+        id:
+          description: The `ShiftData` `id`.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ShiftDataRelationships'
+        type:
+          $ref: '#/components/schemas/ShiftDataType'
+      required:
+      - type
+      type: object
+    ScheduleDataType:
+      default: schedules
+      description: Schedules resource type.
+      enum:
+      - schedules
+      example: schedules
+      type: string
+      x-enum-varnames:
+      - SCHEDULES
+    ScheduleUserType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    DowntimeResponseData:
+      description: Downtime data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeResponseAttributes'
+        id:
+          description: The downtime ID.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/DowntimeRelationships'
+        type:
+          $ref: '#/components/schemas/DowntimeResourceType'
+      type: object
+    ScheduleUpdateRequestData:
+      description: Contains all data needed to update an existing schedule, including its attributes (such as name and time zone) and any relationships to teams.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleUpdateRequestDataAttributes'
+        id:
+          description: The ID of the schedule to be updated.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        relationships:
+          $ref: '#/components/schemas/ScheduleUpdateRequestDataRelationships'
+        type:
+          $ref: '#/components/schemas/ScheduleUpdateRequestDataType'
+      required:
+      - type
+      - id
+      - attributes
+      type: object
+    Weekday:
+      description: A day of the week.
+      enum:
+      - monday
+      - tuesday
+      - wednesday
+      - thursday
+      - friday
+      - saturday
+      - sunday
+      type: string
+      x-enum-varnames:
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      - SATURDAY
+      - SUNDAY
+    DowntimeRelationshipsCreatedBy:
+      description: The user who created the downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeRelationshipsCreatedByData'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    DowntimeNotifyEndStates:
+      description: States that will trigger a monitor notification when the `notify_end_types` action occurs.
+      example:
+      - alert
+      - warn
+      items:
+        $ref: '#/components/schemas/DowntimeNotifyEndStateTypes'
+      type: array
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    Layer:
+      description: Encapsulates a layer resource, holding attributes like rotation details, plus relationships to the members covering that layer.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LayerAttributes'
+        id:
+          description: A unique identifier for this layer.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/LayerRelationships'
+        type:
+          $ref: '#/components/schemas/LayerType'
+      required:
+      - type
+      type: object
+    DowntimeMonitorIncludedItem:
+      description: Information about the monitor identified by the downtime.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeMonitorIncludedAttributes'
+        id:
+          description: ID of the monitor identified by the downtime.
+          example: 12345
+          format: int64
+          type: integer
+        type:
+          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
+      type: object
+    Shift:
+      description: The definition of `Shift` object.
+      example:
+        data:
+          attributes:
+            end: '2025-05-07T03:53:01.206662873Z'
+            start: '2025-05-07T02:53:01.206662814Z'
+          id: 00000000-0000-0000-0000-000000000000
+          relationships:
+            user:
+              data:
+                id: 00000000-aba1-0000-0000-000000000000
+                type: users
+          type: shifts
+        included:
+        - attributes:
+            email: foo@bar.com
+            name: User 1
+            status: ''
+          id: 00000000-aba1-0000-0000-000000000000
+          type: users
+      properties:
+        data:
+          $ref: '#/components/schemas/ShiftData'
+          nullable: true
+        included:
+          description: The `Shift` `included`.
+          items:
+            $ref: '#/components/schemas/ShiftIncluded'
+          type: array
+      type: object
+    LayerRelationshipsMembersDataItemsType:
+      default: members
+      description: Members resource type.
+      enum:
+      - members
+      example: members
+      type: string
+      x-enum-varnames:
+      - MEMBERS
+    ScheduleCreateRequestDataAttributes:
+      description: Describes the main attributes for creating a new schedule, including name, layers, and time zone.
+      properties:
+        layers:
+          description: The layers of On-Call coverage that define rotation intervals and restrictions.
+          items:
+            $ref: '#/components/schemas/ScheduleCreateRequestDataAttributesLayersItems'
+          type: array
+        name:
+          description: A human-readable name for the new schedule.
+          example: Team A On-Call
+          type: string
+        time_zone:
+          description: The time zone in which the schedule is defined.
+          example: America/New_York
+          type: string
+      required:
+      - name
+      - time_zone
+      - layers
+      type: object
+    DowntimeScheduleCreateRequest:
+      description: Schedule for the downtime.
+      oneOf:
+      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesCreateRequest'
+      - $ref: '#/components/schemas/DowntimeScheduleOneTimeCreateUpdateRequest'
+    DowntimeMonitorIdentifierTags:
+      additionalProperties: {}
+      description: Object of the monitor tags.
+      properties:
+        monitor_tags:
+          description: 'A list of monitor tags. For example, tags that are applied directly to monitors,
+
+            not tags that are used in monitor queries (which are filtered by the scope parameter), to which the downtime applies.
+
+            The resulting downtime applies to monitors that match **all** provided monitor tags. Setting `monitor_tags`
+
+            to `[*]` configures the downtime to mute all monitors for the given scope.'
+          example:
+          - service:postgres
+          - team:frontend
+          items:
+            description: A list of monitor tags.
+            example: service:postgres
+            type: string
+          minItems: 1
+          type: array
+      required:
+      - monitor_tags
+      type: object
+    DowntimeRelationships:
+      description: All relationships associated with downtime.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/DowntimeRelationshipsCreatedBy'
+        monitor:
+          $ref: '#/components/schemas/DowntimeRelationshipsMonitor'
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    ScheduleData:
+      description: Represents the primary data object for a schedule, linking attributes and relationships.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleDataAttributes'
+        id:
+          description: The schedule's unique identifier.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        relationships:
+          $ref: '#/components/schemas/ScheduleDataRelationships'
+        type:
+          $ref: '#/components/schemas/ScheduleDataType'
+      required:
+      - type
+      type: object
+    DowntimeRelationshipsMonitor:
+      description: The monitor identified by the downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeRelationshipsMonitorData'
+      type: object
+    DowntimeNotifyEndStateActions:
+      description: Action that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
+      enum:
+      - canceled
+      - expired
+      example: canceled
+      type: string
+      x-enum-varnames:
+      - CANCELED
+      - EXPIRED
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    DowntimeNotifyEndTypes:
+      description: Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
+      example:
+      - canceled
+      - expired
+      items:
+        $ref: '#/components/schemas/DowntimeNotifyEndStateActions'
+      type: array
+    DataRelationshipsTeamsDataItems:
+      description: Relates a team to this schedule, identified by `id` and `type` (must be `teams`).
+      properties:
+        id:
+          description: The unique identifier of the team in this relationship.
+          example: 00000000-da3a-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/DataRelationshipsTeamsDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    ScheduleRequestDataAttributesLayersItemsMembersItems:
+      description: Defines a single member within a schedule layer, including the reference to the underlying user.
+      properties:
+        user:
+          $ref: '#/components/schemas/ScheduleRequestDataAttributesLayersItemsMembersItemsUser'
+      type: object
+    DowntimeResourceType:
+      default: downtime
+      description: Downtime resource type.
+      enum:
+      - downtime
+      example: downtime
+      type: string
+      x-enum-varnames:
+      - DOWNTIME
+    ScheduleUserAttributes:
+      description: Provides basic user information for a schedule, including a name and email address.
+      properties:
+        email:
+          description: The user's email address.
+          example: jane.doe@example.com
+          type: string
+        name:
+          description: The user's name.
+          example: Jane Doe
+          type: string
+        status:
+          $ref: '#/components/schemas/UserAttributesStatus'
+      type: object
+    DowntimeMonitorIdentifierId:
+      additionalProperties: {}
+      description: Object of the monitor identifier.
+      properties:
+        monitor_id:
+          description: ID of the monitor to prevent notifications.
+          example: 123
+          format: int64
+          type: integer
+      required:
+      - monitor_id
+      type: object
+    LayerRelationshipsMembersDataItems:
+      description: 'Represents a single member object in a layer''s `members` array, referencing
+
+        a unique Datadog user ID.'
+      properties:
+        id:
+          description: The unique user ID of the layer member.
+          example: 00000000-0000-0000-0000-000000000002
+          type: string
+        type:
+          $ref: '#/components/schemas/LayerRelationshipsMembersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    DowntimeScheduleOneTimeCreateUpdateRequest:
+      additionalProperties: false
+      description: A one-time downtime definition.
+      properties:
+        end:
+          description: 'ISO-8601 Datetime to end the downtime. Must include a UTC offset of zero. If not provided, the
+
+            downtime continues forever.'
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          nullable: true
+          type: string
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must include a UTC offset of zero. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ScheduleCreateRequestData:
+      description: The core data wrapper for creating a schedule, encompassing attributes, relationships, and the resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleCreateRequestDataAttributes'
+        relationships:
+          $ref: '#/components/schemas/ScheduleCreateRequestDataRelationships'
+        type:
+          $ref: '#/components/schemas/ScheduleCreateRequestDataType'
+      required:
+      - type
+      - attributes
+      type: object
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    ScheduleCreateRequestDataType:
+      default: schedules
+      description: Schedules resource type.
+      enum:
+      - schedules
+      example: schedules
+      type: string
+      x-enum-varnames:
+      - SCHEDULES
+    ShiftDataRelationshipsUserDataType:
+      default: users
+      description: Indicates that the related resource is of type 'users'.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ScheduleMemberType:
+      default: members
+      description: Schedule Members resource type.
+      enum:
+      - members
+      example: members
+      type: string
+      x-enum-varnames:
+      - MEMBERS
+    DowntimeResponse:
+      description: 'Downtiming gives you greater control over monitor notifications by
+
+        allowing you to globally exclude scopes from alerting.
+
+        Downtime settings, which can be scheduled with start and end times,
+
+        prevent all alerting related to specified Datadog tags.'
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeResponseData'
+        included:
+          description: Array of objects related to the downtime that the user requested.
+          items:
+            $ref: '#/components/schemas/DowntimeResponseIncludedItem'
+          type: array
+      type: object
+    DowntimeStatus:
+      description: The current status of the downtime.
+      enum:
+      - active
+      - canceled
+      - ended
+      - scheduled
+      example: active
+      type: string
+      x-enum-varnames:
+      - ACTIVE
+      - CANCELED
+      - ENDED
+      - SCHEDULED
+    LayerRelationships:
+      description: Holds references to objects related to the Layer entity, such as its members.
+      properties:
+        members:
+          $ref: '#/components/schemas/LayerRelationshipsMembers'
+      type: object
+    DowntimeNotifyEndStateTypes:
+      description: State that will trigger a monitor notification when the `notify_end_types` action occurs.
+      enum:
+      - alert
+      - no data
+      - warn
+      example: alert
+      type: string
+      x-enum-varnames:
+      - ALERT
+      - NO_DATA
+      - WARN
+    DowntimeScheduleRecurrencesResponse:
+      description: A recurring downtime schedule definition.
+      properties:
+        current_downtime:
+          $ref: '#/components/schemas/DowntimeScheduleCurrentDowntimeResponse'
+        recurrences:
+          description: A list of downtime recurrences.
+          items:
+            $ref: '#/components/schemas/DowntimeScheduleRecurrenceResponse'
+          maxItems: 5
+          minItems: 1
+          type: array
+        timezone:
+          default: UTC
+          description: 'The timezone in which to schedule the downtime. This affects recurring start and end dates.
+
+            Must match `display_timezone`.'
+          example: America/New_York
+          type: string
+      required:
+      - recurrences
+      type: object
+    DowntimeCreateRequestData:
+      description: Object to create a downtime.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/DowntimeResourceType'
+      required:
+      - type
+      - attributes
+      type: object
+    DowntimeScheduleOneTimeResponse:
+      description: A one-time downtime definition.
+      properties:
+        end:
+          description: ISO-8601 Datetime to end the downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          nullable: true
+          type: string
+        start:
+          description: ISO-8601 Datetime to start the downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+      required:
+      - start
+      type: object
+    ShiftDataRelationshipsUser:
+      description: Defines the relationship between a shift and the user who is working that shift.
+      properties:
+        data:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUserData'
+      required:
+      - data
+      type: object
+    DowntimeResponseIncludedItem:
+      description: An object related to a downtime.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/DowntimeMonitorIncludedItem'
+    DowntimeScope:
+      description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
+      example: env:(staging OR prod) AND datacenter:us-east-1
+      type: string
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    ScheduleUpdateRequest:
+      description: A top-level wrapper for a schedule update request, referring to the `data` object with the new details.
+      example:
+        data:
+          attributes:
+            layers:
+            - effective_date: '2025-02-03T05:00:00Z'
+              end_date: '2025-12-31T00:00:00Z'
+              interval:
+                seconds: 300
+              members:
+              - user:
+                  id: 00000000-aba1-0000-0000-000000000000
+              name: Layer 1
+              restrictions:
+              - end_day: friday
+                end_time: '17:00:00'
+                start_day: monday
+                start_time: 09:00:00
+              rotation_start: '2025-02-01T00:00:00Z'
+            name: On-Call Schedule Updated
+            time_zone: America/New_York
+          id: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          relationships:
+            teams:
+              data:
+              - id: 00000000-da3a-0000-0000-000000000000
+                type: teams
+          type: schedules
+      properties:
+        data:
+          $ref: '#/components/schemas/ScheduleUpdateRequestData'
+      required:
+      - data
+      type: object
+    TeamReferenceType:
+      default: teams
+      description: Teams resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

@@ -1,0 +1,1288 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Configuration API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Configuration
+paths:
+  /api/v2/metrics/{metric_name}/estimate:
+    get:
+      description: Returns the estimated cardinality for a metric with a given tag, percentile and number of aggregations configuration using Metrics without Limits&trade;.
+      operationId: EstimateMetricsOutputSeries
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      - description: Filtered tag keys that the metric is configured to query with.
+        example: app,host
+        in: query
+        name: filter[groups]
+        required: false
+        schema:
+          type: string
+      - description: The number of hours of look back (from now) to estimate cardinality with. If unspecified, it defaults to 0 hours.
+        example: 49
+        in: query
+        name: filter[hours_ago]
+        required: false
+        schema:
+          format: int32
+          maximum: 2147483647
+          minimum: 49
+          type: integer
+      - description: Deprecated. Number of aggregations has no impact on volume.
+        example: 1
+        in: query
+        name: filter[num_aggregations]
+        required: false
+        schema:
+          format: int32
+          maximum: 9
+          type: integer
+      - description: A boolean, for distribution metrics only, to estimate cardinality if the metric includes additional percentile aggregators.
+        example: true
+        in: query
+        name: filter[pct]
+        required: false
+        schema:
+          type: boolean
+      - description: A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour.
+        example: 6
+        in: query
+        name: filter[timespan_h]
+        required: false
+        schema:
+          format: int32
+          maximum: 2147483647
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricEstimateResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Tag Configuration Cardinality Estimator
+      tags:
+      - Configuration
+      x-menu-order: 11
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics/{metric_name}/tags:
+    delete:
+      description: 'Deletes a metric''s tag configuration. Can only be used with application
+
+        keys from users with the `Manage Tags for Metrics` permission.'
+      operationId: DeleteTagConfiguration
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '204':
+          description: No Content
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Delete a Tag Configuration
+      tags:
+      - Configuration
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - metric_tags_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Returns the tag configuration for the given metric name.
+      operationId: ListTagConfigurationByName
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+          description: Success
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - metrics_read
+      summary: Datadog List Tag Configuration by Name
+      tags:
+      - Configuration
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - metrics_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update the tag configuration of a metric or percentile aggregations of a distribution metric or custom aggregations
+
+        of a count, rate, or gauge metric. By setting `exclude_tags_mode` to true the behavior is changed
+
+        from an allow-list to a deny-list, and tags in the defined list will not be queryable.
+
+        Can only be used with application keys from users with the `Manage Tags for Metrics` permission. This endpoint requires
+
+        a tag configuration to be created first.'
+      operationId: UpdateTagConfiguration
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTagConfigurationUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Update a Tag Configuration
+      tags:
+      - Configuration
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - metric_tags_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create and define a list of queryable tag keys for an existing count/gauge/rate/distribution metric.
+
+        Optionally, include percentile aggregations on any distribution metric. By setting `exclude_tags_mode`
+
+        to true, the behavior is changed from an allow-list to a deny-list, and tags in the defined list are
+
+        not queryable. Can only be used with application keys of users with the `Manage Tags for Metrics`
+
+        permission.'
+      operationId: CreateTagConfiguration
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTagConfigurationCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTagConfigurationResponse'
+          description: Created
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Conflict
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Create a Tag Configuration
+      tags:
+      - Configuration
+      x-codegen-request-body-name: body
+      x-given:
+        metric_tag_configuration:
+          parameters:
+          - name: metric_name
+            value: '"{{ unique_alnum }}"'
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"tags\":[\"app\", \"datacenter\", \"{{ unique_alnum }}\"],\n      \"metric_type\":\"gauge\"\n     },\n     \"type\": \"manage_tags\",\n     \"id\": \"{{ unique_alnum }}\"\n  }\n}"
+          step: there is a valid "metric_tag_configuration" in the system
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - metric_tags_write
+      x-undo:
+        operationId: DeleteTagConfiguration
+        parameters:
+        - name: metric_name
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/monitor/policy:
+    get:
+      description: Get all monitor configuration policies.
+      operationId: ListMonitorConfigPolicies
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitorConfigPolicyListResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - monitors_read
+      summary: Datadog Get All Monitor Configuration Policies
+      tags:
+      - Configuration
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - monitors_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a monitor configuration policy.
+      operationId: CreateMonitorConfigPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorConfigPolicyCreateRequest'
+        description: Create a monitor configuration policy request body.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitorConfigPolicyResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Monitor Configuration Policy
+      tags:
+      - Configuration
+      x-codegen-request-body-name: body
+      x-given:
+        monitor_configuration_policy:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"monitor-config-policy\",\n    \"attributes\": {\n      \"policy_type\": \"tag\",\n      \"policy\": {\n        \"tag_key\": \"{{ unique_lower_alnum }}\", \"tag_key_required\": false, \"valid_tag_values\": [\"prod\", \"staging\"]\n      }\n    }\n  }\n}"
+          step: there is a valid "monitor_configuration_policy" in the system
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - monitor_config_policy_write
+      x-undo:
+        operationId: DeleteMonitorConfigPolicy
+        parameters:
+        - name: policy_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/monitor/policy/{policy_id}:
+    delete:
+      description: Delete a monitor configuration policy.
+      operationId: DeleteMonitorConfigPolicy
+      parameters:
+      - description: ID of the monitor configuration policy.
+        in: path
+        name: policy_id
+        required: true
+        schema:
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        example: 00000000-0000-1234-0000-000000000000
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Monitor Configuration Policy
+      tags:
+      - Configuration
+      x-menu-order: 13
+      x-permission:
+        operator: OR
+        permissions:
+        - monitor_config_policy_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a monitor configuration policy by `policy_id`.
+      operationId: GetMonitorConfigPolicy
+      parameters:
+      - description: ID of the monitor configuration policy.
+        in: path
+        name: policy_id
+        required: true
+        schema:
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        example: 00000000-0000-1234-0000-000000000000
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitorConfigPolicyResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - monitors_read
+      summary: Datadog Get a Monitor Configuration Policy
+      tags:
+      - Configuration
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - monitors_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Edit a monitor configuration policy.
+      operationId: UpdateMonitorConfigPolicy
+      parameters:
+      - description: ID of the monitor configuration policy.
+        in: path
+        name: policy_id
+        required: true
+        schema:
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        example: 00000000-0000-1234-0000-000000000000
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitorConfigPolicyEditRequest'
+        description: Description of the update.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitorConfigPolicyResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Edit a Monitor Configuration Policy
+      tags:
+      - Configuration
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - monitor_config_policy_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    MonitorConfigPolicyResponse:
+      description: Response for retrieving a monitor configuration policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorConfigPolicyResponseData'
+      type: object
+    MetricName:
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    MetricEstimateResponse:
+      description: Response object that includes metric cardinality estimates.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricEstimate'
+      type: object
+    MonitorConfigPolicyType:
+      default: tag
+      description: The monitor configuration policy type.
+      enum:
+      - tag
+      example: tag
+      type: string
+      x-enum-varnames:
+      - TAG
+    MonitorConfigPolicyTagPolicyCreateRequest:
+      description: Tag attributes of a monitor configuration policy.
+      properties:
+        tag_key:
+          description: The key of the tag.
+          example: datacenter
+          maxLength: 255
+          type: string
+        tag_key_required:
+          description: If a tag key is required for monitor creation.
+          example: true
+          type: boolean
+        valid_tag_values:
+          description: Valid values for the tag.
+          example:
+          - prod
+          - staging
+          items:
+            maxLength: 255
+            type: string
+          type: array
+      required:
+      - tag_key
+      - tag_key_required
+      - valid_tag_values
+      type: object
+    MetricCustomAggregations:
+      description: Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits.
+      example:
+      - space: sum
+        time: sum
+      - space: sum
+        time: count
+      items:
+        $ref: '#/components/schemas/MetricCustomAggregation'
+      type: array
+    MetricEstimateResourceType:
+      default: metric_cardinality_estimate
+      description: The metric estimate resource type.
+      enum:
+      - metric_cardinality_estimate
+      example: metric_cardinality_estimate
+      type: string
+      x-enum-varnames:
+      - METRIC_CARDINALITY_ESTIMATE
+    MetricTagConfiguration:
+      description: Object for a single metric tag configuration.
+      example:
+        attributes:
+          aggregations:
+          - space: avg
+            time: avg
+          created_at: '2020-03-25T09:48:37.463835Z'
+          metric_type: gauge
+          modified_at: '2020-04-25T09:48:37.463835Z'
+          tags:
+          - app
+          - datacenter
+        id: http.request.latency
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      type: object
+    MetricTagConfigurationCreateRequest:
+      description: Request object that includes the metric that you would like to configure tags for.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfigurationCreateData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MonitorConfigPolicyCreateRequest:
+      description: Request for creating a monitor configuration policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorConfigPolicyCreateData'
+      required:
+      - data
+      type: object
+    MetricCustomAggregation:
+      description: A time and space aggregation combination for use in query.
+      example:
+        space: sum
+        time: sum
+      properties:
+        space:
+          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
+        time:
+          $ref: '#/components/schemas/MetricCustomTimeAggregation'
+      required:
+      - time
+      - space
+      type: object
+    MetricEstimate:
+      description: Object for a metric cardinality estimate.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricEstimateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricEstimateResourceType'
+      type: object
+      x-merge-override:
+        required: false
+    MetricTagConfigurationUpdateRequest:
+      description: Request object that includes the metric that you would like to edit the tag configuration on.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfigurationUpdateData'
+      required:
+      - data
+      type: object
+    MonitorConfigPolicyAttributeCreateRequest:
+      description: Policy and policy type for a monitor configuration policy.
+      properties:
+        policy:
+          $ref: '#/components/schemas/MonitorConfigPolicyPolicyCreateRequest'
+        policy_type:
+          $ref: '#/components/schemas/MonitorConfigPolicyType'
+      required:
+      - policy_type
+      - policy
+      type: object
+    MetricTagConfigurationUpdateData:
+      description: Object for a single tag configuration to be edited.
+      example:
+        attributes:
+          group_by:
+          - app
+          - datacenter
+          include_percentiles: false
+        id: http.endpoint.request
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      required:
+      - id
+      - type
+      type: object
+    MetricTagConfigurationAttributes:
+      description: Object containing the definition of a metric tag configuration attributes.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        created_at:
+          description: Timestamp when the tag configuration was created.
+          example: '2020-03-25T09:48:37.463835Z'
+          format: date-time
+          type: string
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+            Only present when the `metric_type` is `distribution`.'
+          example: true
+          type: boolean
+        metric_type:
+          $ref: '#/components/schemas/MetricTagConfigurationMetricTypes'
+        modified_at:
+          description: Timestamp when the tag configuration was last modified.
+          example: '2020-03-25T09:48:37.463835Z'
+          format: date-time
+          type: string
+        tags:
+          description: List of tag keys on which to group.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
+      type: object
+    MetricTagConfigurationType:
+      default: manage_tags
+      description: The metric tag configuration resource type.
+      enum:
+      - manage_tags
+      example: manage_tags
+      type: string
+      x-enum-varnames:
+      - MANAGE_TAGS
+    MetricTagConfigurationCreateAttributes:
+      description: Object containing the definition of a metric tag configuration to be created.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include/exclude percentiles for a distribution metric.
+
+            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
+          example: true
+          type: boolean
+        metric_type:
+          $ref: '#/components/schemas/MetricTagConfigurationMetricTypes'
+        tags:
+          default: []
+          description: A list of tag keys that will be queryable for your metric.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
+      required:
+      - tags
+      - metric_type
+      type: object
+    MonitorConfigPolicyEditData:
+      description: A monitor configuration policy data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorConfigPolicyAttributeEditRequest'
+        id:
+          description: ID of this monitor configuration policy.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    MonitorConfigPolicyListResponse:
+      description: Response for retrieving all monitor configuration policies.
+      properties:
+        data:
+          description: An array of monitor configuration policies.
+          items:
+            $ref: '#/components/schemas/MonitorConfigPolicyResponseData'
+          type: array
+      type: object
+    MetricTagConfigurationResponse:
+      description: Response object which includes a single metric's tag configuration.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfiguration'
+      readOnly: true
+      type: object
+    MonitorConfigPolicyTagPolicy:
+      description: Tag attributes of a monitor configuration policy.
+      properties:
+        tag_key:
+          description: The key of the tag.
+          example: datacenter
+          maxLength: 255
+          type: string
+        tag_key_required:
+          description: If a tag key is required for monitor creation.
+          example: true
+          type: boolean
+        valid_tag_values:
+          description: Valid values for the tag.
+          example:
+          - prod
+          - staging
+          items:
+            maxLength: 255
+            type: string
+          type: array
+      type: object
+    MonitorConfigPolicyEditRequest:
+      description: Request for editing a monitor configuration policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorConfigPolicyEditData'
+      required:
+      - data
+      type: object
+    MonitorConfigPolicyPolicyCreateRequest:
+      description: Configuration for the policy.
+      oneOf:
+      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicyCreateRequest'
+    MetricTagConfigurationUpdateAttributes:
+      description: Object containing the definition of a metric tag configuration to be updated.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include/exclude percentiles for a distribution metric.
+
+            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
+          example: true
+          type: boolean
+        tags:
+          default: []
+          description: A list of tag keys that will be queryable for your metric.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
+      type: object
+    MonitorConfigPolicyResponseData:
+      description: A monitor configuration policy data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorConfigPolicyAttributeResponse'
+        id:
+          description: ID of this monitor configuration policy.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
+      type: object
+    MonitorConfigPolicyAttributeEditRequest:
+      description: Policy and policy type for a monitor configuration policy.
+      properties:
+        policy:
+          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
+        policy_type:
+          $ref: '#/components/schemas/MonitorConfigPolicyType'
+      required:
+      - policy_type
+      - policy
+      type: object
+    MonitorConfigPolicyCreateData:
+      description: A monitor configuration policy data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorConfigPolicyAttributeCreateRequest'
+        type:
+          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
+      required:
+      - type
+      - attributes
+      type: object
+    MetricCustomSpaceAggregation:
+      description: A space aggregation for use in query.
+      enum:
+      - avg
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - MAX
+      - MIN
+      - SUM
+    MonitorConfigPolicyResourceType:
+      default: monitor-config-policy
+      description: Monitor configuration policy resource type.
+      enum:
+      - monitor-config-policy
+      example: monitor-config-policy
+      type: string
+      x-enum-varnames:
+      - MONITOR_CONFIG_POLICY
+    MetricEstimateType:
+      default: count_or_gauge
+      description: Estimate type based on the queried configuration. By default, `count_or_gauge` is returned. `distribution` is returned for distribution metrics without percentiles enabled. Lastly, `percentile` is returned if `filter[pct]=true` is queried with a distribution metric.
+      enum:
+      - count_or_gauge
+      - distribution
+      - percentile
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT_OR_GAUGE
+      - DISTRIBUTION
+      - PERCENTILE
+    MetricCustomTimeAggregation:
+      description: A time aggregation for use in query.
+      enum:
+      - avg
+      - count
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - COUNT
+      - MAX
+      - MIN
+      - SUM
+    MonitorConfigPolicyAttributeResponse:
+      description: Policy and policy type for a monitor configuration policy.
+      properties:
+        policy:
+          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
+        policy_type:
+          $ref: '#/components/schemas/MonitorConfigPolicyType'
+      type: object
+    MetricTagConfigurationMetricTypes:
+      default: gauge
+      description: The metric's type.
+      enum:
+      - gauge
+      - count
+      - rate
+      - distribution
+      example: count
+      type: string
+      x-enum-varnames:
+      - GAUGE
+      - COUNT
+      - RATE
+      - DISTRIBUTION
+    MetricEstimateAttributes:
+      description: Object containing the definition of a metric estimate attribute.
+      properties:
+        estimate_type:
+          $ref: '#/components/schemas/MetricEstimateType'
+        estimated_at:
+          description: Timestamp when the cardinality estimate was requested.
+          example: '2022-04-27T09:48:37.463835Z'
+          format: date-time
+          type: string
+        estimated_output_series:
+          description: Estimated cardinality of the metric based on the queried configuration.
+          example: 50
+          format: int64
+          type: integer
+      type: object
+      x-merge-override:
+        required: false
+    MonitorConfigPolicyPolicy:
+      description: Configuration for the policy.
+      oneOf:
+      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicy'
+    MetricTagConfigurationCreateData:
+      description: Object for a single metric to be configure tags on.
+      example:
+        attributes:
+          include_percentiles: false
+          metric_type: distribution
+          tags:
+          - app
+          - datacenter
+        id: http.endpoint.request
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationCreateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      required:
+      - id
+      - type
+      type: object
+  parameters:
+    MetricName:
+      description: The name of the metric.
+      example: dist.http.endpoint.request
+      in: path
+      name: metric_name
+      required: true
+      schema:
+        type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

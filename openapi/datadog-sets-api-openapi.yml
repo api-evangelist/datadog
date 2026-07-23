@@ -1,0 +1,750 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Sets API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Sets
+paths:
+  /api/v2/domain_allowlist:
+    patch:
+      description: Update the domain allowlist for an organization.
+      operationId: PatchDomainAllowlist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainAllowlistRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainAllowlistResponse'
+          description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - org_management
+      summary: Datadog Sets Domain Allowlist
+      tags:
+      - Sets
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - org_management
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/teams/{team_id}/routing-rules:
+    put:
+      description: Set a team's On-Call routing rules
+      operationId: SetOnCallTeamRoutingRules
+      parameters:
+      - description: The team ID
+        in: path
+        name: team_id
+        required: true
+        schema:
+          example: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: string
+        example: 27590dae-47be-4a7d-9abf-8f4e45124020
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRoutingRulesRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamRoutingRules'
+          description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Set On-call Team Routing Rules
+      tags:
+      - Sets
+      x-given:
+        routing_rules:
+          parameters:
+          - name: team_id
+            source: dd_team.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"team_routing_rules\",\n    \"id\": \"{{ dd_team.data.id }}\",\n    \"attributes\": {\n      \"rules\": [\n        {\n          \"query\": \"\",\n          \"policy_id\": \"{{ escalation_policy.data.id }}\",\n          \"urgency\": \"low\",\n          \"actions\": []\n        }\n      ]\n    }\n  }\n}"
+          step: there are valid "routing_rules" in the system
+      x-menu-order: 10
+      x-permission:
+        operator: AND
+        permissions:
+        - on_call_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    TeamRoutingRulesRequestDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    SendTeamsMessageActionType:
+      default: send_teams_message
+      description: Indicates that the action is a send Microsoft Teams message action.
+      enum:
+      - send_teams_message
+      example: send_teams_message
+      type: string
+      x-enum-varnames:
+      - SEND_TEAMS_MESSAGE
+    TeamRoutingRules:
+      description: Represents a complete set of team routing rules, including data and optionally included related resources.
+      example:
+        data:
+          id: 27590dae-47be-4a7d-9abf-8f4e45124020
+          relationships:
+            rules:
+              data:
+              - id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+                type: team_routing_rules
+              - id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+                type: team_routing_rules
+          type: team_routing_rules
+        included:
+        - attributes:
+            actions: null
+            query: tags.service:test
+            time_restriction:
+              restrictions:
+              - end_day: monday
+                end_time: '17:00:00'
+                start_day: monday
+                start_time: 09:00:00
+              - end_day: tuesday
+                end_time: '17:00:00'
+                start_day: tuesday
+                start_time: 09:00:00
+              time_zone: ''
+            urgency: high
+          id: 03aff2d6-6cbf-496c-997f-a857bbe9a94a
+          relationships:
+            policy:
+              data: null
+          type: team_routing_rules
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamRoutingRulesData'
+        included:
+          description: Provides related routing rules or other included resources.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesIncluded'
+          type: array
+      type: object
+    DomainAllowlistResponseData:
+      description: The email domain allowlist response for an org.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DomainAllowlistResponseDataAttributes'
+        id:
+          description: The unique identifier of the org.
+          nullable: true
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/DomainAllowlistType'
+      required:
+      - type
+      type: object
+    TimeRestriction:
+      description: Defines a single time restriction rule with start and end times and the applicable weekdays.
+      properties:
+        end_day:
+          $ref: '#/components/schemas/Weekday'
+        end_time:
+          description: Specifies the ending time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        start_day:
+          $ref: '#/components/schemas/Weekday'
+        start_time:
+          description: Specifies the starting time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+      type: object
+    RoutingRule:
+      description: Represents a routing rule, including its attributes, relationships, and unique identifier.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoutingRuleAttributes'
+        id:
+          description: Specifies the unique identifier of this routing rule.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoutingRuleRelationships'
+        type:
+          $ref: '#/components/schemas/RoutingRuleType'
+      required:
+      - type
+      type: object
+    RoutingRuleRelationshipsPolicyDataType:
+      default: policies
+      description: Indicates that the resource is of type 'policies'.
+      enum:
+      - policies
+      example: policies
+      type: string
+      x-enum-varnames:
+      - POLICIES
+    DomainAllowlistAttributes:
+      description: The details of the email domain allowlist.
+      properties:
+        domains:
+          description: The list of domains in the email domain allowlist.
+          items:
+            type: string
+          type: array
+        enabled:
+          description: Whether the email domain allowlist is enabled for the org.
+          type: boolean
+          example: true
+      type: object
+      x-ignore-duplicate-object: true
+    TeamRoutingRulesRequestDataAttributes:
+      description: Represents the attributes of a request to update or create team routing rules.
+      properties:
+        rules:
+          description: A list of routing rule items that define how incoming pages should be handled.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesRequestRule'
+          type: array
+      type: object
+    Weekday:
+      description: A day of the week.
+      enum:
+      - monday
+      - tuesday
+      - wednesday
+      - thursday
+      - friday
+      - saturday
+      - sunday
+      type: string
+      x-enum-varnames:
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      - SATURDAY
+      - SUNDAY
+    TeamRoutingRulesDataRelationshipsRulesDataItems:
+      description: Defines a relationship item to link a routing rule by its ID and type.
+      properties:
+        id:
+          description: Specifies the unique identifier for the related routing rule.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    TeamRoutingRulesRequestData:
+      description: Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataAttributes'
+        id:
+          description: Specifies the unique identifier for this set of team routing rules.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesIncluded:
+      description: Represents additional included resources for team routing rules, such as associated routing rules.
+      oneOf:
+      - $ref: '#/components/schemas/RoutingRule'
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SendSlackMessageActionType:
+      default: send_slack_message
+      description: Indicates that the action is a send Slack message action.
+      enum:
+      - send_slack_message
+      example: send_slack_message
+      type: string
+      x-enum-varnames:
+      - SEND_SLACK_MESSAGE
+    RoutingRuleRelationships:
+      description: Specifies relationships for a routing rule, linking to associated policy resources.
+      properties:
+        policy:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicy'
+      type: object
+    DomainAllowlistType:
+      default: domain_allowlist
+      description: Email domain allowlist allowlist type.
+      enum:
+      - domain_allowlist
+      example: domain_allowlist
+      type: string
+      x-enum-varnames:
+      - DOMAIN_ALLOWLIST
+    RoutingRuleRelationshipsPolicy:
+      description: Defines the relationship that links a routing rule to a policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyData'
+          nullable: true
+      type: object
+    TimeRestrictions:
+      description: Holds time zone information and a list of time restrictions for a routing rule.
+      properties:
+        restrictions:
+          description: Defines the list of time-based restrictions.
+          items:
+            $ref: '#/components/schemas/TimeRestriction'
+          type: array
+        time_zone:
+          description: Specifies the time zone applicable to the restrictions.
+          example: ''
+          type: string
+      required:
+      - time_zone
+      - restrictions
+      type: object
+    DomainAllowlistRequest:
+      description: Request containing the desired email domain allowlist configuration.
+      properties:
+        data:
+          $ref: '#/components/schemas/DomainAllowlist'
+      required:
+      - data
+      type: object
+    RoutingRuleRelationshipsPolicyData:
+      description: Represents the policy data reference, containing the policy's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the policy.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyDataType'
+      required:
+      - type
+      - id
+      type: object
+    DomainAllowlistResponse:
+      description: Response containing information about the email domain allowlist.
+      properties:
+        data:
+          $ref: '#/components/schemas/DomainAllowlistResponseData'
+      type: object
+    TeamRoutingRulesRequestRule:
+      description: Defines an individual routing rule item that contains the rule data for the request.
+      properties:
+        actions:
+          description: Specifies the list of actions to perform when the routing rule is matched.
+          items:
+            $ref: '#/components/schemas/RoutingRuleAction'
+          type: array
+        policy_id:
+          description: Identifies the policy to be applied when this routing rule matches.
+          type: string
+          example: abc-123-def
+        query:
+          description: Defines the query or condition that triggers this routing rule.
+          type: string
+          example: avg:system.cpu.user{*}
+        time_restriction:
+          $ref: '#/components/schemas/TimeRestrictions'
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+      type: object
+    RoutingRuleType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    TeamRoutingRulesDataRelationships:
+      description: Specifies relationships for team routing rules, including rule references.
+      properties:
+        rules:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRules'
+      type: object
+    TeamRoutingRulesDataRelationshipsRulesDataItemsType:
+      default: team_routing_rules
+      description: Indicates that the resource is of type 'team_routing_rules'.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    TeamRoutingRulesRequest:
+      description: Represents a request to create or update team routing rules, including the data payload.
+      example:
+        data:
+          attributes:
+            rules:
+            - actions: null
+              policy_id: ''
+              query: tags.service:test
+              time_restriction:
+                restrictions:
+                - end_day: monday
+                  end_time: '17:00:00'
+                  start_day: monday
+                  start_time: 09:00:00
+                - end_day: tuesday
+                  end_time: '17:00:00'
+                  start_day: tuesday
+                  start_time: 09:00:00
+                time_zone: ''
+              urgency: high
+            - actions:
+              - channel: channel
+                type: send_slack_message
+                workspace: workspace
+              policy_id: fad4eee1-13f5-40d8-886b-4e56d8d5d1c6
+              query: ''
+              time_restriction: null
+              urgency: low
+          id: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: team_routing_rules
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestData'
+      type: object
+    TeamRoutingRulesDataRelationshipsRules:
+      description: Holds references to a set of routing rules in a relationship.
+      properties:
+        data:
+          description: An array of references to the routing rules associated with this team.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItems'
+          type: array
+      type: object
+    DomainAllowlist:
+      description: The email domain allowlist for an org.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DomainAllowlistAttributes'
+        id:
+          description: The unique identifier of the org.
+          nullable: true
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/DomainAllowlistType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesData:
+      description: Represents the top-level data object for team routing rules, containing the ID, relationships, and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of this team routing rules record.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationships'
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesDataType'
+      required:
+      - type
+      type: object
+    TeamRoutingRulesDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    Urgency:
+      description: Specifies the level of urgency for a routing rule (low, high, or dynamic).
+      enum:
+      - low
+      - high
+      - dynamic
+      example: low
+      type: string
+      x-enum-varnames:
+      - LOW
+      - HIGH
+      - DYNAMIC
+    SendTeamsMessageAction:
+      description: Sends a message to a Microsoft Teams channel.
+      properties:
+        channel:
+          description: The channel ID.
+          example: CHANNEL
+          type: string
+        team:
+          description: The team ID.
+          example: TEAM
+          type: string
+        tenant:
+          description: The tenant ID.
+          example: TENANT
+          type: string
+        type:
+          $ref: '#/components/schemas/SendTeamsMessageActionType'
+      required:
+      - type
+      - channel
+      - tenant
+      - team
+      type: object
+    RoutingRuleAttributes:
+      description: Defines the configurable attributes of a routing rule, such as actions, query, time restriction, and urgency.
+      properties:
+        actions:
+          description: Specifies the list of actions to perform when the routing rule matches.
+          items:
+            $ref: '#/components/schemas/RoutingRuleAction'
+          type: array
+        query:
+          description: Defines the query or condition that triggers this routing rule.
+          type: string
+          example: avg:system.cpu.user{*}
+        time_restriction:
+          $ref: '#/components/schemas/TimeRestrictions'
+          nullable: true
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+      type: object
+    RoutingRuleAction:
+      description: Defines an action that is executed when a routing rule matches certain criteria.
+      oneOf:
+      - $ref: '#/components/schemas/SendSlackMessageAction'
+      - $ref: '#/components/schemas/SendTeamsMessageAction'
+    SendSlackMessageAction:
+      description: Sends a message to a Slack channel.
+      properties:
+        channel:
+          description: The channel ID.
+          example: CHANNEL
+          type: string
+        type:
+          $ref: '#/components/schemas/SendSlackMessageActionType'
+        workspace:
+          description: The workspace ID.
+          example: WORKSPACE
+          type: string
+      required:
+      - type
+      - channel
+      - workspace
+      type: object
+    DomainAllowlistResponseDataAttributes:
+      description: The details of the email domain allowlist.
+      properties:
+        domains:
+          description: The list of domains in the email domain allowlist.
+          items:
+            type: string
+          type: array
+        enabled:
+          description: Whether the email domain allowlist is enabled for the org.
+          type: boolean
+          example: true
+      type: object
+      x-ignore-duplicate-object: true
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

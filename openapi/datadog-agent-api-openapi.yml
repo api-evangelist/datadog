@@ -1,0 +1,992 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Agent API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Agent
+paths:
+  /api/v2/remote_config/products/cws/agent_rules:
+    get:
+      description: 'Get the list of Workload Protection agent rules.
+
+
+        **Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.'
+      operationId: ListCSMThreatsAgentRules
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityQueryAgentPolicyID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRulesListResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Workload Protection Agent Rules
+      tags:
+      - Agent
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a new Workload Protection agent rule with the given parameters.
+
+
+        **Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.'
+      operationId: CreateCSMThreatsAgentRule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateRequest'
+        description: The definition of the new agent rule
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Workload Protection Agent Rule
+      tags:
+      - Agent
+      x-codegen-request-body-name: body
+      x-given:
+        agent_rule:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"agent_rule\",\n    \"attributes\": {\n      \"name\": \"{{ unique_lower_alnum }}\",\n      \"description\": \"My Agent rule\",\n      \"expression\": \"exec.file.name == \\\"sh\\\"\",\n      \"enabled\": true,\n      \"product_tags\": [\"security:attack\", \"technique:T1059\"],\n      \"actions\": [{\"set\": {\"name\": \"test_set\", \"value\": \"test_value\", \"scope\": \"process\"}}],\n      \"policy_id\": \"{{ policy.data.id }}\"\n     }\n  }\n}"
+          step: there is a valid "agent_rule_rc" in the system
+      x-menu-order: 3
+      x-undo:
+        operationId: DeleteCSMThreatsAgentRule
+        parameters:
+        - name: agent_rule_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/remote_config/products/cws/agent_rules/{agent_rule_id}:
+    delete:
+      description: 'Delete a specific Workload Protection agent rule.
+
+
+        **Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.'
+      operationId: DeleteCSMThreatsAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      - $ref: '#/components/parameters/CloudWorkloadSecurityQueryAgentPolicyID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Workload Protection Agent Rule
+      tags:
+      - Agent
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: 'Get the details of a specific Workload Protection agent rule.
+
+
+        **Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.'
+      operationId: GetCSMThreatsAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      - $ref: '#/components/parameters/CloudWorkloadSecurityQueryAgentPolicyID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Workload Protection Agent Rule
+      tags:
+      - Agent
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific Workload Protection Agent rule.
+
+        Returns the agent rule object when the request is successful.
+
+
+        **Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.'
+      operationId: UpdateCSMThreatsAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      - $ref: '#/components/parameters/CloudWorkloadSecurityQueryAgentPolicyID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateRequest'
+        description: New definition of the agent rule
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Workload Protection Agent Rule
+      tags:
+      - Agent
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/cloud_workload_security/agent_rules:
+    get:
+      description: 'Get the list of agent rules.
+
+
+        **Note**: This endpoint should only be used for the Government (US1-FED) site.'
+      operationId: ListCloudWorkloadSecurityAgentRules
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRulesListResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Workload Protection Agent Rules (us1-fed)
+      tags:
+      - Agent
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_cws_agent_rules_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a new agent rule with the given parameters.
+
+
+        **Note**: This endpoint should only be used for the Government (US1-FED) site.'
+      operationId: CreateCloudWorkloadSecurityAgentRule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateRequest'
+        description: The definition of the new agent rule
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Workload Protection Agent Rule (us1-fed)
+      tags:
+      - Agent
+      x-codegen-request-body-name: body
+      x-given:
+        agent_rule:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"agent_rule\",\n    \"attributes\": {\n      \"name\": \"{{ unique_lower_alnum }}\",\n      \"description\": \"My Agent rule\",\n      \"expression\": \"exec.file.name == \\\"sh\\\"\",\n      \"enabled\": true\n     }\n  }\n}"
+          step: there is a valid "agent_rule" in the system
+      x-menu-order: 14
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_cws_agent_rules_write
+      x-undo:
+        operationId: DeleteCloudWorkloadSecurityAgentRule
+        parameters:
+        - name: agent_rule_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/cloud_workload_security/agent_rules/{agent_rule_id}:
+    delete:
+      description: 'Delete a specific agent rule.
+
+
+        **Note**: This endpoint should only be used for the Government (US1-FED) site.'
+      operationId: DeleteCloudWorkloadSecurityAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Workload Protection Agent Rule (us1-fed)
+      tags:
+      - Agent
+      x-menu-order: 16
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_cws_agent_rules_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: 'Get the details of a specific agent rule.
+
+
+        **Note**: This endpoint should only be used for the Government (US1-FED) site.'
+      operationId: GetCloudWorkloadSecurityAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Workload Protection Agent Rule (us1-fed)
+      tags:
+      - Agent
+      x-menu-order: 13
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_cws_agent_rules_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific agent rule.
+
+        Returns the agent rule object when the request is successful.
+
+
+        **Note**: This endpoint should only be used for the Government (US1-FED) site.'
+      operationId: UpdateCloudWorkloadSecurityAgentRule
+      parameters:
+      - $ref: '#/components/parameters/CloudWorkloadSecurityAgentRuleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateRequest'
+        description: New definition of the agent rule
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Workload Protection Agent Rule (us1-fed)
+      tags:
+      - Agent
+      x-codegen-request-body-name: body
+      x-menu-order: 15
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_cws_agent_rules_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    CloudWorkloadSecurityAgentRuleAttributes:
+      description: A Cloud Workload Security Agent rule returned by the API
+      properties:
+        actions:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActions'
+        agentConstraint:
+          description: The version of the Agent
+          type: string
+          example: example_value
+        blocking:
+          description: The blocking policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        category:
+          description: The category of the Agent rule
+          example: Process Activity
+          type: string
+        creationAuthorUuId:
+          description: The ID of the user who created the rule
+          example: e51c9744-d158-11ec-ad23-da7ad0900002
+          type: string
+        creationDate:
+          description: When the Agent rule was created, timestamp in milliseconds
+          example: 1624366480320
+          format: int64
+          type: integer
+        creator:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreatorAttributes'
+        defaultRule:
+          description: Whether the rule is included by default
+          example: false
+          type: boolean
+        description:
+          description: The description of the Agent rule
+          example: My Agent rule
+          type: string
+        disabled:
+          description: The disabled policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        enabled:
+          description: Whether the Agent rule is enabled
+          example: true
+          type: boolean
+        expression:
+          description: The SECL expression of the Agent rule
+          example: exec.file.name == "sh"
+          type: string
+        filters:
+          description: The platforms the Agent rule is supported on
+          items:
+            type: string
+          type: array
+        monitoring:
+          description: The monitoring policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        name:
+          description: The name of the Agent rule
+          example: my_agent_rule
+          type: string
+        product_tags:
+          description: The list of product tags associated with the rule
+          items:
+            type: string
+          type: array
+        updateAuthorUuId:
+          description: The ID of the user who updated the rule
+          example: e51c9744-d158-11ec-ad23-da7ad0900002
+          type: string
+        updateDate:
+          description: Timestamp in milliseconds when the Agent rule was last updated
+          example: 1624366480320
+          format: int64
+          type: integer
+        updatedAt:
+          description: When the Agent rule was last updated, timestamp in milliseconds
+          example: 1624366480320
+          format: int64
+          type: integer
+        updater:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdaterAttributes'
+        version:
+          description: The version of the Agent rule
+          example: 23
+          format: int64
+          type: integer
+      type: object
+    CloudWorkloadSecurityAgentRuleResponse:
+      description: Response object that includes an Agent rule
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
+      type: object
+    CloudWorkloadSecurityAgentRuleData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAttributes'
+        id:
+          description: The ID of the Agent rule
+          example: 3dd-0uc-h1s
+          type: string
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      type: object
+    CloudWorkloadSecurityAgentRuleCreateData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateAttributes'
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      required:
+      - attributes
+      - type
+      type: object
+    CloudWorkloadSecurityAgentRuleAction:
+      description: The action the rule can perform if triggered
+      properties:
+        filter:
+          description: SECL expression used to target the container to apply the action on
+          type: string
+          example: example_value
+        kill:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleKill'
+        metadata:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActionMetadata'
+        set:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActionSet'
+      type: object
+    CloudWorkloadSecurityAgentRuleKill:
+      description: Kill system call applied on the container matching the rule
+      properties:
+        signal:
+          description: Supported signals for the kill system call
+          type: string
+          example: example_value
+      type: object
+    CloudWorkloadSecurityAgentRuleUpdateRequest:
+      description: Request object that includes the Agent rule with the attributes to update
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CloudWorkloadSecurityAgentRuleActions:
+      description: The array of actions the rule can perform if triggered
+      items:
+        $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAction'
+      nullable: true
+      type: array
+    CloudWorkloadSecurityAgentRuleActionMetadata:
+      description: The metadata action applied on the scope matching the rule
+      properties:
+        image_tag:
+          description: The image tag of the metadata action
+          type: string
+          example: env:production
+        service:
+          description: The service of the metadata action
+          type: string
+          example: example_value
+        short_image:
+          description: The short image of the metadata action
+          type: string
+          example: example_value
+      type: object
+    CloudWorkloadSecurityAgentRuleUpdaterAttributes:
+      description: The attributes of the user who last updated the Agent rule
+      properties:
+        handle:
+          description: The handle of the user
+          example: datadog.user@example.com
+          type: string
+        name:
+          description: The name of the user
+          example: Datadog User
+          nullable: true
+          type: string
+      type: object
+    CloudWorkloadSecurityAgentRuleID:
+      description: The ID of the Agent rule
+      example: 3dd-0uc-h1s
+      type: string
+    CloudWorkloadSecurityAgentRuleCreateRequest:
+      description: Request object that includes the Agent rule to create
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateData'
+      required:
+      - data
+      type: object
+    CloudWorkloadSecurityAgentRuleUpdateData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleID'
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      required:
+      - attributes
+      - type
+      type: object
+    CloudWorkloadSecurityAgentRuleType:
+      default: agent_rule
+      description: The type of the resource, must always be `agent_rule`
+      enum:
+      - agent_rule
+      example: agent_rule
+      type: string
+      x-enum-varnames:
+      - AGENT_RULE
+    CloudWorkloadSecurityAgentRuleUpdateAttributes:
+      description: Update an existing Cloud Workload Security Agent rule
+      properties:
+        actions:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActions'
+        blocking:
+          description: The blocking policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        description:
+          description: The description of the Agent rule
+          example: My Agent rule
+          type: string
+        disabled:
+          description: The disabled policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        enabled:
+          description: Whether the Agent rule is enabled
+          example: true
+          type: boolean
+        expression:
+          description: The SECL expression of the Agent rule
+          example: exec.file.name == "sh"
+          type: string
+        monitoring:
+          description: The monitoring policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        policy_id:
+          description: The ID of the policy where the Agent rule is saved
+          example: a8c8e364-6556-434d-b798-a4c23de29c0b
+          type: string
+        product_tags:
+          description: The list of product tags associated with the rule
+          items:
+            type: string
+          type: array
+      type: object
+    CloudWorkloadSecurityAgentRulesListResponse:
+      description: Response object that includes a list of Agent rule
+      properties:
+        data:
+          description: A list of Agent rules objects
+          items:
+            $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
+          type: array
+      type: object
+    CloudWorkloadSecurityAgentRuleCreateAttributes:
+      description: Create a new Cloud Workload Security Agent rule.
+      properties:
+        actions:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActions'
+        blocking:
+          description: The blocking policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        description:
+          description: The description of the Agent rule.
+          example: My Agent rule
+          type: string
+        disabled:
+          description: The disabled policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        enabled:
+          description: Whether the Agent rule is enabled
+          example: true
+          type: boolean
+        expression:
+          description: The SECL expression of the Agent rule.
+          example: exec.file.name == "sh"
+          type: string
+        filters:
+          description: The platforms the Agent rule is supported on
+          items:
+            type: string
+          type: array
+        monitoring:
+          description: The monitoring policies that the rule belongs to
+          items:
+            type: string
+          type: array
+        name:
+          description: The name of the Agent rule.
+          example: my_agent_rule
+          type: string
+        policy_id:
+          description: The ID of the policy where the Agent rule is saved
+          example: a8c8e364-6556-434d-b798-a4c23de29c0b
+          type: string
+        product_tags:
+          description: The list of product tags associated with the rule
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      - expression
+      type: object
+    CloudWorkloadSecurityAgentRuleCreatorAttributes:
+      description: The attributes of the user who created the Agent rule
+      properties:
+        handle:
+          description: The handle of the user
+          example: datadog.user@example.com
+          type: string
+        name:
+          description: The name of the user
+          example: Datadog User
+          nullable: true
+          type: string
+      type: object
+    CloudWorkloadSecurityAgentRuleActionSet:
+      description: The set action applied on the scope matching the rule
+      properties:
+        append:
+          description: Whether the value should be appended to the field
+          type: boolean
+          example: true
+        field:
+          description: The field of the set action
+          type: string
+          example: example_value
+        name:
+          description: The name of the set action
+          type: string
+          example: Example Monitor
+        scope:
+          description: The scope of the set action
+          type: string
+          example: example_value
+        size:
+          description: The size of the set action
+          format: int64
+          type: integer
+          example: 42
+        ttl:
+          description: The time to live of the set action
+          format: int64
+          type: integer
+          example: 42
+        value:
+          description: The value of the set action
+          type: string
+          example: example_value
+      type: object
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+  parameters:
+    CloudWorkloadSecurityQueryAgentPolicyID:
+      description: The ID of the Agent policy
+      example: 6517fcc1-cec7-4394-a655-8d6e9d085255
+      in: query
+      name: policy_id
+      required: false
+      schema:
+        type: string
+    CloudWorkloadSecurityAgentRuleID:
+      description: The ID of the Agent rule
+      example: 3b5-v82-ns6
+      in: path
+      name: agent_rule_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

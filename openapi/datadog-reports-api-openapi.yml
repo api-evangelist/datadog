@@ -1,0 +1,458 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Reports API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Reports
+paths:
+  /api/v2/slo/report:
+    post:
+      description: 'Create a job to generate an SLO report. The report job is processed asynchronously and eventually results in a CSV report being available for download.
+
+
+        Check the status of the job and download the CSV report using the returned `report_id`.'
+      operationId: CreateSLOReportJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SloReportCreateRequest'
+        description: Create SLO report job request body.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOReportPostResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Datadog Create a New Slo Report
+      tags:
+      - Reports
+      x-codegen-request-body-name: body
+      x-given:
+        report:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"query\": \"slo_type:metric \\\"SLO Reporting Test\\\"\",\n      \"interval\": \"monthly\",\n      \"from_ts\": {{ timestamp(\"now - 21d\") }},\n      \"to_ts\":  {{ timestamp(\"now\") }}\n    }\n  }\n}"
+          step: there is a valid "report" in the system
+      x-menu-order: 101
+      x-permission:
+        operator: OR
+        permissions:
+        - slos_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This feature is in private beta. To request access, use the request access form in the [Service Level Objectives](https://docs.datadoghq.com/service_management/service_level_objectives/#slo-csv-export) docs.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/slo/report/{report_id}/download:
+    get:
+      description: 'Download an SLO report. This can only be performed after the report job has completed.
+
+
+        Reports are not guaranteed to exist indefinitely. Datadog recommends that you download the report as soon as it is available.'
+      operationId: GetSLOReport
+      parameters:
+      - $ref: '#/components/parameters/ReportID'
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Datadog Get Slo Report
+      tags:
+      - Reports
+      x-menu-order: 103
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This feature is in private beta. To request access, use the request access form in the [Service Level Objectives](https://docs.datadoghq.com/service_management/service_level_objectives/#slo-csv-export) docs.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/slo/report/{report_id}/status:
+    get:
+      description: Get the status of the SLO report job.
+      operationId: GetSLOReportJobStatus
+      parameters:
+      - $ref: '#/components/parameters/ReportID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOReportStatusGetResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - slos_read
+      summary: Datadog Get Slo Report Status
+      tags:
+      - Reports
+      x-menu-order: 102
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This feature is in private beta. To request access, use the request access form in the [Service Level Objectives](https://docs.datadoghq.com/service_management/service_level_objectives/#slo-csv-export) docs.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    SLOReportStatusGetResponse:
+      description: The SLO report status response.
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOReportStatusGetResponseData'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SLOReportPostResponse:
+      description: The SLO report response.
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOReportPostResponseData'
+      type: object
+    SLOReportPostResponseData:
+      description: The data portion of the SLO report response.
+      properties:
+        id:
+          description: The ID of the report job.
+          example: dc8d92aa-e0af-11ee-af21-1feeaccaa3a3
+          type: string
+        type:
+          description: The type of ID.
+          example: report_id
+          type: string
+      type: object
+    SLOReportInterval:
+      description: The frequency at which report data is to be generated.
+      enum:
+      - daily
+      - weekly
+      - monthly
+      example: weekly
+      type: string
+      x-enum-varnames:
+      - DAILY
+      - WEEKLY
+      - MONTHLY
+    SloReportCreateRequest:
+      description: The SLO report request body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SloReportCreateRequestData'
+      required:
+      - data
+      type: object
+    SLOReportStatusGetResponseData:
+      description: The data portion of the SLO report status response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SLOReportStatusGetResponseAttributes'
+        id:
+          description: The ID of the report job.
+          example: dc8d92aa-e0af-11ee-af21-1feeaccaa3a3
+          type: string
+        type:
+          description: The type of ID.
+          example: report_id
+          type: string
+      type: object
+    SLOReportStatus:
+      description: The status of the SLO report job.
+      enum:
+      - in_progress
+      - completed
+      - completed_with_errors
+      - failed
+      example: completed
+      type: string
+      x-enum-varnames:
+      - IN_PROGRESS
+      - COMPLETED
+      - COMPLETED_WITH_ERRORS
+      - FAILED
+    SLOReportStatusGetResponseAttributes:
+      description: The attributes portion of the SLO report status response.
+      properties:
+        status:
+          $ref: '#/components/schemas/SLOReportStatus'
+      type: object
+    SloReportCreateRequestAttributes:
+      description: The attributes portion of the SLO report request.
+      properties:
+        from_ts:
+          description: The `from` timestamp for the report in epoch seconds.
+          example: 1690901870
+          format: int64
+          type: integer
+        interval:
+          $ref: '#/components/schemas/SLOReportInterval'
+        query:
+          description: The query string used to filter SLO results. Some examples of queries include `service:<service-name>` and `slo-name`.
+          example: slo_type:metric
+          type: string
+        timezone:
+          description: The timezone used to determine the start and end of each interval. For example, weekly intervals start at 12am on Sunday in the specified timezone.
+          example: America/New_York
+          type: string
+        to_ts:
+          description: The `to` timestamp for the report in epoch seconds.
+          example: 1706803070
+          format: int64
+          type: integer
+      required:
+      - query
+      - from_ts
+      - to_ts
+      type: object
+    SloReportCreateRequestData:
+      description: The data portion of the SLO report request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SloReportCreateRequestAttributes'
+      required:
+      - attributes
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  parameters:
+    ReportID:
+      description: The ID of the report job.
+      in: path
+      name: report_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

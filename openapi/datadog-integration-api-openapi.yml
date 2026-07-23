@@ -1,0 +1,1567 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Integration API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Integration
+paths:
+  /api/v2/incidents/{incident_id}/relationships/integrations:
+    get:
+      description: Get all integration metadata for an incident.
+      operationId: ListIncidentIntegrations
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get a List of an Incident's Integration Metadata
+      tags:
+      - Integration
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create an incident integration metadata.
+      operationId: CreateIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentIntegrationMetadataCreateRequest'
+        description: Incident integration metadata payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Create an Incident Integration Metadata
+      tags:
+      - Integration
+      x-codegen-request-body-name: body
+      x-given:
+        incident_integration_metadata:
+          parameters:
+          - name: incident_id
+            source: incident.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"integration_type\": 1,\n      \"incident_id\": \"{{ incident.data.id }}\",\n      \"status\": 2,\n      \"metadata\": {\n        \"channels\": [\n          {\n            \"channel_id\": \"C0123456789\",\n            \"team_id\": \"T01234567\",\n            \"channel_name\": \"#example-channel-name\",\n            \"redirect_url\": \"https://slack.com/app_redirect?channel=C0123456789&team=T01234567\"\n          }\n        ]\n      }\n    },\n    \"type\": \"incident_integrations\"\n  }\n}"
+          step: the "incident" has an "incident_integration_metadata"
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        operationId: DeleteIncidentIntegration
+        parameters:
+        - name: incident_id
+          source: data.attributes.incident_id
+        - name: integration_metadata_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/relationships/integrations/{integration_metadata_id}:
+    delete:
+      description: Delete an incident integration metadata.
+      operationId: DeleteIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Delete an Incident Integration Metadata
+      tags:
+      - Integration
+      x-codegen-request-body-name: body
+      x-menu-order: 13
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get incident integration metadata details.
+      operationId: GetIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Incident Integration Metadata Details
+      tags:
+      - Integration
+      x-menu-order: 11
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an existing incident integration metadata.
+      operationId: UpdateIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentIntegrationMetadataPatchRequest'
+        description: Incident integration metadata payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Update an Existing Incident Integration Metadata
+      tags:
+      - Integration
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integration/aws/accounts:
+    post:
+      description: Create a new AWS Account Integration Config.
+      operationId: CreateAWSAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AWSAccountCreateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AWSAccountResponse'
+          description: AWS Account object
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create an Aws Integration
+      tags:
+      - Integration
+      x-codegen-request-body-name: body
+      x-given:
+        aws_account_v2:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"account\",\n    \"attributes\": {\n      \"account_tags\": [\n        \"key:value\"\n      ],\n      \"auth_config\": {\n        \"role_name\": \"DatadogIntegrationRole\"\n      },\n      \"aws_account_id\": \"123456789012\",\n      \"aws_partition\": \"aws\",\n      \"aws_regions\": {\n        \"include_only\": [\n          \"us-east-1\"\n        ]\n      },\n      \"logs_config\": {\n        \"lambda_forwarder\": {\n          \"lambdas\": [\n            \"arn:aws:lambda:us-east-1:123456789012:function:DatadogLambdaLogForwarder\"\n          ],\n          \"sources\": [\n            \"s3\"\n          ]\n        }\n      },\n      \"metrics_config\": {\n        \"enabled\": true,\n        \"automute_enabled\": true,\n        \"collect_custom_metrics\": false,\n        \"collect_cloudwatch_alarms\": false,\n        \"tag_filters\": [\n          {\n            \"namespace\": \"AWS/EC2\",\n            \"tags\": [\n              \"key:value\"\n            ]\n          }\n        ],\n        \"namespace_filters\": {\n          \"include_only\": [\n            \"AWS/EC2\"\n          ]\n        }\n      },\n      \"resources_config\": {\n        \"cloud_security_posture_management_collection\": false,\n        \"extended_collection\": false\n      },\n      \"traces_config\": {\n        \"xray_services\": {\n          \"include_only\": [\n            \"AWS/AppSync\"\n          ]\n        }\n      }\n    }\n  }\n}"
+          step: there is a valid "aws_account_v2" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - aws_configurations_manage
+      x-undo:
+        operationId: DeleteAWSAccount
+        parameters:
+        - name: aws_account_config_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note: This endpoint is in Preview. If you have any feedback,
+
+        contact [Datadog support](https://docs.datadoghq.com/help/).**'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integration/aws/accounts/{aws_account_config_id}:
+    delete:
+      description: Delete an AWS Account Integration Config by config ID.
+      operationId: DeleteAWSAccount
+      parameters:
+      - $ref: '#/components/parameters/AWSAccountConfigIDPathParameter'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete an Aws Integration
+      tags:
+      - Integration
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - aws_configurations_manage
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note: This endpoint is in Preview. If you have any feedback,
+
+        contact [Datadog support](https://docs.datadoghq.com/help/).**'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get an AWS Account Integration Config by config ID.
+      operationId: GetAWSAccount
+      parameters:
+      - $ref: '#/components/parameters/AWSAccountConfigIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AWSAccountResponse'
+          description: AWS Account object
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get an Aws Integration by Config Id
+      tags:
+      - Integration
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - aws_configuration_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note: This endpoint is in Preview. If you have any feedback,
+
+        contact [Datadog support](https://docs.datadoghq.com/help/).**'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an AWS Account Integration Config by config ID.
+      operationId: UpdateAWSAccount
+      parameters:
+      - $ref: '#/components/parameters/AWSAccountConfigIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AWSAccountUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AWSAccountResponse'
+          description: AWS Account object
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update an Aws Integration
+      tags:
+      - Integration
+      x-codegen-request-body-name: body
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - aws_configuration_edit
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note: This endpoint is in Preview. If you have any feedback,
+
+        contact [Datadog support](https://docs.datadoghq.com/help/).**'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    IncidentIntegrationMetadataListResponse:
+      description: Response with a list of incident integration metadata.
+      properties:
+        data:
+          description: An array of incident integration metadata.
+          items:
+            $ref: '#/components/schemas/IncidentIntegrationMetadataResponseData'
+          type: array
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentIntegrationMetadataResponseIncludedItem'
+          readOnly: true
+          type: array
+        meta:
+          $ref: '#/components/schemas/IncidentResponseMeta'
+      required:
+      - data
+      type: object
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AWSTracesConfig:
+      description: AWS Traces Collection config.
+      properties:
+        xray_services:
+          $ref: '#/components/schemas/XRayServicesList'
+      type: object
+    IncidentIntegrationMetadataPatchData:
+      description: Incident integration metadata data for a patch request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - type
+      - attributes
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    AWSMetricsConfig:
+      description: AWS Metrics Collection config.
+      properties:
+        automute_enabled:
+          description: Enable EC2 automute for AWS metrics. Defaults to `true`.
+          example: true
+          type: boolean
+        collect_cloudwatch_alarms:
+          description: Enable CloudWatch alarms collection. Defaults to `false`.
+          example: false
+          type: boolean
+        collect_custom_metrics:
+          description: Enable custom metrics collection. Defaults to `false`.
+          example: false
+          type: boolean
+        enabled:
+          description: Enable AWS metrics collection. Defaults to `true`.
+          example: true
+          type: boolean
+        namespace_filters:
+          $ref: '#/components/schemas/AWSNamespaceFilters'
+        tag_filters:
+          description: AWS Metrics collection tag filters list. Defaults to `[]`.
+          items:
+            $ref: '#/components/schemas/AWSNamespaceTagFilter'
+          type: array
+      type: object
+    AWSNamespaceFiltersIncludeOnly:
+      description: Include only these namespaces.
+      properties:
+        include_only:
+          description: Include only these namespaces.
+          example:
+          - AWS/EC2
+          items:
+            example: AWS/EC2
+            type: string
+          type: array
+      required:
+      - include_only
+      type: object
+    IncidentResponseMetaPagination:
+      description: Pagination properties.
+      properties:
+        next_offset:
+          description: The index of the first element in the next page of results. Equal to page size added to the current offset.
+          example: 1000
+          format: int64
+          type: integer
+        offset:
+          description: The index of the first element in the results.
+          example: 10
+          format: int64
+          type: integer
+        size:
+          description: Maximum size of pages to return.
+          example: 1000
+          format: int64
+          type: integer
+      type: object
+    AWSAccountResponseData:
+      description: AWS Account response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AWSAccountResponseAttributes'
+        id:
+          $ref: '#/components/schemas/AWSAccountConfigID'
+        type:
+          $ref: '#/components/schemas/AWSAccountType'
+      required:
+      - id
+      - type
+      type: object
+    AWSRegionsIncludeOnly:
+      description: Include only these regions.
+      properties:
+        include_only:
+          description: Include only these regions.
+          example:
+          - us-east-1
+          items:
+            example: us-east-1
+            type: string
+          type: array
+      required:
+      - include_only
+      type: object
+    IncidentIntegrationRelationships:
+      description: The incident's integration relationships from a response.
+      properties:
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    AWSAccountCreateRequestAttributes:
+      description: The AWS Account Integration Config to be created.
+      properties:
+        account_tags:
+          $ref: '#/components/schemas/AWSAccountTags'
+        auth_config:
+          $ref: '#/components/schemas/AWSAuthConfig'
+        aws_account_id:
+          $ref: '#/components/schemas/AWSAccountID'
+        aws_partition:
+          $ref: '#/components/schemas/AWSAccountPartition'
+        aws_regions:
+          $ref: '#/components/schemas/AWSRegions'
+        logs_config:
+          $ref: '#/components/schemas/AWSLogsConfig'
+        metrics_config:
+          $ref: '#/components/schemas/AWSMetricsConfig'
+        resources_config:
+          $ref: '#/components/schemas/AWSResourcesConfig'
+        traces_config:
+          $ref: '#/components/schemas/AWSTracesConfig'
+      required:
+      - aws_account_id
+      - aws_partition
+      - auth_config
+      type: object
+    IncidentIntegrationMetadataMetadata:
+      description: Incident integration metadata's metadata attribute.
+      oneOf:
+      - $ref: '#/components/schemas/SlackIntegrationMetadata'
+      - $ref: '#/components/schemas/JiraIntegrationMetadata'
+      - $ref: '#/components/schemas/MSTeamsIntegrationMetadata'
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    AWSLogsConfig:
+      description: AWS Logs Collection config.
+      properties:
+        lambda_forwarder:
+          $ref: '#/components/schemas/AWSLambdaForwarderConfig'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    AWSAccountUpdateRequest:
+      description: AWS Account Update Request body.
+      properties:
+        data:
+          $ref: '#/components/schemas/AWSAccountUpdateRequestData'
+      required:
+      - data
+      type: object
+    XRayServicesIncludeAll:
+      description: Include all services.
+      properties:
+        include_all:
+          description: Include all services.
+          example: false
+          type: boolean
+      required:
+      - include_all
+      type: object
+    IncidentIntegrationMetadataResponse:
+      description: Response with an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentIntegrationMetadataResponseIncludedItem'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    JiraIntegrationMetadata:
+      description: Incident integration metadata for the Jira integration.
+      properties:
+        issues:
+          description: Array of Jira issues in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/JiraIntegrationMetadataIssuesItem'
+          type: array
+      required:
+      - issues
+      type: object
+    AWSRegionsIncludeAll:
+      description: Include all regions. Defaults to `true`.
+      properties:
+        include_all:
+          description: Include all regions.
+          example: true
+          type: boolean
+      required:
+      - include_all
+      type: object
+    IncidentIntegrationMetadataCreateData:
+      description: Incident integration metadata data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - type
+      - attributes
+      type: object
+    MSTeamsIntegrationMetadataTeamsItem:
+      description: Item in the Microsoft Teams integration metadata teams array.
+      properties:
+        ms_channel_id:
+          description: Microsoft Teams channel ID.
+          example: 19:abc00abcdef00a0abcdef0abcdef0a@thread.tacv2
+          type: string
+        ms_channel_name:
+          description: Microsoft Teams channel name.
+          example: incident-0001-example
+          type: string
+        ms_tenant_id:
+          description: Microsoft Teams tenant ID.
+          example: 00000000-abcd-0005-0000-000000000000
+          type: string
+        redirect_url:
+          description: URL redirecting to the Microsoft Teams channel.
+          example: https://teams.microsoft.com/l/channel/19%3Aabc00abcdef00a0abcdef0abcdef0a%40thread.tacv2/conversations?groupId=12345678-abcd-dcba-abcd-1234567890ab&tenantId=00000000-abcd-0005-0000-000000000000
+          type: string
+      required:
+      - ms_tenant_id
+      - ms_channel_id
+      - ms_channel_name
+      - redirect_url
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    IncidentIntegrationMetadataType:
+      default: incident_integrations
+      description: Integration metadata resource type.
+      enum:
+      - incident_integrations
+      example: incident_integrations
+      type: string
+      x-enum-varnames:
+      - INCIDENT_INTEGRATIONS
+    IncidentResponseMeta:
+      description: The metadata object containing pagination metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/IncidentResponseMetaPagination'
+      readOnly: true
+      type: object
+    AWSNamespaceFiltersExcludeOnly:
+      description: 'Exclude only these namespaces from metrics collection. Defaults to `["AWS/SQS", "AWS/ElasticMapReduce"]`.
+
+        `AWS/SQS` and `AWS/ElasticMapReduce` are excluded by default to reduce your AWS CloudWatch costs from `GetMetricData` API calls.'
+      properties:
+        exclude_only:
+          description: 'Exclude only these namespaces from metrics collection. Defaults to `["AWS/SQS", "AWS/ElasticMapReduce"]`.
+
+            `AWS/SQS` and `AWS/ElasticMapReduce` are excluded by default to reduce your AWS CloudWatch costs from `GetMetricData` API calls.'
+          example:
+          - AWS/SQS
+          - AWS/ElasticMapReduce
+          items:
+            example: AWS/SQS
+            type: string
+          type: array
+      required:
+      - exclude_only
+      type: object
+    AWSRegions:
+      description: AWS Regions to collect data from. Defaults to `include_all`.
+      oneOf:
+      - $ref: '#/components/schemas/AWSRegionsIncludeAll'
+      - $ref: '#/components/schemas/AWSRegionsIncludeOnly'
+    AWSAccountCreateRequestData:
+      description: AWS Account Create Request data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AWSAccountCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AWSAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    IncidentIntegrationMetadataResponseData:
+      description: Incident integration metadata from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        id:
+          description: The incident integration metadata's ID.
+          example: 00000000-0000-0000-1234-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentIntegrationRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - id
+      - type
+      type: object
+    AWSAccountUpdateRequestData:
+      description: AWS Account Update Request data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AWSAccountUpdateRequestAttributes'
+        id:
+          $ref: '#/components/schemas/AWSAccountConfigID'
+        type:
+          $ref: '#/components/schemas/AWSAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    AWSAccountResponse:
+      description: AWS Account response body.
+      properties:
+        data:
+          $ref: '#/components/schemas/AWSAccountResponseData'
+      required:
+      - data
+      type: object
+    AWSAccountConfigID:
+      description: 'Unique Datadog ID of the AWS Account Integration Config.
+
+        To get the config ID for an account, use the [List all AWS integrations](https://docs.datadoghq.com/api/latest/aws-integration/#list-all-aws-integrations)
+
+        endpoint and query by AWS Account ID.'
+      example: 00000000-abcd-0001-0000-000000000000
+      type: string
+    AWSResourcesConfig:
+      description: AWS Resources Collection config.
+      properties:
+        cloud_security_posture_management_collection:
+          description: Enable Cloud Security Management to scan AWS resources for vulnerabilities, misconfigurations, identity risks, and compliance violations. Defaults to `false`. Requires `extended_collection` to be set to `true`.
+          example: false
+          type: boolean
+        extended_collection:
+          description: Whether Datadog collects additional attributes and configuration information about the resources in your AWS account. Defaults to `true`. Required for `cloud_security_posture_management_collection`.
+          example: true
+          type: boolean
+      type: object
+    AWSAccountUpdateRequestAttributes:
+      description: The AWS Account Integration Config to be updated.
+      properties:
+        account_tags:
+          $ref: '#/components/schemas/AWSAccountTags'
+        auth_config:
+          $ref: '#/components/schemas/AWSAuthConfig'
+        aws_account_id:
+          $ref: '#/components/schemas/AWSAccountID'
+        aws_partition:
+          $ref: '#/components/schemas/AWSAccountPartition'
+        aws_regions:
+          $ref: '#/components/schemas/AWSRegions'
+        logs_config:
+          $ref: '#/components/schemas/AWSLogsConfig'
+        metrics_config:
+          $ref: '#/components/schemas/AWSMetricsConfig'
+        resources_config:
+          $ref: '#/components/schemas/AWSResourcesConfig'
+        traces_config:
+          $ref: '#/components/schemas/AWSTracesConfig'
+      required:
+      - aws_account_id
+      type: object
+    AWSAccountCreateRequest:
+      description: AWS Account Create Request body.
+      properties:
+        data:
+          $ref: '#/components/schemas/AWSAccountCreateRequestData'
+      required:
+      - data
+      type: object
+    MSTeamsIntegrationMetadata:
+      description: Incident integration metadata for the Microsoft Teams integration.
+      properties:
+        teams:
+          description: Array of Microsoft Teams in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/MSTeamsIntegrationMetadataTeamsItem'
+          type: array
+      required:
+      - teams
+      type: object
+    AWSAccountResponseAttributes:
+      description: AWS Account response attributes.
+      properties:
+        account_tags:
+          $ref: '#/components/schemas/AWSAccountTags'
+        auth_config:
+          $ref: '#/components/schemas/AWSAuthConfig'
+        aws_account_id:
+          $ref: '#/components/schemas/AWSAccountID'
+        aws_partition:
+          $ref: '#/components/schemas/AWSAccountPartition'
+        aws_regions:
+          $ref: '#/components/schemas/AWSRegions'
+        created_at:
+          description: Timestamp of when the account integration was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        logs_config:
+          $ref: '#/components/schemas/AWSLogsConfig'
+        metrics_config:
+          $ref: '#/components/schemas/AWSMetricsConfig'
+        modified_at:
+          description: Timestamp of when the account integration was updated.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        resources_config:
+          $ref: '#/components/schemas/AWSResourcesConfig'
+        traces_config:
+          $ref: '#/components/schemas/AWSTracesConfig'
+      required:
+      - aws_account_id
+      type: object
+    AWSLambdaForwarderConfig:
+      description: 'Log Autosubscription configuration for Datadog Forwarder Lambda functions. Automatically set up triggers for existing
+
+        and new logs for some services, ensuring no logs from new resources are missed and saving time spent on manual configuration.'
+      properties:
+        lambdas:
+          description: List of Datadog Lambda Log Forwarder ARNs in your AWS account. Defaults to `[]`.
+          items:
+            example: arn:aws:lambda:us-east-1:123456789012:function:DatadogLambdaLogForwarder
+            type: string
+          type: array
+        sources:
+          description: 'List of service IDs set to enable automatic log collection. Discover the list of available services with the
+
+            [Get list of AWS log ready services](https://docs.datadoghq.com/api/latest/aws-logs-integration/#get-list-of-aws-log-ready-services) endpoint.'
+          items:
+            example: s3
+            type: string
+          type: array
+      type: object
+    IncidentIntegrationMetadataAttributes:
+      description: Incident integration metadata's attributes for a create request.
+      properties:
+        created:
+          description: Timestamp when the incident todo was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        incident_id:
+          description: UUID of the incident this integration metadata is connected to.
+          example: 00000000-aaaa-0000-0000-000000000000
+          type: string
+        integration_type:
+          description: 'A number indicating the type of integration this metadata is for. 1 indicates Slack;
+
+            8 indicates Jira.'
+          example: 1
+          format: int32
+          maximum: 9
+          type: integer
+        metadata:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataMetadata'
+        modified:
+          description: Timestamp when the incident todo was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        status:
+          description: 'A number indicating the status of this integration metadata. 0 indicates unknown;
+
+            1 indicates pending; 2 indicates complete; 3 indicates manually created;
+
+            4 indicates manually updated; 5 indicates failed.'
+          format: int32
+          maximum: 5
+          type: integer
+          example: 42
+      required:
+      - integration_type
+      - metadata
+      type: object
+    JiraIntegrationMetadataIssuesItem:
+      description: Item in the Jira integration metadata issue array.
+      properties:
+        account:
+          description: URL of issue's Jira account.
+          example: https://example.atlassian.net
+          type: string
+        issue_key:
+          description: Jira issue's issue key.
+          example: PROJ-123
+          type: string
+        issuetype_id:
+          description: Jira issue's issue type.
+          example: '1000'
+          type: string
+        project_key:
+          description: Jira issue's project keys.
+          example: PROJ
+          type: string
+        redirect_url:
+          description: URL redirecting to the Jira issue.
+          example: https://example.atlassian.net/browse/PROJ-123
+          type: string
+      required:
+      - project_key
+      - account
+      type: object
+    AWSNamespaceTagFilter:
+      description: 'AWS Metrics Collection tag filters list. Defaults to `[]`.
+
+        The array of custom AWS resource tags (in the form `key:value`) defines a filter that Datadog uses when collecting metrics from a specified service.
+
+        Wildcards, such as `?` (match a single character) and `*` (match multiple characters), and exclusion using `!` before the tag are supported.
+
+        For EC2, only hosts that match one of the defined tags will be imported into Datadog. The rest will be ignored.
+
+        For example, `env:production,instance-type:c?.*,!region:us-east-1`.'
+      properties:
+        namespace:
+          description: The AWS service for which the tag filters defined in `tags` will be applied.
+          example: AWS/EC2
+          type: string
+        tags:
+          description: The AWS resource tags to filter on for the service specified by `namespace`.
+          items:
+            description: Tag in the form `key:value`.
+            example: datadog:true
+            type: string
+          nullable: true
+          type: array
+      type: object
+    SlackIntegrationMetadata:
+      description: Incident integration metadata for the Slack integration.
+      properties:
+        channels:
+          description: Array of Slack channels in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/SlackIntegrationMetadataChannelItem'
+          type: array
+      required:
+      - channels
+      type: object
+    IncidentIntegrationMetadataResponseIncludedItem:
+      description: An object related to an incident integration metadata that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    SlackIntegrationMetadataChannelItem:
+      description: Item in the Slack integration metadata channel array.
+      properties:
+        channel_id:
+          description: Slack channel ID.
+          example: C0123456789
+          type: string
+        channel_name:
+          description: Name of the Slack channel.
+          example: '#example-channel-name'
+          type: string
+        redirect_url:
+          description: URL redirecting to the Slack channel.
+          example: https://slack.com/app_redirect?channel=C0123456789&team=T01234567
+          type: string
+        team_id:
+          description: Slack team ID.
+          example: T01234567
+          type: string
+      required:
+      - channel_id
+      - channel_name
+      - redirect_url
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentIntegrationMetadataCreateRequest:
+      description: Create request for an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataCreateData'
+      required:
+      - data
+      type: object
+    AWSAccountPartition:
+      description: 'AWS partition your AWS account is scoped to. Defaults to `aws`.
+
+        See [Partitions](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html) in the AWS documentation for more information.'
+      enum:
+      - aws
+      - aws-cn
+      - aws-us-gov
+      example: aws
+      type: string
+      x-enum-varnames:
+      - AWS
+      - AWS_CN
+      - AWS_US_GOV
+    AWSAuthConfig:
+      description: AWS Authentication config.
+      oneOf:
+      - $ref: '#/components/schemas/AWSAuthConfigKeys'
+      - $ref: '#/components/schemas/AWSAuthConfigRole'
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    AWSAuthConfigKeys:
+      description: AWS Authentication config to integrate your account using an access key pair.
+      properties:
+        access_key_id:
+          description: AWS Access Key ID.
+          example: AKIAIOSFODNN7EXAMPLE
+          type: string
+        secret_access_key:
+          description: AWS Secret Access Key.
+          example: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+          minLength: 1
+          type: string
+          writeOnly: true
+      required:
+      - access_key_id
+      type: object
+    XRayServicesList:
+      description: AWS X-Ray services to collect traces from. Defaults to `include_only`.
+      oneOf:
+      - $ref: '#/components/schemas/XRayServicesIncludeAll'
+      - $ref: '#/components/schemas/XRayServicesIncludeOnly'
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    AWSAccountID:
+      description: AWS Account ID.
+      example: '123456789012'
+      type: string
+    AWSAccountTags:
+      description: Tags to apply to all hosts and metrics reporting for this account. Defaults to `[]`.
+      items:
+        description: Tag in the form `key:value`.
+        example: env:prod
+        type: string
+      nullable: true
+      type: array
+    AWSAuthConfigRole:
+      description: AWS Authentication config to integrate your account using an IAM role.
+      properties:
+        external_id:
+          description: AWS IAM External ID for associated role.
+          type: string
+          example: abc-123-def
+        role_name:
+          description: AWS IAM Role name.
+          example: DatadogIntegrationRole
+          maxLength: 576
+          minLength: 1
+          type: string
+      required:
+      - role_name
+      type: object
+    XRayServicesIncludeOnly:
+      description: Include only these services. Defaults to `[]`.
+      nullable: true
+      properties:
+        include_only:
+          description: Include only these services.
+          example:
+          - AWS/AppSync
+          items:
+            example: AWS/AppSync
+            type: string
+          type: array
+      required:
+      - include_only
+      type: object
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentIntegrationMetadataPatchRequest:
+      description: Patch request for an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataPatchData'
+      required:
+      - data
+      type: object
+    AWSNamespaceFilters:
+      description: AWS Metrics namespace filters. Defaults to `exclude_only`.
+      oneOf:
+      - $ref: '#/components/schemas/AWSNamespaceFiltersExcludeOnly'
+      - $ref: '#/components/schemas/AWSNamespaceFiltersIncludeOnly'
+    AWSAccountType:
+      default: account
+      description: AWS Account resource type.
+      enum:
+      - account
+      example: account
+      type: string
+      x-enum-varnames:
+      - ACCOUNT
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+  parameters:
+    IncidentIDPathParameter:
+      description: The UUID of the incident.
+      in: path
+      name: incident_id
+      required: true
+      schema:
+        type: string
+    IncidentIntegrationMetadataIDPathParameter:
+      description: The UUID of the incident integration metadata.
+      in: path
+      name: integration_metadata_id
+      required: true
+      schema:
+        type: string
+    AWSAccountConfigIDPathParameter:
+      description: 'Unique Datadog ID of the AWS Account Integration Config. To get the config ID for an account, use the
+
+        [List all AWS integrations](https://docs.datadoghq.com/api/latest/aws-integration/#list-all-aws-integrations) endpoint and query by AWS Account ID.'
+      in: path
+      name: aws_account_config_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

@@ -1,0 +1,3908 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Users API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- description: Create, edit, and disable users.
+  externalDocs:
+    url: https://docs.datadoghq.com/account_management/users
+  name: Users
+paths:
+  /api/v2/current_user/application_keys:
+    get:
+      description: List all application keys available for current user
+      operationId: ListCurrentUserApplicationKeys
+      parameters:
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - $ref: '#/components/parameters/ApplicationKeysSortParameter'
+      - $ref: '#/components/parameters/ApplicationKeyFilterParameter'
+      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtStartParameter'
+      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtEndParameter'
+      - $ref: '#/components/parameters/ApplicationKeyIncludeParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListApplicationKeysResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Application Keys Owned by Current User
+      tags:
+      - Users
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - user_app_keys
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create an application key for current user
+      operationId: CreateCurrentUserApplicationKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationKeyCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationKeyResponse'
+          description: Created
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create an Application Key for Current User
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-given:
+        application_key:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n    },\n    \"type\": \"application_keys\"\n  }\n}"
+          step: there is a valid "application_key" in the system
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - user_app_keys
+      x-undo:
+        operationId: DeleteCurrentUserApplicationKey
+        parameters:
+        - name: app_key_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/current_user/application_keys/{app_key_id}:
+    x-merge-override:
+      delete: true
+      patch: true
+    delete:
+      description: Delete an application key owned by current user
+      operationId: DeleteCurrentUserApplicationKey
+      parameters:
+      - $ref: '#/components/parameters/ApplicationKeyID'
+      responses:
+        '204':
+          description: No Content
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete an Application Key Owned by Current User
+      tags:
+      - Users
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - user_app_keys
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get an application key owned by current user
+      operationId: GetCurrentUserApplicationKey
+      parameters:
+      - $ref: '#/components/parameters/ApplicationKeyID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationKeyResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get One Application Key Owned by Current User
+      tags:
+      - Users
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - user_app_keys
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Edit an application key owned by current user
+      operationId: UpdateCurrentUserApplicationKey
+      parameters:
+      - $ref: '#/components/parameters/ApplicationKeyID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationKeyUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationKeyResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Edit an Application Key Owned by Current User
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - user_app_keys
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/user/{user_id}:
+    get:
+      description: Get all restriction queries for a given user.
+      operationId: ListUserRestrictionQueries
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryUserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryListResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Restriction Queries for a Given User
+      tags:
+      - Users
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/schedules/{schedule_id}/on-call:
+    get:
+      description: Retrieves the user who is on-call for the specified schedule at a given time.
+      operationId: GetScheduleOnCallUser
+      parameters:
+      - description: 'Specifies related resources to include in the response as a comma-separated list. Allowed value: `user`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The ID of the schedule.
+        in: path
+        name: schedule_id
+        required: true
+        schema:
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+      - description: Retrieves the on-call user at the given timestamp (ISO-8601). Defaults to the current time if omitted."
+        in: query
+        name: filter[at_ts]
+        schema:
+          example: '2025-05-07T02:53:01Z'
+          type: string
+        example: '2025-05-07T02:53:01Z'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get the Schedule On-call User
+      tags:
+      - Users
+      x-menu-order: 11
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/on-call/teams/{team_id}/on-call:
+    get:
+      description: Get a team's on-call users at a given time
+      operationId: GetTeamOnCallUsers
+      parameters:
+      - description: 'Comma-separated list of included relationships to be returned. Allowed values: `responders`, `escalations`, `escalations.responders`.'
+        in: query
+        name: include
+        schema:
+          type: string
+        example: example_value
+      - description: The team ID
+        in: path
+        name: team_id
+        required: true
+        schema:
+          example: 27590dae-47be-4a7d-9abf-8f4e45124020
+          type: string
+        example: 27590dae-47be-4a7d-9abf-8f4e45124020
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamOnCallResponders'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get Team On-call Users
+      tags:
+      - Users
+      x-menu-order: 12
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/roles/{role_id}/users:
+    delete:
+      description: Removes a user from a role.
+      operationId: RemoveUserFromRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Remove a User from a Role
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Gets all users of a role.
+      operationId: ListRoleUsers
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - description: 'User attribute to order results by. Sort order is **ascending** by default.
+
+          Sort order is **descending** if the field is prefixed by a negative sign,
+
+          for example `sort=-name`. Options: `name`, `email`, `status`.'
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: name
+          type: string
+        example: example_value
+      - description: Filter all users by the given string. Defaults to no filtering.
+        in: query
+        name: filter
+        required: false
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get All Users of a Role
+      tags:
+      - Users
+      x-menu-order: 9
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a user to a role.
+      operationId: AddUserToRole
+      parameters:
+      - $ref: '#/components/parameters/RoleID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Add a User to a Role
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-given:
+        permission_role:
+          parameters:
+          - name: role_id
+            source: role.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ user.data.id }}\",\n    \"type\": \"{{ user.data.type }}\"\n  }\n}"
+          step: the "user" has the "role"
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/scim/Users:
+    get:
+      description: 'List users in the organization.
+
+        Results are paginated by `startIndex` and `count` parameters.
+
+        Results can be narrowed down by the `filter` parameter.'
+      operationId: ListSCIMUsers
+      parameters:
+      - description: Specifies the start index to fetch the results (1-indexed).
+        in: query
+        name: startIndex
+        required: false
+        schema:
+          default: 1
+          example: 1
+          format: int64
+          type: integer
+        example: 1
+      - description: Specifies the number of users to be returned.
+        in: query
+        name: count
+        required: false
+        schema:
+          default: 20
+          example: 20
+          format: int64
+          type: integer
+        example: 20
+      - description: 'Specifies the url encoded filter to use to narrow down the results.
+
+          Filter should be of the form `userName eq <user name>`.'
+        in: query
+        name: filter
+        required: false
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExternalUsersResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog List Users
+      tags:
+      - Users
+      x-menu-order: 1
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a new user.
+      operationId: CreateSCIMUser
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  active: true
+                  emails:
+                  - primary: true
+                    type: work
+                    value: john.doe@datadoghq.com
+                  name:
+                    formatted: John Doe
+                  schemas:
+                  - urn:ietf:params:scim:schemas:core:2.0:User
+                  title: Mr.
+                  userName: john.doe@datadoghq.com
+            schema:
+              $ref: '#/components/schemas/ExternalUser'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUser'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Create User
+      tags:
+      - Users
+      x-menu-order: 2
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        operationId: DeleteSCIMUser
+        parameters:
+        - name: user_uuid
+          source: <RESPONSE_PATH>
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/scim/Users/{user_uuid}:
+    delete:
+      description: Delete the group with the given `user_uuid`.
+      operationId: DeleteSCIMUser
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Delete User
+      tags:
+      - Users
+      x-menu-order: 6
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a single user using the `user_uuid`.
+      operationId: GetSCIMUser
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUser'
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Get User
+      tags:
+      - Users
+      x-menu-order: 3
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Patch the user with the given `user_uuid`.
+      operationId: PatchSCIMUser
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  Operations:
+                  - op: replace
+                    path: title
+                    value: CEO
+                  - op: replace
+                    value:
+                      name:
+                        formatted: John Doe
+                  schemas:
+                  - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            schema:
+              $ref: '#/components/schemas/ExternalUserPatchRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUser'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Patch User
+      tags:
+      - Users
+      x-menu-order: 5
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Update the user with the given `user_uuid`.
+      operationId: UpdateSCIMUser
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  active: true
+                  emails:
+                  - primary: true
+                    type: work
+                    value: john.doe@datadoghq.com
+                  id: e43536e9-33fe-43f8-90b8-d3e39a7dd6ad
+                  name:
+                    formatted: John Doe
+                  schemas:
+                  - urn:ietf:params:scim:schemas:core:2.0:User
+                  title: Mr.
+                  userName: john.doe@datadoghq.com
+            schema:
+              $ref: '#/components/schemas/ExternalUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUser'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Update User
+      tags:
+      - Users
+      x-menu-order: 4
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/memberships:
+    post:
+      description: Add a user to a team.
+      operationId: CreateTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTeamRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamResponse'
+          description: Represents a user's association to a team
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Add a User to a Team
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-given:
+        team_membership:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"role\": \"admin\"\n    },\n    \"relationships\": {\n      \"user\": {\n        \"data\": {\n          \"id\": \"{{user.data.id}}\",\n          \"type\": \"users\"\n        }\n      }\n    },\n    \"type\": \"team_memberships\"\n  }\n}"
+          step: there is a valid "team_membership" in the system
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        operationId: DeleteTeamMembership
+        parameters:
+        - name: team_id
+          template: '{{team.data.id}}'
+        - name: user_id
+          source: data.relationships.user.data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/team/{team_id}/memberships/{user_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: Remove a user from a team.
+      operationId: DeleteTeamMembership
+      parameters:
+      - description: None
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      - description: None
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Remove a User from a Team
+      tags:
+      - Users
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/user_invitations/{user_invitation_uuid}:
+    get:
+      description: Returns a single user invitation by its UUID.
+      operationId: GetInvitation
+      parameters:
+      - description: The UUID of the user invitation.
+        in: path
+        name: user_invitation_uuid
+        required: true
+        schema:
+          example: 00000000-0000-0000-3456-000000000000
+          type: string
+        example: 00000000-0000-0000-3456-000000000000
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInvitationResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_invite
+      summary: Datadog Get a User Invitation
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_invite
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users:
+    get:
+      description: 'Get the list of all users in the organization. This list includes
+
+        all users even if they are deactivated or unverified.'
+      operationId: ListUsers
+      parameters:
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - description: 'User attribute to order results by. Sort order is ascending by default.
+
+          Sort order is descending if the field
+
+          is prefixed by a negative sign, for example `sort=-name`. Options: `name`,
+
+          `modified_at`, `user_count`.'
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: name
+          example: name
+          type: string
+        example: name
+      - description: 'Direction of sort. Options: `asc`, `desc`.'
+        in: query
+        name: sort_dir
+        required: false
+        schema:
+          $ref: '#/components/schemas/QuerySortOrder'
+        example: example_value
+      - description: Filter all users by the given string. Defaults to no filtering.
+        in: query
+        name: filter
+        required: false
+        schema:
+          type: string
+        example: example_value
+      - description: 'Filter on status attribute.
+
+          Comma separated list, with possible values `Active`, `Pending`, and `Disabled`.
+
+          Defaults to no filtering.'
+        in: query
+        name: filter[status]
+        required: false
+        schema:
+          example: Active
+          type: string
+        example: Active
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog List All Users
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-pagination:
+        limitParam: page[size]
+        pageParam: page[number]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a user for your organization.
+      operationId: CreateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_invite
+      summary: Datadog Create a User
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-given:
+        user:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"email\": \"{{ unique }}@datadoghq.com\",\n      \"title\": \"user title\"\n     },\n     \"type\": \"users\"\n  }\n}"
+          step: there is a valid "user" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_invite
+      x-undo:
+        operationId: DisableUser
+        parameters:
+        - name: user_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users/{user_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: 'Disable a user. Can only be used with an application key belonging
+
+        to an administrator user.'
+      operationId: DisableUser
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Disable a User
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+        - service_account_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a user in the organization specified by the user’s `user_id`.
+      operationId: GetUser
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get User Details
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Edit a user. Can only be used with an application key belonging
+
+        to an administrator user.'
+      operationId: UpdateUser
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Unprocessable Entity
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_manage
+      summary: Datadog Update a User
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+        - service_account_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users/{user_id}/orgs:
+    get:
+      description: 'Get a user organization. Returns the user information and all organizations
+
+        joined by this user.'
+      operationId: ListUserOrganizations
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get a User Organization
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users/{user_id}/permissions:
+    x-merge-override:
+      get: true
+    get:
+      description: 'Get a user permission set. Returns a list of the user’s permissions
+
+        granted by the associated user''s roles.'
+      operationId: ListUserPermissions
+      parameters:
+      - $ref: '#/components/parameters/UserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - user_access_read
+      summary: Datadog Get a User Permissions
+      tags:
+      - Users
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/users/{user_uuid}/memberships:
+    get:
+      description: Get a list of memberships for a user
+      operationId: GetUserMemberships
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTeamsResponse'
+          description: Represents a user's association to a team
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - teams_read
+      summary: Datadog Get User Memberships
+      tags:
+      - Users
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - teams_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RestrictionQueryWithoutRelationships:
+      description: Restriction query object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryAttributes'
+        id:
+          description: ID of the restriction query.
+          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
+          type: string
+        type:
+          default: logs_restriction_queries
+          description: Restriction queries type.
+          example: logs_restriction_queries
+          readOnly: true
+          type: string
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserTeamRelationships:
+      description: Relationship between membership and a user
+      properties:
+        team:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeam'
+        user:
+          $ref: '#/components/schemas/RelationshipToUserTeamUser'
+      type: object
+    TeamOnCallRespondersDataRelationships:
+      description: Relationship objects linked to a team's on-call responder configuration, including escalations and responders.
+      properties:
+        escalations:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalations'
+        responders:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsResponders'
+      type: object
+    RestrictionQueryAttributes:
+      description: Attributes of the restriction query.
+      properties:
+        created_at:
+          description: Creation time of the restriction query.
+          example: '2020-03-17T21:06:44.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        modified_at:
+          description: Time of last restriction query modification.
+          example: '2020-03-17T21:15:15.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        restriction_query:
+          description: The query that defines the restriction. Only the content matching the query can be returned.
+          example: env:sandbox
+          type: string
+      type: object
+    LeakedKeyAttributes:
+      description: The definition of LeakedKeyAttributes object.
+      properties:
+        date:
+          description: The LeakedKeyAttributes date.
+          example: '2017-07-21T17:32:28Z'
+          format: date-time
+          type: string
+        leak_source:
+          description: The LeakedKeyAttributes leak_source.
+          type: string
+          example: example_value
+      required:
+      - date
+      type: object
+    RelationshipToUserTeamPermission:
+      description: Relationship between a user team permission and a team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    OrganizationAttributes:
+      description: Attributes of the organization.
+      properties:
+        created_at:
+          description: Creation time of the organization.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the organization.
+          type: string
+          example: example_value
+        disabled:
+          description: Whether or not the organization is disabled.
+          type: boolean
+          example: true
+        modified_at:
+          description: Time of last organization modification.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the organization.
+          type: string
+          example: Example Monitor
+        public_id:
+          description: Public ID of the organization.
+          type: string
+          example: abc-123-def
+        sharing:
+          description: Sharing type of the organization.
+          type: string
+          example: example_value
+        url:
+          description: URL of the site that this organization exists at.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    PermissionAttributes:
+      description: Attributes of a permission.
+      properties:
+        created:
+          description: Creation time of the permission.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the permission.
+          type: string
+          example: example_value
+        display_name:
+          description: Displayed name for the permission.
+          type: string
+          example: Example Monitor
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
+      type: object
+    RelationshipToTeamLinks:
+      description: Relationship between a team and a team link
+      properties:
+        data:
+          description: Related team links
+          items:
+            $ref: '#/components/schemas/RelationshipToTeamLinkData'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    UserUpdateRequest:
+      description: Update a user.
+      properties:
+        data:
+          $ref: '#/components/schemas/UserUpdateData'
+      required:
+      - data
+      type: object
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
+      enum:
+      - user_invitations
+      example: user_invitations
+      type: string
+      x-enum-varnames:
+      - USER_INVITATIONS
+    UserAttributesStatus:
+      description: The user's status.
+      enum:
+      - active
+      - deactivated
+      - pending
+      type: string
+      x-enum-varnames:
+      - ACTIVE
+      - DEACTIVATED
+      - PENDING
+    UserResponseIncludedItem:
+      description: An object related to a user.
+      oneOf:
+      - $ref: '#/components/schemas/Organization'
+      - $ref: '#/components/schemas/Permission'
+      - $ref: '#/components/schemas/Role'
+    ListApplicationKeysResponse:
+      description: Response for a list of application keys.
+      properties:
+        data:
+          description: Array of application keys.
+          items:
+            $ref: '#/components/schemas/PartialApplicationKey'
+          type: array
+        included:
+          description: Array of objects related to the application key.
+          items:
+            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ApplicationKeyResponseMeta'
+      type: object
+    UserRelationships:
+      description: Relationships of the user object.
+      properties:
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+    ListExternalUsersResponseResourcesItems:
+      description: Resources returned in response to a List users request.
+      properties:
+        active:
+          description: A Boolean value indicating the User's administrative status.
+          type: boolean
+          example: true
+        emails:
+          description: Email addresses for the user.
+          items:
+            $ref: '#/components/schemas/ExternalUserEmailType'
+          type: array
+        id:
+          description: The identifier of the resource. Not required when creating a user.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/ExternalUserMeta'
+        name:
+          $ref: '#/components/schemas/ExternalUserNameType'
+        schemas:
+          description: User JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          items:
+            type: string
+          type: array
+        title:
+          description: The user's title.
+          type: string
+          example: Example Monitor
+        userName:
+          description: Unique identifier for the User.
+          type: string
+          example: Example Monitor
+      type: object
+    ListExternalUsersResponse:
+      description: List users response object.
+      example:
+        Resources:
+        - active: true
+          emails:
+          - primary: true
+            type: work
+            value: john.doe@datadoghq.com
+          id: e43536e9-33fe-43f8-90b8-d3e39a7dd6ad
+          meta:
+            created: '2024-11-22T15:05:52.055138963Z'
+            lastModified: '2024-11-22T15:05:52.055139017Z'
+            location: https://app.datadoghq.com/api/scim/v2/Users/e43536e9-33fe-43f8-90b8-d3e39a7dd6ad
+            resourceType: User
+          name:
+            formatted: John Doe
+          schemas:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          title: Mr.
+          userName: john.doe@datadoghq.com
+        - active: true
+          emails:
+          - primary: true
+            type: work
+            value: jane.doe@datadoghq.com
+          id: 79ef0d28-f257-4829-97e6-d23d2a26cb1a
+          meta:
+            created: '2024-11-22T15:05:52.055139748Z'
+            lastModified: '2024-11-22T15:05:52.055139813Z'
+            location: https://app.datadoghq.com/api/scim/v2/Users/79ef0d28-f257-4829-97e6-d23d2a26cb1a
+            resourceType: User
+          name:
+            formatted: Jane Doe
+          schemas:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          title: Mrs.
+          userName: jane.doe@datadoghq.com
+        itemsPerPage: 2
+        schemas:
+        - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        startIndex: 1
+        totalResults: 2
+      properties:
+        Resources:
+          description: List of users matching the request criteria.
+          items:
+            $ref: '#/components/schemas/ListExternalUsersResponseResourcesItems'
+          type: array
+        itemsPerPage:
+          description: Number of users returned per page.
+          format: int64
+          maximum: 4294967295
+          minimum: 0
+          type: integer
+          example: 42
+        schemas:
+          description: List response JSON Schemas.
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+          items:
+            type: string
+          type: array
+        startIndex:
+          description: Starting index of the users for this page (1-indexed).
+          format: int64
+          maximum: 4294967295
+          minimum: 0
+          type: integer
+          example: 42
+        totalResults:
+          description: Total number of users matching the request criteria.
+          format: int64
+          maximum: 4294967295
+          minimum: 0
+          type: integer
+          example: 42
+      type: object
+    RoleAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: Number of users with that role.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      type: object
+    FullApplicationKey:
+      description: Datadog application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FullApplicationKeyAttributes'
+        id:
+          description: ID of the application key.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ApplicationKeyRelationships'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyUpdateAttributes:
+      description: Attributes used to update an application Key.
+      properties:
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          nullable: true
+          type: array
+      type: object
+      x-merge-override:
+        properties: false
+    TeamOnCallRespondersDataRelationshipsRespondersDataItems:
+      description: Represents a user responder associated with the on-call team.
+      properties:
+        id:
+          description: Unique identifier of the responder.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsRespondersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamsResponseMeta:
+      description: Teams response metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/TeamsResponseMetaPagination'
+      type: object
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    UserTeamPermissionType:
+      default: user_team_permissions
+      description: User team permission type
+      enum:
+      - user_team_permissions
+      example: user_team_permissions
+      type: string
+      x-enum-varnames:
+      - USER_TEAM_PERMISSIONS
+    UserTeamRole:
+      description: The user's role within the team
+      enum:
+      - admin
+      nullable: true
+      type: string
+      x-enum-varnames:
+      - ADMIN
+    EscalationRelationships:
+      description: Contains the relationships of an escalation object, including its responders.
+      properties:
+        responders:
+          $ref: '#/components/schemas/EscalationRelationshipsResponders'
+      type: object
+    TeamOnCallRespondersDataRelationshipsResponders:
+      description: Defines the list of users assigned as on-call responders for the team.
+      properties:
+        data:
+          description: Array of user references associated as responders.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsRespondersDataItems'
+          type: array
+      type: object
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamRelationships:
+      description: Resources related to a team
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+        user_team_permissions:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
+      type: object
+    ApplicationKeyResponseIncludedItem:
+      description: An object related to an application key.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Role'
+      - $ref: '#/components/schemas/LeakedKey'
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ShiftDataRelationships:
+      description: The definition of `ShiftDataRelationships` object.
+      properties:
+        user:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUser'
+      type: object
+    ExternalUserPatchRequestOperationsItemsOp:
+      description: The operation to be performed.
+      enum:
+      - add
+      - replace
+      type: string
+      x-enum-varnames:
+      - ADD
+      - REPLACE
+    EscalationRelationshipsRespondersDataItemsType:
+      default: users
+      description: Represents the resource type for users assigned as responders in an escalation step.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ShiftDataAttributes:
+      description: The definition of `ShiftDataAttributes` object.
+      properties:
+        end:
+          description: The end time of the shift.
+          format: date-time
+          type: string
+          example: example_value
+        start:
+          description: The start time of the shift.
+          format: date-time
+          type: string
+          example: example_value
+      type: object
+    EmailTypeType:
+      description: The type of email.
+      enum:
+      - work
+      type: string
+      x-enum-varnames:
+      - WORK
+    UsersResponse:
+      description: Response containing information about multiple users.
+      properties:
+        data:
+          description: Array of returned users.
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+        included:
+          description: Array of objects related to the users.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ResponseMetaAttributes'
+      readOnly: true
+      type: object
+    ShiftDataType:
+      default: shifts
+      description: Indicates that the resource is of type 'shifts'.
+      enum:
+      - shifts
+      example: shifts
+      type: string
+      x-enum-varnames:
+      - SHIFTS
+    RelationshipToUserTeamTeamData:
+      description: The team associated with the membership
+      properties:
+        id:
+          description: The ID of the team associated with the membership
+          example: d7e15d9d-d346-43da-81d8-3d9e71d9a5e9
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamTeamType'
+      required:
+      - id
+      - type
+      type: object
+    ShiftDataRelationshipsUserData:
+      description: Represents a reference to the user assigned to this shift, containing the user's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUserDataType'
+      required:
+      - type
+      - id
+      type: object
+    ApplicationKeyResponse:
+      description: Response for retrieving an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/FullApplicationKey'
+        included:
+          description: Array of objects related to the application key.
+          items:
+            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
+          type: array
+      type: object
+    UserTeamType:
+      default: team_memberships
+      description: Team membership type
+      enum:
+      - team_memberships
+      example: team_memberships
+      type: string
+      x-enum-varnames:
+      - TEAM_MEMBERSHIPS
+    TeamOnCallRespondersDataRelationshipsEscalationsDataItemsType:
+      default: escalation_policy_steps
+      description: Identifies the resource type for escalation policy steps linked to a team's on-call configuration.
+      enum:
+      - escalation_policy_steps
+      example: escalation_policy_steps
+      type: string
+      x-enum-varnames:
+      - ESCALATION_POLICY_STEPS
+    ApplicationKeyCreateData:
+      description: Object used to create an application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationKeyCreateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ScheduleUser:
+      description: Represents a user object in the context of a schedule, including their `id`, type, and basic attributes.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleUserAttributes'
+        id:
+          description: The unique user identifier.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ScheduleUserType'
+      required:
+      - type
+      type: object
+    FullApplicationKeyAttributes:
+      description: Attributes of a full application key.
+      properties:
+        created_at:
+          description: Creation date of the application key.
+          example: '2020-11-23T10:00:00.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        key:
+          description: The application key.
+          readOnly: true
+          type: string
+          x-secret: true
+          example: example_value
+        last4:
+          description: The last four characters of the application key.
+          example: abcd
+          maxLength: 4
+          minLength: 4
+          readOnly: true
+          type: string
+          x-secret: true
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          nullable: true
+          type: array
+      type: object
+      x-merge-override:
+        properties: false
+    TeamType:
+      default: team
+      description: Team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    EscalationRelationshipsRespondersDataItems:
+      description: Represents a user assigned to an escalation step.
+      properties:
+        id:
+          description: Unique identifier of the user assigned to the escalation step.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/EscalationRelationshipsRespondersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    UserTeamRequest:
+      description: Team membership request
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeamCreate'
+      required:
+      - data
+      type: object
+    ShiftIncluded:
+      description: The definition of `ShiftIncluded` object.
+      oneOf:
+      - $ref: '#/components/schemas/ScheduleUser'
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    TeamOnCallResponders:
+      description: Root object representing a team's on-call responder configuration.
+      example:
+        data:
+          id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          relationships:
+            escalations:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: escalation_policy_steps
+            responders:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: users
+          type: team_oncall_responders
+        included:
+        - attributes:
+            email: test@test.com
+            name: Test User
+            status: active
+          id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          type: users
+        - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+          relationships:
+            responders:
+              data:
+              - id: 111ee23r-aaaaa-aaaa-aaww-1234wertsd23
+                type: users
+          type: escalation_policy_steps
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamOnCallRespondersData'
+        included:
+          description: The `TeamOnCallResponders` `included`.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersIncluded'
+          type: array
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    UserTeamAttributes:
+      description: Team membership attributes
+      properties:
+        provisioned_by:
+          description: 'The mechanism responsible for provisioning the team relationship.
+
+            Possible values: null for added by a user, "service_account" if added by a service account, and "saml_mapping" if provisioned via SAML mapping.'
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        provisioned_by_id:
+          description: UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.
+          nullable: true
+          readOnly: true
+          type: string
+          example: abc-123-def
+        role:
+          $ref: '#/components/schemas/UserTeamRole'
+      type: object
+    UserInvitationResponseData:
+      description: Object of a user invitation returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserInvitationDataAttributes'
+        id:
+          description: ID of the user invitation.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyRelationships:
+      description: Resources related to the application key.
+      properties:
+        owned_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+      x-merge-override:
+        properties: false
+    LeakedKey:
+      description: The definition of LeakedKey object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LeakedKeyAttributes'
+        id:
+          description: The LeakedKey id.
+          example: id
+          type: string
+        type:
+          $ref: '#/components/schemas/LeakedKeyType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    UserCreateAttributes:
+      description: Attributes of the created user.
+      properties:
+        email:
+          description: The email of the user.
+          example: jane.doe@example.com
+          type: string
+        name:
+          description: The name of the user.
+          type: string
+          example: Example Monitor
+        title:
+          description: The title of the user.
+          type: string
+          example: Example Monitor
+      required:
+      - email
+      type: object
+    ApplicationKeysType:
+      default: application_keys
+      description: Application Keys resource type.
+      enum:
+      - application_keys
+      example: application_keys
+      type: string
+      x-enum-varnames:
+      - APPLICATION_KEYS
+    TeamOnCallRespondersDataRelationshipsEscalationsDataItems:
+      description: Represents a link to a specific escalation policy step associated with the on-call team.
+      properties:
+        id:
+          description: Unique identifier of the escalation step.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalationsDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    TeamsResponseLinks:
+      description: Teams response links.
+      properties:
+        first:
+          description: First link.
+          type: string
+          example: example_value
+        last:
+          description: Last link.
+          nullable: true
+          type: string
+          example: example_value
+        next:
+          description: Next link.
+          type: string
+          example: example_value
+        prev:
+          description: Previous link.
+          nullable: true
+          type: string
+          example: example_value
+        self:
+          description: Current link.
+          type: string
+          example: example_value
+      type: object
+    QuerySortOrder:
+      default: desc
+      description: Direction of sort.
+      enum:
+      - asc
+      - desc
+      type: string
+      x-enum-varnames:
+      - ASC
+      - DESC
+    UserTeam:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        id:
+          description: The ID of a user's relationship with a team
+          example: TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835
+          type: string
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyCreateAttributes:
+      description: Attributes used to create an application Key.
+      properties:
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          nullable: true
+          type: array
+      required:
+      - name
+      type: object
+      x-merge-override:
+        properties: false
+    ShiftData:
+      description: The definition of `ShiftData` object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ShiftDataAttributes'
+        id:
+          description: The `ShiftData` `id`.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ShiftDataRelationships'
+        type:
+          $ref: '#/components/schemas/ShiftDataType'
+      required:
+      - type
+      type: object
+    RelationshipToUserTeamPermissionData:
+      description: Related user team permission data
+      properties:
+        id:
+          description: The ID of the user team permission
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ScheduleUserType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserResponse:
+      description: Response containing information about a single user.
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+        included:
+          description: Array of objects related to the user.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+      type: object
+    UserUpdateData:
+      description: Object to update a user.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserUpdateAttributes'
+        id:
+          description: ID of the user.
+          example: 00000000-0000-feed-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    TeamOnCallRespondersDataRelationshipsRespondersDataItemsType:
+      default: users
+      description: Identifies the resource type for individual user entities associated with on-call response.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ExternalUserNameType:
+      description: The components of user's real name
+      properties:
+        formatted:
+          description: The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.
+          type: string
+          example: example_value
+      type: object
+    RelationshipToUserTeamTeam:
+      description: Relationship between team membership and team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeamData'
+      required:
+      - data
+      type: object
+    UserTeamResponse:
+      description: Team membership response
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeam'
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+      type: object
+    UserInvitationResponse:
+      description: User invitation as returned by the API.
+      properties:
+        data:
+          $ref: '#/components/schemas/UserInvitationResponseData'
+      type: object
+    Shift:
+      description: The definition of `Shift` object.
+      example:
+        data:
+          attributes:
+            end: '2025-05-07T03:53:01.206662873Z'
+            start: '2025-05-07T02:53:01.206662814Z'
+          id: 00000000-0000-0000-0000-000000000000
+          relationships:
+            user:
+              data:
+                id: 00000000-aba1-0000-0000-000000000000
+                type: users
+          type: shifts
+        included:
+        - attributes:
+            email: foo@bar.com
+            name: User 1
+            status: ''
+          id: 00000000-aba1-0000-0000-000000000000
+          type: users
+      properties:
+        data:
+          $ref: '#/components/schemas/ShiftData'
+          nullable: true
+        included:
+          description: The `Shift` `included`.
+          items:
+            $ref: '#/components/schemas/ShiftIncluded'
+          type: array
+      type: object
+    ApplicationKeyCreateRequest:
+      description: Request used to create an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationKeyCreateData'
+      required:
+      - data
+      type: object
+    ApplicationKeyUpdateRequest:
+      description: Request used to update an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationKeyUpdateData'
+      required:
+      - data
+      type: object
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    ApplicationKeyResponseMeta:
+      description: Additional information related to the application key response.
+      properties:
+        max_allowed_per_user:
+          description: Max allowed number of application keys per user.
+          format: int64
+          type: integer
+          example: 42
+        page:
+          $ref: '#/components/schemas/ApplicationKeyResponseMetaPage'
+      type: object
+    UserCreateRequest:
+      description: Create a user.
+      properties:
+        data:
+          $ref: '#/components/schemas/UserCreateData'
+      required:
+      - data
+      type: object
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
+      properties:
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      required:
+      - user
+      type: object
+    TeamOnCallRespondersData:
+      description: Defines the main on-call responder object for a team, including relationships and metadata.
+      properties:
+        id:
+          description: Unique identifier of the on-call responder configuration.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataRelationships'
+        type:
+          $ref: '#/components/schemas/TeamOnCallRespondersDataType'
+      required:
+      - type
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyUpdateData:
+      description: Object used to update an application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationKeyUpdateAttributes'
+        id:
+          description: ID of the application key.
+          example: 00112233-4455-6677-8899-aabbccddeeff
+          type: string
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    EscalationRelationshipsResponders:
+      description: Lists the users involved in a specific step of the escalation policy.
+      properties:
+        data:
+          description: Array of user references assigned as responders for this escalation step.
+          items:
+            $ref: '#/components/schemas/EscalationRelationshipsRespondersDataItems'
+          type: array
+      type: object
+    TeamsResponseMetaPagination:
+      description: Teams response metadata.
+      properties:
+        first_offset:
+          description: The first offset.
+          format: int64
+          type: integer
+          example: 42
+        last_offset:
+          description: The last offset.
+          format: int64
+          type: integer
+          example: 42
+        limit:
+          description: Pagination limit.
+          format: int64
+          type: integer
+          example: 42
+        next_offset:
+          description: The next offset.
+          format: int64
+          type: integer
+          example: 42
+        offset:
+          description: The offset.
+          format: int64
+          type: integer
+          example: 42
+        prev_offset:
+          description: The previous offset.
+          format: int64
+          type: integer
+          example: 42
+        total:
+          description: Total results.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          description: Offset type.
+          type: string
+          example: metric alert
+      type: object
+    PartialApplicationKeyAttributes:
+      description: Attributes of a partial application key.
+      properties:
+        created_at:
+          description: Creation date of the application key.
+          example: '2020-11-23T10:00:00.000Z'
+          readOnly: true
+          type: string
+          x-merge-override:
+            format: false
+        last4:
+          description: The last four characters of the application key.
+          example: abcd
+          maxLength: 4
+          minLength: 4
+          readOnly: true
+          type: string
+          x-secret: true
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          nullable: true
+          type: array
+      type: object
+    UserTeamTeamType:
+      default: team
+      description: User team team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    TeamAttributes:
+      description: Team attributes
+      properties:
+        avatar:
+          description: Unicode representation of the avatar for the team, limited to a single grapheme
+          example: 🥑
+          nullable: true
+          type: string
+        banner:
+          description: Banner selection for the team
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        created_at:
+          description: Creation date of the team
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Free-form markdown description/content for the team's homepage
+          nullable: true
+          type: string
+          example: example_value
+        handle:
+          description: The team's identifier
+          example: example-team
+          maxLength: 195
+          type: string
+        hidden_modules:
+          description: Collection of hidden modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+        link_count:
+          description: The number of links belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        modified_at:
+          description: Modification date of the team
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: The name of the team
+          example: Example Team
+          maxLength: 200
+          type: string
+        summary:
+          description: A brief summary of the team, derived from the `description`
+          maxLength: 120
+          nullable: true
+          type: string
+          example: example_value
+        user_count:
+          description: The number of users belonging to the team
+          format: int32
+          maximum: 2147483647
+          readOnly: true
+          type: integer
+          example: 42
+        visible_modules:
+          description: Collection of visible modules for the team
+          items:
+            description: String identifier of the module
+            type: string
+          type: array
+      required:
+      - handle
+      - name
+      type: object
+    TeamOnCallRespondersDataRelationshipsEscalations:
+      description: Defines the escalation policy steps linked to the team's on-call configuration.
+      properties:
+        data:
+          description: Array of escalation step references.
+          items:
+            $ref: '#/components/schemas/TeamOnCallRespondersDataRelationshipsEscalationsDataItems'
+          type: array
+      type: object
+    Role:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    Organization:
+      description: Organization object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OrganizationAttributes'
+        id:
+          description: ID of the organization.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - type
+      type: object
+    ExternalUser:
+      description: Definition of a user.
+      properties:
+        active:
+          description: A Boolean value indicating the User's administrative status.
+          type: boolean
+          example: true
+        emails:
+          description: Email addresses for the user.
+          items:
+            $ref: '#/components/schemas/ExternalUserEmailType'
+          type: array
+        id:
+          description: The identifier of the resource. Not required when creating a user.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/ExternalUserMeta'
+        name:
+          $ref: '#/components/schemas/ExternalUserNameType'
+        schemas:
+          description: User JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          items:
+            type: string
+          type: array
+        title:
+          description: The user's title.
+          type: string
+          example: Example Monitor
+        userName:
+          description: Unique identifier for the User.
+          type: string
+          example: Example Monitor
+      type: object
+    RelationshipToTeamLinkData:
+      description: Relationship between a link and a team
+      properties:
+        id:
+          description: The team link's identifier
+          example: f9bb8444-af7f-11ec-ac2c-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamLinkType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ExternalUserMeta:
+      description: Metadata associated with a user.
+      properties:
+        created:
+          description: The date and time the user was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
+          type: string
+        lastModified:
+          description: The date and time the user was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
+          type: string
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
+          type: string
+        resourceType:
+          description: Type of resource.
+          example: User
+          type: string
+      type: object
+    TeamOnCallRespondersDataType:
+      default: team_oncall_responders
+      description: Represents the resource type for a group of users assigned to handle on-call duties within a team.
+      enum:
+      - team_oncall_responders
+      example: team_oncall_responders
+      type: string
+      x-enum-varnames:
+      - TEAM_ONCALL_RESPONDERS
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToUserTeamUser:
+      description: Relationship between team membership and user
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamUserData'
+      required:
+      - data
+      type: object
+    EscalationType:
+      default: escalation_policy_steps
+      description: Represents the resource type for individual steps in an escalation policy used during incident response.
+      enum:
+      - escalation_policy_steps
+      example: escalation_policy_steps
+      type: string
+      x-enum-varnames:
+      - ESCALATION_POLICY_STEPS
+    ScheduleUserAttributes:
+      description: Provides basic user information for a schedule, including a name and email address.
+      properties:
+        email:
+          description: The user's email address.
+          example: jane.doe@example.com
+          type: string
+        name:
+          description: The user's name.
+          example: Jane Doe
+          type: string
+        status:
+          $ref: '#/components/schemas/UserAttributesStatus'
+      type: object
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    ApplicationKeyResponseMetaPage:
+      description: Additional information related to the application key response.
+      properties:
+        total_filtered_count:
+          description: Total filtered application key count.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    UserUpdateAttributes:
+      description: Attributes of the edited user.
+      properties:
+        disabled:
+          description: If the user is enabled or disabled.
+          type: boolean
+          example: true
+        email:
+          description: The email of the user.
+          type: string
+          example: user@example.com
+        name:
+          description: The name of the user.
+          type: string
+          example: Example Monitor
+      type: object
+    PartialApplicationKey:
+      description: Partial Datadog application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PartialApplicationKeyAttributes'
+        id:
+          description: ID of the application key.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ApplicationKeyRelationships'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      type: object
+      x-merge-override:
+        required: false
+    TeamLinkType:
+      default: team_links
+      description: Team link type
+      enum:
+      - team_links
+      example: team_links
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+    ApplicationKeysSort:
+      default: name
+      description: Sorting options
+      enum:
+      - created_at
+      - -created_at
+      - last4
+      - -last4
+      - name
+      - -name
+      type: string
+      x-enum-varnames:
+      - CREATED_AT_ASCENDING
+      - CREATED_AT_DESCENDING
+      - LAST4_ASCENDING
+      - LAST4_DESCENDING
+      - NAME_ASCENDING
+      - NAME_DESCENDING
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserTeamUserType:
+      default: users
+      description: User team user type
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    LeakedKeyType:
+      default: leaked_keys
+      description: The definition of LeakedKeyType object.
+      enum:
+      - leaked_keys
+      example: leaked_keys
+      type: string
+      x-enum-varnames:
+      - LEAKED_KEYS
+    Team:
+      description: A team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamAttributes'
+        id:
+          description: The team's identifier
+          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
+          type: string
+        relationships:
+          $ref: '#/components/schemas/TeamRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    TeamOnCallRespondersIncluded:
+      description: Represents an union of related resources included in the response, such as users and escalation steps.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Escalation'
+    Pagination:
+      description: Pagination object.
+      properties:
+        total_count:
+          description: Total count.
+          format: int64
+          type: integer
+          example: 42
+        total_filtered_count:
+          description: Total count of elements matched by the filter.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    TeamRelationshipsLinks:
+      description: Links attributes.
+      properties:
+        related:
+          description: Related link.
+          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
+          type: string
+      type: object
+    ShiftDataRelationshipsUserDataType:
+      default: users
+      description: Indicates that the related resource is of type 'users'.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    Escalation:
+      description: Represents an escalation policy step.
+      properties:
+        id:
+          description: Unique identifier of the escalation step.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/EscalationRelationships'
+        type:
+          $ref: '#/components/schemas/EscalationType'
+      required:
+      - type
+      type: object
+    RestrictionQueryListResponse:
+      description: Response containing information about multiple restriction queries.
+      properties:
+        data:
+          description: Array of returned restriction queries.
+          items:
+            $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
+          type: array
+      type: object
+    UserTeamIncluded:
+      description: Included resources related to the team membership
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Team'
+    PermissionsResponse:
+      description: Payload with API-returned permissions.
+      properties:
+        data:
+          description: Array of permissions.
+          items:
+            $ref: '#/components/schemas/Permission'
+          type: array
+      type: object
+    ExternalUserPatchRequestOperationsItems:
+      description: The definition of an individual patch operation in a patch request.
+      properties:
+        op:
+          $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItemsOp'
+        path:
+          description: An attribute path describing the target of the operation.
+          example: title
+          type: string
+        value:
+          description: New value to use for the patch operation.
+          example: example_value
+      type: object
+    RelationshipToUserTeamUserData:
+      description: A user's relationship with a team
+      properties:
+        id:
+          description: The ID of the user associated with the team
+          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamUserType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UserTeamCreate:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - type
+      type: object
+    UserTeamsResponse:
+      description: Team memberships response
+      properties:
+        data:
+          description: Team memberships response data
+          items:
+            $ref: '#/components/schemas/UserTeam'
+          type: array
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/TeamsResponseMeta'
+      type: object
+    ShiftDataRelationshipsUser:
+      description: Defines the relationship between a shift and the user who is working that shift.
+      properties:
+        data:
+          $ref: '#/components/schemas/ShiftDataRelationshipsUserData'
+      required:
+      - data
+      type: object
+    ResponseMetaAttributes:
+      description: Object describing meta attributes of response.
+      properties:
+        page:
+          $ref: '#/components/schemas/Pagination'
+      type: object
+      x-merge-override:
+        properties: false
+    UserInvitationDataAttributes:
+      description: Attributes of a user invitation.
+      properties:
+        created_at:
+          description: Creation time of the user invitation.
+          format: date-time
+          type: string
+          example: example_value
+        expires_at:
+          description: Time of invitation expiration.
+          format: date-time
+          type: string
+          example: example_value
+        invite_type:
+          description: Type of invitation.
+          type: string
+          example: metric alert
+        uuid:
+          description: UUID of the user invitation.
+          type: string
+          example: abc-123-def
+      type: object
+    ExternalUserPatchRequest:
+      description: Request object for patching a user.
+      properties:
+        Operations:
+          description: A list of update operations to be performed on a user.
+          items:
+            $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItems'
+          type: array
+        schemas:
+          description: Input JSON Schemas
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          items:
+            type: string
+          type: array
+      type: object
+    ExternalUserEmailType:
+      description: Email address for the user.
+      properties:
+        primary:
+          description: Boolean indicating if this email is the primary email address.
+          type: boolean
+          example: true
+        type:
+          $ref: '#/components/schemas/EmailTypeType'
+        value:
+          description: Email addresses for the user.
+          type: string
+          example: example_value
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    UserCreateData:
+      description: Object to create a user.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/UserRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+  parameters:
+    ApplicationKeyFilterCreatedAtEndParameter:
+      description: Only include application keys created on or before the specified date.
+      in: query
+      name: filter[created_at][end]
+      required: false
+      schema:
+        example: '2020-11-24T18:46:21+00:00'
+        type: string
+        x-merge-override:
+          format: false
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    ApplicationKeyFilterParameter:
+      description: Filter application keys by the specified string.
+      in: query
+      name: filter
+      required: false
+      schema:
+        type: string
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    ApplicationKeysSortParameter:
+      description: 'Application key attribute used to sort results. Sort order is ascending
+
+        by default. In order to specify a descending sort, prefix the
+
+        attribute with a minus sign.'
+      in: query
+      name: sort
+      required: false
+      schema:
+        $ref: '#/components/schemas/ApplicationKeysSort'
+    UserID:
+      description: The ID of the user.
+      in: path
+      name: user_id
+      required: true
+      schema:
+        example: 00000000-0000-9999-0000-000000000000
+        type: string
+    RestrictionQueryUserID:
+      description: The ID of the user.
+      in: path
+      name: user_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyFilterCreatedAtStartParameter:
+      description: Only include application keys created on or after the specified date.
+      in: query
+      name: filter[created_at][start]
+      required: false
+      schema:
+        example: '2020-11-24T18:46:21+00:00'
+        type: string
+        x-merge-override:
+          format: false
+    ApplicationKeyID:
+      description: The ID of the application key.
+      in: path
+      name: app_key_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyIncludeParameter:
+      description: Resource path for related resources to include in the response. Only `owned_by` is supported.
+      in: query
+      name: include
+      required: false
+      schema:
+        example: owned_by
+        type: string
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

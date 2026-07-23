@@ -1,0 +1,589 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Objects API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Objects
+paths:
+  /api/v2/integration/opsgenie/services:
+    x-merge-override:
+      get: true
+      post: true
+    get:
+      description: Get a list of all services from the Datadog Opsgenie integration.
+      operationId: ListOpsgenieServices
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsgenieServicesResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Service Objects
+      tags:
+      - Objects
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - integrations_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a new service object in the Opsgenie integration.
+      operationId: CreateOpsgenieService
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpsgenieServiceCreateRequest'
+        description: Opsgenie service payload
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsgenieServiceResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a New Service Object
+      tags:
+      - Objects
+      x-codegen-request-body-name: body
+      x-given:
+        opsgenie_service:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\",\n      \"opsgenie_api_key\": \"00000000-0000-0000-0000-000000000000\",\n      \"region\": \"us\"\n     },\n     \"type\": \"opsgenie-service\"\n  }\n}"
+          step: there is a valid "opsgenie_service" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        operationId: DeleteOpsgenieService
+        parameters:
+        - name: integration_service_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integration/opsgenie/services/{integration_service_id}:
+    x-merge-override:
+      delete: true
+      get: true
+      patch: true
+    delete:
+      description: Delete a single service object in the Datadog Opsgenie integration.
+      operationId: DeleteOpsgenieService
+      parameters:
+      - $ref: '#/components/parameters/OpsgenieServiceIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Single Service Object
+      tags:
+      - Objects
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a single service from the Datadog Opsgenie integration.
+      operationId: GetOpsgenieService
+      parameters:
+      - $ref: '#/components/parameters/OpsgenieServiceIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsgenieServiceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Single Service Object
+      tags:
+      - Objects
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - integrations_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update a single service object in the Datadog Opsgenie integration.
+      operationId: UpdateOpsgenieService
+      parameters:
+      - $ref: '#/components/parameters/OpsgenieServiceIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpsgenieServiceUpdateRequest'
+        description: Opsgenie service payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsgenieServiceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Single Service Object
+      tags:
+      - Objects
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    OpsgenieServiceResponseAttributes:
+      description: The attributes from an Opsgenie service response.
+      properties:
+        custom_url:
+          description: The custom URL for a custom region.
+          example: null
+          nullable: true
+          type: string
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServiceCreateAttributes:
+      description: The Opsgenie service attributes for a create request.
+      properties:
+        custom_url:
+          description: The custom URL for a custom region.
+          example: https://example.com
+          type: string
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        opsgenie_api_key:
+          description: The Opsgenie API key for your Opsgenie service.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
+      required:
+      - name
+      - opsgenie_api_key
+      - region
+      type: object
+    OpsgenieServiceUpdateAttributes:
+      description: The Opsgenie service attributes for an update request.
+      properties:
+        custom_url:
+          description: The custom URL for a custom region.
+          example: https://example.com
+          nullable: true
+          type: string
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        opsgenie_api_key:
+          description: The Opsgenie API key for your Opsgenie service.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServicesResponse:
+      description: Response with a list of Opsgenie services.
+      properties:
+        data:
+          description: An array of Opsgenie services.
+          example:
+          - attributes:
+              custom_url: null
+              name: fake-opsgenie-service-name
+              region: us
+            id: 596da4af-0563-4097-90ff-07230c3f9db3
+            type: opsgenie-service
+          - attributes:
+              custom_url: null
+              name: fake-opsgenie-service-name-2
+              region: eu
+            id: 0d2937f1-b561-44fa-914a-99910f848014
+            type: opsgenie-service
+          items:
+            $ref: '#/components/schemas/OpsgenieServiceResponseData'
+          type: array
+      required:
+      - data
+      type: object
+    OpsgenieServiceRegionType:
+      description: The region for the Opsgenie service.
+      enum:
+      - us
+      - eu
+      - custom
+      example: us
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+      - CUSTOM
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    OpsgenieServiceUpdateRequest:
+      description: Update request for an Opsgenie service.
+      properties:
+        data:
+          $ref: '#/components/schemas/OpsgenieServiceUpdateData'
+      required:
+      - data
+      type: object
+    OpsgenieServiceUpdateData:
+      description: Opsgenie service for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OpsgenieServiceUpdateAttributes'
+        id:
+          description: The ID of the Opsgenie service.
+          example: 596da4af-0563-4097-90ff-07230c3f9db3
+          maxLength: 100
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/OpsgenieServiceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServiceCreateRequest:
+      description: Create request for an Opsgenie service.
+      properties:
+        data:
+          $ref: '#/components/schemas/OpsgenieServiceCreateData'
+      required:
+      - data
+      type: object
+    OpsgenieServiceCreateData:
+      description: Opsgenie service data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OpsgenieServiceCreateAttributes'
+        type:
+          $ref: '#/components/schemas/OpsgenieServiceType'
+      required:
+      - type
+      - attributes
+      type: object
+    OpsgenieServiceResponse:
+      description: Response of an Opsgenie service.
+      properties:
+        data:
+          $ref: '#/components/schemas/OpsgenieServiceResponseData'
+      required:
+      - data
+      type: object
+    OpsgenieServiceResponseData:
+      description: Opsgenie service data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OpsgenieServiceResponseAttributes'
+        id:
+          description: The ID of the Opsgenie service.
+          example: 596da4af-0563-4097-90ff-07230c3f9db3
+          maxLength: 100
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/OpsgenieServiceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServiceType:
+      default: opsgenie-service
+      description: Opsgenie service resource type.
+      enum:
+      - opsgenie-service
+      example: opsgenie-service
+      type: string
+      x-enum-varnames:
+      - OPSGENIE_SERVICE
+  parameters:
+    OpsgenieServiceIDPathParameter:
+      description: The UUID of the service.
+      in: path
+      name: integration_service_id
+      required: true
+      schema:
+        type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

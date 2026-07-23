@@ -1,0 +1,762 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Incidents API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Incidents
+  description: Create and manage incident records
+paths:
+  /api/v2/incidents:
+    post:
+      operationId: createIncident
+      summary: Datadog Create an Incident
+      description: Creates a new incident record in Datadog Incident Management. An incident captures an outage or issue, including its title, severity, status, customer impact description, and associated fields. Creating an incident triggers notifications to configured responders and creates a dedicated Slack channel if configured. The incident is assigned a unique ID and timestamped at creation time. Custom fields configured in your organization settings can be set on incident creation.
+      tags:
+      - Incidents
+      parameters:
+      - name: include
+        in: query
+        required: false
+        description: Comma-separated list of related resources to include in the response (e.g., attachments, responders)
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentCreateRequest'
+      responses:
+        '201':
+          description: Incident created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          description: Bad request - invalid incident payload or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to create incidents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - referenced resource does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      operationId: listIncidents
+      summary: Datadog List Incidents
+      description: Returns a paginated list of incidents for your Datadog organization. Results can be filtered by incident state, severity, and date range. Supports including related resources such as users, teams, services, and attachments. Incidents are returned in reverse chronological order by default. Use cursor-based pagination for large datasets.
+      tags:
+      - Incidents
+      parameters:
+      - name: include
+        in: query
+        required: false
+        description: Comma-separated list of related resources to include (e.g., attachments, responders, commander)
+        schema:
+          type: string
+        example: example_value
+      - name: page[size]
+        in: query
+        required: false
+        description: The number of incidents to return per page (default 10, max 100)
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        example: 42
+      - name: page[offset]
+        in: query
+        required: false
+        description: The offset for pagination (number of records to skip)
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        example: 42
+      - name: filter[state]
+        in: query
+        required: false
+        description: Filter incidents by their current state
+        schema:
+          type: string
+          enum:
+          - active
+          - stable
+          - resolved
+        example: active
+      - name: filter[severity]
+        in: query
+        required: false
+        description: Filter incidents by severity level (SEV-1 to SEV-5)
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          description: Successful response with list of incidents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentsResponse'
+        '400':
+          description: Bad request - invalid filter parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to list incidents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - incidents feature is not enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}:
+    get:
+      operationId: getIncident
+      summary: Datadog Get the Details of an Incident
+      description: Returns the full details of a specific incident identified by its unique ID. Includes the incident title, status, severity, customer impact description, timeline, custom fields, and optionally associated responders, services, teams, and attachments. Use the include parameter to fetch related resources in a single request.
+      tags:
+      - Incidents
+      parameters:
+      - $ref: '#/components/parameters/incidentIdParam'
+      - name: include
+        in: query
+        required: false
+        description: Comma-separated list of related resources to include in the response
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          description: Successful response with incident details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to view this incident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - incident with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      operationId: updateIncident
+      summary: Datadog Update an Existing Incident
+      description: Updates an existing incident with new information. Supports partial updates using JSON merge patch semantics. Can update the incident title, status, severity, customer impact fields, custom fields, and notification handles. Status transitions trigger automatic timeline entries and notifications to responders. Resolving an incident records the resolution time and optionally captures customer impact duration.
+      tags:
+      - Incidents
+      parameters:
+      - $ref: '#/components/parameters/incidentIdParam'
+      - name: include
+        in: query
+        required: false
+        description: Comma-separated list of related resources to include in the response
+        schema:
+          type: string
+        example: example_value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentUpdateRequest'
+      responses:
+        '200':
+          description: Incident updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          description: Bad request - invalid update payload or field values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to update this incident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - incident with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      operationId: deleteIncident
+      summary: Datadog Delete an Existing Incident
+      description: Permanently deletes the incident with the specified ID. This action cannot be undone. Deleting an incident removes all associated timeline events, attachments, and todos. Associated Slack channels are not automatically archived. Only users with the Incident Management write permission can delete incidents.
+      tags:
+      - Incidents
+      parameters:
+      - $ref: '#/components/parameters/incidentIdParam'
+      responses:
+        '204':
+          description: No content - incident deleted successfully
+        '401':
+          description: Unauthorized - missing or invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions to delete this incident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '404':
+          description: Not found - incident with the specified ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    IncidentAttributes:
+      type: object
+      description: The attributes of an incident record
+      properties:
+        title:
+          type: string
+          description: The title of the incident describing what is affected
+          example: Example Monitor
+        public_id:
+          type: integer
+          description: The sequential human-readable public ID of the incident within the organization
+          example: 42
+        state:
+          type: string
+          description: The current state of the incident in its lifecycle
+          enum:
+          - active
+          - stable
+          - resolved
+          example: active
+        severity:
+          type: string
+          description: The severity level of the incident
+          enum:
+          - SEV-1
+          - SEV-2
+          - SEV-3
+          - SEV-4
+          - SEV-5
+          - UNKNOWN
+          example: SEV-1
+        customer_impacted:
+          type: boolean
+          description: Whether the incident is causing direct customer impact
+          example: true
+        customer_impact_scope:
+          type: string
+          description: Description of the scope of customer impact for this incident
+          example: example_value
+        customer_impact_start:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when customer impact began
+          example: example_value
+        customer_impact_end:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when customer impact ended
+          example: example_value
+        customer_impact_duration:
+          type: integer
+          description: Duration of customer impact in seconds
+          example: 42
+        created:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the incident was created
+          example: example_value
+        modified:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the incident was last modified
+          example: example_value
+        detected:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the incident was first detected
+          example: example_value
+        resolved:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the incident was marked as resolved
+          example: example_value
+        time_to_detect:
+          type: integer
+          description: Time in seconds from incident start to detection
+          example: 42
+        time_to_internal_response:
+          type: integer
+          description: Time in seconds from detection to first responder acknowledgement
+          example: 42
+        time_to_repair:
+          type: integer
+          description: Time in seconds from detection to resolution
+          example: 42
+        fields:
+          type: object
+          description: Custom field values for the incident as defined in organization settings
+          additionalProperties:
+            type: object
+        notification_handles:
+          type: array
+          description: List of notification handles that were paged for this incident
+          items:
+            type: object
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
+    IncidentsResponse:
+      type: object
+      description: Response containing a paginated list of incidents
+      properties:
+        data:
+          type: array
+          description: List of incident objects
+          items:
+            $ref: '#/components/schemas/Incident'
+        included:
+          type: array
+          description: Related resources included in the response based on the include query parameter
+          items:
+            type: object
+        meta:
+          type: object
+          description: Metadata about the incidents list response
+          properties:
+            pagination:
+              type: object
+              description: Pagination information for navigating through results
+              properties:
+                next_offset:
+                  type: integer
+                  description: The offset to use in the next request to retrieve the next page
+                prev_offset:
+                  type: integer
+                  description: The offset to use to retrieve the previous page
+                size:
+                  type: integer
+                  description: The number of incidents in this page
+                total_count:
+                  type: integer
+                  description: The total number of incidents matching the filter criteria
+    IncidentUpdateRequest:
+      type: object
+      description: Request body for updating an existing incident
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          description: The incident update data
+          required:
+          - type
+          - id
+          - attributes
+          properties:
+            type:
+              type: string
+              description: The resource type identifier
+              enum:
+              - incidents
+            id:
+              type: string
+              description: The unique ID of the incident to update
+            attributes:
+              $ref: '#/components/schemas/IncidentUpdateAttributes'
+    IncidentResponse:
+      type: object
+      description: Response wrapper for a single incident
+      properties:
+        data:
+          $ref: '#/components/schemas/Incident'
+        included:
+          type: array
+          description: Related resources included in the response based on the include query parameter
+          items:
+            type: object
+    IncidentCreateAttributes:
+      type: object
+      description: Attributes for creating a new incident
+      required:
+      - title
+      - customer_impacted
+      properties:
+        title:
+          type: string
+          description: The title of the incident describing what is affected and the nature of the issue
+          example: Example Monitor
+        customer_impacted:
+          type: boolean
+          description: Whether the incident is causing direct customer impact (required field for all incidents)
+          example: true
+        customer_impact_scope:
+          type: string
+          description: Description of the customer groups or features affected by this incident
+          example: example_value
+        customer_impact_start:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when customer impact started, if known
+          example: example_value
+        severity:
+          type: string
+          description: The severity level of the incident using SEV-N notation
+          enum:
+          - SEV-1
+          - SEV-2
+          - SEV-3
+          - SEV-4
+          - SEV-5
+          - UNKNOWN
+          example: SEV-1
+        state:
+          type: string
+          description: The initial state of the incident
+          enum:
+          - active
+          - stable
+          - resolved
+          default: active
+          example: active
+        fields:
+          type: object
+          description: Custom fields for the incident as configured in your organization settings
+          additionalProperties:
+            type: object
+        notification_handles:
+          type: array
+          description: List of user and team notification handles to page on incident creation
+          items:
+            type: object
+            properties:
+              handle:
+                type: string
+                description: The Datadog handle or integration channel to notify
+              display_name:
+                type: string
+                description: The display name for this notification handle
+    Incident:
+      type: object
+      description: A Datadog incident record representing an outage or service disruption
+      properties:
+        id:
+          type: string
+          description: The unique string identifier of the incident
+          example: abc-123-def
+        type:
+          type: string
+          description: The resource type identifier (always 'incidents')
+          example: metric alert
+        attributes:
+          $ref: '#/components/schemas/IncidentAttributes'
+        relationships:
+          type: object
+          description: Relationships to associated resources such as commander, teams, and services
+          properties:
+            commander:
+              type: object
+              description: The incident commander responsible for coordinating the response
+              properties:
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The unique ID of the commander user
+                    type:
+                      type: string
+                      description: The resource type (users)
+    IncidentCreateRequest:
+      type: object
+      description: Request body for creating a new incident
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          description: The incident creation data
+          required:
+          - type
+          - attributes
+          properties:
+            type:
+              type: string
+              description: The resource type identifier for incidents
+              enum:
+              - incidents
+            attributes:
+              $ref: '#/components/schemas/IncidentCreateAttributes'
+    IncidentUpdateAttributes:
+      type: object
+      description: Attributes to update on an existing incident
+      properties:
+        title:
+          type: string
+          description: The updated title of the incident
+          example: Example Monitor
+        state:
+          type: string
+          description: The updated state of the incident (transitioning to resolved records resolution time)
+          enum:
+          - active
+          - stable
+          - resolved
+          example: active
+        severity:
+          type: string
+          description: The updated severity level of the incident
+          enum:
+          - SEV-1
+          - SEV-2
+          - SEV-3
+          - SEV-4
+          - SEV-5
+          - UNKNOWN
+          example: SEV-1
+        customer_impacted:
+          type: boolean
+          description: Updated flag indicating whether the incident has customer impact
+          example: true
+        customer_impact_scope:
+          type: string
+          description: Updated description of the customer impact scope
+          example: example_value
+        customer_impact_end:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when customer impact ended (set when marking impact as resolved)
+          example: example_value
+        fields:
+          type: object
+          description: Updated custom field values for the incident
+          additionalProperties:
+            type: object
+        notification_handles:
+          type: array
+          description: Updated list of notification handles for the incident
+          items:
+            type: object
+  parameters:
+    incidentIdParam:
+      name: incident_id
+      in: path
+      required: true
+      description: The unique string identifier of the incident
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

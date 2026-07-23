@@ -1,0 +1,639 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Framework API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Framework
+paths:
+  /api/v2/cloud_security_management/custom_frameworks:
+    post:
+      description: Create a custom framework.
+      operationId: CreateCustomFramework
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomFrameworkRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCustomFrameworkResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/BadRequestResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      summary: Datadog Create a Custom Framework
+      tags:
+      - Framework
+      x-codegen-request-body-name: body
+      x-given:
+        custom_framework:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\":\"custom_framework\",\n    \"attributes\":{\n      \"name\":\"name\",\n      \"handle\":\"create-framework-new\",\n      \"version\":\"10\",\n      \"icon_url\":\"test-url\",\n      \"requirements\":[{\n        \"name\":\"requirement\",\n        \"controls\":[{\n          \"name\":\"control\",\n          \"rules_id\":\n            [\"def-000-be9\"]\n        }]\n      }]\n    }\n  }\n}"
+          step: there is a valid "custom_framework" in the system
+      x-menu-order: 4
+      x-permission:
+        operator: AND
+        permissions:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      x-undo:
+        operationId: DeleteCustomFramework
+        parameters:
+        - name: handle
+          source: data.attributes.handle
+        - name: version
+          source: data.attributes.version
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/cloud_security_management/custom_frameworks/{handle}/{version}:
+    delete:
+      description: Delete a custom framework.
+      operationId: DeleteCustomFramework
+      parameters:
+      - $ref: '#/components/parameters/CustomFrameworkHandle'
+      - $ref: '#/components/parameters/CustomFrameworkVersion'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteCustomFrameworkResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/BadRequestResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      summary: Datadog Delete a Custom Framework
+      tags:
+      - Framework
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: AND
+        permissions:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a custom framework.
+      operationId: GetCustomFramework
+      parameters:
+      - $ref: '#/components/parameters/CustomFrameworkHandle'
+      - $ref: '#/components/parameters/CustomFrameworkVersion'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCustomFrameworkResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/BadRequestResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_read
+      summary: Datadog Get a Custom Framework
+      tags:
+      - Framework
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_rules_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Update a custom framework.
+      operationId: UpdateCustomFramework
+      parameters:
+      - $ref: '#/components/parameters/CustomFrameworkHandle'
+      - $ref: '#/components/parameters/CustomFrameworkVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomFrameworkRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCustomFrameworkResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/BadRequestResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      summary: Datadog Update a Custom Framework
+      tags:
+      - Framework
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: AND
+        permissions:
+        - security_monitoring_rules_read
+        - security_monitoring_rules_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    CustomFrameworkControl:
+      description: Framework Control.
+      properties:
+        name:
+          description: Control Name.
+          example: A1.2
+          type: string
+        rules_id:
+          description: Rule IDs.
+          example:
+          - '["def-000-abc"]'
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      - rules_id
+      type: object
+    UpdateCustomFrameworkResponse:
+      description: Response object to update a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/FrameworkHandleAndVersionResponseData'
+      required:
+      - data
+      type: object
+    CustomFrameworkData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkDataAttributes'
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - type
+      - attributes
+      type: object
+    CreateCustomFrameworkResponse:
+      description: Response object to create a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/FrameworkHandleAndVersionResponseData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    GetCustomFrameworkResponse:
+      description: Response object to get a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/FullCustomFrameworkData'
+      required:
+      - data
+      type: object
+    CustomFrameworkType:
+      default: custom_framework
+      description: The type of the resource. The value must be `custom_framework`.
+      enum:
+      - custom_framework
+      example: custom_framework
+      type: string
+      x-enum-varnames:
+      - CUSTOM_FRAMEWORK
+    FullCustomFrameworkData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FullCustomFrameworkDataAttributes'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    CustomFrameworkRequirement:
+      description: Framework Requirement.
+      properties:
+        controls:
+          description: Requirement Controls.
+          items:
+            $ref: '#/components/schemas/CustomFrameworkControl'
+          type: array
+        name:
+          description: Requirement Name.
+          example: criteria
+          type: string
+      required:
+      - name
+      - controls
+      type: object
+    CustomFrameworkDataHandleAndVersion:
+      description: Framework Handle and Version.
+      properties:
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      type: object
+    FullCustomFrameworkDataAttributes:
+      description: Full Framework Data Attributes.
+      properties:
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          example: https://example.com/icon.png
+          type: string
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        requirements:
+          description: Framework Requirements
+          items:
+            $ref: '#/components/schemas/CustomFrameworkRequirement'
+          type: array
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      - requirements
+      type: object
+    UpdateCustomFrameworkRequest:
+      description: Request object to update a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomFrameworkData'
+      required:
+      - data
+      type: object
+    CreateCustomFrameworkRequest:
+      description: Request object to create a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomFrameworkData'
+      required:
+      - data
+      type: object
+    CustomFrameworkWithoutRequirements:
+      description: Framework without requirements.
+      properties:
+        description:
+          description: Framework Description
+          example: this is a security description
+          type: string
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          example: https://example.com/icon.png
+          type: string
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      type: object
+    DeleteCustomFrameworkResponse:
+      description: Response object to delete a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomFrameworkMetadata'
+      required:
+      - data
+      type: object
+    FrameworkHandleAndVersionResponseData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkDataHandleAndVersion'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    CustomFrameworkMetadata:
+      description: Metadata for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkWithoutRequirements'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      type: object
+    CustomFrameworkDataAttributes:
+      description: Framework Data Attributes.
+      properties:
+        description:
+          description: Framework Description
+          type: string
+          example: example_value
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          type: string
+          example: https://app.datadoghq.com
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        requirements:
+          description: Framework Requirements
+          items:
+            $ref: '#/components/schemas/CustomFrameworkRequirement'
+          type: array
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      - requirements
+      type: object
+  parameters:
+    CustomFrameworkVersion:
+      description: The framework version
+      in: path
+      name: version
+      required: true
+      schema:
+        type: string
+    CustomFrameworkHandle:
+      description: The framework handle
+      in: path
+      name: handle
+      required: true
+      schema:
+        type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

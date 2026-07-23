@@ -1,0 +1,626 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Items API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Items
+paths:
+  /api/v2/dashboard/lists/manual/{dashboard_list_id}/dashboards:
+    delete:
+      description: Delete dashboards from an existing dashboard list.
+      operationId: DeleteDashboardListItems
+      parameters:
+      - description: ID of the dashboard list to delete items from.
+        in: path
+        name: dashboard_list_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        example: 42
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardListDeleteItemsRequest'
+        description: Dashboards to delete from the dashboard list.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardListDeleteItemsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete Items from a Dashboard List
+      tags:
+      - Items
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Fetch the dashboard list’s dashboard definitions.
+      operationId: GetDashboardListItems
+      parameters:
+      - description: ID of the dashboard list to get items from.
+        in: path
+        name: dashboard_list_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        example: 42
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardListItems'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - dashboards_read
+      summary: Datadog Get Items of a Dashboard List
+      tags:
+      - Items
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - dashboards_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Add dashboards to an existing dashboard list.
+      operationId: CreateDashboardListItems
+      parameters:
+      - description: ID of the dashboard list to add items to.
+        in: path
+        name: dashboard_list_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        example: 42
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardListAddItemsRequest'
+        description: Dashboards to add to the dashboard list.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardListAddItemsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Items to a Dashboard List
+      tags:
+      - Items
+      x-codegen-request-body-name: body
+      x-given:
+        dashboard_list_dashboard:
+          parameters:
+          - name: dashboard_list_id
+            source: dashboard_list.id
+          - name: body
+            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ dashboard.id }}\",\n      \"type\": \"custom_timeboard\"\n    }\n  ]\n}"
+          step: the "dashboard_list" has the "dashboard"
+        dashboard_list_screenboard_dashboard:
+          parameters:
+          - name: dashboard_list_id
+            source: dashboard_list.id
+          - name: body
+            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ screenboard_dashboard.id }}\",\n      \"type\": \"custom_screenboard\"\n    }\n  ]\n}"
+          step: the "dashboard_list" has the "screenboard_dashboard"
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Update dashboards of an existing dashboard list.
+      operationId: UpdateDashboardListItems
+      parameters:
+      - description: ID of the dashboard list to update items from.
+        in: path
+        name: dashboard_list_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        example: 42
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardListUpdateItemsRequest'
+        description: New dashboards of the dashboard list.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardListUpdateItemsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update Items of a Dashboard List
+      tags:
+      - Items
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    DashboardListUpdateItemsResponse:
+      description: Response containing a list of updated dashboards.
+      properties:
+        dashboards:
+          description: List of dashboards in the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemResponse'
+          type: array
+      type: object
+    DashboardListItems:
+      description: Dashboards within a list.
+      properties:
+        dashboards:
+          description: List of dashboards in the dashboard list.
+          example: []
+          items:
+            $ref: '#/components/schemas/DashboardListItem'
+          type: array
+        total:
+          description: Number of dashboards in the dashboard list.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      required:
+      - dashboards
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    Creator:
+      description: Creator of the object.
+      properties:
+        email:
+          description: Email of the creator.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the creator.
+          type: string
+          example: example_value
+        name:
+          description: Name of the creator.
+          nullable: true
+          type: string
+          example: Example Monitor
+      type: object
+    DashboardListAddItemsResponse:
+      description: Response containing a list of added dashboards.
+      properties:
+        added_dashboards_to_list:
+          description: List of dashboards added to the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemResponse'
+          type: array
+      type: object
+    DashboardListItem:
+      description: A dashboard within a list.
+      properties:
+        author:
+          $ref: '#/components/schemas/Creator'
+        created:
+          description: Date of creation of the dashboard.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        icon:
+          description: URL to the icon of the dashboard.
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
+          type: string
+        integration_id:
+          description: The short name of the integration.
+          nullable: true
+          readOnly: true
+          type: string
+          example: abc-123-def
+        is_favorite:
+          description: Whether or not the dashboard is in the favorites.
+          readOnly: true
+          type: boolean
+          example: true
+        is_read_only:
+          description: Whether or not the dashboard is read only.
+          readOnly: true
+          type: boolean
+          example: true
+        is_shared:
+          description: Whether the dashboard is publicly shared or not.
+          readOnly: true
+          type: boolean
+          example: true
+        modified:
+          description: Date of last edition of the dashboard.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        popularity:
+          description: Popularity of the dashboard.
+          format: int32
+          maximum: 5
+          readOnly: true
+          type: integer
+          example: 42
+        tags:
+          description: List of team names representing ownership of a dashboard.
+          items:
+            description: The name of a Datadog team, formatted as `team:<name>`
+            type: string
+          maxItems: 5
+          nullable: true
+          readOnly: true
+          type: array
+        title:
+          description: Title of the dashboard.
+          readOnly: true
+          type: string
+          example: Example Monitor
+        type:
+          $ref: '#/components/schemas/DashboardType'
+        url:
+          description: URL path to the dashboard.
+          readOnly: true
+          type: string
+          example: https://app.datadoghq.com
+      required:
+      - type
+      - id
+      type: object
+    DashboardListUpdateItemsRequest:
+      description: Request containing the list of dashboards to update to.
+      properties:
+        dashboards:
+          description: List of dashboards to update the dashboard list to.
+          items:
+            $ref: '#/components/schemas/DashboardListItemRequest'
+          type: array
+      type: object
+    DashboardListAddItemsRequest:
+      description: Request containing a list of dashboards to add.
+      properties:
+        dashboards:
+          description: List of dashboards to add the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemRequest'
+          type: array
+      type: object
+    DashboardListDeleteItemsRequest:
+      description: Request containing a list of dashboards to delete.
+      properties:
+        dashboards:
+          description: List of dashboards to delete from the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemRequest'
+          type: array
+      type: object
+    DashboardListItemResponse:
+      description: A dashboard within a list.
+      properties:
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
+          readOnly: true
+          type: string
+        type:
+          $ref: '#/components/schemas/DashboardType'
+      required:
+      - type
+      - id
+      type: object
+    DashboardListItemRequest:
+      description: A dashboard within a list.
+      properties:
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
+          type: string
+        type:
+          $ref: '#/components/schemas/DashboardType'
+      required:
+      - type
+      - id
+      type: object
+    DashboardType:
+      description: The type of the dashboard.
+      enum:
+      - custom_timeboard
+      - custom_screenboard
+      - integration_screenboard
+      - integration_timeboard
+      - host_timeboard
+      example: host_timeboard
+      type: string
+      x-enum-varnames:
+      - CUSTOM_TIMEBOARD
+      - CUSTOM_SCREENBOARD
+      - INTEGRATION_SCREENBOARD
+      - INTEGRATION_TIMEBOARD
+      - HOST_TIMEBOARD
+    DashboardListDeleteItemsResponse:
+      description: Response containing a list of deleted dashboards.
+      properties:
+        deleted_dashboards_from_list:
+          description: List of dashboards deleted from the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemResponse'
+          type: array
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

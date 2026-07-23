@@ -1,0 +1,642 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Suppression API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Suppression
+paths:
+  /api/v2/security_monitoring/configuration/suppressions:
+    get:
+      description: Get the list of all suppression rules.
+      operationId: ListSecurityMonitoringSuppressions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSuppressionsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_suppressions_read
+      summary: Datadog Get All Suppression Rules
+      tags:
+      - Suppression
+      x-menu-order: 0
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a new suppression rule.
+      operationId: CreateSecurityMonitoringSuppression
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSuppressionCreateRequest'
+        description: The definition of the new suppression rule.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSuppressionResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_suppressions_write
+      summary: Datadog Create a Suppression Rule
+      tags:
+      - Suppression
+      x-codegen-request-body-name: body
+      x-given:
+        suppression:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"suppressions\",\n    \"attributes\": {\n      \"enabled\": true,\n      \"name\": \"{{ unique }}\",\n      \"description\": \"{{ unique }}\",\n      \"rule_query\": \"source:cloudtrail\",\n      \"suppression_query\": \"env:test\"\n    }\n  }\n}"
+          step: there is a valid "suppression" in the system
+      x-menu-order: 0
+      x-undo:
+        operationId: DeleteSecurityMonitoringSuppression
+        parameters:
+        - name: suppression_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/configuration/suppressions/{suppression_id}:
+    delete:
+      description: Delete a specific suppression rule.
+      operationId: DeleteSecurityMonitoringSuppression
+      parameters:
+      - $ref: '#/components/parameters/SecurityMonitoringSuppressionID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_suppressions_write
+      summary: Datadog Delete a Suppression Rule
+      tags:
+      - Suppression
+      x-menu-order: 0
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get the details of a specific suppression rule.
+      operationId: GetSecurityMonitoringSuppression
+      parameters:
+      - $ref: '#/components/parameters/SecurityMonitoringSuppressionID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSuppressionResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_suppressions_read
+      summary: Datadog Get a Suppression Rule
+      tags:
+      - Suppression
+      x-menu-order: 0
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update a specific suppression rule.
+      operationId: UpdateSecurityMonitoringSuppression
+      parameters:
+      - $ref: '#/components/parameters/SecurityMonitoringSuppressionID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSuppressionUpdateRequest'
+        description: New definition of the suppression rule. Supports partial updates.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSuppressionResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_suppressions_write
+      summary: Datadog Update a Suppression Rule
+      tags:
+      - Suppression
+      x-menu-order: 0
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    SecurityMonitoringSuppression:
+      description: The suppression rule's properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionAttributes'
+        id:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionID'
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionType'
+      type: object
+    SecurityMonitoringSuppressionType:
+      default: suppressions
+      description: The type of the resource. The value should always be `suppressions`.
+      enum:
+      - suppressions
+      example: suppressions
+      type: string
+      x-enum-varnames:
+      - SUPPRESSIONS
+    SecurityMonitoringSuppressionAttributes:
+      description: The attributes of the suppression rule.
+      properties:
+        creation_date:
+          description: A Unix millisecond timestamp given the creation date of the suppression rule.
+          format: int64
+          type: integer
+          example: 42
+        creator:
+          $ref: '#/components/schemas/SecurityMonitoringUser'
+        data_exclusion_query:
+          description: An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule.
+          example: source:cloudtrail account_id:12345
+          type: string
+        description:
+          description: A description for the suppression rule.
+          example: This rule suppresses low-severity signals in staging environments.
+          type: string
+        editable:
+          description: Whether the suppression rule is editable.
+          example: true
+          type: boolean
+        enabled:
+          description: Whether the suppression rule is enabled.
+          example: true
+          type: boolean
+        expiration_date:
+          description: A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore.
+          example: 1703187336000
+          format: int64
+          type: integer
+        name:
+          description: The name of the suppression rule.
+          example: Custom suppression
+          type: string
+        rule_query:
+          description: The rule query of the suppression rule, with the same syntax as the search bar for detection rules.
+          example: type:log_detection source:cloudtrail
+          type: string
+        start_date:
+          description: A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals.
+          example: 1703187336000
+          format: int64
+          type: integer
+        suppression_query:
+          description: The suppression query of the suppression rule. If a signal matches this query, it is suppressed and not triggered. Same syntax as the queries to search signals in the signal explorer.
+          example: env:staging status:low
+          type: string
+        update_date:
+          description: A Unix millisecond timestamp given the update date of the suppression rule.
+          format: int64
+          type: integer
+          example: 42
+        updater:
+          $ref: '#/components/schemas/SecurityMonitoringUser'
+        version:
+          description: The version of the suppression rule; it starts at 1, and is incremented at each update.
+          example: 42
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SecurityMonitoringSuppressionUpdateAttributes:
+      description: The suppression rule properties to be updated.
+      properties:
+        data_exclusion_query:
+          description: An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule.
+          example: source:cloudtrail account_id:12345
+          type: string
+        description:
+          description: A description for the suppression rule.
+          example: This rule suppresses low-severity signals in staging environments.
+          type: string
+        enabled:
+          description: Whether the suppression rule is enabled.
+          example: true
+          type: boolean
+        expiration_date:
+          description: A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore. If unset, the expiration date of the suppression rule is left untouched. If set to `null`, the expiration date is removed.
+          example: 1703187336000
+          format: int64
+          nullable: true
+          type: integer
+        name:
+          description: The name of the suppression rule.
+          example: Custom suppression
+          type: string
+        rule_query:
+          description: The rule query of the suppression rule, with the same syntax as the search bar for detection rules.
+          example: type:log_detection source:cloudtrail
+          type: string
+        start_date:
+          description: A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals. If unset, the start date of the suppression rule is left untouched. If set to `null`, the start date is removed.
+          example: 1703187336000
+          format: int64
+          nullable: true
+          type: integer
+        suppression_query:
+          description: The suppression query of the suppression rule. If a signal matches this query, it is suppressed and not triggered. Same syntax as the queries to search signals in the signal explorer.
+          example: env:staging status:low
+          type: string
+        version:
+          description: The current version of the suppression. This is optional, but it can help prevent concurrent modifications.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+      type: object
+    SecurityMonitoringUser:
+      description: A user.
+      properties:
+        handle:
+          description: The handle of the user.
+          example: john.doe@datadoghq.com
+          type: string
+        name:
+          description: The name of the user.
+          example: John Doe
+          nullable: true
+          type: string
+      type: object
+    SecurityMonitoringSuppressionID:
+      description: The ID of the suppression rule.
+      example: 3dd-0uc-h1s
+      type: string
+    SecurityMonitoringSuppressionResponse:
+      description: Response object containing a single suppression rule.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSuppression'
+      type: object
+    SecurityMonitoringSuppressionCreateData:
+      description: Object for a single suppression rule.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionCreateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionType'
+      required:
+      - type
+      - attributes
+      type: object
+    SecurityMonitoringSuppressionsResponse:
+      description: Response object containing the available suppression rules.
+      properties:
+        data:
+          description: A list of suppressions objects.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringSuppression'
+          type: array
+      type: object
+    SecurityMonitoringSuppressionCreateRequest:
+      description: Request object that includes the suppression rule that you would like to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionCreateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSuppressionCreateAttributes:
+      description: Object containing the attributes of the suppression rule to be created.
+      properties:
+        data_exclusion_query:
+          description: An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule.
+          example: source:cloudtrail account_id:12345
+          type: string
+        description:
+          description: A description for the suppression rule.
+          example: This rule suppresses low-severity signals in staging environments.
+          type: string
+        enabled:
+          description: Whether the suppression rule is enabled.
+          example: true
+          type: boolean
+        expiration_date:
+          description: A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore.
+          example: 1703187336000
+          format: int64
+          type: integer
+        name:
+          description: The name of the suppression rule.
+          example: Custom suppression
+          type: string
+        rule_query:
+          description: The rule query of the suppression rule, with the same syntax as the search bar for detection rules.
+          example: type:log_detection source:cloudtrail
+          type: string
+        start_date:
+          description: A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals.
+          example: 1703187336000
+          format: int64
+          type: integer
+        suppression_query:
+          description: The suppression query of the suppression rule. If a signal matches this query, it is suppressed and is not triggered. It uses the same syntax as the queries to search signals in the Signals Explorer.
+          example: env:staging status:low
+          type: string
+      required:
+      - name
+      - enabled
+      - rule_query
+      type: object
+    SecurityMonitoringSuppressionUpdateRequest:
+      description: Request object containing the fields to update on the suppression rule.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionUpdateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSuppressionUpdateData:
+      description: The new suppression properties; partial updates are supported.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSuppressionType'
+      required:
+      - type
+      - attributes
+      type: object
+  parameters:
+    SecurityMonitoringSuppressionID:
+      description: The ID of the suppression rule
+      in: path
+      name: suppression_id
+      required: true
+      schema:
+        type: string
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

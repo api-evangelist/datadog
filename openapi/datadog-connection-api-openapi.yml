@@ -1,0 +1,839 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Connection API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Connection
+paths:
+  /api/v2/actions/connections:
+    post:
+      description: Create a new Action Connection
+      operationId: CreateActionConnection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActionConnectionRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateActionConnectionResponse'
+          description: Successfully created Action Connection
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Forbidden
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Too Many Request
+      summary: Datadog Create a New Action Connection
+      tags:
+      - Connection
+      x-given:
+        action_connection:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"action_connection\",\n    \"attributes\": {\n        \"name\": \"Cassette Connection {{ unique_lower_alnum }}\",\n        \"integration\": {\n            \"type\": \"AWS\",\n            \"credentials\": {\n                \"type\": \"AWSAssumeRole\",\n                \"role\": \"MyRole\",\n                \"account_id\": \"123456789123\"\n            }\n        }\n    }\n  }\n}"
+          step: there is a valid "action_connection" in the system
+      x-menu-order: 2
+      x-undo:
+        operationId: DeleteActionConnection
+        parameters:
+        - name: connection_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/actions/connections/{connection_id}:
+    delete:
+      description: Delete an existing Action Connection
+      operationId: DeleteActionConnection
+      parameters:
+      - $ref: '#/components/parameters/ConnectionId'
+      responses:
+        '204':
+          description: The resource was deleted successfully.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Too Many Request
+      summary: Datadog Delete an Existing Action Connection
+      tags:
+      - Connection
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - connection_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get an existing Action Connection
+      operationId: GetActionConnection
+      parameters:
+      - $ref: '#/components/parameters/ConnectionId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetActionConnectionResponse'
+          description: Successfully get Action Connection
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Too Many Request
+      summary: Datadog Get an Existing Action Connection
+      tags:
+      - Connection
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an existing Action Connection
+      operationId: UpdateActionConnection
+      parameters:
+      - $ref: '#/components/parameters/ConnectionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActionConnectionRequest'
+        description: Update an existing Action Connection request body
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateActionConnectionResponse'
+          description: Successfully updated Action Connection
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Too Many Request
+      summary: Datadog Update an Existing Action Connection
+      tags:
+      - Connection
+      x-menu-order: 3
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    AWSIntegrationUpdate:
+      description: The definition of `AWSIntegrationUpdate` object.
+      properties:
+        credentials:
+          $ref: '#/components/schemas/AWSCredentialsUpdate'
+        type:
+          $ref: '#/components/schemas/AWSIntegrationType'
+      required:
+      - type
+      type: object
+    TokenType:
+      description: The definition of `TokenType` object.
+      enum:
+      - SECRET
+      example: SECRET
+      type: string
+      x-enum-varnames:
+      - SECRET
+    HTTPIntegrationType:
+      description: The definition of `HTTPIntegrationType` object.
+      enum:
+      - HTTP
+      example: HTTP
+      type: string
+      x-enum-varnames:
+      - HTTP
+    AWSCredentialsUpdate:
+      description: The definition of `AWSCredentialsUpdate` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSAssumeRoleUpdate'
+    HTTPTokenAuthUpdate:
+      description: The definition of `HTTPTokenAuthUpdate` object.
+      properties:
+        body:
+          $ref: '#/components/schemas/HTTPBody'
+        headers:
+          description: The `HTTPTokenAuthUpdate` `headers`.
+          items:
+            $ref: '#/components/schemas/HTTPHeaderUpdate'
+          type: array
+        tokens:
+          description: The `HTTPTokenAuthUpdate` `tokens`.
+          items:
+            $ref: '#/components/schemas/HTTPTokenUpdate'
+          type: array
+        type:
+          $ref: '#/components/schemas/HTTPTokenAuthType'
+        url_parameters:
+          description: The `HTTPTokenAuthUpdate` `url_parameters`.
+          items:
+            $ref: '#/components/schemas/UrlParamUpdate'
+          type: array
+      required:
+      - type
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    UpdateActionConnectionRequest:
+      description: Request used to update an action connection.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionDataUpdate'
+      required:
+      - data
+      type: object
+    HTTPIntegration:
+      description: The definition of `HTTPIntegration` object.
+      properties:
+        base_url:
+          description: Base HTTP url for the integration
+          example: http://datadoghq.com
+          type: string
+        credentials:
+          $ref: '#/components/schemas/HTTPCredentials'
+        type:
+          $ref: '#/components/schemas/HTTPIntegrationType'
+      required:
+      - type
+      - base_url
+      - credentials
+      type: object
+    UrlParamUpdate:
+      description: The definition of `UrlParamUpdate` object.
+      properties:
+        deleted:
+          description: Should the header be deleted.
+          type: boolean
+          example: true
+        name:
+          $ref: '#/components/schemas/TokenName'
+          example: MyUrlParameter
+        value:
+          description: The `UrlParamUpdate` `value`.
+          example: Some Url Parameter value
+          type: string
+      required:
+      - name
+      type: object
+    TokenName:
+      description: Name for tokens.
+      example: MyTokenName
+      pattern: ^[A-Za-z][A-Za-z\\d]*$
+      type: string
+    HTTPHeaderUpdate:
+      description: The definition of `HTTPHeaderUpdate` object.
+      properties:
+        deleted:
+          description: Should the header be deleted.
+          type: boolean
+          example: true
+        name:
+          description: The `HTTPHeaderUpdate` `name`.
+          example: MyHttpHeader
+          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
+          type: string
+        value:
+          description: The `HTTPHeaderUpdate` `value`.
+          example: Updated Header Value
+          type: string
+      required:
+      - name
+      type: object
+    HTTPTokenAuthType:
+      description: The definition of `HTTPTokenAuthType` object.
+      enum:
+      - HTTPTokenAuth
+      example: HTTPTokenAuth
+      type: string
+      x-enum-varnames:
+      - HTTPTOKENAUTH
+    ActionConnectionDataType:
+      description: The definition of `ActionConnectionDataType` object.
+      enum:
+      - action_connection
+      example: action_connection
+      type: string
+      x-enum-varnames:
+      - ACTION_CONNECTION
+    AWSCredentials:
+      description: The definition of `AWSCredentials` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSAssumeRole'
+    UpdateActionConnectionResponse:
+      description: The response for an updated connection.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      type: object
+    GetActionConnectionResponse:
+      description: The response for found connection
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      type: object
+    CreateActionConnectionResponse:
+      description: The response for a created connection
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      type: object
+    ActionConnectionAttributesUpdate:
+      description: The definition of `ActionConnectionAttributesUpdate` object.
+      properties:
+        integration:
+          $ref: '#/components/schemas/ActionConnectionIntegrationUpdate'
+        name:
+          description: Name of the connection
+          example: My AWS Connection
+          type: string
+      type: object
+    HTTPCredentials:
+      description: The definition of `HTTPCredentials` object.
+      oneOf:
+      - $ref: '#/components/schemas/HTTPTokenAuth'
+    HTTPHeader:
+      description: The definition of `HTTPHeader` object.
+      properties:
+        name:
+          description: The `HTTPHeader` `name`.
+          example: MyHttpHeader
+          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
+          type: string
+        value:
+          description: The `HTTPHeader` `value`.
+          example: Some header value
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    AWSAssumeRoleUpdate:
+      description: The definition of `AWSAssumeRoleUpdate` object.
+      properties:
+        account_id:
+          description: AWS account the connection is created for
+          example: '111222333444'
+          pattern: ^\d{12}$
+          type: string
+        generate_new_external_id:
+          description: The `AWSAssumeRoleUpdate` `generate_new_external_id`.
+          type: boolean
+          example: true
+        role:
+          description: Role to assume
+          example: my-role
+          type: string
+        type:
+          $ref: '#/components/schemas/AWSAssumeRoleType'
+      required:
+      - type
+      type: object
+    HTTPTokenAuth:
+      description: The definition of `HTTPTokenAuth` object.
+      properties:
+        body:
+          $ref: '#/components/schemas/HTTPBody'
+        headers:
+          description: The `HTTPTokenAuth` `headers`.
+          items:
+            $ref: '#/components/schemas/HTTPHeader'
+          type: array
+        tokens:
+          description: The `HTTPTokenAuth` `tokens`.
+          items:
+            $ref: '#/components/schemas/HTTPToken'
+          type: array
+        type:
+          $ref: '#/components/schemas/HTTPTokenAuthType'
+        url_parameters:
+          description: The `HTTPTokenAuth` `url_parameters`.
+          items:
+            $ref: '#/components/schemas/UrlParam'
+          type: array
+      required:
+      - type
+      type: object
+    CreateActionConnectionRequest:
+      description: Request used to create an action connection.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      required:
+      - data
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    ActionConnectionAttributes:
+      description: The definition of `ActionConnectionAttributes` object.
+      properties:
+        integration:
+          $ref: '#/components/schemas/ActionConnectionIntegration'
+        name:
+          description: Name of the connection
+          example: My AWS Connection
+          type: string
+      required:
+      - name
+      - integration
+      type: object
+    AWSAssumeRoleType:
+      description: The definition of `AWSAssumeRoleType` object.
+      enum:
+      - AWSAssumeRole
+      example: AWSAssumeRole
+      type: string
+      x-enum-varnames:
+      - AWSASSUMEROLE
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    AWSIntegration:
+      description: The definition of `AWSIntegration` object.
+      properties:
+        credentials:
+          $ref: '#/components/schemas/AWSCredentials'
+        type:
+          $ref: '#/components/schemas/AWSIntegrationType'
+      required:
+      - type
+      - credentials
+      type: object
+    ActionConnectionIntegrationUpdate:
+      description: The definition of `ActionConnectionIntegrationUpdate` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSIntegrationUpdate'
+      - $ref: '#/components/schemas/HTTPIntegrationUpdate'
+    HTTPBody:
+      description: The definition of `HTTPBody` object.
+      properties:
+        content:
+          description: Serialized body content
+          example: '{"some-json": "with-value"}'
+          type: string
+        content_type:
+          description: Content type of the body
+          example: application/json
+          type: string
+      type: object
+    UrlParam:
+      description: The definition of `UrlParam` object.
+      properties:
+        name:
+          $ref: '#/components/schemas/TokenName'
+          example: MyUrlParameter
+        value:
+          description: The `UrlParam` `value`.
+          example: Some Url Parameter value
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    AWSAssumeRole:
+      description: The definition of `AWSAssumeRole` object.
+      properties:
+        account_id:
+          description: AWS account the connection is created for
+          example: '111222333444'
+          pattern: ^\d{12}$
+          type: string
+        external_id:
+          description: External ID used to scope which connection can be used to assume the role
+          example: 33a1011635c44b38a064cf14e82e1d8f
+          readOnly: true
+          type: string
+        principal_id:
+          description: AWS account that will assume the role
+          example: '123456789012'
+          readOnly: true
+          type: string
+        role:
+          description: Role to assume
+          example: my-role
+          type: string
+        type:
+          $ref: '#/components/schemas/AWSAssumeRoleType'
+      required:
+      - type
+      - account_id
+      - role
+      type: object
+    HTTPTokenUpdate:
+      description: The definition of `HTTPTokenUpdate` object.
+      properties:
+        deleted:
+          description: Should the header be deleted.
+          type: boolean
+          example: true
+        name:
+          description: The `HTTPToken` `name`.
+          example: MyToken
+          pattern: ^[A-Za-z][A-Za-z\\d]*$
+          type: string
+        type:
+          $ref: '#/components/schemas/TokenType'
+        value:
+          description: The `HTTPToken` `value`.
+          example: Some Token Value
+          type: string
+      required:
+      - name
+      - type
+      - value
+      type: object
+    ActionConnectionData:
+      description: Data related to the connection.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ActionConnectionAttributes'
+        id:
+          description: The connection identifier
+          readOnly: true
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ActionConnectionDataType'
+      required:
+      - type
+      - attributes
+      type: object
+    HTTPIntegrationUpdate:
+      description: The definition of `HTTPIntegrationUpdate` object.
+      properties:
+        base_url:
+          description: Base HTTP url for the integration
+          example: http://datadoghq.com
+          type: string
+        credentials:
+          $ref: '#/components/schemas/HTTPCredentialsUpdate'
+        type:
+          $ref: '#/components/schemas/HTTPIntegrationType'
+      required:
+      - type
+      type: object
+    ActionConnectionDataUpdate:
+      description: Data related to the connection update.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ActionConnectionAttributesUpdate'
+        type:
+          $ref: '#/components/schemas/ActionConnectionDataType'
+      required:
+      - type
+      - attributes
+      type: object
+    AWSIntegrationType:
+      description: The definition of `AWSIntegrationType` object.
+      enum:
+      - AWS
+      example: AWS
+      type: string
+      x-enum-varnames:
+      - AWS
+    HTTPCredentialsUpdate:
+      description: The definition of `HTTPCredentialsUpdate` object.
+      oneOf:
+      - $ref: '#/components/schemas/HTTPTokenAuthUpdate'
+    HTTPToken:
+      description: The definition of `HTTPToken` object.
+      properties:
+        name:
+          description: The `HTTPToken` `name`.
+          example: MyToken
+          pattern: ^[A-Za-z][A-Za-z\\d]*$
+          type: string
+        type:
+          $ref: '#/components/schemas/TokenType'
+        value:
+          description: The `HTTPToken` `value`.
+          example: Some Token Value
+          type: string
+      required:
+      - name
+      - value
+      - type
+      type: object
+    ActionConnectionIntegration:
+      description: The definition of `ActionConnectionIntegration` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSIntegration'
+      - $ref: '#/components/schemas/HTTPIntegration'
+  parameters:
+    ConnectionId:
+      description: The ID of the action connection
+      in: path
+      name: connection_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

@@ -1,0 +1,1101 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Patch API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Patch
+paths:
+  /api/v2/agentless_scanning/accounts/aws/{account_id}:
+    patch:
+      description: Update the Agentless scan options for an activated account.
+      operationId: UpdateAwsScanOptions
+      parameters:
+      - $ref: '#/components/parameters/AwsAccountId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwsScanOptionsUpdateRequest'
+        description: New definition of the scan options.
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Patch Aws Scan Options
+      tags:
+      - Patch
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/scim/Groups/{group_id}:
+    patch:
+      description: Patch the group with the given `group_id`.
+      operationId: PatchSCIMGroup
+      parameters:
+      - description: None
+        in: path
+        name: group_id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  Operations:
+                  - op: replace
+                    path: None
+                    value:
+                      displayName: Real new group
+                      id: e43536e9-33fe-43f8-90b8-d3e39a7dd6ad
+                  - op: add
+                    path: None
+                    value:
+                      members:
+                      - $ref: https://app.datadoghq.com/api/scim/v2/Users/f85e3868-ad7b-47e3-a8a9-ff1eade2bbf9
+                        displayName: Bob Smith
+                        value: f85e3868-ad7b-47e3-a8a9-ff1eade2bbf9
+                  - op: remove
+                    path: members[value eq "fddf0cf2-9b60-11ef-ad4b-d6754a54a839"]
+                    value: null
+                  schemas:
+                  - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            schema:
+              $ref: '#/components/schemas/ExternalUserGroupPatchRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUserGroup'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Patch Group
+      tags:
+      - Patch
+      x-menu-order: 11
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/scim/Users/{user_uuid}:
+    patch:
+      description: Patch the user with the given `user_uuid`.
+      operationId: PatchSCIMUser
+      parameters:
+      - description: None
+        in: path
+        name: user_uuid
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            examples:
+              json-request-body:
+                value:
+                  Operations:
+                  - op: replace
+                    path: title
+                    value: CEO
+                  - op: replace
+                    value:
+                      name:
+                        formatted: John Doe
+                  schemas:
+                  - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            schema:
+              $ref: '#/components/schemas/ExternalUserPatchRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalUser'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - bearerAuth: []
+      summary: Datadog Patch User
+      tags:
+      - Patch
+      x-menu-order: 5
+      x-permission:
+        operator: AND
+        permissions:
+        - user_access_invite
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security/signals/notification_rules/{id}:
+    patch:
+      description: Partially update the notification rule. All fields are optional; if a field is not provided, it is not updated.
+      operationId: PatchSignalNotificationRule
+      parameters:
+      - description: ID of the notification rule.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchNotificationRuleParameters'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRuleResponse'
+          description: Notification rule successfully patched.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_notification_profiles_write
+      summary: Datadog Patch a Signal-based Notification Rule
+      tags:
+      - Patch
+      x-codegen-request-body-name: body
+      x-menu-order: 20
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_notification_profiles_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security/vulnerabilities/notification_rules/{id}:
+    patch:
+      description: Partially update the notification rule. All fields are optional; if a field is not provided, it is not updated.
+      operationId: PatchVulnerabilityNotificationRule
+      parameters:
+      - description: ID of the notification rule.
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        example: abc-123-def
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchNotificationRuleParameters'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRuleResponse'
+          description: Notification rule successfully patched.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_notification_profiles_write
+      summary: Datadog Patch a Vulnerability-based Notification Rule
+      tags:
+      - Patch
+      x-codegen-request-body-name: body
+      x-menu-order: 20
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_notification_profiles_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ExternalUserGroup:
+      description: Definition of a group.
+      properties:
+        displayName:
+          description: A human-readable name for the group.
+          type: string
+          example: Example Monitor
+        externalId:
+          description: An identifier for the resource as defined by the provisioning client.
+          type: string
+          example: abc-123-def
+        id:
+          description: The identifier of the resource. Not required when creating a group.
+          type: string
+          example: abc-123-def
+        members:
+          description: Members of the group.
+          items:
+            $ref: '#/components/schemas/ExternalUserGroupMembersItems'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ExternalUserGroupMeta'
+        schemas:
+          description: Input JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:Group
+          items:
+            type: string
+          type: array
+      type: object
+    AwsScanOptionsType:
+      default: aws_scan_options
+      description: The type of the resource. The value should always be `aws_scan_options`.
+      enum:
+      - aws_scan_options
+      example: aws_scan_options
+      type: string
+      x-enum-varnames:
+      - AWS_SCAN_OPTIONS
+    RuleUser:
+      description: User creating or modifying a rule.
+      properties:
+        handle:
+          description: The user handle.
+          example: john.doe@domain.com
+          type: string
+        name:
+          description: The user name.
+          example: John Doe
+          type: string
+      type: object
+    ExternalUserGroupMeta:
+      description: Metadata associated with a group.
+      properties:
+        created:
+          description: The date and time the group was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
+          type: string
+        lastModified:
+          description: The date and time the group was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
+          type: string
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Groups/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+        resourceType:
+          description: Type of resource.
+          example: Group
+          type: string
+      type: object
+    RuleName:
+      description: Name of the notification rule.
+      example: Rule 1
+      type: string
+    ExternalUserGroupMembersItems:
+      description: The definition of a member belonging to a group.
+      properties:
+        $ref:
+          description: The URI corresponding to a SCIM resource that is a member of this group.
+          example: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+        display:
+          description: A human-readable name for the group member.
+          example: John Doe
+          type: string
+        type:
+          description: A label indicating the type of resource.
+          example: User
+          type: string
+        value:
+          description: The identifier of the member of this group.
+          example: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    ExternalUserPatchRequestOperationsItemsOp:
+      description: The operation to be performed.
+      enum:
+      - add
+      - replace
+      type: string
+      x-enum-varnames:
+      - ADD
+      - REPLACE
+    RuleTypesItems:
+      description: 'Security rule type which can be used in security rules.
+
+        Signal-based notification rules can filter signals based on rule types application_security, log_detection,
+
+        workload_security, signal_correlation, cloud_configuration and infrastructure_configuration.
+
+        Vulnerability-based notification rules can filter vulnerabilities based on rule types application_code_vulnerability,
+
+        application_library_vulnerability, attack_path, container_image_vulnerability, identity_risk, misconfiguration, and api_security.'
+      enum:
+      - application_security
+      - log_detection
+      - workload_security
+      - signal_correlation
+      - cloud_configuration
+      - infrastructure_configuration
+      - application_code_vulnerability
+      - application_library_vulnerability
+      - attack_path
+      - container_image_vulnerability
+      - identity_risk
+      - misconfiguration
+      - api_security
+      type: string
+      x-enum-varnames:
+      - APPLICATION_SECURITY
+      - LOG_DETECTION
+      - WORKLOAD_SECURITY
+      - SIGNAL_CORRELATION
+      - CLOUD_CONFIGURATION
+      - INFRASTRUCTURE_CONFIGURATION
+      - APPLICATION_CODE_VULNERABILITY
+      - APPLICATION_LIBRARY_VULNERABILITY
+      - ATTACK_PATH
+      - CONTAINER_IMAGE_VULNERABILITY
+      - IDENTITY_RISK
+      - MISCONFIGURATION
+      - API_SECURITY
+    PatchNotificationRuleParametersData:
+      description: 'Data of the notification rule patch request: the rule ID, the rule type, and the rule attributes. All fields are required.'
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PatchNotificationRuleParametersDataAttributes'
+        id:
+          $ref: '#/components/schemas/ID'
+        type:
+          $ref: '#/components/schemas/NotificationRulesType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    EmailTypeType:
+      description: The type of email.
+      enum:
+      - work
+      type: string
+      x-enum-varnames:
+      - WORK
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ID:
+      description: The ID of a notification rule.
+      example: aaa-bbb-ccc
+      type: string
+    ExternalUserNameType:
+      description: The components of user's real name
+      properties:
+        formatted:
+          description: The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.
+          type: string
+          example: example_value
+      type: object
+    Enabled:
+      description: Field used to enable or disable the rule.
+      example: true
+      type: boolean
+    NotificationRuleAttributes:
+      description: Attributes of the notification rule.
+      properties:
+        created_at:
+          $ref: '#/components/schemas/Date'
+        created_by:
+          $ref: '#/components/schemas/RuleUser'
+        enabled:
+          $ref: '#/components/schemas/Enabled'
+        modified_at:
+          $ref: '#/components/schemas/Date'
+        modified_by:
+          $ref: '#/components/schemas/RuleUser'
+        name:
+          $ref: '#/components/schemas/RuleName'
+        selectors:
+          $ref: '#/components/schemas/Selectors'
+        targets:
+          $ref: '#/components/schemas/Targets'
+        time_aggregation:
+          $ref: '#/components/schemas/TimeAggregation'
+        version:
+          $ref: '#/components/schemas/Version'
+      required:
+      - created_at
+      - created_by
+      - enabled
+      - modified_at
+      - modified_by
+      - name
+      - selectors
+      - targets
+      - version
+      type: object
+    TimeAggregation:
+      description: 'Time aggregation period (in seconds) is used to aggregate the results of the notification rule evaluation.
+
+        Results are aggregated over a selected time frame using a rolling window, which updates with each new evaluation.
+
+        Notifications are only sent for new issues discovered during the window.
+
+        Time aggregation is only available for vulnerability-based notification rules. When omitted or set to 0, no aggregation
+
+        is done.'
+      example: 86400
+      format: int64
+      type: integer
+    ExternalUserGroupPatchRequestOperationsItemsOp:
+      description: The operation to be performed.
+      enum:
+      - add
+      - replace
+      - remove
+      type: string
+      x-enum-varnames:
+      - ADD
+      - REPLACE
+      - REMOVE
+    PatchNotificationRuleParametersDataAttributes:
+      description: Attributes of the notification rule patch request. It is required to update the version of the rule when patching it.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/Enabled'
+        name:
+          $ref: '#/components/schemas/RuleName'
+        selectors:
+          $ref: '#/components/schemas/Selectors'
+        targets:
+          $ref: '#/components/schemas/Targets'
+        time_aggregation:
+          $ref: '#/components/schemas/TimeAggregation'
+        version:
+          $ref: '#/components/schemas/Version'
+      type: object
+    TriggerSource:
+      description: 'The type of security issues on which the rule applies. Notification rules based on security signals need to use the trigger source "security_signals",
+
+        while notification rules based on security vulnerabilities need to use the trigger source "security_findings".'
+      enum:
+      - security_findings
+      - security_signals
+      example: security_findings
+      type: string
+      x-enum-varnames:
+      - SECURITY_FINDINGS
+      - SECURITY_SIGNALS
+    Date:
+      description: Date as Unix timestamp in milliseconds.
+      example: 1722439510282
+      format: int64
+      type: integer
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    Targets:
+      description: 'List of recipients to notify when a notification rule is triggered. Many different target types are supported,
+
+        such as email addresses, Slack channels, and PagerDuty services.
+
+        The appropriate integrations need to be properly configured to send notifications to the specified targets.'
+      example:
+      - '@john.doe@email.com'
+      items:
+        description: Recipients to notify.
+        type: string
+      type: array
+    NotificationRulesType:
+      description: The rule type associated to notification rules.
+      enum:
+      - notification_rules
+      example: notification_rules
+      type: string
+      x-enum-varnames:
+      - NOTIFICATION_RULES
+    NotificationRule:
+      description: 'Notification rules allow full control over notifications generated by the various Datadog security products.
+
+        They allow users to define the conditions under which a notification should be generated (based on rule severities,
+
+        rule types, rule tags, and so on), and the targets to notify.
+
+        A notification rule is composed of a rule ID, a rule type, and the rule attributes. All fields are required.
+
+        '
+      properties:
+        attributes:
+          $ref: '#/components/schemas/NotificationRuleAttributes'
+        id:
+          $ref: '#/components/schemas/ID'
+        type:
+          $ref: '#/components/schemas/NotificationRulesType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    AwsScanOptionsUpdateAttributes:
+      description: Attributes for the AWS scan options to update.
+      properties:
+        lambda:
+          description: Indicates if scanning of Lambda functions is enabled.
+          example: true
+          type: boolean
+        sensitive_data:
+          description: Indicates if scanning for sensitive data is enabled.
+          example: false
+          type: boolean
+        vuln_containers_os:
+          description: Indicates if scanning for vulnerabilities in containers is enabled.
+          example: true
+          type: boolean
+        vuln_host_os:
+          description: Indicates if scanning for vulnerabilities in hosts is enabled.
+          example: true
+          type: boolean
+      type: object
+    ExternalUserGroupPatchRequest:
+      description: Request object for patching a group.
+      properties:
+        Operations:
+          description: A list of update operations to be performed on a group.
+          items:
+            $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItems'
+          type: array
+        schemas:
+          description: Input JSON Schemas
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          items:
+            type: string
+          type: array
+      type: object
+    ExternalUserPatchRequestOperationsItems:
+      description: The definition of an individual patch operation in a patch request.
+      properties:
+        op:
+          $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItemsOp'
+        path:
+          description: An attribute path describing the target of the operation.
+          example: title
+          type: string
+        value:
+          description: New value to use for the patch operation.
+          example: example_value
+      type: object
+    Selectors:
+      description: 'Selectors are used to filter security issues for which notifications should be generated.
+
+        Users can specify rule severities, rule types, a query to filter security issues on tags and attributes, and the trigger source.
+
+        Only the trigger_source field is required.'
+      properties:
+        query:
+          $ref: '#/components/schemas/NotificationRuleQuery'
+        rule_types:
+          $ref: '#/components/schemas/RuleTypes'
+        severities:
+          description: The security rules severities to consider.
+          items:
+            $ref: '#/components/schemas/RuleSeverity'
+          type: array
+        trigger_source:
+          $ref: '#/components/schemas/TriggerSource'
+      required:
+      - trigger_source
+      type: object
+    PatchNotificationRuleParameters:
+      description: Body of the notification rule patch request.
+      properties:
+        data:
+          $ref: '#/components/schemas/PatchNotificationRuleParametersData'
+      type: object
+    AwsAccountId:
+      description: The ID of the AWS account.
+      example: '123456789012'
+      type: string
+    AwsScanOptionsUpdateData:
+      description: Object for the scan options of a single AWS account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsScanOptionsUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        type:
+          $ref: '#/components/schemas/AwsScanOptionsType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RuleSeverity:
+      description: Severity of a security rule.
+      enum:
+      - critical
+      - high
+      - medium
+      - low
+      - unknown
+      - info
+      example: critical
+      type: string
+      x-enum-varnames:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      - UNKNOWN
+      - INFO
+    ExternalUserPatchRequest:
+      description: Request object for patching a user.
+      properties:
+        Operations:
+          description: A list of update operations to be performed on a user.
+          items:
+            $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItems'
+          type: array
+        schemas:
+          description: Input JSON Schemas
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          items:
+            type: string
+          type: array
+      type: object
+    RuleTypes:
+      description: Security rule types used as filters in security rules.
+      example:
+      - misconfiguration
+      - attack_path
+      items:
+        $ref: '#/components/schemas/RuleTypesItems'
+      type: array
+    ExternalUser:
+      description: Definition of a user.
+      properties:
+        active:
+          description: A Boolean value indicating the User's administrative status.
+          type: boolean
+          example: true
+        emails:
+          description: Email addresses for the user.
+          items:
+            $ref: '#/components/schemas/ExternalUserEmailType'
+          type: array
+        id:
+          description: The identifier of the resource. Not required when creating a user.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/ExternalUserMeta'
+        name:
+          $ref: '#/components/schemas/ExternalUserNameType'
+        schemas:
+          description: User JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          items:
+            type: string
+          type: array
+        title:
+          description: The user's title.
+          type: string
+          example: Example Monitor
+        userName:
+          description: Unique identifier for the User.
+          type: string
+          example: Example Monitor
+      type: object
+    ExternalUserMeta:
+      description: Metadata associated with a user.
+      properties:
+        created:
+          description: The date and time the user was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
+          type: string
+        lastModified:
+          description: The date and time the user was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
+          type: string
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
+          type: string
+        resourceType:
+          description: Type of resource.
+          example: User
+          type: string
+      type: object
+    ExternalUserEmailType:
+      description: Email address for the user.
+      properties:
+        primary:
+          description: Boolean indicating if this email is the primary email address.
+          type: boolean
+          example: true
+        type:
+          $ref: '#/components/schemas/EmailTypeType'
+        value:
+          description: Email addresses for the user.
+          type: string
+          example: example_value
+      type: object
+    AwsScanOptionsUpdateRequest:
+      description: Request object that includes the scan options to update.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsScanOptionsUpdateData'
+      required:
+      - data
+      type: object
+    NotificationRuleResponse:
+      description: Response object which includes a notification rule.
+      properties:
+        data:
+          $ref: '#/components/schemas/NotificationRule'
+      type: object
+    Version:
+      description: Version of the notification rule. It is updated when the rule is modified.
+      example: 1
+      format: int64
+      type: integer
+    ExternalUserGroupPatchRequestOperationsItems:
+      description: The definition of an individual patch operation in a patch request.
+      properties:
+        op:
+          $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItemsOp'
+        path:
+          description: An attribute path describing the target of the operation.
+          example: members
+          type: string
+        value:
+          description: JSON element containing the target values required to apply the patch operation.
+          example: "{\n    \"displayName\": \"Real new group\",\n    \"id\": \"80df3a9b-24f5-4ebf-9ba0-714455453621\"\n}"
+      type: object
+    NotificationRuleQuery:
+      description: The query is composed of one or several key:value pairs, which can be used to filter security issues on tags and attributes.
+      example: (source:production_service OR env:prod)
+      type: string
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    UnprocessableEntityResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: The server cannot process the request because it contains invalid data.
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+  parameters:
+    AwsAccountId:
+      description: The ID of an AWS account.
+      example: '123456789012'
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

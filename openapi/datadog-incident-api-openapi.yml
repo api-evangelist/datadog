@@ -1,0 +1,4161 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Incident API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Incident
+paths:
+  /api/v2/dora/incident:
+    post:
+      description: 'Use this API endpoint to provide failure data for DORA metrics.
+
+
+        This is necessary for:
+
+        - Change Failure Rate
+
+        - Time to Restore'
+      operationId: CreateDORAIncident
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DORAIncidentRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK - but delayed due to incident
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send an Incident Event for Dora Metrics
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents:
+    post:
+      description: Create an incident.
+      operationId: CreateIncident
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentCreateRequest'
+        description: Incident payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Create an Incident
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        incident:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"title\": \"{{ unique }}\",\n      \"customer_impacted\": false\n     },\n     \"type\": \"incidents\"\n  }\n}"
+          step: there is a valid "incident" in the system
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        operationId: DeleteIncident
+        parameters:
+        - name: incident_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/config/types:
+    get:
+      description: Get all incident types.
+      operationId: ListIncidentTypes
+      parameters:
+      - $ref: '#/components/parameters/IncidentTypeIncludeDeletedParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTypeListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get a List of Incident Types
+      tags:
+      - Incident
+      x-menu-order: 20
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create an incident type.
+      operationId: CreateIncidentType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTypeCreateRequest'
+        description: Incident type payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTypeResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Create an Incident Type
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        incident_type:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"Security Incident\",\n      \"description\": \"Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data.\",\n      \"is_default\": false\n    },\n    \"type\": \"incident_types\"\n  }\n}"
+          step: there is a valid "incident_type" in the system
+      x-menu-order: 19
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        operationId: DeleteIncidentType
+        parameters:
+        - name: incident_type_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/config/types/{incident_type_id}:
+    delete:
+      description: Delete an incident type.
+      operationId: DeleteIncidentType
+      parameters:
+      - $ref: '#/components/parameters/IncidentTypeIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Delete an Incident Type
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 23
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get incident type details.
+      operationId: GetIncidentType
+      parameters:
+      - $ref: '#/components/parameters/IncidentTypeIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTypeResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Incident Type Details
+      tags:
+      - Incident
+      x-menu-order: 21
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an incident type.
+      operationId: UpdateIncidentType
+      parameters:
+      - $ref: '#/components/parameters/IncidentTypeIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTypePatchRequest'
+        description: Incident type payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTypeResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Update an Incident Type
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 22
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: Deletes an existing incident from the users organization.
+      operationId: DeleteIncident
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Delete an Existing Incident
+      tags:
+      - Incident
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get the details of an incident by `incident_id`.
+      operationId: GetIncident
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIncludeQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get the Details of an Incident
+      tags:
+      - Incident
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Updates an incident. Provide only the attributes that should be updated as this request is a partial update.
+      operationId: UpdateIncident
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIncludeQueryParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentUpdateRequest'
+        description: Incident Payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Update an Existing Incident
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/attachments:
+    patch:
+      description: The bulk update endpoint for creating, updating, and deleting attachments for a given incident.
+      operationId: UpdateIncidentAttachments
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentAttachmentIncludeQueryParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentAttachmentUpdateRequest'
+        description: Incident Attachment Payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentAttachmentUpdateResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create, Update, and Delete Incident Attachments
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        incident_attachment:
+          parameters:
+          - name: incident_id
+            source: incident.data.id
+          - name: body
+            value: "{\n  \"data\": [\n    {\n      \"attributes\": {\n        \"attachment_type\": \"link\",\n        \"attachment\": {\n          \"documentUrl\": \"https://www.example.com/doc\",\n          \"title\": \"Important Doc\"\n        }\n      },\n      \"type\": \"incident_attachments\"\n    }\n  ]\n}"
+          step: the "incident" has an "incident_attachment"
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/relationships/integrations:
+    post:
+      description: Create an incident integration metadata.
+      operationId: CreateIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentIntegrationMetadataCreateRequest'
+        description: Incident integration metadata payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Create an Incident Integration Metadata
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        incident_integration_metadata:
+          parameters:
+          - name: incident_id
+            source: incident.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"integration_type\": 1,\n      \"incident_id\": \"{{ incident.data.id }}\",\n      \"status\": 2,\n      \"metadata\": {\n        \"channels\": [\n          {\n            \"channel_id\": \"C0123456789\",\n            \"team_id\": \"T01234567\",\n            \"channel_name\": \"#example-channel-name\",\n            \"redirect_url\": \"https://slack.com/app_redirect?channel=C0123456789&team=T01234567\"\n          }\n        ]\n      }\n    },\n    \"type\": \"incident_integrations\"\n  }\n}"
+          step: the "incident" has an "incident_integration_metadata"
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        operationId: DeleteIncidentIntegration
+        parameters:
+        - name: incident_id
+          source: data.attributes.incident_id
+        - name: integration_metadata_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/relationships/integrations/{integration_metadata_id}:
+    delete:
+      description: Delete an incident integration metadata.
+      operationId: DeleteIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Delete an Incident Integration Metadata
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 13
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get incident integration metadata details.
+      operationId: GetIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Incident Integration Metadata Details
+      tags:
+      - Incident
+      x-menu-order: 11
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an existing incident integration metadata.
+      operationId: UpdateIncidentIntegration
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentIntegrationMetadataIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentIntegrationMetadataPatchRequest'
+        description: Incident integration metadata payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentIntegrationMetadataResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Update an Existing Incident Integration Metadata
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/relationships/todos:
+    post:
+      description: Create an incident todo.
+      operationId: CreateIncidentTodo
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTodoCreateRequest'
+        description: Incident todo payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTodoResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Create an Incident Todo
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        incident_todo:
+          parameters:
+          - name: incident_id
+            source: incident.data.id
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"content\": \"Follow up with customer about the impact they saw.\",\n      \"assignees\": [\n        \"@test.user@test.com\",\n        {\n          \"icon\": \"https://a.slack-edge.com/80588/img/slackbot_48.png\",\n          \"id\": \"USLACKBOT\",\n          \"name\": \"Slackbot\",\n          \"source\": \"slack\"\n        }\n      ]\n    },\n    \"type\": \"incident_todos\"\n  }\n}"
+          step: the "incident" has an "incident_todo"
+      x-menu-order: 15
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        operationId: DeleteIncidentTodo
+        parameters:
+        - name: incident_id
+          source: data.attributes.incident_id
+        - name: todo_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/{incident_id}/relationships/todos/{todo_id}:
+    delete:
+      description: Delete an incident todo.
+      operationId: DeleteIncidentTodo
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentTodoIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Delete an Incident Todo
+      tags:
+      - Incident
+      x-menu-order: 18
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get incident todo details.
+      operationId: GetIncidentTodo
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentTodoIDPathParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTodoResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Incident Todo Details
+      tags:
+      - Incident
+      x-menu-order: 16
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update an incident todo.
+      operationId: UpdateIncidentTodo
+      parameters:
+      - $ref: '#/components/parameters/IncidentIDPathParameter'
+      - $ref: '#/components/parameters/IncidentTodoIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTodoPatchRequest'
+        description: Incident todo payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTodoResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_write
+      summary: Datadog Update an Incident Todo
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 17
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/services:
+    get:
+      deprecated: true
+      description: Get all incident services uploaded for the requesting user's organization. If the `include[users]` query parameter is provided, the included attribute will contain the users related to these incident services.
+      operationId: ListIncidentServices
+      parameters:
+      - $ref: '#/components/parameters/IncidentServiceIncludeQueryParameter'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageOffset'
+      - $ref: '#/components/parameters/IncidentServiceSearchQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentServicesResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get a List of All Incident Services
+      tags:
+      - Incident
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      deprecated: true
+      description: Creates a new incident service.
+      operationId: CreateIncidentService
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentServiceCreateRequest'
+        description: Incident Service Payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentServiceResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Create a New Incident Service
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        service:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n     },\n     \"type\": \"services\"\n  }\n}"
+          step: there is a valid "service" in the system
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        operationId: DeleteIncidentService
+        parameters:
+        - name: service_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is deprecated.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/services/{service_id}:
+    delete:
+      deprecated: true
+      description: Deletes an existing incident service.
+      operationId: DeleteIncidentService
+      parameters:
+      - $ref: '#/components/parameters/IncidentServiceIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Delete an Existing Incident Service
+      tags:
+      - Incident
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      deprecated: true
+      description: 'Get details of an incident service. If the `include[users]` query parameter is provided,
+
+        the included attribute will contain the users related to these incident services.'
+      operationId: GetIncidentService
+      parameters:
+      - $ref: '#/components/parameters/IncidentServiceIDPathParameter'
+      - $ref: '#/components/parameters/IncidentServiceIncludeQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentServiceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Details of an Incident Service
+      tags:
+      - Incident
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      deprecated: true
+      description: Updates an existing incident service. Only provide the attributes which should be updated as this request is a partial update.
+      operationId: UpdateIncidentService
+      parameters:
+      - $ref: '#/components/parameters/IncidentServiceIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentServiceUpdateRequest'
+        description: Incident Service Payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentServiceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Update an Existing Incident Service
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/teams:
+    get:
+      deprecated: true
+      description: Get all incident teams for the requesting user's organization. If the `include[users]` query parameter is provided, the included attribute will contain the users related to these incident teams.
+      operationId: ListIncidentTeams
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIncludeQueryParameter'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageOffset'
+      - $ref: '#/components/parameters/IncidentTeamSearchQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get a List of All Incident Teams
+      tags:
+      - Incident
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      deprecated: true
+      description: Creates a new incident team.
+      operationId: CreateIncidentTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTeamCreateRequest'
+        description: Incident Team Payload.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Create a New Incident Team
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-given:
+        team:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n     },\n     \"type\": \"teams\"\n  }\n}"
+          step: there is a valid "team" in the system
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        operationId: DeleteIncidentTeam
+        parameters:
+        - name: team_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/teams/{team_id}:
+    delete:
+      deprecated: true
+      description: Deletes an existing incident team.
+      operationId: DeleteIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Delete an Existing Incident Team
+      tags:
+      - Incident
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      deprecated: true
+      description: 'Get details of an incident team. If the `include[users]` query parameter is provided,
+
+        the included attribute will contain the users related to these incident teams.'
+      operationId: GetIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      - $ref: '#/components/parameters/IncidentTeamIncludeQueryParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Get Details of an Incident Team
+      tags:
+      - Incident
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      deprecated: true
+      description: Updates an existing incident team. Only provide the attributes which should be updated as this request is a partial update.
+      operationId: UpdateIncidentTeam
+      parameters:
+      - $ref: '#/components/parameters/IncidentTeamIDPathParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentTeamUpdateRequest'
+        description: Incident Team Payload.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentTeamResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_settings_write
+      summary: Datadog Update an Existing Incident Team
+      tags:
+      - Incident
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_settings_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is deprecated. See the [Teams API endpoints](https://docs.datadoghq.com/api/latest/teams/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    GitCommitSHA:
+      description: Git Commit SHA.
+      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
+      pattern: ^[a-fA-F0-9]{40,}$
+      type: string
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    IncidentAttachmentAttributes:
+      description: The attributes object for an attachment.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
+      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    IncidentAttachmentRelatedObject:
+      description: The object related to an incident attachment.
+      enum:
+      - users
+      type: string
+      x-enum-varnames:
+      - USERS
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    IncidentIntegrationRelationships:
+      description: The incident's integration relationships from a response.
+      properties:
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    IncidentTypeListResponse:
+      description: Response with a list of incident types.
+      properties:
+        data:
+          description: An array of incident type objects.
+          items:
+            $ref: '#/components/schemas/IncidentTypeObject'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentTodoResponseIncludedItem:
+      description: An object related to an incident todo that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentServiceCreateData:
+      description: Incident Service payload for create requests.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentServiceCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/IncidentServiceRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentServiceType'
+      required:
+      - type
+      type: object
+    RelationshipToIncidentPostmortemData:
+      description: The postmortem relationship data.
+      example:
+        id: 00000000-0000-abcd-2000-000000000000
+        type: incident_postmortems
+      properties:
+        id:
+          description: A unique identifier that represents the postmortem.
+          example: 00000000-0000-abcd-1000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentPostmortemType'
+      required:
+      - id
+      - type
+      type: object
+    RelationshipToIncidentUserDefinedFields:
+      description: Relationship to incident user defined fields.
+      properties:
+        data:
+          description: An array of user defined fields.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentUserDefinedFieldData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentResponseRelationships:
+      description: The incident's relationships from a response.
+      properties:
+        attachments:
+          $ref: '#/components/schemas/RelationshipToIncidentAttachment'
+        commander_user:
+          $ref: '#/components/schemas/NullableRelationshipToUser'
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        impacts:
+          $ref: '#/components/schemas/RelationshipToIncidentImpacts'
+        integrations:
+          $ref: '#/components/schemas/RelationshipToIncidentIntegrationMetadatas'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        responders:
+          $ref: '#/components/schemas/RelationshipToIncidentResponders'
+        user_defined_fields:
+          $ref: '#/components/schemas/RelationshipToIncidentUserDefinedFields'
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    IncidentPostmortemType:
+      default: incident_postmortems
+      description: Incident postmortem resource type.
+      enum:
+      - incident_postmortems
+      example: incident_postmortems
+      type: string
+      x-enum-varnames:
+      - INCIDENT_POSTMORTEMS
+    DORAGitInfo:
+      description: Git info for DORA Metrics events.
+      properties:
+        commit_sha:
+          $ref: '#/components/schemas/GitCommitSHA'
+        repository_url:
+          $ref: '#/components/schemas/GitRepositoryURL'
+      required:
+      - repository_url
+      - commit_sha
+      type: object
+    IncidentType:
+      default: incidents
+      description: Incident resource type.
+      enum:
+      - incidents
+      example: incidents
+      type: string
+      x-enum-varnames:
+      - INCIDENTS
+    IncidentIntegrationMetadataType:
+      default: incident_integrations
+      description: Integration metadata resource type.
+      enum:
+      - incident_integrations
+      example: incident_integrations
+      type: string
+      x-enum-varnames:
+      - INCIDENT_INTEGRATIONS
+    IncidentTeamUpdateAttributes:
+      description: The incident team's attributes for an update request.
+      properties:
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      required:
+      - name
+      type: object
+    IncidentTodoPatchData:
+      description: Incident todo data for a patch request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTodoAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentTodoType'
+      required:
+      - type
+      - attributes
+      type: object
+    IncidentAttachmentRelationships:
+      description: The incident attachment's relationships.
+      properties:
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    IncidentTodoAnonymousAssigneeSource:
+      default: slack
+      description: The source of the anonymous assignee.
+      enum:
+      - slack
+      - microsoft_teams
+      example: slack
+      type: string
+      x-enum-varnames:
+      - SLACK
+      - MICROSOFT_TEAMS
+    IncidentServicesResponse:
+      description: Response with a list of incident service payloads.
+      properties:
+        data:
+          description: An array of incident services.
+          example:
+          - id: 00000000-0000-0000-0000-000000000000
+            type: services
+          items:
+            $ref: '#/components/schemas/IncidentServiceResponseData'
+          type: array
+        included:
+          description: Included related resources which the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentServiceIncludedItems'
+          readOnly: true
+          type: array
+        meta:
+          $ref: '#/components/schemas/IncidentResponseMeta'
+      required:
+      - data
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    IncidentIntegrationMetadataResponseData:
+      description: Incident integration metadata from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        id:
+          description: The incident integration metadata's ID.
+          example: 00000000-0000-0000-1234-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentIntegrationRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentAttachmentType:
+      default: incident_attachments
+      description: The incident attachment resource type.
+      enum:
+      - incident_attachments
+      example: incident_attachments
+      type: string
+      x-enum-varnames:
+      - INCIDENT_ATTACHMENTS
+    IncidentUserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        uuid:
+          description: UUID of the user.
+          type: string
+          example: abc-123-def
+      type: object
+    DORAIncidentRequest:
+      description: Request to create a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentRequestData'
+      required:
+      - data
+      type: object
+    IncidentNotificationHandle:
+      description: A notification handle that will be notified at incident creation.
+      properties:
+        display_name:
+          description: The name of the notified handle.
+          example: Jane Doe
+          type: string
+        handle:
+          description: The handle used for the notification. This includes an email address, Slack channel, or workflow.
+          example: '@test.user@test.com'
+          type: string
+      type: object
+    DORAIncidentRequestAttributes:
+      description: Attributes to create a DORA incident event.
+      properties:
+        env:
+          description: Environment name that was impacted by the incident.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the incident finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Incident ID. Must have at least 16 characters. Required to update a previously sent incident.
+          type: string
+          example: abc-123-def
+        name:
+          description: Incident name.
+          example: Webserver is down failing all requests.
+          type: string
+        services:
+          description: Service names impacted by the incident. If possible, use names registered in the Service Catalog. Required when the team field is not provided.
+          example:
+          - shopist
+          items:
+            type: string
+          type: array
+        severity:
+          description: Incident severity.
+          example: High
+          type: string
+        started_at:
+          description: Unix timestamp when the incident started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the services impacted. If possible, use team handles registered in Datadog. Required when the services field is not provided.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
+      required:
+      - started_at
+      type: object
+    JiraIntegrationMetadataIssuesItem:
+      description: Item in the Jira integration metadata issue array.
+      properties:
+        account:
+          description: URL of issue's Jira account.
+          example: https://example.atlassian.net
+          type: string
+        issue_key:
+          description: Jira issue's issue key.
+          example: PROJ-123
+          type: string
+        issuetype_id:
+          description: Jira issue's issue type.
+          example: '1000'
+          type: string
+        project_key:
+          description: Jira issue's project keys.
+          example: PROJ
+          type: string
+        redirect_url:
+          description: URL redirecting to the Jira issue.
+          example: https://example.atlassian.net/browse/PROJ-123
+          type: string
+      required:
+      - project_key
+      - account
+      type: object
+    SlackIntegrationMetadata:
+      description: Incident integration metadata for the Slack integration.
+      properties:
+        channels:
+          description: Array of Slack channels in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/SlackIntegrationMetadataChannelItem'
+          type: array
+      required:
+      - channels
+      type: object
+    RelationshipToIncidentResponderData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the responder.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentRespondersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToIncidentImpacts:
+      description: Relationship to impacts.
+      properties:
+        data:
+          description: An array of incident impacts.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentImpactData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentServiceUpdateData:
+      description: Incident Service payload for update requests.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentServiceUpdateAttributes'
+        id:
+          description: The incident service's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentServiceRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentServiceType'
+      required:
+      - type
+      type: object
+    IncidentUpdateData:
+      description: Incident data for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentUpdateAttributes'
+        id:
+          description: The incident's ID.
+          example: 00000000-0000-0000-4567-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentUpdateRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentType'
+      required:
+      - id
+      - type
+      type: object
+    DORAIncidentResponseData:
+      description: Response after receiving a DORA incident event.
+      properties:
+        id:
+          description: The ID of the received DORA incident event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORAIncidentType'
+      required:
+      - id
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    IncidentIntegrationMetadataResponseIncludedItem:
+      description: An object related to an incident integration metadata that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentTodoResponseData:
+      description: Incident todo response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTodoAttributes'
+        id:
+          description: The incident todo's ID.
+          example: 00000000-0000-0000-1234-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentTodoRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTodoType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentIntegrationMetadataCreateRequest:
+      description: Create request for an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataCreateData'
+      required:
+      - data
+      type: object
+    IncidentAttachmentPostmortemAttributes:
+      description: The attributes object for a postmortem attachment.
+      properties:
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentsPostmortemAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentPostmortemAttachmentType'
+      required:
+      - attachment_type
+      - attachment
+      type: object
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    IncidentTodoCreateData:
+      description: Incident todo data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTodoAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentTodoType'
+      required:
+      - type
+      - attributes
+      type: object
+    RelationshipToIncidentAttachment:
+      description: A relationship reference for attachments.
+      properties:
+        data:
+          description: An array of incident attachments.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentAttachmentData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentAttachmentUpdateRequest:
+      description: The update request for an incident's attachments.
+      properties:
+        data:
+          description: 'An array of incident attachments. An attachment object without an "id" key indicates that you want to
+
+            create that attachment. An attachment object without an "attributes" key indicates that you want to
+
+            delete that attachment. An attachment object with both the "id" key and a populated "attributes" object
+
+            indicates that you want to update that attachment.'
+          example:
+          - attributes:
+              attachment:
+                documentUrl: https://app.datadoghq.com/notebook/123
+                title: Postmortem IR-123
+              attachment_type: postmortem
+            id: 00000000-abcd-0002-0000-000000000000
+            type: incident_attachments
+          - attributes:
+              attachment:
+                documentUrl: https://www.example.com/webstore-failure-runbook
+                title: Runbook for webstore service failures
+              attachment_type: link
+            type: incident_attachments
+          - id: 00000000-abcd-0003-0000-000000000000
+            type: incident_attachments
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentUpdateData'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToIncidentIntegrationMetadataData:
+      description: A relationship reference for an integration metadata object.
+      example:
+        id: 00000000-abcd-0002-0000-000000000000
+        type: incident_integrations
+      properties:
+        id:
+          description: A unique identifier that represents the integration metadata.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    IncidentFieldAttributesValueType:
+      default: multiselect
+      description: Type of the multiple value field definitions.
+      enum:
+      - multiselect
+      - textarray
+      - metrictag
+      - autocomplete
+      example: multiselect
+      type: string
+      x-enum-varnames:
+      - MULTISELECT
+      - TEXTARRAY
+      - METRICTAG
+      - AUTOCOMPLETE
+    IncidentTeamCreateRequest:
+      description: Create request with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamCreateData'
+      required:
+      - data
+      type: object
+    RelationshipToIncidentIntegrationMetadatas:
+      description: A relationship reference for multiple integration metadata objects.
+      example:
+        data:
+        - id: 00000000-abcd-0005-0000-000000000000
+          type: incident_integrations
+        - id: 00000000-abcd-0006-0000-000000000000
+          type: incident_integrations
+      properties:
+        data:
+          description: Integration metadata relationship array
+          example:
+          - id: 00000000-abcd-0003-0000-000000000000
+            type: incident_integrations
+          - id: 00000000-abcd-0004-0000-000000000000
+            type: incident_integrations
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentIntegrationMetadataData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentServiceRelationships:
+      description: The incident service's relationships.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+      readOnly: true
+      type: object
+    IncidentFieldAttributesSingleValueType:
+      default: dropdown
+      description: Type of the single value field definitions.
+      enum:
+      - dropdown
+      - textbox
+      example: dropdown
+      type: string
+      x-enum-varnames:
+      - DROPDOWN
+      - TEXTBOX
+    IncidentTeamResponseAttributes:
+      description: The incident team's attributes from a response.
+      properties:
+        created:
+          description: Timestamp of when the incident team was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified:
+          description: Timestamp of when the incident team was modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      type: object
+    IncidentServiceUpdateRequest:
+      description: Update request with an incident service payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentServiceUpdateData'
+      required:
+      - data
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentIntegrationMetadataPatchData:
+      description: Incident integration metadata data for a patch request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - type
+      - attributes
+      type: object
+    IncidentTypeObject:
+      description: Incident type response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTypeAttributes'
+        id:
+          description: The incident type's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentTypeType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentAttachmentLinkAttachmentType:
+      default: link
+      description: The type of link attachment attributes.
+      enum:
+      - link
+      example: link
+      type: string
+      x-enum-varnames:
+      - LINK
+    IncidentResponseMetaPagination:
+      description: Pagination properties.
+      properties:
+        next_offset:
+          description: The index of the first element in the next page of results. Equal to page size added to the current offset.
+          example: 1000
+          format: int64
+          type: integer
+        offset:
+          description: The index of the first element in the results.
+          example: 10
+          format: int64
+          type: integer
+        size:
+          description: Maximum size of pages to return.
+          example: 1000
+          format: int64
+          type: integer
+      type: object
+    IncidentTodoAssignee:
+      description: A todo assignee.
+      example: '@test.user@test.com'
+      oneOf:
+      - $ref: '#/components/schemas/IncidentTodoAssigneeHandle'
+      - $ref: '#/components/schemas/IncidentTodoAnonymousAssignee'
+    IncidentTodoAssigneeArray:
+      description: Array of todo assignees.
+      example:
+      - '@test.user@test.com'
+      items:
+        $ref: '#/components/schemas/IncidentTodoAssignee'
+      type: array
+    IncidentTodoRelationships:
+      description: The incident's relationships from a response.
+      properties:
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    IncidentAttachmentLinkAttributes:
+      description: The attributes object for a link attachment.
+      properties:
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttachmentType'
+        modified:
+          description: Timestamp when the incident attachment link was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+      required:
+      - attachment_type
+      - attachment
+      type: object
+    IncidentServiceCreateAttributes:
+      description: The incident service's attributes for a create request.
+      properties:
+        name:
+          description: Name of the incident service.
+          example: an example service name
+          type: string
+      required:
+      - name
+      type: object
+    IncidentCreateRequest:
+      description: Create request for an incident.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentCreateData'
+      required:
+      - data
+      type: object
+    JiraIntegrationMetadata:
+      description: Incident integration metadata for the Jira integration.
+      properties:
+        issues:
+          description: Array of Jira issues in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/JiraIntegrationMetadataIssuesItem'
+          type: array
+      required:
+      - issues
+      type: object
+    IncidentTeamIncludedItems:
+      description: An object related to an incident team which is present in the included payload.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentResponseMeta:
+      description: The metadata object containing pagination metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/IncidentResponseMetaPagination'
+      readOnly: true
+      type: object
+    IncidentUserData:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentUserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+    IncidentResponseData:
+      description: Incident data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentResponseAttributes'
+        id:
+          description: The incident's ID.
+          example: 00000000-0000-0000-1234-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentResponseRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    RelationshipToIncidentUserDefinedFieldData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the responder.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentUserDefinedFieldType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentServiceType:
+      default: services
+      description: Incident service resource type.
+      enum:
+      - services
+      example: services
+      type: string
+      x-enum-varnames:
+      - SERVICES
+    IncidentTypeAttributes:
+      description: Incident type's attributes.
+      properties:
+        createdAt:
+          description: Timestamp when the incident type was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        createdBy:
+          description: A unique identifier that represents the user that created the incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          readOnly: true
+          type: string
+        description:
+          description: Text that describes the incident type.
+          example: Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data.
+          type: string
+        is_default:
+          default: false
+          description: If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources.
+          example: false
+          type: boolean
+        lastModifiedBy:
+          description: A unique identifier that represents the user that last modified the incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          readOnly: true
+          type: string
+        modifiedAt:
+          description: Timestamp when the incident type was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the incident type.
+          example: Security Incident
+          type: string
+        prefix:
+          description: The string that will be prepended to the incident title across the Datadog app.
+          example: IR
+          readOnly: true
+          type: string
+      required:
+      - name
+      type: object
+    IncidentUpdateRequest:
+      description: Update request for an incident.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentUpdateData'
+      required:
+      - data
+      type: object
+    MSTeamsIntegrationMetadata:
+      description: Incident integration metadata for the Microsoft Teams integration.
+      properties:
+        teams:
+          description: Array of Microsoft Teams in this integration metadata.
+          example: []
+          items:
+            $ref: '#/components/schemas/MSTeamsIntegrationMetadataTeamsItem'
+          type: array
+      required:
+      - teams
+      type: object
+    IncidentCreateAttributes:
+      description: The incident's attributes for a create request.
+      properties:
+        customer_impact_scope:
+          description: Required if `customer_impacted:"true"`. A summary of the impact customers experienced during the incident.
+          example: Example customer impact scope
+          type: string
+        customer_impacted:
+          description: A flag indicating whether the incident caused customer impact.
+          example: false
+          type: boolean
+        fields:
+          additionalProperties:
+            $ref: '#/components/schemas/IncidentFieldAttributes'
+          description: A condensed view of the user-defined fields for which to create initial selections.
+          example:
+            severity:
+              type: dropdown
+              value: SEV-5
+          type: object
+        incident_type_uuid:
+          description: A unique identifier that represents an incident type. The default incident type will be used if this property is not provided.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        initial_cells:
+          description: An array of initial timeline cells to be placed at the beginning of the incident timeline.
+          items:
+            $ref: '#/components/schemas/IncidentTimelineCellCreateAttributes'
+          type: array
+        notification_handles:
+          description: Notification handles that will be notified of the incident at creation.
+          example:
+          - display_name: Jane Doe
+            handle: '@user@email.com'
+          - display_name: Slack Channel
+            handle: '@slack-channel'
+          - display_name: Incident Workflow
+            handle: '@workflow-from-incident'
+          items:
+            $ref: '#/components/schemas/IncidentNotificationHandle'
+          type: array
+        title:
+          description: The title of the incident, which summarizes what happened.
+          example: A test incident title
+          type: string
+      required:
+      - title
+      - customer_impacted
+      type: object
+    IncidentCreateData:
+      description: Incident data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/IncidentCreateRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentType'
+      required:
+      - type
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
+    IncidentUserDefinedFieldType:
+      description: The incident user defined fields type.
+      enum:
+      - user_defined_field
+      example: user_defined_field
+      type: string
+      x-enum-varnames:
+      - USER_DEFINED_FIELD
+    IncidentTypeResponse:
+      description: Incident type response data.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTypeObject'
+      required:
+      - data
+      type: object
+    IncidentAttachmentLinkAttributesAttachmentObject:
+      description: The link attachment.
+      properties:
+        documentUrl:
+          description: The URL of this link attachment.
+          example: https://www.example.com/webstore-failure-runbook
+          type: string
+        title:
+          description: The title of this link attachment.
+          example: Runbook for webstore service failures
+          type: string
+      required:
+      - documentUrl
+      - title
+      type: object
+    IncidentTodoCreateRequest:
+      description: Create request for an incident todo.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTodoCreateData'
+      required:
+      - data
+      type: object
+    IncidentTeamsResponse:
+      description: Response with a list of incident team payloads.
+      properties:
+        data:
+          description: An array of incident teams.
+          example:
+          - attributes:
+              name: team name
+            id: 00000000-7ea3-0000-0000-000000000000
+            type: teams
+          items:
+            $ref: '#/components/schemas/IncidentTeamResponseData'
+          type: array
+        included:
+          description: Included related resources which the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentTeamIncludedItems'
+          readOnly: true
+          type: array
+        meta:
+          $ref: '#/components/schemas/IncidentResponseMeta'
+      required:
+      - data
+      type: object
+    IncidentFieldAttributesSingleValue:
+      description: A field with a single value selected.
+      properties:
+        type:
+          $ref: '#/components/schemas/IncidentFieldAttributesSingleValueType'
+        value:
+          description: The single value selected for this field.
+          example: SEV-1
+          nullable: true
+          type: string
+      type: object
+    DORAIncidentType:
+      default: dora_incident
+      description: JSON:API type for DORA incident events.
+      enum:
+      - dora_incident
+      example: dora_incident
+      type: string
+      x-enum-varnames:
+      - DORA_INCIDENT
+    IncidentResponse:
+      description: Response with an incident.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentResponseIncludedItem'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    RelationshipToIncidentPostmortem:
+      description: A relationship reference for postmortems.
+      example:
+        data:
+          id: 00000000-0000-abcd-3000-000000000000
+          type: incident_postmortems
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToIncidentPostmortemData'
+      required:
+      - data
+      type: object
+    IncidentTimelineCellMarkdownCreateAttributes:
+      description: Timeline cell data for Markdown timeline cells for a create request.
+      properties:
+        cell_type:
+          $ref: '#/components/schemas/IncidentTimelineCellMarkdownContentType'
+        content:
+          $ref: '#/components/schemas/IncidentTimelineCellMarkdownCreateAttributesContent'
+        important:
+          default: false
+          description: A flag indicating whether the timeline cell is important and should be highlighted.
+          example: false
+          type: boolean
+      required:
+      - content
+      - cell_type
+      type: object
+    IncidentServiceUpdateAttributes:
+      description: The incident service's attributes for an update request.
+      properties:
+        name:
+          description: Name of the incident service.
+          example: an example service name
+          type: string
+      required:
+      - name
+      type: object
+    IncidentCreateRelationships:
+      description: The relationships the incident will have with other resources once created.
+      properties:
+        commander_user:
+          $ref: '#/components/schemas/NullableRelationshipToUser'
+      required:
+      - commander_user
+      type: object
+    IncidentTodoResponse:
+      description: Response with an incident todo.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTodoResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentTodoResponseIncludedItem'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    IncidentIntegrationMetadataMetadata:
+      description: Incident integration metadata's metadata attribute.
+      oneOf:
+      - $ref: '#/components/schemas/SlackIntegrationMetadata'
+      - $ref: '#/components/schemas/JiraIntegrationMetadata'
+      - $ref: '#/components/schemas/MSTeamsIntegrationMetadata'
+    RelationshipToIncidentResponders:
+      description: Relationship to incident responders.
+      properties:
+        data:
+          description: An array of incident responders.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentResponderData'
+          type: array
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    IncidentAttachmentUpdateData:
+      description: A single incident attachment.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentAttachmentUpdateAttributes'
+        id:
+          description: A unique identifier that represents the incident attachment.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - type
+      type: object
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    IncidentTimelineCellCreateAttributes:
+      description: The timeline cell's attributes for a create request.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentTimelineCellMarkdownCreateAttributes'
+    IncidentFieldAttributesMultipleValue:
+      description: A field with potentially multiple values selected.
+      properties:
+        type:
+          $ref: '#/components/schemas/IncidentFieldAttributesValueType'
+        value:
+          description: The multiple values selected for this field.
+          example:
+          - '1.0'
+          - '1.1'
+          items:
+            description: A value which has been selected for the parent field.
+            example: '1.1'
+            type: string
+          nullable: true
+          type: array
+      type: object
+    IncidentIntegrationMetadataCreateData:
+      description: Incident integration metadata data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - type
+      - attributes
+      type: object
+    MSTeamsIntegrationMetadataTeamsItem:
+      description: Item in the Microsoft Teams integration metadata teams array.
+      properties:
+        ms_channel_id:
+          description: Microsoft Teams channel ID.
+          example: 19:abc00abcdef00a0abcdef0abcdef0a@thread.tacv2
+          type: string
+        ms_channel_name:
+          description: Microsoft Teams channel name.
+          example: incident-0001-example
+          type: string
+        ms_tenant_id:
+          description: Microsoft Teams tenant ID.
+          example: 00000000-abcd-0005-0000-000000000000
+          type: string
+        redirect_url:
+          description: URL redirecting to the Microsoft Teams channel.
+          example: https://teams.microsoft.com/l/channel/19%3Aabc00abcdef00a0abcdef0abcdef0a%40thread.tacv2/conversations?groupId=12345678-abcd-dcba-abcd-1234567890ab&tenantId=00000000-abcd-0005-0000-000000000000
+          type: string
+      required:
+      - ms_tenant_id
+      - ms_channel_id
+      - ms_channel_name
+      - redirect_url
+      type: object
+    IncidentTeamUpdateRequest:
+      description: Update request with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamUpdateData'
+      required:
+      - data
+      type: object
+    IncidentTodoPatchRequest:
+      description: Patch request for an incident todo.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTodoPatchData'
+      required:
+      - data
+      type: object
+    IncidentTodoAttributes:
+      description: Incident todo's attributes.
+      properties:
+        assignees:
+          $ref: '#/components/schemas/IncidentTodoAssigneeArray'
+        completed:
+          description: Timestamp when the todo was completed.
+          example: '2023-03-06T22:00:00.000000+00:00'
+          nullable: true
+          type: string
+        content:
+          description: The follow-up task's content.
+          example: Restore lost data.
+          type: string
+        created:
+          description: Timestamp when the incident todo was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        due_date:
+          description: Timestamp when the todo should be completed by.
+          example: '2023-07-10T05:00:00.000000+00:00'
+          nullable: true
+          type: string
+        incident_id:
+          description: UUID of the incident this todo is connected to.
+          example: 00000000-aaaa-0000-0000-000000000000
+          type: string
+        modified:
+          description: Timestamp when the incident todo was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+      required:
+      - content
+      - assignees
+      type: object
+    DORAIncidentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAIncidentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    IncidentUpdateAttributes:
+      description: The incident's attributes for an update request.
+      properties:
+        customer_impact_end:
+          description: Timestamp when customers were no longer impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impact_scope:
+          description: A summary of the impact customers experienced during the incident.
+          example: Example customer impact scope
+          type: string
+        customer_impact_start:
+          description: Timestamp when customers began being impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impacted:
+          description: A flag indicating whether the incident caused customer impact.
+          example: false
+          type: boolean
+        detected:
+          description: Timestamp when the incident was detected.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        fields:
+          additionalProperties:
+            $ref: '#/components/schemas/IncidentFieldAttributes'
+          description: A condensed view of the user-defined fields for which to update selections.
+          example:
+            severity:
+              type: dropdown
+              value: SEV-5
+          type: object
+        notification_handles:
+          description: Notification handles that will be notified of the incident during update.
+          example:
+          - display_name: Jane Doe
+            handle: '@user@email.com'
+          - display_name: Slack Channel
+            handle: '@slack-channel'
+          - display_name: Incident Workflow
+            handle: '@workflow-from-incident'
+          items:
+            $ref: '#/components/schemas/IncidentNotificationHandle'
+          type: array
+        title:
+          description: The title of the incident, which summarizes what happened.
+          example: A test incident title
+          type: string
+      type: object
+    IncidentTypePatchData:
+      description: Incident type data for a patch request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTypeUpdateAttributes'
+        id:
+          description: The incident type's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentTypeType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    IncidentTeamResponse:
+      description: Response with an incident team payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTeamResponseData'
+        included:
+          description: Included objects from relationships.
+          items:
+            $ref: '#/components/schemas/IncidentTeamIncludedItems'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    IncidentResponseAttributes:
+      description: The incident's attributes from a response.
+      properties:
+        archived:
+          description: Timestamp of when the incident was archived.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        case_id:
+          description: The incident case id.
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        created:
+          description: Timestamp when the incident was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        customer_impact_duration:
+          description: 'Length of the incident''s customer impact in seconds.
+
+            Equals the difference between `customer_impact_start` and `customer_impact_end`.'
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        customer_impact_end:
+          description: Timestamp when customers were no longer impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impact_scope:
+          description: A summary of the impact customers experienced during the incident.
+          example: An example customer impact scope
+          nullable: true
+          type: string
+        customer_impact_start:
+          description: Timestamp when customers began being impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impacted:
+          description: A flag indicating whether the incident caused customer impact.
+          example: false
+          type: boolean
+        detected:
+          description: Timestamp when the incident was detected.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        fields:
+          additionalProperties:
+            $ref: '#/components/schemas/IncidentFieldAttributes'
+          description: A condensed view of the user-defined fields attached to incidents.
+          example:
+            severity:
+              type: dropdown
+              value: SEV-5
+          type: object
+        incident_type_uuid:
+          description: A unique identifier that represents an incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        modified:
+          description: Timestamp when the incident was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        non_datadog_creator:
+          $ref: '#/components/schemas/IncidentNonDatadogCreator'
+        notification_handles:
+          description: Notification handles that will be notified of the incident during update.
+          example:
+          - display_name: Jane Doe
+            handle: '@user@email.com'
+          - display_name: Slack Channel
+            handle: '@slack-channel'
+          - display_name: Incident Workflow
+            handle: '@workflow-from-incident'
+          items:
+            $ref: '#/components/schemas/IncidentNotificationHandle'
+          nullable: true
+          type: array
+        public_id:
+          description: The monotonically increasing integer ID for the incident.
+          example: 1
+          format: int64
+          type: integer
+        resolved:
+          description: Timestamp when the incident's state was last changed from active or stable to resolved or completed.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        severity:
+          $ref: '#/components/schemas/IncidentSeverity'
+        state:
+          description: The state incident.
+          nullable: true
+          type: string
+          example: example_value
+        time_to_detect:
+          description: 'The amount of time in seconds to detect the incident.
+
+            Equals the difference between `customer_impact_start` and `detected`.'
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_internal_response:
+          description: The amount of time in seconds to call incident after detection. Equals the difference of `detected` and `created`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_repair:
+          description: The amount of time in seconds to resolve customer impact after detecting the issue. Equals the difference between `customer_impact_end` and `detected`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_resolve:
+          description: The amount of time in seconds to resolve the incident after it was created. Equals the difference between `created` and `resolved`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        title:
+          description: The title of the incident, which summarizes what happened.
+          example: A test incident title
+          type: string
+        visibility:
+          description: The incident visibility status.
+          nullable: true
+          type: string
+          example: example_value
+      required:
+      - title
+      type: object
+    IncidentResponseIncludedItem:
+      description: An object related to an incident that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentUserData'
+      - $ref: '#/components/schemas/IncidentAttachmentData'
+    IncidentTeamUpdateData:
+      description: Incident Team data for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamUpdateAttributes'
+        id:
+          description: The incident team's ID.
+          example: 00000000-7ea3-0000-0001-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      required:
+      - type
+      type: object
+    IncidentRespondersType:
+      description: The incident responders type.
+      enum:
+      - incident_responders
+      example: incident_responders
+      type: string
+      x-enum-varnames:
+      - INCIDENT_RESPONDERS
+    IncidentServiceResponseAttributes:
+      description: The incident service's attributes from a response.
+      properties:
+        created:
+          description: Timestamp of when the incident service was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified:
+          description: Timestamp of when the incident service was modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the incident service.
+          example: service name
+          type: string
+      type: object
+    IncidentImpactsType:
+      description: The incident impacts type.
+      enum:
+      - incident_impacts
+      example: incident_impacts
+      type: string
+      x-enum-varnames:
+      - INCIDENT_IMPACTS
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToIncidentAttachmentData:
+      description: The attachment relationship data.
+      properties:
+        id:
+          description: A unique identifier that represents the attachment.
+          example: 00000000-0000-abcd-1000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    GitRepositoryURL:
+      description: Git Repository URL
+      example: https://github.com/organization/example-repository
+      type: string
+    SlackIntegrationMetadataChannelItem:
+      description: Item in the Slack integration metadata channel array.
+      properties:
+        channel_id:
+          description: Slack channel ID.
+          example: C0123456789
+          type: string
+        channel_name:
+          description: Name of the Slack channel.
+          example: '#example-channel-name'
+          type: string
+        redirect_url:
+          description: URL redirecting to the Slack channel.
+          example: https://slack.com/app_redirect?channel=C0123456789&team=T01234567
+          type: string
+        team_id:
+          description: Slack team ID.
+          example: T01234567
+          type: string
+      required:
+      - channel_id
+      - channel_name
+      - redirect_url
+      type: object
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    RelationshipToIncidentImpactData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the impact.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentImpactsType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentTeamResponseData:
+      description: Incident Team data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamResponseAttributes'
+        id:
+          description: The incident team's ID.
+          example: 00000000-7ea3-0000-000a-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      type: object
+    IncidentTimelineCellMarkdownCreateAttributesContent:
+      description: The Markdown timeline cell contents.
+      properties:
+        content:
+          description: The Markdown content of the cell.
+          example: An example timeline cell message.
+          nullable: false
+          type: string
+      type: object
+    IncidentAttachmentUpdateResponse:
+      description: The response object containing the created or updated incident attachments.
+      properties:
+        data:
+          description: 'An array of incident attachments. Only the attachments that were created or updated by the request are
+
+            returned.'
+          example:
+          - attributes:
+              attachment:
+                documentUrl: ''
+                title: Postmortem IR-123
+              attachment_type: postmortem
+            id: 00000000-abcd-0002-0000-000000000000
+            relationships:
+              last_modified_by_user:
+                data:
+                  id: 00000000-0000-0000-cccc-000000000000
+                  type: users
+            type: incident_attachments
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentData'
+          type: array
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentsResponseIncludedItem'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentFieldAttributes:
+      description: Dynamic fields for which selections can be made, with field names as keys.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentFieldAttributesSingleValue'
+      - $ref: '#/components/schemas/IncidentFieldAttributesMultipleValue'
+    IncidentNonDatadogCreator:
+      description: Incident's non Datadog creator.
+      nullable: true
+      properties:
+        image_48_px:
+          description: Non Datadog creator `48px` image.
+          type: string
+          example: example_value
+        name:
+          description: Non Datadog creator name.
+          type: string
+          example: Example Monitor
+      type: object
+    NullableRelationshipToUserData:
+      description: Relationship to user object.
+      nullable: true
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentServiceIncludedItems:
+      description: An object related to an incident service which is present in the included payload.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentTypeCreateData:
+      description: Incident type data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTypeAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentTypeType'
+      required:
+      - type
+      - attributes
+      type: object
+    IncidentTeamCreateData:
+      description: Incident Team data for a create request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTeamCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/IncidentTeamRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentTeamType'
+      required:
+      - type
+      type: object
+    IncidentUpdateRelationships:
+      description: The incident's relationships for an update request.
+      properties:
+        commander_user:
+          $ref: '#/components/schemas/NullableRelationshipToUser'
+        integrations:
+          $ref: '#/components/schemas/RelationshipToIncidentIntegrationMetadatas'
+        postmortem:
+          $ref: '#/components/schemas/RelationshipToIncidentPostmortem'
+      type: object
+    IncidentTodoAssigneeHandle:
+      description: Assignee's @-handle.
+      example: '@test.user@test.com'
+      type: string
+    IncidentTodoAnonymousAssignee:
+      description: Anonymous assignee entity.
+      properties:
+        icon:
+          description: URL for assignee's icon.
+          example: https://a.slack-edge.com/80588/img/slackbot_48.png
+          type: string
+        id:
+          description: Anonymous assignee's ID.
+          example: USLACKBOT
+          type: string
+        name:
+          description: Assignee's name.
+          example: Slackbot
+          type: string
+        source:
+          $ref: '#/components/schemas/IncidentTodoAnonymousAssigneeSource'
+      required:
+      - id
+      - icon
+      - name
+      - source
+      type: object
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentServiceResponse:
+      description: Response with an incident service payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentServiceResponseData'
+        included:
+          description: Included objects from relationships.
+          items:
+            $ref: '#/components/schemas/IncidentServiceIncludedItems'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    IncidentIntegrationMetadataResponse:
+      description: Response with an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentIntegrationMetadataResponseIncludedItem'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
+    IncidentTeamCreateAttributes:
+      description: The incident team's attributes for a create request.
+      properties:
+        name:
+          description: Name of the incident team.
+          example: team name
+          type: string
+      required:
+      - name
+      type: object
+    IncidentAttachmentUpdateAttributes:
+      description: Incident attachment attributes.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
+      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    IncidentTodoType:
+      default: incident_todos
+      description: Todo resource type.
+      enum:
+      - incident_todos
+      example: incident_todos
+      type: string
+      x-enum-varnames:
+      - INCIDENT_TODOS
+    NullableRelationshipToUser:
+      description: Relationship to user.
+      nullable: true
+      properties:
+        data:
+          $ref: '#/components/schemas/NullableRelationshipToUserData'
+      required:
+      - data
+      type: object
+    IncidentAttachmentsPostmortemAttributesAttachmentObject:
+      description: The postmortem attachment.
+      properties:
+        documentUrl:
+          description: The URL of this notebook attachment.
+          example: https://app.datadoghq.com/notebook/123
+          type: string
+        title:
+          description: The title of this postmortem attachment.
+          example: Postmortem IR-123
+          type: string
+      required:
+      - documentUrl
+      - title
+      type: object
+    IncidentTypeType:
+      default: incident_types
+      description: Incident type resource type.
+      enum:
+      - incident_types
+      example: incident_types
+      type: string
+      x-enum-varnames:
+      - INCIDENT_TYPES
+    IncidentAttachmentData:
+      description: A single incident attachment.
+      example:
+        attributes:
+          attachment:
+            documentUrl: ''
+            title: Postmortem IR-123
+          attachment_type: postmortem
+        id: 00000000-abcd-0002-0000-000000000000
+        relationships:
+          last_modified_by_user:
+            data:
+              id: 00000000-0000-0000-cccc-000000000000
+              type: users
+        type: incident_attachments
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentAttachmentAttributes'
+        id:
+          description: A unique identifier that represents the incident attachment.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentAttachmentRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - type
+      - attributes
+      - id
+      - relationships
+      type: object
+    DORAIncidentResponse:
+      description: Response after receiving a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentResponseData'
+      required:
+      - data
+      type: object
+    IncidentAttachmentPostmortemAttachmentType:
+      default: postmortem
+      description: The type of postmortem attachment attributes.
+      enum:
+      - postmortem
+      example: postmortem
+      type: string
+      x-enum-varnames:
+      - POSTMORTEM
+    IncidentAttachmentsResponseIncludedItem:
+      description: An object related to an attachment that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentTypeCreateRequest:
+      description: Create request for an incident type.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTypeCreateData'
+      required:
+      - data
+      type: object
+    IncidentIntegrationMetadataAttributes:
+      description: Incident integration metadata's attributes for a create request.
+      properties:
+        created:
+          description: Timestamp when the incident todo was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        incident_id:
+          description: UUID of the incident this integration metadata is connected to.
+          example: 00000000-aaaa-0000-0000-000000000000
+          type: string
+        integration_type:
+          description: 'A number indicating the type of integration this metadata is for. 1 indicates Slack;
+
+            8 indicates Jira.'
+          example: 1
+          format: int32
+          maximum: 9
+          type: integer
+        metadata:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataMetadata'
+        modified:
+          description: Timestamp when the incident todo was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        status:
+          description: 'A number indicating the status of this integration metadata. 0 indicates unknown;
+
+            1 indicates pending; 2 indicates complete; 3 indicates manually created;
+
+            4 indicates manually updated; 5 indicates failed.'
+          format: int32
+          maximum: 5
+          type: integer
+          example: 42
+      required:
+      - integration_type
+      - metadata
+      type: object
+    IncidentSeverity:
+      description: The incident severity.
+      enum:
+      - UNKNOWN
+      - SEV-0
+      - SEV-1
+      - SEV-2
+      - SEV-3
+      - SEV-4
+      - SEV-5
+      example: UNKNOWN
+      type: string
+      x-enum-varnames:
+      - UNKNOWN
+      - SEV_0
+      - SEV_1
+      - SEV_2
+      - SEV_3
+      - SEV_4
+      - SEV_5
+    IncidentTypePatchRequest:
+      description: Patch request for an incident type.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTypePatchData'
+      required:
+      - data
+      type: object
+    IncidentServiceResponseData:
+      description: Incident Service data from responses.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentServiceResponseAttributes'
+        id:
+          description: The incident service's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentServiceRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentServiceType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentRelatedObject:
+      description: Object related to an incident.
+      enum:
+      - users
+      - attachments
+      type: string
+      x-enum-varnames:
+      - USERS
+      - ATTACHMENTS
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    IncidentTimelineCellMarkdownContentType:
+      default: markdown
+      description: Type of the Markdown timeline cell.
+      enum:
+      - markdown
+      example: markdown
+      type: string
+      x-enum-varnames:
+      - MARKDOWN
+    IncidentTypeUpdateAttributes:
+      description: Incident type's attributes for updates.
+      properties:
+        createdAt:
+          description: Timestamp when the incident type was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        createdBy:
+          description: A unique identifier that represents the user that created the incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          readOnly: true
+          type: string
+        description:
+          description: Text that describes the incident type.
+          example: 'Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data. Note: This will notify the security team.'
+          type: string
+        is_default:
+          description: When true, this incident type will be used as the default type when an incident type is not specified.
+          example: false
+          type: boolean
+        lastModifiedBy:
+          description: A unique identifier that represents the user that last modified the incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          readOnly: true
+          type: string
+        modifiedAt:
+          description: Timestamp when the incident type was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the incident type.
+          example: Security Incident
+          type: string
+        prefix:
+          description: The string that will be prepended to the incident title across the Datadog app.
+          example: IR
+          readOnly: true
+          type: string
+      type: object
+    IncidentServiceCreateRequest:
+      description: Create request with an incident service payload.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentServiceCreateData'
+      required:
+      - data
+      type: object
+    IncidentTeamType:
+      default: teams
+      description: Incident Team resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
+    IncidentTeamRelationships:
+      description: The incident team's relationships.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+      readOnly: true
+      type: object
+    IncidentIntegrationMetadataPatchRequest:
+      description: Patch request for an incident integration metadata.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataPatchData'
+      required:
+      - data
+      type: object
+  parameters:
+    IncidentTeamIncludeQueryParameter:
+      description: Specifies which types of related objects should be included in the response.
+      in: query
+      name: include
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncidentRelatedObject'
+    IncidentAttachmentIncludeQueryParameter:
+      description: Specifies which types of related objects are included in the response.
+      explode: false
+      in: query
+      name: include
+      required: false
+      schema:
+        items:
+          $ref: '#/components/schemas/IncidentAttachmentRelatedObject'
+        type: array
+    IncidentIncludeQueryParameter:
+      description: Specifies which types of related objects should be included in the response.
+      explode: false
+      in: query
+      name: include
+      required: false
+      schema:
+        items:
+          $ref: '#/components/schemas/IncidentRelatedObject'
+        type: array
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    IncidentTypeIncludeDeletedParameter:
+      description: Include deleted incident types in the response.
+      in: query
+      name: include_deleted
+      schema:
+        default: false
+        type: boolean
+    IncidentIntegrationMetadataIDPathParameter:
+      description: The UUID of the incident integration metadata.
+      in: path
+      name: integration_metadata_id
+      required: true
+      schema:
+        type: string
+    IncidentServiceSearchQueryParameter:
+      description: A search query that filters services by name.
+      in: query
+      name: filter
+      required: false
+      schema:
+        example: ExampleServiceName
+        type: string
+    PageOffset:
+      description: Specific offset to use as the beginning of the returned page.
+      in: query
+      name: page[offset]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    IncidentTeamSearchQueryParameter:
+      description: A search query that filters teams by name.
+      in: query
+      name: filter
+      required: false
+      schema:
+        example: ExampleTeamName
+        type: string
+    IncidentTypeIDPathParameter:
+      description: The UUID of the incident type.
+      in: path
+      name: incident_type_id
+      required: true
+      schema:
+        type: string
+    IncidentTodoIDPathParameter:
+      description: The UUID of the incident todo.
+      in: path
+      name: todo_id
+      required: true
+      schema:
+        type: string
+    IncidentTeamIDPathParameter:
+      description: The ID of the incident team.
+      in: path
+      name: team_id
+      required: true
+      schema:
+        type: string
+    IncidentServiceIncludeQueryParameter:
+      description: Specifies which types of related objects should be included in the response.
+      in: query
+      name: include
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncidentRelatedObject'
+    IncidentServiceIDPathParameter:
+      description: The ID of the incident service.
+      in: path
+      name: service_id
+      required: true
+      schema:
+        type: string
+    IncidentIDPathParameter:
+      description: The UUID of the incident.
+      in: path
+      name: incident_id
+      required: true
+      schema:
+        type: string
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

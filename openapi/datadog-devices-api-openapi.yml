@@ -1,0 +1,777 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Devices API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Devices
+paths:
+  /api/v2/ndm/devices:
+    get:
+      description: Get the list of devices.
+      operationId: ListDevices
+      parameters:
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - description: The field to sort the devices by.
+        example: status
+        in: query
+        name: sort
+        required: false
+        schema:
+          type: string
+      - description: Filter devices by tag.
+        example: status:ok
+        in: query
+        name: filter[tag]
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDevicesResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get the List of Devices
+      tags:
+      - Devices
+      x-menu-order: 1
+      x-pagination:
+        limitParam: page[size]
+        pageParam: page[number]
+        resultsPath: data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/ndm/devices/{device_id}:
+    get:
+      description: Get the device details.
+      operationId: GetDevice
+      parameters:
+      - description: The id of the device to fetch.
+        example: example:1.2.3.4
+        in: path
+        name: device_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDeviceResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get the Device Details
+      tags:
+      - Devices
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/ndm/interfaces:
+    get:
+      description: Get the list of interfaces of the device.
+      operationId: GetInterfaces
+      parameters:
+      - description: The ID of the device to get interfaces from.
+        example: example:1.2.3.4
+        in: query
+        name: device_id
+        required: true
+        schema:
+          type: string
+      - description: Whether to get the IP addresses of the interfaces.
+        example: true
+        in: query
+        name: get_ip_addresses
+        required: false
+        schema:
+          type: boolean
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInterfacesResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get the List of Interfaces of the Device
+      tags:
+      - Devices
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/ndm/tags/devices/{device_id}:
+    get:
+      description: Get the list of tags for a device.
+      operationId: ListDeviceUserTags
+      parameters:
+      - description: The id of the device to fetch tags for.
+        example: example:1.2.3.4
+        in: path
+        name: device_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get the List of Tags for a Device
+      tags:
+      - Devices
+      x-menu-order: 4
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update the tags for a device.
+      operationId: UpdateDeviceUserTags
+      parameters:
+      - description: The id of the device to update tags for.
+        example: example:1.2.3.4
+        in: path
+        name: device_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTagsResponse'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update the Tags for a Device
+      tags:
+      - Devices
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  parameters:
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+  schemas:
+    GetDeviceAttributes:
+      description: The device attributes
+      properties:
+        description:
+          description: A description of the device.
+          example: a device monitored with NDM
+          type: string
+        device_type:
+          description: The type of the device.
+          example: other
+          type: string
+        integration:
+          description: The integration of the device.
+          example: snmp
+          type: string
+        ip_address:
+          description: The IP address of the device.
+          example: 1.2.3.4
+          type: string
+        location:
+          description: The location of the device.
+          example: paris
+          type: string
+        model:
+          description: The model of the device.
+          example: xx-123
+          type: string
+        name:
+          description: The name of the device.
+          example: example device
+          type: string
+        os_hostname:
+          description: The operating system hostname of the device.
+          example: 1.0.2
+          type: string
+        os_name:
+          description: The operating system name of the device.
+          example: example OS
+          type: string
+        os_version:
+          description: The operating system version of the device.
+          example: 1.0.2
+          type: string
+        ping_status:
+          description: The ping status of the device.
+          example: unmonitored
+          type: string
+        product_name:
+          description: The product name of the device.
+          example: example device
+          type: string
+        serial_number:
+          description: The serial number of the device.
+          example: X12345
+          type: string
+        status:
+          description: The status of the device.
+          example: ok
+          type: string
+        subnet:
+          description: The subnet of the device.
+          example: 1.2.3.4/24
+          type: string
+        sys_object_id:
+          description: The device `sys_object_id`.
+          example: 1.3.6.1.4.1.99999
+          type: string
+        tags:
+          description: A list of tags associated with the device.
+          example:
+          - device_ip:1.2.3.4
+          - device_id:example:1.2.3.4
+          items:
+            type: string
+          type: array
+        vendor:
+          description: The vendor of the device.
+          example: example vendor
+          type: string
+        version:
+          description: The version of the device.
+          example: 1.2.3
+          type: string
+      type: object
+    InterfaceAttributes:
+      description: The interface attributes
+      properties:
+        alias:
+          description: The interface alias
+          example: interface_0
+          type: string
+        description:
+          description: The interface description
+          example: a network interface
+          type: string
+        index:
+          description: The interface index
+          example: 0
+          format: int64
+          type: integer
+        ip_addresses:
+          description: The interface IP addresses
+          example:
+          - 1.1.1.1
+          - 1.1.1.2
+          items:
+            type: string
+          type: array
+        mac_address:
+          description: The interface MAC address
+          example: 00:00:00:00:00:00
+          type: string
+        name:
+          description: The interface name
+          example: if0
+          type: string
+        status:
+          $ref: '#/components/schemas/InterfaceAttributesStatus'
+      type: object
+    ListDevicesResponse:
+      description: List devices response.
+      properties:
+        data:
+          description: The list devices response data.
+          items:
+            $ref: '#/components/schemas/DevicesListData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ListDevicesResponseMetadata'
+      type: object
+    InterfaceAttributesStatus:
+      description: The interface status
+      enum:
+      - up
+      - down
+      - warning
+      - 'off'
+      example: up
+      type: string
+      x-enum-varnames:
+      - UP
+      - DOWN
+      - WARNING
+      - 'OFF'
+    ListDevicesResponseMetadata:
+      description: Object describing meta attributes of response.
+      properties:
+        page:
+          $ref: '#/components/schemas/ListDevicesResponseMetadataPage'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ListTagsResponse:
+      description: List tags response.
+      properties:
+        data:
+          $ref: '#/components/schemas/ListTagsResponseData'
+      type: object
+    ListTagsResponseData:
+      description: The list tags response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ListTagsResponseDataAttributes'
+        id:
+          description: The device ID
+          example: example:1.2.3.4
+          type: string
+        type:
+          description: The type of the resource. The value should always be tags.
+          type: string
+          example: metric alert
+      type: object
+    GetInterfacesResponse:
+      description: The `GetInterfaces` operation's response.
+      properties:
+        data:
+          description: Get Interfaces response
+          items:
+            $ref: '#/components/schemas/GetInterfacesData'
+          type: array
+      type: object
+    GetDeviceData:
+      description: Get device response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GetDeviceAttributes'
+        id:
+          description: The device ID
+          example: example:1.2.3.4
+          type: string
+        type:
+          description: The type of the resource. The value should always be device.
+          type: string
+          example: metric alert
+      type: object
+    ListTagsResponseDataAttributes:
+      description: The definition of ListTagsResponseDataAttributes object.
+      properties:
+        tags:
+          description: The list of tags
+          example:
+          - tag:test
+          - tag:testbis
+          items:
+            type: string
+          type: array
+      type: object
+    GetDeviceResponse:
+      description: The `GetDevice` operation's response.
+      properties:
+        data:
+          $ref: '#/components/schemas/GetDeviceData'
+      type: object
+    DeviceAttributes:
+      description: The device attributes
+      properties:
+        description:
+          description: The device description
+          example: a device monitored with NDM
+          type: string
+        device_type:
+          description: The device type
+          example: other
+          type: string
+        integration:
+          description: The device integration
+          example: snmp
+          type: string
+        interface_statuses:
+          $ref: '#/components/schemas/DeviceAttributesInterfaceStatuses'
+        ip_address:
+          description: The device IP address
+          example: 1.2.3.4
+          type: string
+        location:
+          description: The device location
+          example: paris
+          type: string
+        model:
+          description: The device model
+          example: xx-123
+          type: string
+        name:
+          description: The device name
+          example: example device
+          type: string
+        os_hostname:
+          description: The device OS hostname
+          type: string
+          example: Example Monitor
+        os_name:
+          description: The device OS name
+          example: example OS
+          type: string
+        os_version:
+          description: The device OS version
+          example: 1.0.2
+          type: string
+        ping_status:
+          description: The device ping status
+          example: unmonitored
+          type: string
+        product_name:
+          description: The device product name
+          example: example device
+          type: string
+        serial_number:
+          description: The device serial number
+          example: X12345
+          type: string
+        status:
+          description: The device SNMP status
+          example: ok
+          type: string
+        subnet:
+          description: The device subnet
+          example: 1.2.3.4/24
+          type: string
+        sys_object_id:
+          description: The device `sys_object_id`
+          example: 1.3.6.1.4.1.99999
+          type: string
+        tags:
+          description: The list of device tags
+          example:
+          - device_ip:1.2.3.4
+          - device_id:example:1.2.3.4
+          items:
+            type: string
+          type: array
+        vendor:
+          description: The device vendor
+          example: example vendor
+          type: string
+        version:
+          description: The device version
+          example: 1.2.3
+          type: string
+      type: object
+    ListDevicesResponseMetadataPage:
+      description: Pagination object.
+      properties:
+        total_filtered_count:
+          description: Total count of devices matched by the filter.
+          example: 1
+          format: int64
+          type: integer
+      type: object
+    GetInterfacesData:
+      description: The interfaces list data
+      properties:
+        attributes:
+          $ref: '#/components/schemas/InterfaceAttributes'
+        id:
+          description: The interface ID
+          example: example:1.2.3.4:99
+          type: string
+        type:
+          description: The type of the resource. The value should always be interface.
+          type: string
+          example: metric alert
+      type: object
+    DevicesListData:
+      description: The devices list data
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DeviceAttributes'
+        id:
+          description: The device ID
+          example: example:1.2.3.4
+          type: string
+        type:
+          description: The type of the resource. The value should always be device.
+          type: string
+          example: metric alert
+      type: object
+    DeviceAttributesInterfaceStatuses:
+      description: Count of the device interfaces by status
+      example:
+        down: 1
+        'off': 2
+        up: 12
+        warning: 5
+      properties:
+        down:
+          description: The number of interfaces that are down
+          format: int64
+          type: integer
+          example: 42
+        'off':
+          description: The number of interfaces that are off
+          format: int64
+          type: integer
+          example: 42
+        up:
+          description: The number of interfaces that are up
+          format: int64
+          type: integer
+          example: 42
+        warning:
+          description: The number of interfaces that are in a warning state
+          format: int64
+          type: integer
+          example: 42
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

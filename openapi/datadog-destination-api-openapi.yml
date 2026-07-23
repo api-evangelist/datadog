@@ -1,0 +1,938 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Destination API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Destination
+paths:
+  /api/v2/logs/config/custom-destinations:
+    post:
+      description: Create a custom destination in your organization.
+      operationId: CreateLogsCustomDestination
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomDestinationCreateRequest'
+        description: The definition of the new custom destination.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDestinationResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Custom Destination
+      tags:
+      - Destination
+      x-codegen-request-body-name: body
+      x-given:
+        custom_destination:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\",\n      \"query\": \"source:nginx\",\n      \"enabled\": false,\n      \"forwarder_destination\": {\n        \"type\": \"http\",\n        \"endpoint\": \"https://example.com\",\n        \"auth\": {\n          \"type\": \"basic\",\n          \"username\": \"my-username\",\n          \"password\": \"my-password\"\n        }\n      },\n      \"forward_tags_restriction_list_type\": \"BLOCK_LIST\",\n      \"forward_tags_restriction_list\": [\"host\"],\n      \"forward_tags\": false\n    },\n    \"type\": \"custom_destination\"\n  }\n}"
+          step: there is a valid "custom_destination" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_forwarding_rules
+      x-undo:
+        operationId: DeleteLogsCustomDestination
+        parameters:
+        - name: custom_destination_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/custom-destinations/{custom_destination_id}:
+    delete:
+      description: Delete a specific custom destination in your organization.
+      operationId: DeleteLogsCustomDestination
+      parameters:
+      - $ref: '#/components/parameters/CustomDestinationId'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Custom Destination
+      tags:
+      - Destination
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_forwarding_rules
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a specific custom destination in your organization.
+      operationId: GetLogsCustomDestination
+      parameters:
+      - $ref: '#/components/parameters/CustomDestinationId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDestinationResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Custom Destination
+      tags:
+      - Destination
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_data
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update the given fields of a specific custom destination in your organization.
+      operationId: UpdateLogsCustomDestination
+      parameters:
+      - $ref: '#/components/parameters/CustomDestinationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomDestinationUpdateRequest'
+        description: New definition of the custom destination's fields.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDestinationResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Custom Destination
+      tags:
+      - Destination
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_write_forwarding_rules
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    CustomDestinationHttpDestinationAuthCustomHeaderType:
+      default: custom_header
+      description: Type of the custom header access authentication.
+      enum:
+      - custom_header
+      example: custom_header
+      type: string
+      x-enum-varnames:
+      - CUSTOM_HEADER
+    CustomDestinationResponseForwardDestinationHttpType:
+      default: http
+      description: Type of the HTTP destination.
+      enum:
+      - http
+      example: http
+      type: string
+      x-enum-varnames:
+      - HTTP
+    CustomDestinationForwardDestinationHttp:
+      description: The HTTP destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationHttpType'
+      required:
+      - type
+      - endpoint
+      - auth
+      type: object
+    CustomDestinationResponseAttributes:
+      description: The attributes associated with the custom destination.
+      properties:
+        enabled:
+          default: true
+          description: Whether logs matching this custom destination should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags:
+          default: true
+          description: Whether tags from the forwarded logs should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags_restriction_list:
+          default: []
+          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.
+
+
+            An empty list represents no restriction is in place and either all or no tags will be
+
+            forwarded depending on `forward_tags_restriction_list_type` parameter.'
+          example:
+          - datacenter
+          - host
+          items:
+            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
+            type: string
+          maxItems: 10
+          minItems: 0
+          type: array
+        forward_tags_restriction_list_type:
+          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
+        forwarder_destination:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestination'
+        name:
+          description: The custom destination name.
+          example: Nginx logs
+          type: string
+        query:
+          default: ''
+          description: The custom destination query filter. Logs matching this query are forwarded to the destination.
+          example: source:nginx
+          type: string
+      type: object
+    CustomDestinationResponseForwardDestinationSplunkType:
+      default: splunk_hec
+      description: Type of the Splunk HTTP Event Collector (HEC) destination.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    CustomDestinationForwardDestinationSplunk:
+      description: The Splunk HTTP Event Collector (HEC) destination.
+      properties:
+        access_token:
+          description: Access token of the Splunk HTTP Event Collector. This field is not returned by the API.
+          example: splunk_access_token
+          type: string
+          writeOnly: true
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunkType'
+      required:
+      - type
+      - endpoint
+      - access_token
+      type: object
+    CustomDestinationResponseHttpDestinationAuthCustomHeader:
+      description: Custom header access authentication.
+      properties:
+        header_name:
+          description: The header name of the authentication.
+          example: CUSTOM-HEADER-NAME
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeaderType'
+      required:
+      - type
+      - header_name
+      type: object
+    CustomDestinationResponseHttpDestinationAuthBasic:
+      description: Basic access authentication.
+      properties:
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasicType'
+      required:
+      - type
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CustomDestinationResponseForwardDestinationSplunk:
+      description: The Splunk HTTP Event Collector (HEC) destination.
+      properties:
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunkType'
+      required:
+      - type
+      - endpoint
+      type: object
+    CustomDestinationHttpDestinationAuth:
+      description: Authentication method of the HTTP requests.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasic'
+      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeader'
+    CustomDestinationCreateRequestAttributes:
+      description: The attributes associated with the custom destination.
+      properties:
+        enabled:
+          default: true
+          description: Whether logs matching this custom destination should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags:
+          default: true
+          description: Whether tags from the forwarded logs should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags_restriction_list:
+          default: []
+          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.
+
+
+            An empty list represents no restriction is in place and either all or no tags will be
+
+            forwarded depending on `forward_tags_restriction_list_type` parameter.'
+          example:
+          - datacenter
+          - host
+          items:
+            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
+            type: string
+          maxItems: 10
+          minItems: 0
+          type: array
+        forward_tags_restriction_list_type:
+          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
+        forwarder_destination:
+          $ref: '#/components/schemas/CustomDestinationForwardDestination'
+        name:
+          description: The custom destination name.
+          example: Nginx logs
+          type: string
+        query:
+          default: ''
+          description: The custom destination query and filter. Logs matching this query are forwarded to the destination.
+          example: source:nginx
+          type: string
+      required:
+      - name
+      - forwarder_destination
+      type: object
+    CustomDestinationElasticsearchDestinationAuth:
+      description: Basic access authentication.
+      properties:
+        password:
+          description: The password of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-password
+          type: string
+          writeOnly: true
+        username:
+          description: The username of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-username
+          type: string
+          writeOnly: true
+      required:
+      - username
+      - password
+      type: object
+    CustomDestinationCreateRequestDefinition:
+      description: The definition of a custom destination.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomDestinationCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/CustomDestinationType'
+      required:
+      - type
+      - attributes
+      type: object
+    CustomDestinationForwardDestinationElasticsearchType:
+      default: elasticsearch
+      description: Type of the Elasticsearch destination.
+      enum:
+      - elasticsearch
+      example: elasticsearch
+      type: string
+      x-enum-varnames:
+      - ELASTICSEARCH
+    CustomDestinationResponseDefinition:
+      description: The definition of a custom destination.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomDestinationResponseAttributes'
+        id:
+          description: The custom destination ID.
+          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
+          readOnly: true
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationType'
+      type: object
+    CustomDestinationAttributeTagsRestrictionListType:
+      default: ALLOW_LIST
+      description: 'How `forward_tags_restriction_list` parameter should be interpreted.
+
+        If `ALLOW_LIST`, then only tags whose keys on the forwarded logs match the ones on the restriction list
+
+        are forwarded.
+
+
+        `BLOCK_LIST` works the opposite way. It does not forward the tags matching the ones on the list.'
+      enum:
+      - ALLOW_LIST
+      - BLOCK_LIST
+      example: ALLOW_LIST
+      type: string
+      x-enum-varnames:
+      - ALLOW_LIST
+      - BLOCK_LIST
+    CustomDestinationResponseForwardDestinationHttp:
+      description: The HTTP destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttpType'
+      required:
+      - type
+      - endpoint
+      - auth
+      type: object
+    CustomDestinationHttpDestinationAuthBasicType:
+      default: basic
+      description: Type of the basic access authentication.
+      enum:
+      - basic
+      example: basic
+      type: string
+      x-enum-varnames:
+      - BASIC
+    CustomDestinationType:
+      default: custom_destination
+      description: The type of the resource. The value should always be `custom_destination`.
+      enum:
+      - custom_destination
+      example: custom_destination
+      type: string
+      x-enum-varnames:
+      - CUSTOM_DESTINATION
+    CustomDestinationForwardDestinationHttpType:
+      default: http
+      description: Type of the HTTP destination.
+      enum:
+      - http
+      example: http
+      type: string
+      x-enum-varnames:
+      - HTTP
+    CustomDestinationResponseForwardDestination:
+      description: A custom destination's location to forward logs.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttp'
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunk'
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationElasticsearch'
+    CustomDestinationForwardDestinationSplunkType:
+      default: splunk_hec
+      description: Type of the Splunk HTTP Event Collector (HEC) destination.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    CustomDestinationCreateRequest:
+      description: The custom destination.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomDestinationCreateRequestDefinition'
+      type: object
+    CustomDestinationUpdateRequestAttributes:
+      description: The attributes associated with the custom destination.
+      properties:
+        enabled:
+          default: true
+          description: Whether logs matching this custom destination should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags:
+          default: true
+          description: Whether tags from the forwarded logs should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags_restriction_list:
+          default: []
+          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be restricted from being forwarded.
+
+            An empty list represents no restriction is in place and either all or no tags will be forwarded depending on `forward_tags_restriction_list_type` parameter.'
+          example:
+          - datacenter
+          - host
+          items:
+            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
+            type: string
+          maxItems: 10
+          minItems: 0
+          type: array
+        forward_tags_restriction_list_type:
+          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
+        forwarder_destination:
+          $ref: '#/components/schemas/CustomDestinationForwardDestination'
+        name:
+          description: The custom destination name.
+          example: Nginx logs
+          type: string
+        query:
+          default: ''
+          description: The custom destination query and filter. Logs matching this query are forwarded to the destination.
+          example: source:nginx
+          type: string
+      type: object
+    CustomDestinationHttpDestinationAuthCustomHeader:
+      description: Custom header access authentication.
+      properties:
+        header_name:
+          description: The header name of the authentication.
+          example: CUSTOM-HEADER-NAME
+          type: string
+        header_value:
+          description: The header value of the authentication. This field is not returned by the API.
+          example: CUSTOM-HEADER-AUTHENTICATION-VALUE
+          type: string
+          writeOnly: true
+        type:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeaderType'
+      required:
+      - type
+      - header_name
+      - header_value
+      type: object
+    CustomDestinationForwardDestination:
+      description: A custom destination's location to forward logs.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationHttp'
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunk'
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearch'
+    CustomDestinationUpdateRequestDefinition:
+      description: The definition of a custom destination.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomDestinationUpdateRequestAttributes'
+        id:
+          description: The custom destination ID.
+          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationType'
+      required:
+      - type
+      - id
+      type: object
+    CustomDestinationResponse:
+      description: The custom destination.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomDestinationResponseDefinition'
+      type: object
+    CustomDestinationResponseHttpDestinationAuthBasicType:
+      default: basic
+      description: Type of the basic access authentication.
+      enum:
+      - basic
+      example: basic
+      type: string
+      x-enum-varnames:
+      - BASIC
+    CustomDestinationHttpDestinationAuthBasic:
+      description: Basic access authentication.
+      properties:
+        password:
+          description: The password of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-password
+          type: string
+          writeOnly: true
+        type:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasicType'
+        username:
+          description: The username of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-username
+          type: string
+          writeOnly: true
+      required:
+      - type
+      - username
+      - password
+      type: object
+    CustomDestinationResponseForwardDestinationElasticsearch:
+      description: The Elasticsearch destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationResponseElasticsearchDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        index_name:
+          description: Name of the Elasticsearch index (must follow [Elasticsearch's criteria](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/indices-create-index.html#indices-create-api-path-params)).
+          example: nginx-logs
+          type: string
+        index_rotation:
+          description: 'Date pattern with US locale and UTC timezone to be appended to the index name after adding `-`
+
+            (that is, `${index_name}-${indexPattern}`).
+
+            You can customize the index rotation naming pattern by choosing one of these options:
+
+            - Hourly: `yyyy-MM-dd-HH` (as an example, it would render: `2022-10-19-09`)
+
+            - Daily: `yyyy-MM-dd` (as an example, it would render: `2022-10-19`)
+
+            - Weekly: `yyyy-''W''ww` (as an example, it would render: `2022-W42`)
+
+            - Monthly: `yyyy-MM` (as an example, it would render: `2022-10`)
+
+
+            If this field is missing or is blank, it means that the index name will always be the same
+
+            (that is, no rotation).'
+          example: yyyy-MM-dd
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationElasticsearchType'
+      required:
+      - type
+      - endpoint
+      - auth
+      - index_name
+      type: object
+    CustomDestinationForwardDestinationElasticsearch:
+      description: The Elasticsearch destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationElasticsearchDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        index_name:
+          description: Name of the Elasticsearch index (must follow [Elasticsearch's criteria](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/indices-create-index.html#indices-create-api-path-params)).
+          example: nginx-logs
+          type: string
+        index_rotation:
+          description: 'Date pattern with US locale and UTC timezone to be appended to the index name after adding `-`
+
+            (that is, `${index_name}-${indexPattern}`).
+
+            You can customize the index rotation naming pattern by choosing one of these options:
+
+            - Hourly: `yyyy-MM-dd-HH` (as an example, it would render: `2022-10-19-09`)
+
+            - Daily: `yyyy-MM-dd` (as an example, it would render: `2022-10-19`)
+
+            - Weekly: `yyyy-''W''ww` (as an example, it would render: `2022-W42`)
+
+            - Monthly: `yyyy-MM` (as an example, it would render: `2022-10`)
+
+
+            If this field is missing or is blank, it means that the index name will always be the same
+
+            (that is, no rotation).'
+          example: yyyy-MM-dd
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearchType'
+      required:
+      - type
+      - endpoint
+      - auth
+      - index_name
+      type: object
+    CustomDestinationResponseHttpDestinationAuthCustomHeaderType:
+      default: custom_header
+      description: Type of the custom header access authentication.
+      enum:
+      - custom_header
+      example: custom_header
+      type: string
+      x-enum-varnames:
+      - CUSTOM_HEADER
+    CustomDestinationResponseForwardDestinationElasticsearchType:
+      default: elasticsearch
+      description: Type of the Elasticsearch destination.
+      enum:
+      - elasticsearch
+      example: elasticsearch
+      type: string
+      x-enum-varnames:
+      - ELASTICSEARCH
+    CustomDestinationResponseElasticsearchDestinationAuth:
+      additionalProperties:
+        description: Basic access authentication.
+      description: Basic access authentication.
+      type: object
+    CustomDestinationUpdateRequest:
+      description: The custom destination.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomDestinationUpdateRequestDefinition'
+      type: object
+    CustomDestinationResponseHttpDestinationAuth:
+      description: Authentication method of the HTTP requests.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasic'
+      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeader'
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+  parameters:
+    CustomDestinationId:
+      description: The ID of the custom destination.
+      in: path
+      name: custom_destination_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

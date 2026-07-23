@@ -1,0 +1,1246 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Restrictions API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Restrictions
+paths:
+  /api/v2/logs/config/restriction_queries:
+    get:
+      description: Returns all restriction queries, including their names and IDs.
+      operationId: ListRestrictionQueries
+      parameters:
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryListResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog List Restriction Queries
+      tags:
+      - Restrictions
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a new restriction query for your organization.
+      operationId: CreateRestrictionQuery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestrictionQueryCreatePayload'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryWithoutRelationshipsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        operationId: DeleteRestrictionQuery
+        parameters:
+        - name: restriction_query_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/role/{role_id}:
+    get:
+      description: Get restriction query for a given role.
+      operationId: GetRoleRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryRoleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryListResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get Restriction Query for a Given Role
+      tags:
+      - Restrictions
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/user/{user_id}:
+    get:
+      description: Get all restriction queries for a given user.
+      operationId: ListUserRestrictionQueries
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryUserID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryListResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Restriction Queries for a Given User
+      tags:
+      - Restrictions
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/{restriction_query_id}:
+    delete:
+      description: Deletes a restriction query.
+      operationId: DeleteRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a restriction query in the organization specified by the restriction query's `restriction_query_id`.
+      operationId: GetRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryWithRelationshipsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Edit a restriction query.
+      operationId: UpdateRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestrictionQueryUpdatePayload'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryWithoutRelationshipsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/restriction_queries/{restriction_query_id}/roles:
+    delete:
+      description: Removes a role from a restriction query.
+      operationId: RemoveRoleFromRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Revoke Role from a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Returns all roles that have a given restriction query.
+      operationId: ListRestrictionQueryRoles
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionQueryRolesResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog List Roles for a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 6
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Adds a role to a restriction query.
+      operationId: AddRoleToRestrictionQuery
+      parameters:
+      - $ref: '#/components/parameters/RestrictionQueryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelationshipToRole'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Grant Role to a Restriction Query
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - user_access_manage
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/restriction_policy/{resource_id}:
+    delete:
+      description: Deletes the restriction policy associated with a specified resource.
+      operationId: DeleteRestrictionPolicy
+      parameters:
+      - $ref: '#/components/parameters/ResourceID'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Delete a Restriction Policy
+      tags:
+      - Restrictions
+      x-menu-order: 3
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Retrieves the restriction policy associated with a specified resource.
+      operationId: GetRestrictionPolicy
+      parameters:
+      - $ref: '#/components/parameters/ResourceID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionPolicyResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Get a Restriction Policy
+      tags:
+      - Restrictions
+      x-menu-order: 2
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Updates the restriction policy associated with a resource.
+
+
+        #### Supported resources
+
+        Restriction policies can be applied to the following resources:
+
+        - Dashboards: `dashboard`
+
+        - Integration Accounts: `integration-account`
+
+        - Integration Services: `integration-service`
+
+        - Integration Webhooks: `integration-webhook`
+
+        - Notebooks: `notebook`
+
+        - Powerpacks: `powerpack`
+
+        - Reference Tables: `reference-table`
+
+        - Security Rules: `security-rule`
+
+        - Service Level Objectives: `slo`
+
+        - Synthetic Global Variables: `synthetics-global-variable`
+
+        - Synthetic Tests: `synthetics-test`
+
+        - Synthetic Private Locations: `synthetics-private-location`
+
+        - Monitors: `monitor`
+
+        - Workflows: `workflow`
+
+        - App Builder Apps: `app-builder-app`
+
+        - Connections: `connection`
+
+        - Connection Groups: `connection-group`
+
+        - RUM Applications: `rum-application`
+
+
+        #### Supported relations for resources
+
+        Resource Type               | Supported Relations
+
+        ----------------------------|--------------------------
+
+        Dashboards                  | `viewer`, `editor`
+
+        Integration Accounts        | `viewer`, `editor`
+
+        Integration Services        | `viewer`, `editor`
+
+        Integration Webhooks        | `viewer`, `editor`
+
+        Notebooks                   | `viewer`, `editor`
+
+        Powerpacks                  | `viewer`, `editor`
+
+        Security Rules              | `viewer`, `editor`
+
+        Service Level Objectives    | `viewer`, `editor`
+
+        Synthetic Global Variables  | `viewer`, `editor`
+
+        Synthetic Tests             | `viewer`, `editor`
+
+        Synthetic Private Locations | `viewer`, `editor`
+
+        Monitors                    | `viewer`, `editor`
+
+        Reference Tables            | `viewer`, `editor`
+
+        Workflows                   | `viewer`, `runner`, `editor`
+
+        App Builder Apps            | `viewer`, `editor`
+
+        Connections                 | `viewer`, `resolver`, `editor`
+
+        Connection Groups           | `viewer`, `editor`
+
+        RUM Application             | `viewer`, `editor`'
+      operationId: UpdateRestrictionPolicy
+      parameters:
+      - $ref: '#/components/parameters/ResourceID'
+      - description: Allows admins (users with the `user_access_manage` permission) to remove their own access from the resource if set to `true`. By default, this is set to `false`, preventing admins from locking themselves out.
+        in: query
+        name: allow_self_lockout
+        required: false
+        schema:
+          type: boolean
+        example: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestrictionPolicyUpdateRequest'
+        description: Restriction policy payload
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestrictionPolicyResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Update a Restriction Policy
+      tags:
+      - Restrictions
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  parameters:
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    ResourceID:
+      description: 'Identifier, formatted as `type:id`. Supported types: `connection`, `dashboard`, `integration-account`, `integration-service`, `integration-webhook`, `notebook`, `reference-table`, `security-rule`, `slo`, `workflow`, `app-builder-app`, `connection`, `connection-group`, `rum-application`.'
+      example: dashboard:abc-def-ghi
+      in: path
+      name: resource_id
+      required: true
+      schema:
+        type: string
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    RestrictionQueryRoleID:
+      description: The ID of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
+    RestrictionQueryID:
+      description: The ID of the restriction query.
+      in: path
+      name: restriction_query_id
+      required: true
+      schema:
+        type: string
+    RestrictionQueryUserID:
+      description: The ID of the user.
+      in: path
+      name: user_id
+      required: true
+      schema:
+        type: string
+  schemas:
+    RestrictionQueryWithoutRelationships:
+      description: Restriction query object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryAttributes'
+        id:
+          description: ID of the restriction query.
+          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
+          type: string
+        type:
+          default: logs_restriction_queries
+          description: Restriction queries type.
+          example: logs_restriction_queries
+          readOnly: true
+          type: string
+      type: object
+    RestrictionQueryWithoutRelationshipsResponse:
+      description: Response containing information about a single restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
+      type: object
+    RestrictionPolicyBinding:
+      description: Specifies which principals are associated with a relation.
+      properties:
+        principals:
+          description: 'An array of principals. A principal is a subject or group of subjects.
+
+            Each principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.
+
+            The org ID can be obtained through the api/v2/current_user API.
+
+            The user principal type accepts service account IDs.'
+          example:
+          - role:00000000-0000-1111-0000-000000000000
+          items:
+            description: 'Subject or group of subjects. Each principal is formatted as `type:id`.
+
+              Supported types: `role`, `team`, `user`, and `org`.
+
+              The org ID can be obtained through the api/v2/current_user API.
+
+              The user principal type accepts service account IDs.'
+            type: string
+          type: array
+        relation:
+          description: The role/level of access.
+          example: editor
+          type: string
+      required:
+      - relation
+      - principals
+      type: object
+    RestrictionQueryRole:
+      description: Partial role object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryRoleAttribute'
+        id:
+          description: ID of the role.
+          example: <ROLE_ID>
+          type: string
+        type:
+          default: roles
+          description: Role resource type.
+          example: roles
+          readOnly: true
+          type: string
+      type: object
+    RestrictionQueryUpdatePayload:
+      description: Update a restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryUpdateData'
+      type: object
+    RestrictionQueryAttributes:
+      description: Attributes of the restriction query.
+      properties:
+        created_at:
+          description: Creation time of the restriction query.
+          example: '2020-03-17T21:06:44.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        modified_at:
+          description: Time of last restriction query modification.
+          example: '2020-03-17T21:15:15.000Z'
+          format: date-time
+          readOnly: true
+          type: string
+        restriction_query:
+          description: The query that defines the restriction. Only the content matching the query can be returned.
+          example: env:sandbox
+          type: string
+      type: object
+    RestrictionQueryCreatePayload:
+      description: Create a restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryCreateData'
+      type: object
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RestrictionQueryRoleAttribute:
+      description: Attributes of the role for a restriction query.
+      properties:
+        name:
+          description: The role name.
+          example: Datadog Admin Role
+          type: string
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RelationshipToRole:
+      description: Relationship to role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToRoleData'
+      type: object
+      x-merge-override:
+        required: false
+    RestrictionQueryCreateAttributes:
+      description: Attributes of the created restriction query.
+      properties:
+        restriction_query:
+          description: The restriction query.
+          example: env:sandbox
+          type: string
+      type: object
+    RestrictionPolicyUpdateRequest:
+      description: Update request for a restriction policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionPolicy'
+      required:
+      - data
+      type: object
+    RestrictionQueryResponseIncludedItem:
+      description: An object related to a restriction query.
+      discriminator:
+        mapping:
+          roles: '#/components/schemas/RestrictionQueryRole'
+        propertyName: type
+      oneOf:
+      - $ref: '#/components/schemas/RestrictionQueryRole'
+    RestrictionQueryWithRelationshipsResponse:
+      description: Response containing information about a single restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryWithRelationships'
+        included:
+          description: Array of objects related to the restriction query.
+          items:
+            $ref: '#/components/schemas/RestrictionQueryResponseIncludedItem'
+          type: array
+      type: object
+    RestrictionQueryListResponse:
+      description: Response containing information about multiple restriction queries.
+      properties:
+        data:
+          description: Array of returned restriction queries.
+          items:
+            $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
+          type: array
+      type: object
+    RestrictionQueryCreateData:
+      description: Data related to the creation of a restriction query.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryCreateAttributes'
+        type:
+          $ref: '#/components/schemas/LogsRestrictionQueriesType'
+      type: object
+    RestrictionQueryRolesResponse:
+      description: Response containing information about roles attached to a restriction query.
+      properties:
+        data:
+          description: Array of roles.
+          items:
+            $ref: '#/components/schemas/RestrictionQueryRole'
+          type: array
+      type: object
+    RestrictionPolicyAttributes:
+      description: Restriction policy attributes.
+      example:
+        bindings: []
+      properties:
+        bindings:
+          description: An array of bindings.
+          items:
+            $ref: '#/components/schemas/RestrictionPolicyBinding'
+          type: array
+      required:
+      - bindings
+      type: object
+    RestrictionQueryRelationships:
+      description: Relationships of the restriction query object.
+      properties:
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+    RestrictionPolicyResponse:
+      description: Response containing information about a single restriction policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionPolicy'
+      required:
+      - data
+      type: object
+    RestrictionPolicy:
+      description: Restriction policy object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionPolicyAttributes'
+        id:
+          description: The identifier, always equivalent to the value specified in the `resource_id` path parameter.
+          example: dashboard:abc-def-ghi
+          type: string
+        type:
+          $ref: '#/components/schemas/RestrictionPolicyType'
+      required:
+      - type
+      - id
+      - attributes
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    RestrictionQueryWithRelationships:
+      description: Restriction query object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryAttributes'
+        id:
+          description: ID of the restriction query.
+          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
+          type: string
+        relationships:
+          $ref: '#/components/schemas/RestrictionQueryRelationships'
+        type:
+          $ref: '#/components/schemas/LogsRestrictionQueriesType'
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    RestrictionQueryUpdateData:
+      description: Data related to the update of a restriction query.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/LogsRestrictionQueriesType'
+      type: object
+    RestrictionPolicyType:
+      default: restriction_policy
+      description: Restriction policy type.
+      enum:
+      - restriction_policy
+      example: restriction_policy
+      type: string
+      x-enum-varnames:
+      - RESTRICTION_POLICY
+    RestrictionQueryUpdateAttributes:
+      description: Attributes of the edited restriction query.
+      properties:
+        restriction_query:
+          description: The restriction query.
+          example: env:sandbox
+          type: string
+      type: object
+    LogsRestrictionQueriesType:
+      default: logs_restriction_queries
+      description: Restriction query resource type.
+      enum:
+      - logs_restriction_queries
+      example: logs_restriction_queries
+      type: string
+      x-enum-varnames:
+      - LOGS_RESTRICTION_QUERIES
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

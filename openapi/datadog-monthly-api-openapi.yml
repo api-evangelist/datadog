@@ -1,0 +1,414 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Monthly API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Monthly
+paths:
+  /api/v2/cost_by_tag/monthly_cost_attribution:
+    get:
+      description: "Get monthly cost attribution by tag across multi-org and single root-org accounts.\nCost Attribution data for a given month becomes available no later than the 19th of the following month.\nThis API endpoint is paginated. To make sure you receive all records, check if the value of `next_record_id` is\nset in the response. If it is, make another request and pass `next_record_id` as a parameter.\nPseudo code example:\n```\nresponse := GetMonthlyCostAttribution(start_month, end_month)\ncursor := response.metadata.pagination.next_record_id\nWHILE cursor != null BEGIN\n  sleep(5 seconds)  # Avoid running into rate limit\n  response := GetMonthlyCostAttribution(start_month, end_month, next_record_id=cursor)\n  cursor := response.metadata.pagination.next_record_id\nEND\n```\n\nThis endpoint is only accessible for [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/). This endpoint is not available in the Government (US1-FED) site."
+      operationId: GetMonthlyCostAttribution
+      parameters:
+      - description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning in this month.'
+        in: query
+        name: start_month
+        required: true
+        schema:
+          format: date-time
+          type: string
+        example: example_value
+      - description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month.'
+        in: query
+        name: end_month
+        required: false
+        schema:
+          format: date-time
+          type: string
+        example: example_value
+      - description: 'Comma-separated list specifying cost types (e.g., `<billing_dimension>_on_demand_cost`, `<billing_dimension>_committed_cost`, `<billing_dimension>_total_cost`) and the
+
+          proportions (`<billing_dimension>_percentage_in_org`, `<billing_dimension>_percentage_in_account`). Use `*` to retrieve all fields.
+
+          Example: `infra_host_on_demand_cost,infra_host_percentage_in_account`
+
+          To obtain the complete list of active billing dimensions that can be used to replace
+
+          `<billing_dimension>` in the field names, make a request to the [Get active billing dimensions API](https://docs.datadoghq.com/api/latest/usage-metering/#get-active-billing-dimensions-for-cost-attribution).'
+        in: query
+        name: fields
+        required: true
+        schema:
+          type: string
+        example: example_value
+      - description: 'The direction to sort by: `[desc, asc]`.'
+        in: query
+        name: sort_direction
+        required: false
+        schema:
+          $ref: '#/components/schemas/SortDirection'
+        example: example_value
+      - description: 'The billing dimension to sort by. Always sorted by total cost. Example: `infra_host`.'
+        in: query
+        name: sort_name
+        required: false
+        schema:
+          type: string
+        example: Example Monitor
+      - description: 'Comma separated list of tag keys used to group cost. If no value is provided the cost will not be broken down by tags.
+
+          To see which tags are available, look for the value of `tag_config_source` in the API response.'
+        in: query
+        name: tag_breakdown_keys
+        required: false
+        schema:
+          type: string
+        example: env:production
+      - description: List following results with a next_record_id provided in the previous query.
+        in: query
+        name: next_record_id
+        required: false
+        schema:
+          type: string
+        example: abc-123-def
+      - description: Include child org cost in the response. Defaults to `true`.
+        in: query
+        name: include_descendants
+        required: false
+        schema:
+          default: true
+          type: boolean
+        example: true
+      responses:
+        '200':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/MonthlyCostAttributionResponse'
+          description: OK
+        '400':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden - User is not authorized
+        '429':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too many requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - usage_read
+      summary: Datadog Get Monthly Cost Attribution
+      tags:
+      - Monthly
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - usage_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MonthlyCostAttributionBody:
+      description: Cost data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonthlyCostAttributionAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/CostAttributionType'
+      type: object
+    CostAttributionType:
+      default: cost_by_tag
+      description: Type of cost attribution data.
+      enum:
+      - cost_by_tag
+      example: cost_by_tag
+      type: string
+      x-enum-varnames:
+      - COST_BY_TAG
+    MonthlyCostAttributionResponse:
+      description: Response containing the monthly cost attribution by tag(s).
+      properties:
+        data:
+          description: Response containing cost attribution.
+          items:
+            $ref: '#/components/schemas/MonthlyCostAttributionBody'
+          type: array
+        meta:
+          $ref: '#/components/schemas/MonthlyCostAttributionMeta'
+      type: object
+    MonthlyCostAttributionMeta:
+      description: The object containing document metadata.
+      properties:
+        aggregates:
+          $ref: '#/components/schemas/CostAttributionAggregates'
+        pagination:
+          $ref: '#/components/schemas/MonthlyCostAttributionPagination'
+      type: object
+    MonthlyCostAttributionPagination:
+      description: The metadata for the current pagination.
+      properties:
+        next_record_id:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of the `next_record_id`.
+          nullable: true
+          type: string
+          example: abc-123-def
+      type: object
+    CostAttributionTagNames:
+      additionalProperties:
+        description: 'A list of values that are associated with each tag key.
+
+          - An empty list means the resource use wasn''t tagged with the respective tag.
+
+          - Multiple values means the respective tag was applied multiple times on the resource.
+
+          - An `<empty>` value means the resource was tagged with the respective tag but did not have a value.'
+        items:
+          description: A given tag in a list.
+          example: datadog-integrations-lab
+          type: string
+        type: array
+      description: 'Tag keys and values.
+
+        A `null` value here means that the requested tag breakdown cannot be applied because it does not match the [tags
+
+        configured for usage attribution](https://docs.datadoghq.com/account_management/billing/usage_attribution/#getting-started).
+
+        In this scenario the API returns the total cost, not broken down by tags.'
+      nullable: true
+      type: object
+    MonthlyCostAttributionAttributes:
+      description: Cost Attribution by Tag for a given organization.
+      properties:
+        month:
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]`.'
+          format: date-time
+          type: string
+          example: example_value
+        org_name:
+          description: The name of the organization.
+          type: string
+          example: Example Monitor
+        public_id:
+          description: The organization public ID.
+          type: string
+          example: abc-123-def
+        tag_config_source:
+          description: The source of the cost attribution tag configuration and the selected tags in the format `<source_org_name>:::<selected tag 1>///<selected tag 2>///<selected tag 3>`.
+          type: string
+          example: env:production
+        tags:
+          $ref: '#/components/schemas/CostAttributionTagNames'
+        updated_at:
+          description: Shows the most recent hour in the current months for all organizations for which all costs were calculated.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        values:
+          description: 'Fields in Cost Attribution by tag(s). Example: `infra_host_on_demand_cost`, `infra_host_committed_cost`, `infra_host_total_cost`, `infra_host_percentage_in_org`, `infra_host_percentage_in_account`.'
+          type: object
+      type: object
+    CostAttributionAggregatesBody:
+      description: The object containing the aggregates.
+      properties:
+        agg_type:
+          description: The aggregate type.
+          example: sum
+          type: string
+        field:
+          description: The field.
+          example: infra_host_committed_cost
+          type: string
+        value:
+          description: The value for a given field.
+          format: double
+          type: number
+          example: 95.5
+      type: object
+    CostAttributionAggregates:
+      description: An array of available aggregates.
+      items:
+        $ref: '#/components/schemas/CostAttributionAggregatesBody'
+      type: array
+    SortDirection:
+      default: desc
+      description: The direction to sort by.
+      enum:
+      - desc
+      - asc
+      type: string
+      x-enum-varnames:
+      - DESC
+      - ASC
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

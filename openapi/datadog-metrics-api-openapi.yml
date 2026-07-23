@@ -1,0 +1,3720 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Metrics API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- description: 'The metrics endpoint allows you to:
+
+
+    - Post metrics data so it can be graphed on Datadog’s dashboards
+
+    - Query metrics from any time period (timeseries and scalar)
+
+    - Modify tag configurations for metrics
+
+    - View tags and volumes for metrics
+
+
+    **Note**: A graph can only contain a set number of points
+
+    and as the timeframe over which a metric is viewed increases,
+
+    aggregation between points occurs to stay below that set number.
+
+
+    The Post, Patch, and Delete `manage_tags` API methods can only be performed by
+
+    a user who has the `Manage Tags for Metrics` permission.
+
+
+    See the [Metrics page](https://docs.datadoghq.com/metrics/) for more information.'
+  name: Metrics
+paths:
+  /api/v2/apm/config/metrics:
+    get:
+      description: Get the list of configured span-based metrics with their definitions.
+      operationId: ListSpansMetrics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpansMetricsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Span-based Metrics
+      tags:
+      - Metrics
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a metric based on your ingested spans in your organization.
+
+        Returns the span-based metric object from the request body when the request is successful.'
+      operationId: CreateSpansMetric
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpansMetricCreateRequest'
+        description: The definition of the new span-based metric.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpansMetricResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Span-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-given:
+        spans_metric:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ unique }}\",\n    \"attributes\": {\n      \"filter\": {\n        \"query\": \"source:{{ unique }}\"\n      },\n      \"compute\": {\n        \"aggregation_type\": \"distribution\",\n        \"path\": \"@duration\",\n        \"include_percentiles\": false\n      },\n      \"group_by\": [\n        {\n            \"path\": \"resource_name\",\n            \"tag_name\": \"resource_name\"\n        }\n      ]\n    },\n    \"type\": \"spans_metrics\"\n  }\n}"
+          step: there is a valid "spans_metric" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_generate_metrics
+      x-undo:
+        operationId: DeleteSpansMetric
+        parameters:
+        - name: metric_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/apm/config/metrics/{metric_id}:
+    delete:
+      description: Delete a specific span-based metric from your organization.
+      operationId: DeleteSpansMetric
+      parameters:
+      - $ref: '#/components/parameters/SpansMetricIDParameter'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Span-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_generate_metrics
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a specific span-based metric from your organization.
+      operationId: GetSpansMetric
+      parameters:
+      - $ref: '#/components/parameters/SpansMetricIDParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpansMetricResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Span-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific span-based metric from your organization.
+
+        Returns the span-based metric object from the request body when the request is successful.'
+      operationId: UpdateSpansMetric
+      parameters:
+      - $ref: '#/components/parameters/SpansMetricIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpansMetricUpdateRequest'
+        description: New definition of the span-based metric.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpansMetricResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Span-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_generate_metrics
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/dora/deployment:
+    post:
+      description: 'Use this API endpoint to provide data about deployments for DORA metrics.
+
+
+        This is necessary for:
+
+        - Deployment Frequency
+
+        - Change Lead Time
+
+        - Change Failure Rate'
+      operationId: CreateDORADeployment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DORADeploymentRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORADeploymentResponse'
+          description: OK
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORADeploymentResponse'
+          description: OK - but delayed due to incident
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send a Deployment Event for Dora Metrics
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/dora/incident:
+    post:
+      description: 'Use this API endpoint to provide failure data for DORA metrics.
+
+
+        This is necessary for:
+
+        - Change Failure Rate
+
+        - Time to Restore'
+      operationId: CreateDORAIncident
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DORAIncidentRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DORAIncidentResponse'
+          description: OK - but delayed due to incident
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONAPIErrorResponse'
+          description: Bad Request
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Send an Incident Event for Dora Metrics
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/metrics:
+    get:
+      description: Get the list of configured log-based metrics with their definitions.
+      operationId: ListLogsMetrics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsMetricsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Log-based Metrics
+      tags:
+      - Metrics
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a metric based on your ingested logs in your organization.
+
+        Returns the log-based metric object from the request body when the request is successful.'
+      operationId: CreateLogsMetric
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsMetricCreateRequest'
+        description: The definition of the new log-based metric.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsMetricResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Log-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-given:
+        logs_metric:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ unique }}\",\n    \"attributes\": {\n      \"filter\": {\n        \"query\": \"source:{{ unique }}\"\n      },\n      \"compute\": {\n        \"aggregation_type\": \"count\"\n      }\n    },\n    \"type\": \"logs_metrics\"\n  }\n}"
+          step: there is a valid "logs_metric" in the system
+        logs_metric_percentile:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ unique }}\",\n    \"attributes\": {\n      \"filter\": {\n        \"query\": \"source:{{ unique }}\"\n      },\n      \"compute\": {\n        \"aggregation_type\": \"distribution\",\n        \"path\": \"@duration\",\n        \"include_percentiles\": true\n      }\n    },\n    \"type\": \"logs_metrics\"\n  }\n}"
+          step: there is a valid "logs_metric_percentile" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_generate_metrics
+      x-undo:
+        operationId: DeleteLogsMetric
+        parameters:
+        - name: metric_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/config/metrics/{metric_id}:
+    delete:
+      description: Delete a specific log-based metric from your organization.
+      operationId: DeleteLogsMetric
+      parameters:
+      - $ref: '#/components/parameters/MetricID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Log-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_generate_metrics
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a specific log-based metric from your organization.
+      operationId: GetLogsMetric
+      parameters:
+      - $ref: '#/components/parameters/MetricID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsMetricResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Log-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_config
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific log-based metric from your organization.
+
+        Returns the log-based metric object from the request body when the request is successful.'
+      operationId: UpdateLogsMetric
+      parameters:
+      - $ref: '#/components/parameters/MetricID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsMetricUpdateRequest'
+        description: New definition of the log-based metric.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsMetricResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Log-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_generate_metrics
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics:
+    get:
+      description: 'Returns all metrics that can be configured in the Metrics Summary page or with Metrics without Limits™ (matching additional filters if specified).
+
+        Optionally, paginate by using the `page[cursor]` and/or `page[size]` query parameters.
+
+        To fetch the first page, pass in a query parameter with either a valid `page[size]` or an empty cursor like `page[cursor]=`. To fetch the next page, pass in the `next_cursor` value from the response as the new `page[cursor]` value.
+
+        Once the `meta.pagination.next_cursor` value is null, all pages have been retrieved.'
+      operationId: ListTagConfigurations
+      parameters:
+      - description: Filter custom metrics that have configured tags.
+        example: true
+        in: query
+        name: filter[configured]
+        required: false
+        schema:
+          type: boolean
+      - description: Filter tag configurations by configured tags.
+        example: app
+        in: query
+        name: filter[tags_configured]
+        required: false
+        schema:
+          description: Tag keys to filter by.
+          type: string
+      - description: Filter metrics by metric type.
+        in: query
+        name: filter[metric_type]
+        required: false
+        schema:
+          $ref: '#/components/schemas/MetricTagConfigurationMetricTypeCategory'
+        example: metric alert
+      - description: 'Filter distributions with additional percentile
+
+          aggregations enabled or disabled.'
+        example: true
+        in: query
+        name: filter[include_percentiles]
+        required: false
+        schema:
+          type: boolean
+      - description: '(Preview) Filter custom metrics that have or have not been queried in the specified window[seconds].
+
+          If no window is provided or the window is less than 2 hours, a default of 2 hours will be applied.'
+        example: true
+        in: query
+        name: filter[queried]
+        required: false
+        schema:
+          type: boolean
+      - description: 'Filter metrics that have been submitted with the given tags. Supports boolean and wildcard expressions.
+
+          Can only be combined with the filter[queried] filter.'
+        example: env IN (staging,test) AND service:web
+        in: query
+        name: filter[tags]
+        required: false
+        schema:
+          type: string
+      - description: (Preview) Filter metrics that are used in dashboards, monitors, notebooks, SLOs.
+        example: true
+        in: query
+        name: filter[related_assets]
+        required: false
+        schema:
+          type: boolean
+      - description: 'The number of seconds of look back (from now) to apply to a filter[tag] or filter[queried] query.
+
+          Default value is 3600 (1 hour), maximum value is 2,592,000 (30 days).'
+        example: 3600
+        in: query
+        name: window[seconds]
+        required: false
+        schema:
+          format: int64
+          type: integer
+      - description: Maximum number of results returned.
+        in: query
+        name: page[size]
+        required: false
+        schema:
+          default: 10000
+          format: int32
+          maximum: 10000
+          minimum: 1
+          type: integer
+        example: 42
+      - description: 'String to query the next page of results.
+
+          This key is provided with each valid response from the API in `meta.pagination.next_cursor`.
+
+          Once the `meta.pagination.next_cursor` key is null, all pages have been retrieved.'
+        in: query
+        name: page[cursor]
+        required: false
+        schema:
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsAndMetricTagConfigurationsResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - metrics_read
+      summary: Datadog Get a List of Metrics
+      tags:
+      - Metrics
+      x-menu-order: 5
+      x-pagination:
+        cursorParam: page[cursor]
+        cursorPath: meta.pagination.next_cursor
+        limitParam: page[size]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - metrics_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics/config/bulk-tags:
+    x-merge-override:
+      delete: false
+    delete:
+      description: 'Delete all custom lists of queryable tag keys for a set of existing count, gauge, rate, and distribution metrics.
+
+        Metrics are selected by passing a metric name prefix.
+
+        Results can be sent to a set of account email addresses, just like the same operation in the Datadog web app.
+
+        Can only be used with application keys of users with the `Manage Tags for Metrics` permission.'
+      operationId: DeleteBulkTagsMetricsConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricBulkTagConfigDeleteRequest'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricBulkTagConfigResponse'
+          description: Accepted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Delete Tags for Multiple Metrics
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - metric_tags_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create and define a list of queryable tag keys for a set of existing count, gauge, rate, and distribution metrics.
+
+        Metrics are selected by passing a metric name prefix. Use the Delete method of this API path to remove tag configurations.
+
+        Results can be sent to a set of account email addresses, just like the same operation in the Datadog web app.
+
+        If multiple calls include the same metric, the last configuration applied (not by submit order) is used, do not
+
+        expect deterministic ordering of concurrent calls. The `exclude_tags_mode` value will set all metrics that match the prefix to
+
+        the same exclusion state, metric tag configurations do not support mixed inclusion and exclusion for tags on the same metric.
+
+        Can only be used with application keys of users with the `Manage Tags for Metrics` permission.'
+      operationId: CreateBulkTagsMetricsConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricBulkTagConfigCreateRequest'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricBulkTagConfigResponse'
+          description: Accepted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog Configure Tags for Multiple Metrics
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - metric_tags_write
+      x-undo:
+        operationId: DeleteBulkTagsMetricsConfiguration
+        parameters:
+        - name: body
+          template: "{\n  \"data\": {\n    \"id\":\"{{ data.id }}\",\n    \"type\":\"metric_bulk_configure_tags\",\n    \"attributes\": {\n      \"emails\": [\"{{ data.attributes.emails[0] }}\"]\n    }\n  }\n}"
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics/{metric_name}/all-tags:
+    get:
+      description: View indexed tag key-value pairs for a given metric name over the previous hour.
+      operationId: ListTagsByMetricName
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricAllTagsResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - metrics_read
+      summary: Datadog List Tags by Metric Name
+      tags:
+      - Metrics
+      x-menu-order: 6
+      x-permission:
+        operator: OR
+        permissions:
+        - metrics_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics/{metric_name}/assets:
+    get:
+      description: Returns dashboards, monitors, notebooks, and SLOs that a metric is stored in, if any.  Updated every 24 hours.
+      operationId: ListMetricAssets
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricAssetsResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: API error response.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Related Assets to a Metric
+      tags:
+      - Metrics
+      x-menu-order: 12
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/metrics/{metric_name}/volumes:
+    get:
+      description: 'View distinct metrics volumes for the given metric name.
+
+
+        Custom metrics generated in-app from other products will return `null` for ingested volumes.'
+      operationId: ListVolumesByMetricName
+      parameters:
+      - $ref: '#/components/parameters/MetricName'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricVolumesResponse'
+          description: Success
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too Many Requests
+      summary: Datadog List Distinct Metric Volumes by Metric Name
+      tags:
+      - Metrics
+      x-menu-order: 8
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/config/metrics:
+    get:
+      description: Get the list of configured rum-based metrics with their definitions.
+      operationId: ListRumMetrics
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumMetricsResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get All Rum-based Metrics
+      tags:
+      - Metrics
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a metric based on your organization''s RUM data.
+
+        Returns the rum-based metric object from the request body when the request is successful.'
+      operationId: CreateRumMetric
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumMetricCreateRequest'
+        description: The definition of the new rum-based metric.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumMetricResponse'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Rum-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-given:
+        rum_metric:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"{{ unique_lower_alnum }}\",\n    \"type\": \"rum_metrics\",\n    \"attributes\": {\n      \"event_type\": \"session\",\n      \"compute\": {\n        \"aggregation_type\": \"distribution\",\n        \"include_percentiles\": true,\n        \"path\": \"@duration\"\n      },\n      \"filter\": {\n        \"query\": \"source:{{ unique }}\"\n      },\n      \"group_by\": [{\n        \"path\": \"@browser.name\",\n        \"tag_name\": \"browser_name\"\n      }],\n      \"uniqueness\": {\n        \"when\": \"match\"\n      }\n    }\n  }\n}"
+          step: there is a valid "rum_metric" in the system
+      x-menu-order: 2
+      x-undo:
+        operationId: DeleteRumMetric
+        parameters:
+        - name: metric_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/config/metrics/{metric_id}:
+    delete:
+      description: Delete a specific rum-based metric from your organization.
+      operationId: DeleteRumMetric
+      parameters:
+      - $ref: '#/components/parameters/RumMetricIDParameter'
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Rum-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a specific rum-based metric from your organization.
+      operationId: GetRumMetric
+      parameters:
+      - $ref: '#/components/parameters/RumMetricIDParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumMetricResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Rum-based Metric
+      tags:
+      - Metrics
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific rum-based metric from your organization.
+
+        Returns the rum-based metric object from the request body when the request is successful.'
+      operationId: UpdateRumMetric
+      parameters:
+      - $ref: '#/components/parameters/RumMetricIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumMetricUpdateRequest'
+        description: New definition of the rum-based metric.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumMetricResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Rum-based Metric
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/series:
+    post:
+      description: 'The metrics end-point allows you to post time-series data that can be graphed on Datadog’s dashboards.
+
+        The maximum payload size is 500 kilobytes (512000 bytes). Compressed payloads must have a decompressed size of less than 5 megabytes (5242880 bytes).
+
+
+        If you’re submitting metrics directly to the Datadog API without using DogStatsD, expect:
+
+
+        - 64 bits for the timestamp
+
+        - 64 bits for the value
+
+        - 20 bytes for the metric names
+
+        - 50 bytes for the timeseries
+
+        - The full payload is approximately 100 bytes.
+
+
+        Host name is one of the resources in the Resources field.'
+      operationId: SubmitMetrics
+      parameters:
+      - description: HTTP header used to compress the media-type.
+        in: header
+        name: Content-Encoding
+        required: false
+        schema:
+          $ref: '#/components/schemas/MetricContentEncoding'
+        example: example_value
+      requestBody:
+        content:
+          application/json:
+            examples:
+              dynamic-points:
+                description: Post time-series data that can be graphed on Datadog’s dashboards.
+                externalValue: examples/metrics/dynamic-points.json.sh
+                summary: Dynamic Points
+                x-variables:
+                  NOW: $(date +%s)
+            schema:
+              $ref: '#/components/schemas/MetricPayload'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntakePayloadAccepted'
+          description: Payload accepted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Authentication error
+        '408':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Request timeout
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Payload too large
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+      summary: Datadog Submit Metrics
+      tags:
+      - Metrics
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/query/timeseries:
+    post:
+      operationId: queryMetricsTimeseries
+      summary: Datadog Query Timeseries Data
+      description: Queries timeseries metric data for the specified time range and metric queries. Supports multiple metric queries in a single request. Returns time series data including timestamps, values, and associated metadata. The query uses Datadog's metrics query language supporting rollup, aggregation, and arithmetic operations.
+      tags:
+      - Metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTimeseriesQuery'
+      responses:
+        '200':
+          description: Successful response with timeseries data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTimeseriesResponse'
+        '400':
+          description: Bad request - invalid query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/query/scalar:
+    post:
+      operationId: queryMetricsScalar
+      summary: Datadog Query Scalar Data
+      description: Queries scalar metric data for the specified time range and returns a single aggregated value per query formula. Useful for computing summary statistics such as averages, sums, or percentiles over a time window. Supports multiple formulas and metric queries in a single request.
+      tags:
+      - Metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricScalarQuery'
+      responses:
+        '200':
+          description: Successful response with scalar query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricScalarResponse'
+        '400':
+          description: Bad request - invalid query syntax or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse_2'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    LogsMetricResponseFilter:
+      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    GitCommitSHA:
+      description: Git Commit SHA.
+      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
+      pattern: ^[a-fA-F0-9]{40,}$
+      type: string
+    MetricScalarQuery:
+      type: object
+      description: Request body for querying scalar metric data
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          description: The scalar query data object
+          required:
+          - type
+          - attributes
+          properties:
+            type:
+              type: string
+              description: The type identifier for the scalar query request
+              enum:
+              - scalar_request
+            attributes:
+              type: object
+              description: The scalar query attributes
+              required:
+              - from
+              - to
+              - queries
+              properties:
+                from:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the start of the query time range
+                to:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the end of the query time range
+                queries:
+                  type: array
+                  description: List of metric queries to evaluate as scalar values
+                  items:
+                    $ref: '#/components/schemas/MetricQueryDefinition'
+                formulas:
+                  type: array
+                  description: List of formula expressions combining the defined queries
+                  items:
+                    $ref: '#/components/schemas/QueryFormula'
+    MetricTimeseriesQuery:
+      type: object
+      description: Request body for querying timeseries metric data
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          description: The query data object containing type and attributes
+          required:
+          - type
+          - attributes
+          properties:
+            type:
+              type: string
+              description: The type identifier for the query request
+              enum:
+              - timeseries_request
+            attributes:
+              type: object
+              description: The query attributes including formulas, queries, and time range
+              required:
+              - from
+              - to
+              - queries
+              properties:
+                from:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the start of the query time range
+                to:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the end of the query time range
+                interval:
+                  type: integer
+                  format: int64
+                  description: The granularity (in milliseconds) for returned data points
+                queries:
+                  type: array
+                  description: List of metric queries to evaluate
+                  items:
+                    $ref: '#/components/schemas/MetricQueryDefinition'
+                formulas:
+                  type: array
+                  description: List of formula expressions combining the defined queries
+                  items:
+                    $ref: '#/components/schemas/QueryFormula'
+    MetricMonitorType:
+      description: Monitor resource type.
+      enum:
+      - monitors
+      example: monitors
+      type: string
+      x-enum-varnames:
+      - MONITORS
+    RumMetricUpdateRequest:
+      description: The new rum-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumMetricUpdateData'
+      required:
+      - data
+      type: object
+    MetricDistinctVolume:
+      description: Object for a single metric's distinct volume.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricDistinctVolumeAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricDistinctVolumeType'
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    SpansMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when the `aggregation_type` is `distribution`.'
+      example: false
+      type: boolean
+    MetricCustomAggregations:
+      description: Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits.
+      example:
+      - space: sum
+        time: sum
+      - space: sum
+        time: count
+      items:
+        $ref: '#/components/schemas/MetricCustomAggregation'
+      type: array
+    APIErrorResponse_2:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
+    MetricBulkTagConfigDeleteRequest:
+      description: Wrapper object for a single bulk tag deletion request.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricBulkTagConfigDelete'
+      required:
+      - data
+      type: object
+    MetricBulkTagConfigDelete:
+      description: Request object to bulk delete all tag configurations for metrics matching the given prefix.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricBulkTagConfigDeleteAttributes'
+        id:
+          $ref: '#/components/schemas/MetricBulkTagConfigNamePrefix'
+        type:
+          $ref: '#/components/schemas/MetricBulkConfigureTagsType'
+      required:
+      - id
+      - type
+      type: object
+    MetricQueryDefinition:
+      type: object
+      description: A metric query definition referencing a Datadog metrics query expression
+      required:
+      - name
+      - data_source
+      - query
+      properties:
+        name:
+          type: string
+          description: A unique name used to reference this query in formula expressions
+          example: Example Monitor
+        data_source:
+          type: string
+          description: The data source for the query
+          enum:
+          - metrics
+          - cloud_cost
+          example: metrics
+        query:
+          type: string
+          description: The Datadog metrics query string (e.g., avg:system.cpu.user{*} by {host})
+          example: avg:system.cpu.user{*}
+    MetricScalarResponse:
+      type: object
+      description: Response containing scalar metric values for the requested queries
+      properties:
+        data:
+          type: object
+          description: The scalar response data
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes
+              properties:
+                columns:
+                  type: array
+                  description: List of scalar result columns, one per query formula
+                  items:
+                    $ref: '#/components/schemas/ScalarColumn'
+    MetricMetadata:
+      description: Metadata for the metric.
+      properties:
+        origin:
+          $ref: '#/components/schemas/MetricOrigin'
+      type: object
+    MetricVolumes:
+      description: Possible response objects for a metric's volume.
+      oneOf:
+      - $ref: '#/components/schemas/MetricDistinctVolume'
+      - $ref: '#/components/schemas/MetricIngestedIndexedVolume'
+    LogsMetricCreateAttributes:
+      description: The object describing the Datadog log-based metric to create.
+      properties:
+        compute:
+          $ref: '#/components/schemas/LogsMetricCompute'
+        filter:
+          $ref: '#/components/schemas/LogsMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/LogsMetricGroupBy'
+          type: array
+      required:
+      - compute
+      type: object
+    LogsMetricResponseAttributes:
+      description: The object describing a Datadog log-based metric.
+      properties:
+        compute:
+          $ref: '#/components/schemas/LogsMetricResponseCompute'
+        filter:
+          $ref: '#/components/schemas/LogsMetricResponseFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/LogsMetricResponseGroupBy'
+          type: array
+      type: object
+    DORADeploymentRequestAttributes:
+      description: Attributes to create a DORA deployment event.
+      properties:
+        env:
+          description: Environment name to where the service was deployed.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the deployment finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Deployment ID.
+          type: string
+          example: abc-123-def
+        service:
+          description: Service name.
+          example: shopist
+          type: string
+        started_at:
+          description: Unix timestamp when the deployment started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the deployed service. If not provided, this is automatically populated with the team associated with the service in the Service Catalog.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
+      required:
+      - service
+      - started_at
+      - finished_at
+      type: object
+    MetricCustomAggregation:
+      description: A time and space aggregation combination for use in query.
+      example:
+        space: sum
+        time: sum
+      properties:
+        space:
+          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
+        time:
+          $ref: '#/components/schemas/MetricCustomTimeAggregation'
+      required:
+      - time
+      - space
+      type: object
+    DORAGitInfo:
+      description: Git info for DORA Metrics events.
+      properties:
+        commit_sha:
+          $ref: '#/components/schemas/GitCommitSHA'
+        repository_url:
+          $ref: '#/components/schemas/GitRepositoryURL'
+      required:
+      - repository_url
+      - commit_sha
+      type: object
+    MetricAssetDashboardRelationship:
+      description: An object of type `dashboard` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricDashboardID'
+        type:
+          $ref: '#/components/schemas/MetricDashboardType'
+      type: object
+    SpansMetricFilter:
+      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the span search syntax.
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    RumMetricUniqueness:
+      description: The rule to count updatable events. Is only set if `event_type` is `sessions` or `views`.
+      properties:
+        when:
+          $ref: '#/components/schemas/RumMetricUniquenessWhen'
+      required:
+      - when
+      type: object
+    MetricNotebookType:
+      description: Notebook resource type.
+      enum:
+      - notebooks
+      example: notebooks
+      type: string
+      x-enum-varnames:
+      - NOTEBOOKS
+    MetricTagConfigurationType:
+      default: manage_tags
+      description: The metric tag configuration resource type.
+      enum:
+      - manage_tags
+      example: manage_tags
+      type: string
+      x-enum-varnames:
+      - MANAGE_TAGS
+    MetricResource:
+      description: Metric resource.
+      example:
+        name: dummyhost
+        type: host
+      properties:
+        name:
+          description: The name of the resource.
+          type: string
+          example: Example Monitor
+        type:
+          description: The type of the resource.
+          type: string
+          example: metric alert
+      type: object
+    RumMetricType:
+      default: rum_metrics
+      description: The type of the resource. The value should always be rum_metrics.
+      enum:
+      - rum_metrics
+      example: rum_metrics
+      type: string
+      x-enum-varnames:
+      - RUM_METRICS
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    MetricDashboardAsset:
+      description: A dashboard object with title and popularity.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricDashboardAttributes'
+        id:
+          $ref: '#/components/schemas/MetricDashboardID'
+        type:
+          $ref: '#/components/schemas/MetricDashboardType'
+      required:
+      - id
+      - type
+      type: object
+    MetricPoint:
+      description: A point object is of the form `{POSIX_timestamp, numeric_value}`.
+      example:
+        timestamp: 1575317847
+        value: 0.5
+      properties:
+        timestamp:
+          description: 'The timestamp should be in seconds and current.
+
+            Current is defined as not more than 10 minutes in the future or more than 1 hour in the past.'
+          format: int64
+          type: integer
+          example: 42
+        value:
+          description: The numeric value format should be a 64bit float gauge-type value.
+          format: double
+          type: number
+          example: 95.5
+      type: object
+    LogsMetricResponse:
+      description: The log-based metric object.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsMetricResponseData'
+      type: object
+    DORAIncidentRequest:
+      description: Request to create a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentRequestData'
+      required:
+      - data
+      type: object
+    SpansMetricUpdateCompute:
+      description: The compute rule to compute the span-based metric.
+      properties:
+        include_percentiles:
+          $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
+      type: object
+    SpansMetricResponseAttributes:
+      description: The object describing a Datadog span-based metric.
+      properties:
+        compute:
+          $ref: '#/components/schemas/SpansMetricResponseCompute'
+        filter:
+          $ref: '#/components/schemas/SpansMetricResponseFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/SpansMetricResponseGroupBy'
+          type: array
+      type: object
+    MetricIngestedIndexedVolume:
+      description: Object for a single metric's ingested and indexed volume.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricIngestedIndexedVolumeAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricIngestedIndexedVolumeType'
+      type: object
+    MetricTagConfigurationMetricTypeCategory:
+      default: distribution
+      description: The metric's type category.
+      enum:
+      - non_distribution
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - NON_DISTRIBUTION
+      - DISTRIBUTION
+    MetricBulkTagConfigResponse:
+      description: Wrapper for a single bulk tag configuration status response.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricBulkTagConfigStatus'
+      type: object
+    LogsMetricCreateRequest:
+      description: The new log-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsMetricCreateData'
+      required:
+      - data
+      type: object
+    RumMetricUpdateData:
+      description: The new rum-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumMetricUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/RumMetricID'
+        type:
+          $ref: '#/components/schemas/RumMetricType'
+      required:
+      - type
+      - attributes
+      type: object
+    SpansMetricGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the span-based metric will be aggregated over.
+          example: resource_name
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: resource_name
+          type: string
+      required:
+      - path
+      type: object
+    DORAIncidentRequestAttributes:
+      description: Attributes to create a DORA incident event.
+      properties:
+        env:
+          description: Environment name that was impacted by the incident.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the incident finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Incident ID. Must have at least 16 characters. Required to update a previously sent incident.
+          type: string
+          example: abc-123-def
+        name:
+          description: Incident name.
+          example: Webserver is down failing all requests.
+          type: string
+        services:
+          description: Service names impacted by the incident. If possible, use names registered in the Service Catalog. Required when the team field is not provided.
+          example:
+          - shopist
+          items:
+            type: string
+          type: array
+        severity:
+          description: Incident severity.
+          example: High
+          type: string
+        started_at:
+          description: Unix timestamp when the incident started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the services impacted. If possible, use team handles registered in Datadog. Required when the services field is not provided.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
+      required:
+      - started_at
+      type: object
+    RumMetricComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    MetricCustomSpaceAggregation:
+      description: A space aggregation for use in query.
+      enum:
+      - avg
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - MAX
+      - MIN
+      - SUM
+    DORAIncidentResponseData:
+      description: Response after receiving a DORA incident event.
+      properties:
+        id:
+          description: The ID of the received DORA incident event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORAIncidentType'
+      required:
+      - id
+      type: object
+    MetricPayload:
+      description: The metrics' payload.
+      properties:
+        series:
+          description: A list of timeseries to submit to Datadog.
+          example:
+          - metric: system.load.1
+            points:
+            - timestamp: 1475317847
+              value: 0.7
+            resources:
+            - name: dummyhost
+              type: host
+          items:
+            $ref: '#/components/schemas/MetricSeries'
+          type: array
+      required:
+      - series
+      type: object
+    MetricIngestedIndexedVolumeType:
+      default: metric_volumes
+      description: The metric ingested and indexed volume type.
+      enum:
+      - metric_volumes
+      example: metric_volumes
+      type: string
+      x-enum-varnames:
+      - METRIC_VOLUMES
+    LogsMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the log-based metric will be aggregated over.
+          example: '@http.status_code'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: status_code
+          type: string
+      type: object
+    MetricTagConfigurationMetricTypes:
+      default: gauge
+      description: The metric's type.
+      enum:
+      - gauge
+      - count
+      - rate
+      - distribution
+      example: count
+      type: string
+      x-enum-varnames:
+      - GAUGE
+      - COUNT
+      - RATE
+      - DISTRIBUTION
+    SpansMetricUpdateRequest:
+      description: The new span-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SpansMetricUpdateData'
+      required:
+      - data
+      type: object
+    MetricBulkTagConfigCreate:
+      description: Request object to bulk configure tags for metrics matching the given prefix.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricBulkTagConfigCreateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricBulkTagConfigNamePrefix'
+        type:
+          $ref: '#/components/schemas/MetricBulkConfigureTagsType'
+      required:
+      - id
+      - type
+      type: object
+    SpansMetricCreateAttributes:
+      description: The object describing the Datadog span-based metric to create.
+      properties:
+        compute:
+          $ref: '#/components/schemas/SpansMetricCompute'
+        filter:
+          $ref: '#/components/schemas/SpansMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/SpansMetricGroupBy'
+          type: array
+      required:
+      - compute
+      type: object
+    QueryFormula:
+      type: object
+      description: A formula expression that combines one or more query results
+      required:
+      - formula
+      properties:
+        formula:
+          type: string
+          description: The formula expression using query names as variables (e.g., query1 + query2)
+          example: example_value
+        alias:
+          type: string
+          description: An optional alias for the formula result used in the response
+          example: example_value
+        limit:
+          type: object
+          description: Optional limit configuration for top/bottom N results
+          properties:
+            count:
+              type: integer
+              description: The number of results to return
+            order:
+              type: string
+              description: The sort order for limiting results
+              enum:
+              - asc
+              - desc
+    MetricMetaPage:
+      description: Paging attributes. Only present if pagination query parameters were provided.
+      properties:
+        cursor:
+          description: The cursor used to get the current results, if any.
+          nullable: true
+          type: string
+          example: example_value
+        limit:
+          description: Number of results returned
+          format: int32
+          maximum: 20000
+          minimum: 0
+          type: integer
+          example: 42
+        next_cursor:
+          description: The cursor used to get the next results, if any.
+          nullable: true
+          type: string
+          example: example_value
+        type:
+          $ref: '#/components/schemas/MetricMetaPageType'
+      type: object
+    MetricsListResponseLinks:
+      description: Pagination links. Only present if pagination query parameters were provided.
+      properties:
+        first:
+          description: Link to the first page.
+          type: string
+          example: example_value
+        last:
+          description: Link to the last page.
+          nullable: true
+          type: string
+          example: example_value
+        next:
+          description: Link to the next page.
+          nullable: true
+          type: string
+          example: example_value
+        prev:
+          description: Link to previous page.
+          nullable: true
+          type: string
+          example: example_value
+        self:
+          description: Link to current page.
+          type: string
+          example: example_value
+      type: object
+    MetricAssetSLORelationship:
+      description: An object of type `slos` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricSLOID'
+        type:
+          $ref: '#/components/schemas/MetricSLOType'
+      type: object
+    MetricBulkTagConfigNamePrefix:
+      description: A text prefix to match against metric names.
+      example: kafka.lag
+      type: string
+    LogsMetricUpdateCompute:
+      description: The compute rule to compute the log-based metric.
+      properties:
+        include_percentiles:
+          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
+      type: object
+    MetricAssetDashboardRelationships:
+      description: An object containing the list of dashboards that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of dashboards that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetDashboardRelationship'
+          type: array
+      type: object
+    MetricSLOAsset:
+      description: A SLO object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricSLOID'
+        type:
+          $ref: '#/components/schemas/MetricSLOType'
+      required:
+      - id
+      - type
+      type: object
+    MetricAssetAttributes:
+      description: Assets related to the object, including title and url.
+      properties:
+        title:
+          description: Title of the asset.
+          type: string
+          example: Example Monitor
+        url:
+          description: URL path of the asset.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    MetricBulkTagConfigStatus:
+      description: 'The status of a request to bulk configure metric tags.
+
+        It contains the fields from the original request for reference.'
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricBulkTagConfigStatusAttributes'
+        id:
+          $ref: '#/components/schemas/MetricBulkTagConfigNamePrefix'
+        type:
+          $ref: '#/components/schemas/MetricBulkConfigureTagsType'
+      required:
+      - id
+      - type
+      type: object
+    DORADeploymentType:
+      default: dora_deployment
+      description: JSON:API type for DORA deployment events.
+      enum:
+      - dora_deployment
+      example: dora_deployment
+      type: string
+      x-enum-varnames:
+      - DORA_DEPLOYMENT
+    MetricAssetResponseRelationships:
+      description: Relationships to assets related to the metric.
+      properties:
+        dashboards:
+          $ref: '#/components/schemas/MetricAssetDashboardRelationships'
+        monitors:
+          $ref: '#/components/schemas/MetricAssetMonitorRelationships'
+        notebooks:
+          $ref: '#/components/schemas/MetricAssetNotebookRelationships'
+        slos:
+          $ref: '#/components/schemas/MetricAssetSLORelationships'
+      type: object
+    SpansMetricResponseCompute:
+      description: The compute rule to compute the span-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/SpansMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the span-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      type: object
+    MetricTagConfigurationAttributes:
+      description: Object containing the definition of a metric tag configuration attributes.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        created_at:
+          description: Timestamp when the tag configuration was created.
+          example: '2020-03-25T09:48:37.463835Z'
+          format: date-time
+          type: string
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+            Only present when the `metric_type` is `distribution`.'
+          example: true
+          type: boolean
+        metric_type:
+          $ref: '#/components/schemas/MetricTagConfigurationMetricTypes'
+        modified_at:
+          description: Timestamp when the tag configuration was last modified.
+          example: '2020-03-25T09:48:37.463835Z'
+          format: date-time
+          type: string
+        tags:
+          description: List of tag keys on which to group.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
+      type: object
+    LogsMetricsResponse:
+      description: All the available log-based metric objects.
+      properties:
+        data:
+          description: A list of log-based metric objects.
+          items:
+            $ref: '#/components/schemas/LogsMetricResponseData'
+          type: array
+      type: object
+    LogsMetricUpdateAttributes:
+      description: The log-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/LogsMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/LogsMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/LogsMetricGroupBy'
+          type: array
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    MetricsAndMetricTagConfigurationsResponse:
+      description: Response object that includes metrics and metric tag configurations.
+      properties:
+        data:
+          description: Array of metrics and metric tag configurations.
+          items:
+            $ref: '#/components/schemas/MetricsAndMetricTagConfigurations'
+          type: array
+        links:
+          $ref: '#/components/schemas/MetricsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/MetricPaginationMeta'
+      readOnly: true
+      type: object
+    DORADeploymentRequest:
+      description: Request to create a DORA deployment event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORADeploymentRequestData'
+      required:
+      - data
+      type: object
+    MetricBulkTagConfigDeleteAttributes:
+      description: Optional parameters for bulk deleting metric tag configurations.
+      properties:
+        emails:
+          $ref: '#/components/schemas/MetricBulkTagConfigEmailList'
+      type: object
+    MetricAssetNotebookRelationships:
+      description: An object containing the list of notebooks that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of notebooks that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetNotebookRelationship'
+          type: array
+      type: object
+    MetricDistinctVolumeAttributes:
+      description: Object containing the definition of a metric's distinct volume.
+      properties:
+        distinct_volume:
+          description: Distinct volume for the given metric.
+          example: 10
+          format: int64
+          type: integer
+      type: object
+    MetricBulkTagConfigTagNameList:
+      description: A list of tag names to apply to the configuration.
+      example:
+      - host
+      - pod_name
+      - is_shadow
+      items:
+        description: A metric tag name.
+        maxLength: 200
+        pattern: ^[A-Za-z][A-Za-z0-9\.\-\_:\/]*$
+        type: string
+      type: array
+    MetricType:
+      default: metrics
+      description: The metric resource type.
+      enum:
+      - metrics
+      example: metrics
+      type: string
+      x-enum-varnames:
+      - METRICS
+    MetricNotebookAsset:
+      description: A notebook object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricNotebookID'
+        type:
+          $ref: '#/components/schemas/MetricNotebookType'
+      required:
+      - id
+      - type
+      type: object
+    MetricAssetNotebookRelationship:
+      description: An object of type `notebook` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricNotebookID'
+        type:
+          $ref: '#/components/schemas/MetricNotebookType'
+      type: object
+    RumMetricID:
+      description: The name of the rum-based metric.
+      example: rum.sessions.webui.count
+      type: string
+    MetricIngestedIndexedVolumeAttributes:
+      description: Object containing the definition of a metric's ingested and indexed volume.
+      properties:
+        indexed_volume:
+          description: Indexed volume for the given metric.
+          example: 10
+          format: int64
+          type: integer
+        ingested_volume:
+          description: Ingested volume for the given metric.
+          example: 20
+          format: int64
+          type: integer
+      type: object
+    DORAIncidentType:
+      default: dora_incident
+      description: JSON:API type for DORA incident events.
+      enum:
+      - dora_incident
+      example: dora_incident
+      type: string
+      x-enum-varnames:
+      - DORA_INCIDENT
+    RumMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the rum-based metric will be aggregated over.
+          example: '@http.status_code'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, `path` is used as the tag name.
+          example: status_code
+          type: string
+      type: object
+    TimeseriesResult:
+      type: object
+      description: A single timeseries result for a query formula
+      properties:
+        query_index:
+          type: integer
+          description: Index of the query or formula that produced this result
+          example: 42
+        unit:
+          type: array
+          description: Unit information for the metric values in this series
+          items:
+            type: object
+            properties:
+              family:
+                type: string
+                description: The unit family (e.g., time, bytes, percent)
+              name:
+                type: string
+                description: The unit name (e.g., second, byte, percent)
+        group_tags:
+          type: array
+          description: The tag key:value pairs that identify this series within a group-by
+          items:
+            type: string
+        values:
+          type: array
+          description: The numeric values at each timestamp
+          items:
+            type: number
+            format: double
+            nullable: true
+    MetricAllTags:
+      description: Object for a single metric's indexed tags.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAllTagsAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricType'
+      type: object
+    MetricBulkTagConfigStatusAttributes:
+      description: Optional attributes for the status of a bulk tag configuration request.
+      properties:
+        emails:
+          $ref: '#/components/schemas/MetricBulkTagConfigEmailList'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.'
+          type: boolean
+          example: true
+        status:
+          description: The status of the request.
+          example: Accepted
+          type: string
+        tags:
+          $ref: '#/components/schemas/MetricBulkTagConfigTagNameList'
+      type: object
+    RumMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when `aggregation_type` is `distribution`.'
+      example: true
+      type: boolean
+    SpansMetricUpdateData:
+      description: The new span-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansMetricUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SpansMetricType'
+      required:
+      - type
+      - attributes
+      type: object
+    SpansMetricUpdateAttributes:
+      description: The span-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/SpansMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/SpansMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/SpansMetricGroupBy'
+          type: array
+      type: object
+    DORADeploymentResponse:
+      description: Response after receiving a DORA deployment event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORADeploymentResponseData'
+      required:
+      - data
+      type: object
+    LogsMetricUpdateRequest:
+      description: The new log-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsMetricUpdateData'
+      required:
+      - data
+      type: object
+    MetricsAndMetricTagConfigurations:
+      description: Object for a metrics and metric tag configurations.
+      oneOf:
+      - $ref: '#/components/schemas/Metric'
+      - $ref: '#/components/schemas/MetricTagConfiguration'
+    MetricAssetSLORelationships:
+      description: An object containing a list of SLOs that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of SLOs that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetSLORelationship'
+          type: array
+      type: object
+    SpansMetricCreateRequest:
+      description: The new span-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SpansMetricCreateData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    LogsMetricID:
+      description: The name of the log-based metric.
+      example: logs.page.load.count
+      type: string
+    RumMetricResponseUniqueness:
+      description: The rule to count updatable events. Is only set if `event_type` is `session` or `view`.
+      properties:
+        when:
+          $ref: '#/components/schemas/RumMetricUniquenessWhen'
+      type: object
+    MetricOrigin:
+      description: Metric origin information.
+      properties:
+        metric_type:
+          default: 0
+          description: The origin metric type code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+        product:
+          default: 0
+          description: The origin product code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+        service:
+          default: 0
+          description: The origin service code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+      type: object
+    MetricSeries:
+      description: 'A metric to submit to Datadog.
+
+        See [Datadog metrics](https://docs.datadoghq.com/developers/metrics/#custom-metrics-properties).'
+      properties:
+        interval:
+          description: If the type of the metric is rate or count, define the corresponding interval in seconds.
+          example: 20
+          format: int64
+          type: integer
+        metadata:
+          $ref: '#/components/schemas/MetricMetadata'
+        metric:
+          description: The name of the timeseries.
+          example: system.load.1
+          type: string
+        points:
+          description: Points relating to a metric. All points must be objects with timestamp and a scalar value (cannot be a string). Timestamps should be in POSIX time in seconds, and cannot be more than ten minutes in the future or more than one hour in the past.
+          example:
+          - timestamp: 1575317847
+            value: 0.5
+          items:
+            $ref: '#/components/schemas/MetricPoint'
+          type: array
+        resources:
+          description: A list of resources to associate with this metric.
+          items:
+            $ref: '#/components/schemas/MetricResource'
+          type: array
+        source_type_name:
+          description: The source type name.
+          example: datadog
+          type: string
+        tags:
+          description: A list of tags associated with the metric.
+          example:
+          - environment:test
+          items:
+            description: Individual tags.
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/MetricIntakeType'
+        unit:
+          description: The unit of point value.
+          example: second
+          type: string
+      required:
+      - metric
+      - points
+      type: object
+    SpansMetricResponseFilter:
+      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the span search syntax.
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    MetricBulkConfigureTagsType:
+      default: metric_bulk_configure_tags
+      description: The metric bulk configure tags resource.
+      enum:
+      - metric_bulk_configure_tags
+      example: metric_bulk_configure_tags
+      type: string
+      x-enum-varnames:
+      - BULK_MANAGE_TAGS
+    RumMetricResponseAttributes:
+      description: The object describing a Datadog rum-based metric.
+      properties:
+        compute:
+          $ref: '#/components/schemas/RumMetricResponseCompute'
+        event_type:
+          $ref: '#/components/schemas/RumMetricEventType'
+        filter:
+          $ref: '#/components/schemas/RumMetricResponseFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RumMetricResponseGroupBy'
+          type: array
+        uniqueness:
+          $ref: '#/components/schemas/RumMetricResponseUniqueness'
+      type: object
+    RumMetricGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the rum-based metric will be aggregated over.
+          example: '@browser.name'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, `path` is used as the tag name.
+          example: browser_name
+          type: string
+      required:
+      - path
+      type: object
+    MetricMetaPageType:
+      default: cursor_limit
+      description: Type of metric pagination.
+      enum:
+      - cursor_limit
+      example: cursor_limit
+      type: string
+      x-enum-varnames:
+      - CURSOR_LIMIT
+    MetricAllTagsResponse:
+      description: Response object that includes a single metric's indexed tags.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricAllTags'
+      readOnly: true
+      type: object
+    RumMetricEventType:
+      description: The type of RUM events to filter on.
+      enum:
+      - session
+      - view
+      - action
+      - error
+      - resource
+      - long_task
+      - vital
+      example: session
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - VIEW
+      - ACTION
+      - ERROR
+      - RESOURCE
+      - LONG_TASK
+      - VITAL
+    MetricDashboardID:
+      description: The related dashboard's ID.
+      example: xxx-yyy-zzz
+      type: string
+    LogsMetricGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the log-based metric will be aggregated over.
+          example: '@http.status_code'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: status_code
+          type: string
+      required:
+      - path
+      type: object
+    DORAIncidentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAIncidentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    SpansMetricCreateData:
+      description: The new span-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansMetricCreateAttributes'
+        id:
+          $ref: '#/components/schemas/SpansMetricID'
+        type:
+          $ref: '#/components/schemas/SpansMetricType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    MetricAllTagsAttributes:
+      description: Object containing the definition of a metric's tags.
+      properties:
+        tags:
+          description: List of indexed tag value pairs.
+          example:
+          - sport:golf
+          - sport:football
+          - animal:dog
+          items:
+            description: Tag key-value pairs.
+            type: string
+          type: array
+      type: object
+    MetricAssetMonitorRelationship:
+      description: An object of type `monitor` that can be referenced in the `included` data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricMonitorID'
+        type:
+          $ref: '#/components/schemas/MetricMonitorType'
+      type: object
+    MetricMonitorID:
+      description: The related monitor's ID.
+      example: '1775073'
+      type: string
+    RumMetricUniquenessWhen:
+      description: When to count updatable events. `match` when the event is first seen, or `end` when the event is complete.
+      enum:
+      - match
+      - end
+      example: match
+      type: string
+      x-enum-varnames:
+      - WHEN_MATCH
+      - WHEN_END
+    LogsMetricResponseCompute:
+      description: The compute rule to compute the log-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/LogsMetricResponseComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the log-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      type: object
+    RumMetricCreateAttributes:
+      description: The object describing the Datadog rum-based metric to create.
+      properties:
+        compute:
+          $ref: '#/components/schemas/RumMetricCompute'
+        event_type:
+          $ref: '#/components/schemas/RumMetricEventType'
+        filter:
+          $ref: '#/components/schemas/RumMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RumMetricGroupBy'
+          type: array
+        uniqueness:
+          $ref: '#/components/schemas/RumMetricUniqueness'
+      required:
+      - event_type
+      - compute
+      type: object
+    SpansMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the span-based metric will be aggregated over.
+          example: resource_name
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: resource_name
+          type: string
+      type: object
+    SpansMetricID:
+      description: The name of the span-based metric.
+      example: my.metric
+      type: string
+    IntakePayloadAccepted:
+      description: The payload accepted for intake.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            description: An empty error list.
+            type: string
+          type: array
+      type: object
+    MetricBulkTagConfigEmailList:
+      description: A list of account emails to notify when the configuration is applied.
+      example:
+      - sue@example.com
+      - bob@example.com
+      items:
+        description: An email address.
+        type: string
+      type: array
+    RumMetricResponseCompute:
+      description: The compute rule to compute the rum-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/RumMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
+        path:
+          description: 'The path to the value the rum-based metric will aggregate on.
+
+            Only present when `aggregation_type` is `distribution`.'
+          example: '@duration'
+          type: string
+      type: object
+    MetricSLOID:
+      description: The SLO ID.
+      example: 9ffef113b389520db54391d67d652dfb
+      type: string
+    SpansMetricsResponse:
+      description: All the available span-based metric objects.
+      properties:
+        data:
+          description: A list of span-based metric objects.
+          items:
+            $ref: '#/components/schemas/SpansMetricResponseData'
+          type: array
+      type: object
+    MetricTimeseriesResponse:
+      type: object
+      description: Response containing timeseries metric data for the requested queries
+      properties:
+        data:
+          type: object
+          description: The response data object
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes containing timeseries results
+              properties:
+                times:
+                  type: array
+                  description: Array of Unix timestamps in milliseconds for each data point
+                  items:
+                    type: integer
+                    format: int64
+                series:
+                  type: array
+                  description: List of timeseries results, one per query formula
+                  items:
+                    $ref: '#/components/schemas/TimeseriesResult'
+    DORADeploymentResponseData:
+      description: The JSON:API data.
+      properties:
+        id:
+          description: The ID of the received DORA deployment event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORADeploymentType'
+      required:
+      - id
+      type: object
+    MetricDashboardType:
+      description: Dashboard resource type.
+      enum:
+      - dashboards
+      example: dashboards
+      type: string
+      x-enum-varnames:
+      - DASHBOARDS
+    LogsMetricCompute:
+      description: The compute rule to compute the log-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/LogsMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the log-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      required:
+      - aggregation_type
+      type: object
+    GitRepositoryURL:
+      description: Git Repository URL
+      example: https://github.com/organization/example-repository
+      type: string
+    MetricBulkTagConfigCreateRequest:
+      description: Wrapper object for a single bulk tag configuration request.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricBulkTagConfigCreate'
+      required:
+      - data
+      type: object
+    RumMetricResponseData:
+      description: The rum-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/RumMetricID'
+        type:
+          $ref: '#/components/schemas/RumMetricType'
+      type: object
+    LogsMetricComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    Metric:
+      description: Object for a single metric tag configuration.
+      example:
+        id: metric.foo.bar
+        type: metrics
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricType'
+      type: object
+    MetricIntakeType:
+      description: The type of metric. The available types are `0` (unspecified), `1` (count), `2` (rate), and `3` (gauge).
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - UNSPECIFIED
+      - COUNT
+      - RATE
+      - GAUGE
+    RumMetricResponse:
+      description: The rum-based metric object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumMetricResponseData'
+      type: object
+    MetricBulkTagConfigCreateAttributes:
+      description: Optional parameters for bulk creating metric tag configurations.
+      properties:
+        emails:
+          $ref: '#/components/schemas/MetricBulkTagConfigEmailList'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false.'
+          type: boolean
+          example: true
+        include_actively_queried_tags_window:
+          description: 'When provided, all tags that have been actively queried are
+
+            configured (and, therefore, remain queryable) for each metric that
+
+            matches the given prefix.  Minimum value is 1 second, and maximum
+
+            value is 7,776,000 seconds (90 days).'
+          format: double
+          maximum: 7776000
+          minimum: 1
+          type: number
+          example: 95.5
+        override_existing_configurations:
+          description: 'When set to true, the configuration overrides any existing
+
+            configurations for the given metric with the new set of tags in this
+
+            configuration request. If false, old configurations are kept and
+
+            are merged with the set of tags in this configuration request.
+
+            Defaults to true.'
+          type: boolean
+          example: true
+        tags:
+          $ref: '#/components/schemas/MetricBulkTagConfigTagNameList'
+      type: object
+    SpansMetricResponseData:
+      description: The span-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/SpansMetricID'
+        type:
+          $ref: '#/components/schemas/SpansMetricType'
+      type: object
+    MetricName:
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    RumMetricCompute:
+      description: The compute rule to compute the rum-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/RumMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
+        path:
+          description: 'The path to the value the rum-based metric will aggregate on.
+
+            Only present when `aggregation_type` is `distribution`.'
+          example: '@duration'
+          type: string
+      required:
+      - aggregation_type
+      type: object
+    LogsMetricResponseComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    MetricPaginationMeta:
+      description: Response metadata object.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/MetricMetaPage'
+      type: object
+    MetricDashboardAttributes:
+      description: Attributes related to the dashboard, including title, popularity, and url.
+      properties:
+        popularity:
+          description: Value from 0 to 5 that ranks popularity of the dashboard.
+          format: double
+          maximum: 5
+          minimum: 0
+          type: number
+          example: 95.5
+        title:
+          description: Title of the asset.
+          type: string
+          example: Example Monitor
+        url:
+          description: URL path of the asset.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    MetricMonitorAsset:
+      description: A monitor object with title.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricAssetAttributes'
+        id:
+          $ref: '#/components/schemas/MetricMonitorID'
+        type:
+          $ref: '#/components/schemas/MetricMonitorType'
+      required:
+      - id
+      - type
+      type: object
+    LogsMetricCreateData:
+      description: The new log-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsMetricCreateAttributes'
+        id:
+          $ref: '#/components/schemas/LogsMetricID'
+        type:
+          $ref: '#/components/schemas/LogsMetricType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    MetricTagConfiguration:
+      description: Object for a single metric tag configuration.
+      example:
+        attributes:
+          aggregations:
+          - space: avg
+            time: avg
+          created_at: '2020-03-25T09:48:37.463835Z'
+          metric_type: gauge
+          modified_at: '2020-04-25T09:48:37.463835Z'
+          tags:
+          - app
+          - datacenter
+        id: http.request.latency
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      type: object
+    RumMetricsResponse:
+      description: All the available rum-based metric objects.
+      properties:
+        data:
+          description: A list of rum-based metric objects.
+          items:
+            $ref: '#/components/schemas/RumMetricResponseData'
+          type: array
+      type: object
+    MetricNotebookID:
+      description: The related notebook's ID.
+      example: '12345'
+      type: string
+    RumMetricUpdateAttributes:
+      description: The rum-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/RumMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/RumMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RumMetricGroupBy'
+          type: array
+      type: object
+    MetricAssetResponseData:
+      description: Metric assets response data.
+      properties:
+        id:
+          $ref: '#/components/schemas/MetricName'
+        relationships:
+          $ref: '#/components/schemas/MetricAssetResponseRelationships'
+        type:
+          $ref: '#/components/schemas/MetricType'
+      required:
+      - id
+      - type
+      type: object
+    RumMetricResponseFilter:
+      description: The rum-based metric filter. RUM events matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the RUM search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    LogsMetricFilter:
+      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    RumMetricFilter:
+      description: The rum-based metric filter. Events matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the RUM search syntax.
+          example: '@service:web-ui: '
+          type: string
+      required:
+      - query
+      type: object
+    DORAIncidentResponse:
+      description: Response after receiving a DORA incident event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAIncidentResponseData'
+      required:
+      - data
+      type: object
+    LogsMetricResponseData:
+      description: The log-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/LogsMetricID'
+        type:
+          $ref: '#/components/schemas/LogsMetricType'
+      type: object
+    DORADeploymentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORADeploymentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    RumMetricCreateData:
+      description: The new rum-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumMetricCreateAttributes'
+        id:
+          $ref: '#/components/schemas/RumMetricID'
+        type:
+          $ref: '#/components/schemas/RumMetricType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    MetricAssetMonitorRelationships:
+      description: A object containing the list of monitors that can be referenced in the `included` data.
+      properties:
+        data:
+          description: A list of monitors that can be referenced in the `included` data.
+          items:
+            $ref: '#/components/schemas/MetricAssetMonitorRelationship'
+          type: array
+      type: object
+    MetricDistinctVolumeType:
+      default: distinct_metric_volumes
+      description: The metric distinct volume type.
+      enum:
+      - distinct_metric_volumes
+      example: distinct_metric_volumes
+      type: string
+      x-enum-varnames:
+      - DISTINCT_METRIC_VOLUMES
+    MetricAssetsResponse:
+      description: Response object that includes related dashboards, monitors, notebooks, and SLOs.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricAssetResponseData'
+        included:
+          description: Array of objects related to the metric assets.
+          items:
+            $ref: '#/components/schemas/MetricAssetResponseIncluded'
+          type: array
+      type: object
+    SpansMetricType:
+      default: spans_metrics
+      description: The type of resource. The value should always be spans_metrics.
+      enum:
+      - spans_metrics
+      example: spans_metrics
+      type: string
+      x-enum-varnames:
+      - SPANS_METRICS
+    MetricVolumesResponse:
+      description: Response object which includes a single metric's volume.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricVolumes'
+      readOnly: true
+      type: object
+    MetricContentEncoding:
+      default: deflate
+      description: HTTP header used to compress the media-type.
+      enum:
+      - deflate
+      - zstd1
+      - gzip
+      example: deflate
+      type: string
+      x-enum-varnames:
+      - DEFLATE
+      - ZSTD1
+      - GZIP
+    ScalarColumn:
+      type: object
+      description: A single column of scalar results from a query formula
+      properties:
+        name:
+          type: string
+          description: The column name or formula alias
+          example: Example Monitor
+        values:
+          type: array
+          description: The scalar values for this column
+          items:
+            type: number
+            format: double
+            nullable: true
+        group:
+          type: array
+          description: The group-by tag values for each row in this column
+          items:
+            type: array
+            items:
+              type: string
+    RumMetricUpdateCompute:
+      description: The compute rule to compute the rum-based metric.
+      properties:
+        include_percentiles:
+          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
+      type: object
+    LogsMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when the `aggregation_type` is `distribution`.'
+      example: true
+      type: boolean
+    SpansMetricResponse:
+      description: The span-based metric object.
+      properties:
+        data:
+          $ref: '#/components/schemas/SpansMetricResponseData'
+      type: object
+    SpansMetricCompute:
+      description: The compute rule to compute the span-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/SpansMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the span-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      required:
+      - aggregation_type
+      type: object
+    LogsMetricUpdateData:
+      description: The new log-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsMetricUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/LogsMetricType'
+      required:
+      - type
+      - attributes
+      type: object
+    MetricAssetResponseIncluded:
+      description: List of included assets with full set of attributes.
+      oneOf:
+      - $ref: '#/components/schemas/MetricDashboardAsset'
+      - $ref: '#/components/schemas/MetricMonitorAsset'
+      - $ref: '#/components/schemas/MetricNotebookAsset'
+      - $ref: '#/components/schemas/MetricSLOAsset'
+    MetricSLOType:
+      description: SLO resource type.
+      enum:
+      - slos
+      example: slos
+      type: string
+      x-enum-varnames:
+      - SLOS
+    LogsMetricType:
+      default: logs_metrics
+      description: The type of the resource. The value should always be logs_metrics.
+      enum:
+      - logs_metrics
+      example: logs_metrics
+      type: string
+      x-enum-varnames:
+      - LOGS_METRICS
+    MetricCustomTimeAggregation:
+      description: A time aggregation for use in query.
+      enum:
+      - avg
+      - count
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - COUNT
+      - MAX
+      - MIN
+      - SUM
+    RumMetricCreateRequest:
+      description: The new rum-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumMetricCreateData'
+      required:
+      - data
+      type: object
+    SpansMetricComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+  responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  parameters:
+    SpansMetricIDParameter:
+      description: The name of the span-based metric.
+      in: path
+      name: metric_id
+      required: true
+      schema:
+        type: string
+    RumMetricIDParameter:
+      description: The name of the rum-based metric.
+      in: path
+      name: metric_id
+      required: true
+      schema:
+        type: string
+    MetricName:
+      description: The name of the metric.
+      example: dist.http.endpoint.request
+      in: path
+      name: metric_name
+      required: true
+      schema:
+        type: string
+    MetricID:
+      description: The name of the log-based metric.
+      in: path
+      name: metric_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

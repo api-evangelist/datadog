@@ -1,0 +1,3876 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Search API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Search
+paths:
+  /api/v2/audit/events/search:
+    post:
+      description: 'List endpoint returns Audit Logs events that match an Audit search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to build complex Audit Logs events filtering and search.
+
+
+        [1]: https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination'
+      operationId: SearchAuditLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditLogsSearchEventsRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogsEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Search Audit Logs Events
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - audit_logs_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/cases:
+    get:
+      description: Search cases.
+      operationId: SearchCases
+      parameters:
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageNumber'
+      - $ref: '#/components/parameters/CaseSortableFieldParameter'
+      - description: Search query
+        in: query
+        name: filter
+        required: false
+        schema:
+          example: status:open (team:case-management OR team:event-management)
+          type: string
+        example: status:open (team:case-management OR team:event-management)
+      - description: Specify if order is ascending or not
+        in: query
+        name: sort[asc]
+        required: false
+        schema:
+          default: false
+          type: boolean
+        example: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CasesResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cases_read
+      summary: Datadog Search Cases
+      tags:
+      - Search
+      x-menu-order: 1
+      x-pagination:
+        limitParam: page[size]
+        pageParam: page[number]
+        resultsPath: data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/ci/pipelines/events/search:
+    post:
+      description: 'List endpoint returns CI Visibility pipeline events that match a [search query](https://docs.datadoghq.com/continuous_integration/explorer/search_syntax/).
+
+        [Results are paginated similarly to logs](https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination).
+
+
+        Use this endpoint to build complex events filtering and search.'
+      operationId: SearchCIAppPipelineEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CIAppPipelineEventsRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CIAppPipelineEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - ci_visibility_read
+      summary: Datadog Search Pipelines Events
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - ci_visibility_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/ci/tests/events/search:
+    post:
+      description: 'List endpoint returns CI Visibility test events that match a [search query](https://docs.datadoghq.com/continuous_integration/explorer/search_syntax/).
+
+        [Results are paginated similarly to logs](https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination).
+
+
+        Use this endpoint to build complex events filtering and search.'
+      operationId: SearchCIAppTestEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CIAppTestEventsRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CIAppTestEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - ci_visibility_read
+      summary: Datadog Search Tests Events
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - ci_visibility_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/events/search:
+    x-merge-override:
+      post: false
+    post:
+      description: 'List endpoint returns events that match an events search query.
+
+        [Results are paginated similarly to logs](https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination).
+
+
+        Use this endpoint to build complex events filtering and search.'
+      operationId: SearchEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsListRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Search Events
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - events_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/incidents/search:
+    get:
+      description: Search for incidents matching a certain query.
+      operationId: SearchIncidents
+      parameters:
+      - $ref: '#/components/parameters/IncidentSearchIncludeQueryParameter'
+      - $ref: '#/components/parameters/IncidentSearchQueryQueryParameter'
+      - $ref: '#/components/parameters/IncidentSearchSortQueryParameter'
+      - $ref: '#/components/parameters/PageSize'
+      - $ref: '#/components/parameters/PageOffset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentSearchResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - incident_read
+      summary: Datadog Search for Incidents
+      tags:
+      - Search
+      x-menu-order: 6
+      x-pagination:
+        limitParam: page[size]
+        pageOffsetParam: page[offset]
+        resultsPath: data.attributes.incidents
+      x-permission:
+        operator: OR
+        permissions:
+        - incident_read
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/events:
+    get:
+      description: 'List endpoint returns logs that match a log search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to search and filter your logs.
+
+
+        **If you are considering archiving logs for your organization,
+
+        consider use of the Datadog archive capabilities instead of the log list API.
+
+        See [Datadog Logs Archive documentation][2].**
+
+
+        [1]: /logs/guide/collect-multiple-logs-with-pagination
+
+        [2]: https://docs.datadoghq.com/logs/archives'
+      operationId: ListLogsGet
+      parameters:
+      - description: Search query following logs syntax.
+        example: '@datacenter:us @role:db'
+        in: query
+        name: filter[query]
+        required: false
+        schema:
+          type: string
+      - description: 'For customers with multiple indexes, the indexes to search.
+
+          Defaults to ''*'' which means all indexes'
+        example:
+        - main
+        - web
+        explode: false
+        in: query
+        name: filter[indexes]
+        required: false
+        schema:
+          items:
+            description: The name of a log index.
+            type: string
+          type: array
+      - description: Minimum timestamp for requested logs.
+        example: '2019-01-02T09:42:36.320Z'
+        in: query
+        name: filter[from]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: Maximum timestamp for requested logs.
+        example: '2019-01-03T09:42:36.320Z'
+        in: query
+        name: filter[to]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: Specifies the storage type to be used
+        example: indexes
+        in: query
+        name: filter[storage_tier]
+        required: false
+        schema:
+          $ref: '#/components/schemas/LogsStorageTier'
+      - description: Order of logs in results.
+        in: query
+        name: sort
+        required: false
+        schema:
+          $ref: '#/components/schemas/LogsSort'
+        example: example_value
+      - description: List following results with a cursor provided in the previous query.
+        example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        in: query
+        name: page[cursor]
+        required: false
+        schema:
+          type: string
+      - description: Maximum number of logs in the response.
+        example: 25
+        in: query
+        name: page[limit]
+        required: false
+        schema:
+          default: 10
+          format: int32
+          maximum: 1000
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Search Logs (get)
+      tags:
+      - Search
+      x-menu-order: 4
+      x-pagination:
+        cursorParam: page[cursor]
+        cursorPath: meta.page.after
+        limitParam: page[limit]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/logs/events/search:
+    post:
+      description: 'List endpoint returns logs that match a log search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to search and filter your logs.
+
+
+        **If you are considering archiving logs for your organization,
+
+        consider use of the Datadog archive capabilities instead of the log list API.
+
+        See [Datadog Logs Archive documentation][2].**
+
+
+        [1]: /logs/guide/collect-multiple-logs-with-pagination
+
+        [2]: https://docs.datadoghq.com/logs/archives'
+      operationId: ListLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogsListRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Search Logs (post)
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - logs_read_data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/events/search:
+    post:
+      description: 'List endpoint returns RUM events that match a RUM search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to build complex RUM events filtering and search.
+
+
+        [1]: https://docs.datadoghq.com/logs/guide/collect-multiple-logs-with-pagination'
+      operationId: SearchRUMEvents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RUMSearchEventsRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RUMEventsResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ: []
+      summary: Datadog Search Rum Events
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OPEN
+        permissions: []
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/spans/events/search:
+    post:
+      description: 'List endpoint returns spans that match a span search query.
+
+        [Results are paginated][1].
+
+
+        Use this endpoint to build complex spans filtering and search.
+
+        This endpoint is rate limited to `300` requests per hour.
+
+
+        [1]: /logs/guide/collect-multiple-logs-with-pagination?tab=v2api'
+      operationId: ListSpans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpansListRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpansListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/SpansBadRequestResponse'
+        '403':
+          $ref: '#/components/responses/SpansForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/SpansUnprocessableEntityResponse'
+        '429':
+          $ref: '#/components/responses/SpansTooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - apm_read
+      summary: Datadog Search Spans
+      tags:
+      - Search
+      x-codegen-request-body-name: body
+      x-menu-order: 2
+      x-pagination:
+        cursorParam: body.data.attributes.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.data.attributes.page.limit
+        resultsPath: data
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RUMResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    JiraIssueResult:
+      description: Jira issue information
+      properties:
+        issue_id:
+          description: Jira issue ID
+          type: string
+          example: abc-123-def
+        issue_key:
+          description: Jira issue key
+          type: string
+          example: example_value
+        issue_url:
+          description: Jira issue URL
+          type: string
+          example: https://app.datadoghq.com
+        project_key:
+          description: Jira project key
+          type: string
+          example: example_value
+      type: object
+    AuditLogsResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RUMEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from RUM events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        service:
+          description: 'The name of the application or service generating RUM events.
+
+            It is used to switch from RUM to APM, so make sure you define the same
+
+            value when you use both products.'
+          example: web-app
+          type: string
+        tags:
+          description: Array of tags associated with your event.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your event.
+            type: string
+          type: array
+        timestamp:
+          description: Timestamp of your event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    IncidentAttachmentAttributes:
+      description: The attributes object for an attachment.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
+      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    SpansListRequest:
+      description: The request for a spans list.
+      properties:
+        data:
+          $ref: '#/components/schemas/SpansListRequestData'
+      type: object
+    IncidentSearchResponse:
+      description: Response with incidents and facets.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentSearchResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentResponseIncludedItem'
+          readOnly: true
+          type: array
+        meta:
+          $ref: '#/components/schemas/IncidentSearchResponseMeta'
+      required:
+      - data
+      type: object
+    RelationshipToIncidentUserDefinedFields:
+      description: Relationship to incident user defined fields.
+      properties:
+        data:
+          description: An array of user defined fields.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentUserDefinedFieldData'
+          type: array
+      required:
+      - data
+      type: object
+    EventResponseAttributes:
+      description: The object description of an event response attribute.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventAttributes'
+        message:
+          description: The message of the event.
+          type: string
+          example: CPU usage is high on {{host.name}}
+        tags:
+          description: An array of tags associated with the event.
+          example:
+          - team:A
+          items:
+            description: The tag associated with the event.
+            type: string
+          type: array
+        timestamp:
+          description: The timestamp of the event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    IncidentSearchResponseAttributes:
+      description: Attributes returned by an incident search.
+      properties:
+        facets:
+          $ref: '#/components/schemas/IncidentSearchResponseFacetsData'
+        incidents:
+          description: Incidents returned by the search.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseIncidentsData'
+          type: array
+        total:
+          description: Number of incidents returned by the search.
+          example: 10
+          format: int32
+          maximum: 2147483647
+          type: integer
+      required:
+      - facets
+      - incidents
+      - total
+      type: object
+    IncidentResponseRelationships:
+      description: The incident's relationships from a response.
+      properties:
+        attachments:
+          $ref: '#/components/schemas/RelationshipToIncidentAttachment'
+        commander_user:
+          $ref: '#/components/schemas/NullableRelationshipToUser'
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        impacts:
+          $ref: '#/components/schemas/RelationshipToIncidentImpacts'
+        integrations:
+          $ref: '#/components/schemas/RelationshipToIncidentIntegrationMetadatas'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        responders:
+          $ref: '#/components/schemas/RelationshipToIncidentResponders'
+        user_defined_fields:
+          $ref: '#/components/schemas/RelationshipToIncidentUserDefinedFields'
+      type: object
+    CasePriority:
+      default: NOT_DEFINED
+      description: Case priority
+      enum:
+      - NOT_DEFINED
+      - P1
+      - P2
+      - P3
+      - P4
+      - P5
+      example: NOT_DEFINED
+      type: string
+      x-enum-varnames:
+      - NOT_DEFINED
+      - P1
+      - P2
+      - P3
+      - P4
+      - P5
+    EventsRequestPage:
+      description: Pagination settings.
+      properties:
+        cursor:
+          description: The returned paging point to use to get the next results.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: The maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    SpansListRequestData:
+      description: The object containing the query content.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansListRequestAttributes'
+        type:
+          $ref: '#/components/schemas/SpansListRequestType'
+      type: object
+    IncidentType:
+      default: incidents
+      description: Incident resource type.
+      enum:
+      - incidents
+      example: incidents
+      type: string
+      x-enum-varnames:
+      - INCIDENTS
+    IncidentIntegrationMetadataType:
+      default: incident_integrations
+      description: Integration metadata resource type.
+      enum:
+      - incident_integrations
+      example: incident_integrations
+      type: string
+      x-enum-varnames:
+      - INCIDENT_INTEGRATIONS
+    EventsListResponse:
+      description: The response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: An array of events matching the request.
+          items:
+            $ref: '#/components/schemas/EventResponse'
+          type: array
+        links:
+          $ref: '#/components/schemas/EventsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/EventsResponseMetadata'
+      type: object
+    IncidentSearchResponseIncidentsData:
+      description: Incident returned by the search.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentResponseData'
+      required:
+      - data
+      type: object
+    IncidentAttachmentRelationships:
+      description: The incident attachment's relationships.
+      properties:
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    AuditLogsResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: Time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/AuditLogsResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/AuditLogsResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/AuditLogsWarning'
+          type: array
+      type: object
+    CIAppTestsQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@test.service:web-ui-tests AND @test.status:fail'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    LogsStorageTier:
+      default: indexes
+      description: Specifies storage type as indexes, online-archives or flex
+      enum:
+      - indexes
+      - online-archives
+      - flex
+      example: indexes
+      type: string
+      x-enum-varnames:
+      - INDEXES
+      - ONLINE_ARCHIVES
+      - FLEX
+    RUMResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/RUMResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/RUMResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/RUMWarning'
+          type: array
+      type: object
+    CIAppTestEvent:
+      description: Object description of test event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CIAppEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/CIAppTestEventTypeName'
+      type: object
+    AuditLogsEventType:
+      default: audit
+      description: Type of the event.
+      enum:
+      - audit
+      example: audit
+      type: string
+      x-enum-varnames:
+      - Audit
+    IncidentNotificationHandle:
+      description: A notification handle that will be notified at incident creation.
+      properties:
+        display_name:
+          description: The name of the notified handle.
+          example: Jane Doe
+          type: string
+        handle:
+          description: The handle used for the notification. This includes an email address, Slack channel, or workflow.
+          example: '@test.user@test.com'
+          type: string
+      type: object
+    IncidentAttachmentType:
+      default: incident_attachments
+      description: The incident attachment resource type.
+      enum:
+      - incident_attachments
+      example: incident_attachments
+      type: string
+      x-enum-varnames:
+      - INCIDENT_ATTACHMENTS
+    IncidentUserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          nullable: true
+          type: string
+          example: Example Monitor
+        uuid:
+          description: UUID of the user.
+          type: string
+          example: abc-123-def
+      type: object
+    IncidentSearchResponseMeta:
+      description: The metadata object containing pagination metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/IncidentResponseMetaPagination'
+      readOnly: true
+      type: object
+    SpansSort:
+      description: Sort parameters when querying spans.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    CaseAttributes:
+      description: Case attributes
+      properties:
+        archived_at:
+          description: Timestamp of when the case was archived
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        closed_at:
+          description: Timestamp of when the case was closed
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        created_at:
+          description: Timestamp of when the case was created
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        description:
+          description: Description
+          type: string
+          example: example_value
+        jira_issue:
+          $ref: '#/components/schemas/JiraIssue'
+        key:
+          description: Key
+          example: CASEM-4523
+          type: string
+        modified_at:
+          description: Timestamp of when the case was last modified
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        priority:
+          $ref: '#/components/schemas/CasePriority'
+        service_now_ticket:
+          $ref: '#/components/schemas/ServiceNowTicket'
+        status:
+          $ref: '#/components/schemas/CaseStatus'
+        title:
+          description: Title
+          example: Memory leak investigation on API
+          type: string
+        type:
+          $ref: '#/components/schemas/CaseType'
+      type: object
+    LogsListRequest:
+      description: The request for a logs list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/LogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/LogsListRequestPage'
+        sort:
+          $ref: '#/components/schemas/LogsSort'
+      type: object
+    CaseSortableField:
+      description: Case field that can be sorted on
+      enum:
+      - created_at
+      - priority
+      - status
+      example: created_at
+      type: string
+      x-enum-varnames:
+      - CREATED_AT
+      - PRIORITY
+      - STATUS
+    RelationshipToIncidentResponderData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the responder.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentRespondersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToIncidentImpacts:
+      description: Relationship to impacts.
+      properties:
+        data:
+          description: An array of incident impacts.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentImpactData'
+          type: array
+      required:
+      - data
+      type: object
+    EventsResponseMetadataPage:
+      description: Pagination attributes.
+      properties:
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    IncidentSearchResponseNumericFacetData:
+      description: Facet data numeric attributes of an incident.
+      properties:
+        aggregates:
+          $ref: '#/components/schemas/IncidentSearchResponseNumericFacetDataAggregates'
+        name:
+          description: Name of the incident property field.
+          example: time_to_repair
+          type: string
+      required:
+      - name
+      - aggregates
+      type: object
+    CIAppPipelineEventTypeName:
+      description: Type of the event.
+      enum:
+      - cipipeline
+      example: cipipeline
+      type: string
+      x-enum-varnames:
+      - CIPIPELINE
+    IncidentAttachmentPostmortemAttributes:
+      description: The attributes object for a postmortem attachment.
+      properties:
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentsPostmortemAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentPostmortemAttachmentType'
+      required:
+      - attachment_type
+      - attachment
+      type: object
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    RelationshipToIncidentAttachment:
+      description: A relationship reference for attachments.
+      properties:
+        data:
+          description: An array of incident attachments.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentAttachmentData'
+          type: array
+      required:
+      - data
+      type: object
+    AuditLogsEvent:
+      description: Object description of an Audit Logs event after it is processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AuditLogsEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/AuditLogsEventType'
+      type: object
+    CIAppWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    RUMSearchEventsRequest:
+      description: The request for a RUM events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/RUMQueryFilter'
+        options:
+          $ref: '#/components/schemas/RUMQueryOptions'
+        page:
+          $ref: '#/components/schemas/RUMQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/RUMSort'
+      type: object
+    RUMQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the RUM search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    ServiceNowTicket:
+      description: ServiceNow ticket attached to case
+      nullable: true
+      properties:
+        result:
+          $ref: '#/components/schemas/ServiceNowTicketResult'
+        status:
+          $ref: '#/components/schemas/Case3rdPartyTicketStatus'
+      readOnly: true
+      type: object
+    RelationshipToIncidentIntegrationMetadataData:
+      description: A relationship reference for an integration metadata object.
+      example:
+        id: 00000000-abcd-0002-0000-000000000000
+        type: incident_integrations
+      properties:
+        id:
+          description: A unique identifier that represents the integration metadata.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentIntegrationMetadataType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentFieldAttributesValueType:
+      default: multiselect
+      description: Type of the multiple value field definitions.
+      enum:
+      - multiselect
+      - textarray
+      - metrictag
+      - autocomplete
+      example: multiselect
+      type: string
+      x-enum-varnames:
+      - MULTISELECT
+      - TEXTARRAY
+      - METRICTAG
+      - AUTOCOMPLETE
+    CIAppTestEventsRequest:
+      description: The request for a tests search.
+      properties:
+        filter:
+          $ref: '#/components/schemas/CIAppTestsQueryFilter'
+        options:
+          $ref: '#/components/schemas/CIAppQueryOptions'
+        page:
+          $ref: '#/components/schemas/CIAppQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/CIAppSort'
+      type: object
+    SpansWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    IncidentFieldAttributesSingleValueType:
+      default: dropdown
+      description: Type of the single value field definitions.
+      enum:
+      - dropdown
+      - textbox
+      example: dropdown
+      type: string
+      x-enum-varnames:
+      - DROPDOWN
+      - TEXTBOX
+    RelationshipToIncidentIntegrationMetadatas:
+      description: A relationship reference for multiple integration metadata objects.
+      example:
+        data:
+        - id: 00000000-abcd-0005-0000-000000000000
+          type: incident_integrations
+        - id: 00000000-abcd-0006-0000-000000000000
+          type: incident_integrations
+      properties:
+        data:
+          description: Integration metadata relationship array
+          example:
+          - id: 00000000-abcd-0003-0000-000000000000
+            type: incident_integrations
+          - id: 00000000-abcd-0004-0000-000000000000
+            type: incident_integrations
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentIntegrationMetadataData'
+          type: array
+      required:
+      - data
+      type: object
+    CIAppPipelineEventsResponse:
+      description: Response object with all pipeline events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/CIAppPipelineEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
+      type: object
+    CasesResponseMeta:
+      description: Cases response metadata
+      properties:
+        page:
+          $ref: '#/components/schemas/CasesResponseMetaPagination'
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RUMQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    IncidentAttachmentLinkAttachmentType:
+      default: link
+      description: The type of link attachment attributes.
+      enum:
+      - link
+      example: link
+      type: string
+      x-enum-varnames:
+      - LINK
+    IncidentResponseMetaPagination:
+      description: Pagination properties.
+      properties:
+        next_offset:
+          description: The index of the first element in the next page of results. Equal to page size added to the current offset.
+          example: 1000
+          format: int64
+          type: integer
+        offset:
+          description: The index of the first element in the results.
+          example: 10
+          format: int64
+          type: integer
+        size:
+          description: Maximum size of pages to return.
+          example: 1000
+          format: int64
+          type: integer
+      type: object
+    IncidentAttachmentLinkAttributes:
+      description: The attributes object for a link attachment.
+      properties:
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttachmentType'
+        modified:
+          description: Timestamp when the incident attachment link was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+      required:
+      - attachment_type
+      - attachment
+      type: object
+    AuditLogsWarning:
+      description: Warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: Unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: Detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: Short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    AuditLogsEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from Audit Logs events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        message:
+          description: Message of the event.
+          type: string
+          example: CPU usage is high on {{host.name}}
+        service:
+          description: 'Name of the application or service generating Audit Logs events.
+
+            This name is used to correlate Audit Logs to APM, so make sure you specify the same
+
+            value when you use both products.'
+          example: web-app
+          type: string
+        tags:
+          description: Array of tags associated with your event.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your event.
+            type: string
+          type: array
+        timestamp:
+          description: Timestamp of your event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    EventPriority:
+      description: The priority of the event's monitor. For example, `normal` or `low`.
+      enum:
+      - normal
+      - low
+      example: normal
+      nullable: true
+      type: string
+      x-enum-varnames:
+      - NORMAL
+      - LOW
+    SpansResponseMetadataPage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    CIAppResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    LogsResponseMetadataPage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    SpansListRequestType:
+      default: search_request
+      description: The type of resource. The value should always be search_request.
+      enum:
+      - search_request
+      example: search_request
+      type: string
+      x-enum-varnames:
+      - SEARCH_REQUEST
+    LogType:
+      default: log
+      description: Type of the event.
+      enum:
+      - log
+      example: log
+      type: string
+      x-enum-varnames:
+      - LOG
+    EventStatusType:
+      description: 'If an alert event is enabled, its status is one of the following:
+
+        `failure`, `error`, `warning`, `info`, `success`, `user_update`,
+
+        `recommendation`, or `snapshot`.'
+      enum:
+      - failure
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      example: info
+      type: string
+      x-enum-varnames:
+      - FAILURE
+      - ERROR
+      - WARNING
+      - INFO
+      - SUCCESS
+      - USER_UPDATE
+      - RECOMMENDATION
+      - SNAPSHOT
+    CIAppTestEventsResponse:
+      description: Response object with all test events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/CIAppTestEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
+      type: object
+    EventsSort:
+      description: The sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    IncidentUserData:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentUserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+    RUMQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    IncidentResponseData:
+      description: Incident data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentResponseAttributes'
+        id:
+          description: The incident's ID.
+          example: 00000000-0000-0000-1234-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentResponseRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    CIAppPipelinesQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@ci.provider.name:github AND @ci.status:error'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    RUMEvent:
+      description: Object description of a RUM event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/RUMEventType'
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    LogsSort:
+      description: Sort parameters when querying logs.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    CaseRelationships:
+      description: Resources related to a case
+      properties:
+        assignee:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        created_by:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        modified_by:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        project:
+          $ref: '#/components/schemas/ProjectRelationship'
+      type: object
+    RelationshipToIncidentUserDefinedFieldData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the responder.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentUserDefinedFieldType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    CasesResponseMetaPagination:
+      description: Pagination metadata
+      properties:
+        current:
+          description: Current page number
+          format: int64
+          type: integer
+          example: 42
+        size:
+          description: Number of cases in current page
+          format: int64
+          type: integer
+          example: 42
+        total:
+          description: Total number of pages
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    CIAppPipelineEvent:
+      description: Object description of a pipeline event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CIAppPipelineEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/CIAppPipelineEventTypeName'
+      type: object
+    IncidentUserDefinedFieldType:
+      description: The incident user defined fields type.
+      enum:
+      - user_defined_field
+      example: user_defined_field
+      type: string
+      x-enum-varnames:
+      - USER_DEFINED_FIELD
+    CIAppTestLevel:
+      description: Test run level.
+      enum:
+      - session
+      - module
+      - suite
+      - test
+      example: test
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - MODULE
+      - SUITE
+      - TEST
+    IncidentAttachmentLinkAttributesAttachmentObject:
+      description: The link attachment.
+      properties:
+        documentUrl:
+          description: The URL of this link attachment.
+          example: https://www.example.com/webstore-failure-runbook
+          type: string
+        title:
+          description: The title of this link attachment.
+          example: Runbook for webstore service failures
+          type: string
+      required:
+      - documentUrl
+      - title
+      type: object
+    CIAppPipelineEventsRequest:
+      description: The request for a pipelines search.
+      properties:
+        filter:
+          $ref: '#/components/schemas/CIAppPipelinesQueryFilter'
+        options:
+          $ref: '#/components/schemas/CIAppQueryOptions'
+        page:
+          $ref: '#/components/schemas/CIAppQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/CIAppSort'
+      type: object
+    IncidentFieldAttributesSingleValue:
+      description: A field with a single value selected.
+      properties:
+        type:
+          $ref: '#/components/schemas/IncidentFieldAttributesSingleValueType'
+        value:
+          description: The single value selected for this field.
+          example: SEV-1
+          nullable: true
+          type: string
+      type: object
+    CaseResourceType:
+      default: case
+      description: Case resource type
+      enum:
+      - case
+      example: case
+      type: string
+      x-enum-varnames:
+      - CASE
+    ProjectRelationshipData:
+      description: Relationship to project object
+      properties:
+        id:
+          description: A unique identifier that represents the project
+          example: e555e290-ed65-49bd-ae18-8acbfcf18db7
+          type: string
+        type:
+          $ref: '#/components/schemas/ProjectResourceType'
+      required:
+      - id
+      - type
+      type: object
+    AuditLogsSearchEventsRequest:
+      description: The request for a Audit Logs events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/AuditLogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/AuditLogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/AuditLogsQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/AuditLogsSort'
+      type: object
+    AuditLogsEventsResponse:
+      description: Response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/AuditLogsEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/AuditLogsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/AuditLogsResponseMetadata'
+      type: object
+    Case:
+      description: A case
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CaseAttributes'
+        id:
+          description: Case's identifier
+          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
+          type: string
+        relationships:
+          $ref: '#/components/schemas/CaseRelationships'
+        type:
+          $ref: '#/components/schemas/CaseResourceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    ServiceNowTicketResult:
+      description: ServiceNow ticket information
+      properties:
+        sys_target_link:
+          description: Link to the Incident created on ServiceNow
+          type: string
+          example: example_value
+      type: object
+    AuditLogsQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Note: Specify either timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: Time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    LogsAggregateResponseStatus:
+      description: The status of the response
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    IncidentSearchResponseFacetsData:
+      description: Facet data for incidents returned by a search query.
+      properties:
+        commander:
+          description: Facet data for incident commander users.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseUserFacetData'
+          type: array
+        created_by:
+          description: Facet data for incident creator users.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseUserFacetData'
+          type: array
+        fields:
+          description: Facet data for incident property fields.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponsePropertyFieldFacetData'
+          type: array
+        impact:
+          description: Facet data for incident impact attributes.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseFieldFacetData'
+          type: array
+        last_modified_by:
+          description: Facet data for incident last modified by users.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseUserFacetData'
+          type: array
+        postmortem:
+          description: Facet data for incident postmortem existence.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseFieldFacetData'
+          type: array
+        responder:
+          description: Facet data for incident responder users.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseUserFacetData'
+          type: array
+        severity:
+          description: Facet data for incident severity attributes.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseFieldFacetData'
+          type: array
+        state:
+          description: Facet data for incident state attributes.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseFieldFacetData'
+          type: array
+        time_to_repair:
+          description: Facet data for incident time to repair metrics.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseNumericFacetData'
+          type: array
+        time_to_resolve:
+          description: Facet data for incident time to resolve metrics.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseNumericFacetData'
+          type: array
+      type: object
+    CIAppPipelineEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from CI Visibility pipeline events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        ci_level:
+          $ref: '#/components/schemas/CIAppPipelineLevel'
+        tags:
+          $ref: '#/components/schemas/TagsEventAttribute'
+      type: object
+    LogsResponseMetadata:
+      description: The metadata associated with a request
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/LogsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/LogsAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/LogsWarning'
+          type: array
+      type: object
+    CasesResponse:
+      description: Response with cases
+      properties:
+        data:
+          description: Cases response data
+          items:
+            $ref: '#/components/schemas/Case'
+          type: array
+        meta:
+          $ref: '#/components/schemas/CasesResponseMeta'
+      type: object
+    SpansListRequestAttributes:
+      description: The object containing all the query parameters.
+      properties:
+        filter:
+          $ref: '#/components/schemas/SpansQueryFilter'
+        options:
+          $ref: '#/components/schemas/SpansQueryOptions'
+        page:
+          $ref: '#/components/schemas/SpansListRequestPage'
+        sort:
+          $ref: '#/components/schemas/SpansSort'
+      type: object
+    EventsWarning:
+      description: A warning message indicating something is wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid. Results hold data from the other indexes.
+          type: string
+      type: object
+    IncidentSearchResponseFacetCount:
+      description: Count of the facet value appearing in search results.
+      example: 5
+      format: int32
+      maximum: 2147483647
+      type: integer
+    SpansListResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/SpansResponseMetadataPage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/SpansAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/SpansWarning'
+          type: array
+      type: object
+    Event:
+      description: The metadata associated with a request.
+      properties:
+        id:
+          description: Event ID.
+          example: '6509751066204996294'
+          type: string
+        name:
+          description: The event name.
+          type: string
+          example: Example Monitor
+        source_id:
+          description: Event source ID.
+          example: 36
+          format: int64
+          type: integer
+        type:
+          description: Event type.
+          example: error_tracking_alert
+          type: string
+      type: object
+    RelationshipToIncidentResponders:
+      description: Relationship to incident responders.
+      properties:
+        data:
+          description: An array of incident responders.
+          items:
+            $ref: '#/components/schemas/RelationshipToIncidentResponderData'
+          type: array
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SpansListResponse:
+      description: Response object with all spans matching the request and pagination information.
+      properties:
+        data:
+          description: Array of spans matching the request.
+          items:
+            $ref: '#/components/schemas/Span'
+          type: array
+        links:
+          $ref: '#/components/schemas/SpansListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/SpansListResponseMetadata'
+      type: object
+    SpansQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Note: You should only supply timezone or time offset but not both otherwise the query will fail.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    SpansListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/spans/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    EventsQueryOptions:
+      description: 'The global query options that are used. Either provide a timezone or a time offset but not both,
+
+        otherwise the query fails.'
+      properties:
+        timeOffset:
+          description: The time offset to apply to the query in seconds.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    IncidentFieldAttributesMultipleValue:
+      description: A field with potentially multiple values selected.
+      properties:
+        type:
+          $ref: '#/components/schemas/IncidentFieldAttributesValueType'
+        value:
+          description: The multiple values selected for this field.
+          example:
+          - '1.0'
+          - '1.1'
+          items:
+            description: A value which has been selected for the parent field.
+            example: '1.1'
+            type: string
+          nullable: true
+          type: array
+      type: object
+    AuditLogsQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    EventResponse:
+      description: The object description of an event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventResponseAttributes'
+        id:
+          description: the unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/EventType'
+      type: object
+    RUMEventType:
+      default: rum
+      description: Type of the event.
+      enum:
+      - rum
+      example: rum
+      type: string
+      x-enum-varnames:
+      - RUM
+    CIAppPipelineLevel:
+      description: Pipeline execution level.
+      enum:
+      - pipeline
+      - stage
+      - job
+      - step
+      - custom
+      example: pipeline
+      type: string
+      x-enum-varnames:
+      - PIPELINE
+      - STAGE
+      - JOB
+      - STEP
+      - CUSTOM
+    EventAttributes:
+      description: Object description of attributes from your event.
+      properties:
+        aggregation_key:
+          description: Aggregation key of the event.
+          type: string
+          example: example_value
+        date_happened:
+          description: 'POSIX timestamp of the event. Must be sent as an integer (no quotation marks).
+
+            Limited to events no older than 18 hours.'
+          format: int64
+          type: integer
+          example: 42
+        device_name:
+          description: A device name.
+          type: string
+          example: Example Monitor
+        duration:
+          description: The duration between the triggering of the event and its recovery in nanoseconds.
+          format: int64
+          type: integer
+          example: 42
+        event_object:
+          description: The event title.
+          example: Did you hear the news today?
+          type: string
+        evt:
+          $ref: '#/components/schemas/Event'
+        hostname:
+          description: 'Host name to associate with the event.
+
+            Any tags associated with the host are also applied to this event.'
+          type: string
+          example: Example Monitor
+        monitor:
+          $ref: '#/components/schemas/MonitorType'
+        monitor_groups:
+          description: List of groups referred to in the event.
+          items:
+            description: Group referred to in the event.
+            type: string
+          nullable: true
+          type: array
+        monitor_id:
+          description: ID of the monitor that triggered the event. When an event isn't related to a monitor, this field is empty.
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        priority:
+          $ref: '#/components/schemas/EventPriority'
+        related_event_id:
+          description: Related event ID.
+          format: int64
+          type: integer
+          example: 42
+        service:
+          description: Service that triggered the event.
+          example: datadog-api
+          type: string
+        source_type_name:
+          description: 'The type of event being posted.
+
+            For example, `nagios`, `hudson`, `jenkins`, `my_apps`, `chef`, `puppet`, `git` or `bitbucket`.
+
+            The list of standard source attribute values is [available here](https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value).'
+          type: string
+          example: Example Monitor
+        sourcecategory:
+          description: Identifier for the source of the event, such as a monitor alert, an externally-submitted event, or an integration.
+          type: string
+          example: example_value
+        status:
+          $ref: '#/components/schemas/EventStatusType'
+        tags:
+          description: A list of tags to apply to the event.
+          example:
+          - environment:test
+          items:
+            description: A tag.
+            type: string
+          type: array
+        timestamp:
+          description: POSIX timestamp of your event in milliseconds.
+          example: 1652274265000
+          format: int64
+          type: integer
+        title:
+          description: The event title.
+          example: Oh boy!
+          type: string
+      type: object
+    LogsListResponse:
+      description: Response object with all logs matching the request and pagination information.
+      properties:
+        data:
+          description: Array of logs matching the request.
+          items:
+            $ref: '#/components/schemas/Log'
+          type: array
+        links:
+          $ref: '#/components/schemas/LogsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/LogsResponseMetadata'
+      type: object
+    ProjectRelationship:
+      description: Relationship to project
+      properties:
+        data:
+          $ref: '#/components/schemas/ProjectRelationshipData'
+      required:
+      - data
+      type: object
+    TagsEventAttribute:
+      description: Array of tags associated with your event.
+      example:
+      - team:A
+      items:
+        description: Tag associated with your event.
+        type: string
+      type: array
+    SpansAggregateResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    CIAppQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Only supply timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    IncidentResponseAttributes:
+      description: The incident's attributes from a response.
+      properties:
+        archived:
+          description: Timestamp of when the incident was archived.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          example: example_value
+        case_id:
+          description: The incident case id.
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+        created:
+          description: Timestamp when the incident was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        customer_impact_duration:
+          description: 'Length of the incident''s customer impact in seconds.
+
+            Equals the difference between `customer_impact_start` and `customer_impact_end`.'
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        customer_impact_end:
+          description: Timestamp when customers were no longer impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impact_scope:
+          description: A summary of the impact customers experienced during the incident.
+          example: An example customer impact scope
+          nullable: true
+          type: string
+        customer_impact_start:
+          description: Timestamp when customers began being impacted by the incident.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        customer_impacted:
+          description: A flag indicating whether the incident caused customer impact.
+          example: false
+          type: boolean
+        detected:
+          description: Timestamp when the incident was detected.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        fields:
+          additionalProperties:
+            $ref: '#/components/schemas/IncidentFieldAttributes'
+          description: A condensed view of the user-defined fields attached to incidents.
+          example:
+            severity:
+              type: dropdown
+              value: SEV-5
+          type: object
+        incident_type_uuid:
+          description: A unique identifier that represents an incident type.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        modified:
+          description: Timestamp when the incident was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        non_datadog_creator:
+          $ref: '#/components/schemas/IncidentNonDatadogCreator'
+        notification_handles:
+          description: Notification handles that will be notified of the incident during update.
+          example:
+          - display_name: Jane Doe
+            handle: '@user@email.com'
+          - display_name: Slack Channel
+            handle: '@slack-channel'
+          - display_name: Incident Workflow
+            handle: '@workflow-from-incident'
+          items:
+            $ref: '#/components/schemas/IncidentNotificationHandle'
+          nullable: true
+          type: array
+        public_id:
+          description: The monotonically increasing integer ID for the incident.
+          example: 1
+          format: int64
+          type: integer
+        resolved:
+          description: Timestamp when the incident's state was last changed from active or stable to resolved or completed.
+          format: date-time
+          nullable: true
+          type: string
+          example: example_value
+        severity:
+          $ref: '#/components/schemas/IncidentSeverity'
+        state:
+          description: The state incident.
+          nullable: true
+          type: string
+          example: example_value
+        time_to_detect:
+          description: 'The amount of time in seconds to detect the incident.
+
+            Equals the difference between `customer_impact_start` and `detected`.'
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_internal_response:
+          description: The amount of time in seconds to call incident after detection. Equals the difference of `detected` and `created`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_repair:
+          description: The amount of time in seconds to resolve customer impact after detecting the issue. Equals the difference between `customer_impact_end` and `detected`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        time_to_resolve:
+          description: The amount of time in seconds to resolve the incident after it was created. Equals the difference between `created` and `resolved`.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+        title:
+          description: The title of the incident, which summarizes what happened.
+          example: A test incident title
+          type: string
+        visibility:
+          description: The incident visibility status.
+          nullable: true
+          type: string
+          example: example_value
+      required:
+      - title
+      type: object
+    IncidentResponseIncludedItem:
+      description: An object related to an incident that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentUserData'
+      - $ref: '#/components/schemas/IncidentAttachmentData'
+    EventsListRequest:
+      description: The object sent with the request to retrieve a list of events from your organization.
+      properties:
+        filter:
+          $ref: '#/components/schemas/EventsQueryFilter'
+        options:
+          $ref: '#/components/schemas/EventsQueryOptions'
+        page:
+          $ref: '#/components/schemas/EventsRequestPage'
+        sort:
+          $ref: '#/components/schemas/EventsSort'
+      type: object
+    IncidentRespondersType:
+      description: The incident responders type.
+      enum:
+      - incident_responders
+      example: incident_responders
+      type: string
+      x-enum-varnames:
+      - INCIDENT_RESPONDERS
+    CIAppResponseMetadataWithPagination:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/CIAppResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/CIAppWarning'
+          type: array
+      type: object
+    NullableUserRelationshipData:
+      description: Relationship to user object.
+      nullable: true
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UserResourceType'
+      required:
+      - id
+      - type
+      type: object
+    LogsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/logs/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RUMSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    IncidentSearchResponseData:
+      description: Data returned by an incident search.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentSearchResponseAttributes'
+        type:
+          $ref: '#/components/schemas/IncidentSearchResultsType'
+      type: object
+    Span:
+      description: Object description of a spans after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansAttributes'
+        id:
+          description: Unique ID of the Span.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/SpansType'
+      type: object
+    IncidentSearchResponseFieldFacetData:
+      description: Facet value and number of occurrences for a property field of an incident.
+      properties:
+        count:
+          $ref: '#/components/schemas/IncidentSearchResponseFacetCount'
+        name:
+          description: The facet value appearing in search results.
+          example: SEV-2
+          type: string
+      type: object
+    IncidentImpactsType:
+      description: The incident impacts type.
+      enum:
+      - incident_impacts
+      example: incident_impacts
+      type: string
+      x-enum-varnames:
+      - INCIDENT_IMPACTS
+    RelationshipToIncidentAttachmentData:
+      description: The attachment relationship data.
+      properties:
+        id:
+          description: A unique identifier that represents the attachment.
+          example: 00000000-0000-abcd-1000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    JiraIssue:
+      description: Jira issue attached to case
+      nullable: true
+      properties:
+        result:
+          $ref: '#/components/schemas/JiraIssueResult'
+        status:
+          $ref: '#/components/schemas/Case3rdPartyTicketStatus'
+      readOnly: true
+      type: object
+    RelationshipToIncidentImpactData:
+      description: Relationship to impact object.
+      properties:
+        id:
+          description: A unique identifier that represents the impact.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentImpactsType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    IncidentSearchResultsType:
+      default: incidents_search_results
+      description: Incident search result type.
+      enum:
+      - incidents_search_results
+      example: incidents_search_results
+      type: string
+      x-enum-varnames:
+      - INCIDENTS_SEARCH_RESULTS
+    Case3rdPartyTicketStatus:
+      default: IN_PROGRESS
+      description: Case status
+      enum:
+      - IN_PROGRESS
+      - COMPLETED
+      - FAILED
+      example: COMPLETED
+      readOnly: true
+      type: string
+      x-enum-varnames:
+      - IN_PROGRESS
+      - COMPLETED
+      - FAILED
+    LogsListRequestPage:
+      description: Paging attributes for listing logs.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    LogsQueryOptions:
+      deprecated: true
+      description: 'Global query options that are used during the query.
+
+        Note: These fields are currently deprecated and do not affect the query results.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    IncidentFieldAttributes:
+      description: Dynamic fields for which selections can be made, with field names as keys.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentFieldAttributesSingleValue'
+      - $ref: '#/components/schemas/IncidentFieldAttributesMultipleValue'
+    AuditLogsSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    SpansAttributes:
+      description: JSON object containing all span attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from your span.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        custom:
+          additionalProperties: {}
+          description: JSON object of custom spans data.
+          type: object
+        end_timestamp:
+          description: End timestamp of your span.
+          example: '2023-01-02T09:42:36.420Z'
+          format: date-time
+          type: string
+        env:
+          description: Name of the environment from where the spans are being sent.
+          example: prod
+          type: string
+        host:
+          description: Name of the machine from where the spans are being sent.
+          example: i-0123
+          type: string
+        ingestion_reason:
+          description: The reason why the span was ingested.
+          example: rule
+          type: string
+        parent_id:
+          description: Id of the span that's parent of this span.
+          example: '0'
+          type: string
+        resource_hash:
+          description: Unique identifier of the resource.
+          example: a12345678b91c23d
+          type: string
+        resource_name:
+          description: The name of the resource.
+          example: agent
+          type: string
+        retained_by:
+          description: The reason why the span was indexed.
+          example: retention_filter
+          type: string
+        service:
+          description: 'The name of the application or service generating the span events.
+
+            It is used to switch from APM to Logs, so make sure you define the same
+
+            value when you use both products.'
+          example: agent
+          type: string
+        single_span:
+          description: Whether or not the span was collected as a stand-alone span. Always associated to "single_span" ingestion_reason if true.
+          example: true
+          type: boolean
+        span_id:
+          description: Id of the span.
+          example: '1234567890987654321'
+          type: string
+        start_timestamp:
+          description: Start timestamp of your span.
+          example: '2023-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+        tags:
+          description: Array of tags associated with your span.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your span.
+            type: string
+          type: array
+        trace_id:
+          description: Id of the trace to which the span belongs.
+          example: '1234567890987654321'
+          type: string
+        type:
+          description: The type of the span.
+          example: web
+          type: string
+      type: object
+    LogsQueryFilter:
+      description: The search and filter query settings
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now-15m
+          type: string
+        indexes:
+          default:
+          - '*'
+          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
+          example:
+          - main
+          - web
+          items:
+            description: The name of a log index.
+            type: string
+          type: array
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        storage_tier:
+          $ref: '#/components/schemas/LogsStorageTier'
+        to:
+          default: now
+          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+    EventsResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/EventsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          description: The request status.
+          example: done
+          type: string
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/EventsWarning'
+          type: array
+      type: object
+    AuditLogsResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/audit/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RUMResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    AuditLogsResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    IncidentNonDatadogCreator:
+      description: Incident's non Datadog creator.
+      nullable: true
+      properties:
+        image_48_px:
+          description: Non Datadog creator `48px` image.
+          type: string
+          example: example_value
+        name:
+          description: Non Datadog creator name.
+          type: string
+          example: Example Monitor
+      type: object
+    NullableRelationshipToUserData:
+      description: Relationship to user object.
+      nullable: true
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ProjectResourceType:
+      default: project
+      description: Project resource type
+      enum:
+      - project
+      example: project
+      type: string
+      x-enum-varnames:
+      - PROJECT
+    CIAppTestEventTypeName:
+      description: Type of the event.
+      enum:
+      - citest
+      example: citest
+      type: string
+      x-enum-varnames:
+      - CITEST
+    EventType:
+      default: event
+      description: Type of the event.
+      enum:
+      - event
+      example: event
+      type: string
+      x-enum-varnames:
+      - EVENT
+    CaseStatus:
+      description: Case status
+      enum:
+      - OPEN
+      - IN_PROGRESS
+      - CLOSED
+      example: OPEN
+      type: string
+      x-enum-varnames:
+      - OPEN
+      - IN_PROGRESS
+      - CLOSED
+    SpansListRequestPage:
+      description: Paging attributes for listing spans.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of spans in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    CIAppQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    CIAppEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from CI Visibility test events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        tags:
+          $ref: '#/components/schemas/TagsEventAttribute'
+        test_level:
+          $ref: '#/components/schemas/CIAppTestLevel'
+      type: object
+    LogAttributes:
+      description: JSON object containing all log attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from your log.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        host:
+          description: Name of the machine from where the logs are being sent.
+          example: i-0123
+          type: string
+        message:
+          description: 'The message [reserved attribute](https://docs.datadoghq.com/logs/log_collection/#reserved-attributes)
+
+            of your log. By default, Datadog ingests the value of the message attribute as the body of the log entry.
+
+            That value is then highlighted and displayed in the Logstream, where it is indexed for full text search.'
+          example: Host connected to remote
+          type: string
+        service:
+          description: 'The name of the application or service generating the log events.
+
+            It is used to switch from Logs to APM, so make sure you define the same
+
+            value when you use both products.'
+          example: agent
+          type: string
+        status:
+          description: Status of the message associated with your log.
+          example: INFO
+          type: string
+        tags:
+          description: Array of tags associated with your log.
+          example:
+          - team:A
+          items:
+            description: Tag associated with your log.
+            type: string
+          type: array
+        timestamp:
+          description: Timestamp of your log.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    AuditLogsQueryFilter:
+      description: Search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: Minimum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: Search query following the Audit Logs search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: Maximum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    Log:
+      description: Object description of a log after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogAttributes'
+        id:
+          description: Unique ID of the Log.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/LogType'
+      type: object
+    EventsQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events. Supports date math and regular timestamps in milliseconds.
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the event search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events. Supports date math and regular timestamps in milliseconds.
+          example: now
+          type: string
+      type: object
+    CIAppResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    NullableRelationshipToUser:
+      description: Relationship to user.
+      nullable: true
+      properties:
+        data:
+          $ref: '#/components/schemas/NullableRelationshipToUserData'
+      required:
+      - data
+      type: object
+    CIAppSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    UserResourceType:
+      default: user
+      description: User resource type.
+      enum:
+      - user
+      example: user
+      type: string
+      x-enum-varnames:
+      - USER
+    SpansQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query - following the span search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+    IncidentSearchSortOrder:
+      description: The ways searched incidents can be sorted.
+      enum:
+      - created
+      - -created
+      type: string
+      x-enum-varnames:
+      - CREATED_ASCENDING
+      - CREATED_DESCENDING
+    NullableUserRelationship:
+      description: Relationship to user.
+      nullable: true
+      properties:
+        data:
+          $ref: '#/components/schemas/NullableUserRelationshipData'
+      required:
+      - data
+      type: object
+    LogsWarning:
+      description: A warning message indicating something that went wrong with the query
+      properties:
+        code:
+          description: A unique code for this type of warning
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    IncidentAttachmentsPostmortemAttributesAttachmentObject:
+      description: The postmortem attachment.
+      properties:
+        documentUrl:
+          description: The URL of this notebook attachment.
+          example: https://app.datadoghq.com/notebook/123
+          type: string
+        title:
+          description: The title of this postmortem attachment.
+          example: Postmortem IR-123
+          type: string
+      required:
+      - documentUrl
+      - title
+      type: object
+    RUMEventsResponse:
+      description: Response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/RUMEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/RUMResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RUMResponseMetadata'
+      type: object
+    IncidentAttachmentData:
+      description: A single incident attachment.
+      example:
+        attributes:
+          attachment:
+            documentUrl: ''
+            title: Postmortem IR-123
+          attachment_type: postmortem
+        id: 00000000-abcd-0002-0000-000000000000
+        relationships:
+          last_modified_by_user:
+            data:
+              id: 00000000-0000-0000-cccc-000000000000
+              type: users
+        type: incident_attachments
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentAttachmentAttributes'
+        id:
+          description: A unique identifier that represents the incident attachment.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/IncidentAttachmentRelationships'
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - type
+      - attributes
+      - id
+      - relationships
+      type: object
+    CaseType:
+      description: Case type
+      enum:
+      - STANDARD
+      example: STANDARD
+      type: string
+      x-enum-varnames:
+      - STANDARD
+    IncidentSearchResponsePropertyFieldFacetData:
+      description: Facet data for the incident property fields.
+      properties:
+        aggregates:
+          $ref: '#/components/schemas/IncidentSearchResponseNumericFacetDataAggregates'
+        facets:
+          description: Facet data for the property field of an incident.
+          items:
+            $ref: '#/components/schemas/IncidentSearchResponseFieldFacetData'
+          type: array
+        name:
+          description: Name of the incident property field.
+          example: Severity
+          type: string
+      required:
+      - facets
+      - name
+      type: object
+    IncidentAttachmentPostmortemAttachmentType:
+      default: postmortem
+      description: The type of postmortem attachment attributes.
+      enum:
+      - postmortem
+      example: postmortem
+      type: string
+      x-enum-varnames:
+      - POSTMORTEM
+    EventsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    MonitorType:
+      description: Attributes from the monitor that triggered the event.
+      nullable: true
+      properties:
+        created_at:
+          description: The POSIX timestamp of the monitor's creation in nanoseconds.
+          example: 1646318692000
+          format: int64
+          type: integer
+        group_status:
+          description: Monitor group status used when there is no `result_groups`.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+        groups:
+          description: Groups to which the monitor belongs.
+          items:
+            description: A group.
+            type: string
+          type: array
+        id:
+          description: The monitor ID.
+          format: int64
+          type: integer
+          example: 42
+        message:
+          description: The monitor message.
+          type: string
+          example: CPU usage is high on {{host.name}}
+        modified:
+          description: The monitor's last-modified timestamp.
+          format: int64
+          type: integer
+          example: 42
+        name:
+          description: The monitor name.
+          type: string
+          example: Example Monitor
+        query:
+          description: The query that triggers the alert.
+          type: string
+          example: avg:system.cpu.user{*}
+        tags:
+          description: A list of tags attached to the monitor.
+          example:
+          - environment:test
+          items:
+            description: A tag.
+            type: string
+          type: array
+        templated_name:
+          description: The templated name of the monitor before resolving any template variables.
+          type: string
+          example: Example Monitor
+        type:
+          description: The monitor type.
+          type: string
+          example: metric alert
+      type: object
+    RUMWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    IncidentSeverity:
+      description: The incident severity.
+      enum:
+      - UNKNOWN
+      - SEV-0
+      - SEV-1
+      - SEV-2
+      - SEV-3
+      - SEV-4
+      - SEV-5
+      example: UNKNOWN
+      type: string
+      x-enum-varnames:
+      - UNKNOWN
+      - SEV_0
+      - SEV_1
+      - SEV_2
+      - SEV_3
+      - SEV_4
+      - SEV_5
+    CIAppResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. The request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/ci/tests/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    IncidentSearchResponseNumericFacetDataAggregates:
+      description: Aggregate information for numeric incident data.
+      properties:
+        max:
+          description: Maximum value of the numeric aggregates.
+          example: 1234
+          format: double
+          nullable: true
+          type: number
+        min:
+          description: Minimum value of the numeric aggregates.
+          example: 20
+          format: double
+          nullable: true
+          type: number
+      type: object
+    SpansType:
+      default: spans
+      description: Type of the span.
+      enum:
+      - spans
+      example: spans
+      type: string
+      x-enum-varnames:
+      - SPANS
+    RUMResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    IncidentRelatedObject:
+      description: Object related to an incident.
+      enum:
+      - users
+      - attachments
+      type: string
+      x-enum-varnames:
+      - USERS
+      - ATTACHMENTS
+    IncidentSearchResponseUserFacetData:
+      description: Facet data for user attributes of an incident.
+      properties:
+        count:
+          $ref: '#/components/schemas/IncidentSearchResponseFacetCount'
+        email:
+          description: Email of the user.
+          example: datadog.user@example.com
+          type: string
+        handle:
+          description: Handle of the user.
+          example: '@datadog.user@example.com'
+          type: string
+        name:
+          description: Name of the user.
+          example: Datadog User
+          type: string
+        uuid:
+          description: ID of the user.
+          example: 773b045d-ccf8-4808-bd3b-955ef6a8c940
+          type: string
+      type: object
+  parameters:
+    IncidentSearchSortQueryParameter:
+      description: Specifies the order of returned incidents.
+      explode: false
+      in: query
+      name: sort
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncidentSearchSortOrder'
+    IncidentSearchIncludeQueryParameter:
+      description: Specifies which types of related objects should be included in the response.
+      in: query
+      name: include
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncidentRelatedObject'
+    CaseSortableFieldParameter:
+      description: Specify which field to sort
+      in: query
+      name: sort[field]
+      required: false
+      schema:
+        $ref: '#/components/schemas/CaseSortableField'
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    PageOffset:
+      description: Specific offset to use as the beginning of the returned page.
+      in: query
+      name: page[offset]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    IncidentSearchQueryQueryParameter:
+      description: 'Specifies which incidents should be returned. The query can contain any number of incident facets
+
+        joined by `ANDs`, along with multiple values for each of those facets joined by `OR`s. For
+
+        example: `state:active AND severity:(SEV-2 OR SEV-1)`.'
+      explode: false
+      in: query
+      name: query
+      required: true
+      schema:
+        type: string
+  responses:
+    SpansBadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: Bad Request.
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    SpansUnprocessableEntityResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: Unprocessable Entity.
+    SpansTooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Too many requests: The rate limit set by the API has been exceeded.'
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    SpansForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Forbidden: Access denied.'
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

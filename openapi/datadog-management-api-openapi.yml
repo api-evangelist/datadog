@@ -1,0 +1,1065 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Management API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Management
+paths:
+  /api/v2/cost/aws_cur_config:
+    get:
+      description: List the AWS CUR configs.
+      operationId: ListCostAWSCURConfigs
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AwsCURConfigsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_read
+      summary: Datadog List Cloud Cost Management Aws Cur Configs
+      tags:
+      - Management
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a Cloud Cost Management account for an AWS CUR config.
+      operationId: CreateCostAWSCURConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwsCURConfigPostRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AwsCURConfigResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Create Cloud Cost Management Aws Cur Config
+      tags:
+      - Management
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/cost/aws_cur_config/{cloud_account_id}:
+    delete:
+      description: Archive a Cloud Cost Management Account.
+      operationId: DeleteCostAWSCURConfig
+      parameters:
+      - $ref: '#/components/parameters/CloudAccountID'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Delete Cloud Cost Management Aws Cur Config
+      tags:
+      - Management
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update the status (active/archived) and/or account filtering configuration of an AWS CUR config.
+      operationId: UpdateCostAWSCURConfig
+      parameters:
+      - $ref: '#/components/parameters/CloudAccountID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwsCURConfigPatchRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AwsCURConfigsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Update Cloud Cost Management Aws Cur Config
+      tags:
+      - Management
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/cost/azure_uc_config:
+    get:
+      description: List the Azure configs.
+      operationId: ListCostAzureUCConfigs
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureUCConfigsResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_read
+      summary: Datadog List Cloud Cost Management Azure Configs
+      tags:
+      - Management
+      x-menu-order: 6
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: Create a Cloud Cost Management account for an Azure config.
+      operationId: CreateCostAzureUCConfigs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AzureUCConfigPostRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureUCConfigPairsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Create Cloud Cost Management Azure Configs
+      tags:
+      - Management
+      x-menu-order: 8
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/cost/azure_uc_config/{cloud_account_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: Archive a Cloud Cost Management Account.
+      operationId: DeleteCostAzureUCConfig
+      parameters:
+      - $ref: '#/components/parameters/CloudAccountID'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Delete Cloud Cost Management Azure Config
+      tags:
+      - Management
+      x-menu-order: 9
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update the status of an  Azure config (active/archived).
+      operationId: UpdateCostAzureUCConfigs
+      parameters:
+      - $ref: '#/components/parameters/CloudAccountID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AzureUCConfigPatchRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureUCConfigPairsResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - cloud_cost_management_write
+      summary: Datadog Update Cloud Cost Management Azure Config
+      tags:
+      - Management
+      x-menu-order: 7
+      x-permission:
+        operator: OR
+        permissions:
+        - cloud_cost_management_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    AwsCURConfig:
+      description: AWS CUR config.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigAttributes'
+        id:
+          description: The ID of the AWS CUR config.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          $ref: '#/components/schemas/AwsCURConfigType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AwsCURConfigPatchRequest:
+      description: AWS CUR config Patch Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsCURConfigPatchData'
+      required:
+      - data
+      type: object
+    AzureUCConfigPostRequestType:
+      default: azure_uc_config_post_request
+      description: Type of Azure config Post Request.
+      enum:
+      - azure_uc_config_post_request
+      example: azure_uc_config_post_request
+      type: string
+      x-enum-varnames:
+      - AZURE_UC_CONFIG_POST_REQUEST
+    AwsCURConfigType:
+      default: aws_cur_config
+      description: Type of AWS CUR config.
+      enum:
+      - aws_cur_config
+      example: aws_cur_config
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG
+    AzureUCConfigPairAttributes:
+      description: Attributes for Azure config pair.
+      properties:
+        configs:
+          description: An Azure config.
+          items:
+            $ref: '#/components/schemas/AzureUCConfig'
+          type: array
+        id:
+          description: The ID of the Azure config pair.
+          format: int64
+          type: integer
+          example: 42
+      required:
+      - configs
+      type: object
+      x-merge-override:
+        properties: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    AwsCURConfigsResponse:
+      description: List of AWS CUR configs.
+      properties:
+        data:
+          description: An AWS CUR config.
+          items:
+            $ref: '#/components/schemas/AwsCURConfig'
+          type: array
+      type: object
+    AzureUCConfigPatchRequestType:
+      default: azure_uc_config_patch_request
+      description: Type of Azure config Patch Request.
+      enum:
+      - azure_uc_config_patch_request
+      example: azure_uc_config_patch_request
+      type: string
+      x-enum-varnames:
+      - AZURE_UC_CONFIG_PATCH_REQUEST
+    AwsCURConfigResponse:
+      description: Response of AWS CUR config.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsCURConfig'
+      type: object
+    BillConfig:
+      description: Bill config.
+      properties:
+        export_name:
+          description: The name of the configured Azure Export.
+          example: dd-actual-export
+          type: string
+        export_path:
+          description: The path where the Azure Export is saved.
+          example: dd-export-path
+          type: string
+        storage_account:
+          description: The name of the storage account where the Azure Export is saved.
+          example: dd-storage-account
+          type: string
+        storage_container:
+          description: The name of the storage container where the Azure Export is saved.
+          example: dd-storage-container
+          type: string
+      required:
+      - export_name
+      - export_path
+      - storage_account
+      - storage_container
+      type: object
+    AwsCURConfigPatchRequestType:
+      default: aws_cur_config_patch_request
+      description: Type of AWS CUR config Patch Request.
+      enum:
+      - aws_cur_config_patch_request
+      example: aws_cur_config_patch_request
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG_PATCH_REQUEST
+    AwsCURConfigPostData:
+      description: AWS CUR config Post data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigPostRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AwsCURConfigPostRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+    AzureUCConfigPostRequest:
+      description: Azure config Post Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPostData'
+      required:
+      - data
+      type: object
+    AzureUCConfig:
+      description: Azure config.
+      properties:
+        account_id:
+          description: The tenant ID of the azure account.
+          example: 1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+        client_id:
+          description: The client ID of the Azure account.
+          example: 1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+        created_at:
+          description: The timestamp when the Azure config was created.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: example_value
+        dataset_type:
+          description: The dataset type of the Azure config.
+          example: actual
+          type: string
+        error_messages:
+          description: The error messages for the Azure config.
+          items:
+            type: string
+          type: array
+        export_name:
+          description: The name of the configured Azure Export.
+          example: dd-actual-export
+          type: string
+        export_path:
+          description: The path where the Azure Export is saved.
+          example: dd-export-path
+          type: string
+        id:
+          description: The ID of the Azure config.
+          format: int64
+          type: integer
+          example: 42
+        months:
+          deprecated: true
+          description: The number of months the report has been backfilled.
+          format: int32
+          maximum: 36
+          type: integer
+          example: 42
+        scope:
+          description: The scope of your observed subscription.
+          example: /subscriptions/1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+        status:
+          description: The status of the Azure config.
+          example: active
+          type: string
+        status_updated_at:
+          description: The timestamp when the Azure config status was last updated.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: OK
+        storage_account:
+          description: The name of the storage account where the Azure Export is saved.
+          example: dd-storage-account
+          type: string
+        storage_container:
+          description: The name of the storage container where the Azure Export is saved.
+          example: dd-storage-container
+          type: string
+        updated_at:
+          description: The timestamp when the Azure config was last updated.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: '2026-04-17T12:00:00Z'
+      required:
+      - account_id
+      - client_id
+      - dataset_type
+      - export_name
+      - export_path
+      - scope
+      - status
+      - storage_account
+      - storage_container
+      type: object
+      x-merge-override:
+        required: false
+    AwsCURConfigPatchData:
+      description: AWS CUR config Patch data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigPatchRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AwsCURConfigPatchRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AwsCURConfigPatchRequestAttributes:
+      description: Attributes for AWS CUR config Patch Request.
+      properties:
+        account_filters:
+          $ref: '#/components/schemas/AccountFilteringConfig'
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          example: true
+          type: boolean
+      type: object
+    AzureUCConfigsResponse:
+      description: List of Azure accounts with configs.
+      properties:
+        data:
+          description: An Azure config pair.
+          items:
+            $ref: '#/components/schemas/AzureUCConfigPair'
+          type: array
+      type: object
+    AzureUCConfigPostData:
+      description: Azure config Post data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AzureUCConfigPostRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AzureUCConfigPostRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+    AwsCURConfigPostRequestType:
+      default: aws_cur_config_post_request
+      description: Type of AWS CUR config Post Request.
+      enum:
+      - aws_cur_config_post_request
+      example: aws_cur_config_post_request
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG_POST_REQUEST
+    AzureUCConfigPatchRequest:
+      description: Azure config Patch Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPatchData'
+      required:
+      - data
+      type: object
+    AzureUCConfigPairType:
+      default: azure_uc_configs
+      description: Type of Azure config pair.
+      enum:
+      - azure_uc_configs
+      example: azure_uc_configs
+      type: string
+      x-enum-varnames:
+      - AZURE_UC_CONFIGS
+    AccountFilteringConfig:
+      description: The account filtering configuration.
+      properties:
+        excluded_accounts:
+          description: The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.
+          example:
+          - '123456789123'
+          - '123456789143'
+          items:
+            type: string
+          type: array
+        include_new_accounts:
+          description: Whether or not to automatically include new member accounts by default in your billing dataset.
+          example: true
+          type: boolean
+        included_accounts:
+          description: The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.
+          example:
+          - '123456789123'
+          - '123456789143'
+          items:
+            type: string
+          type: array
+      type: object
+    AzureUCConfigPatchRequestAttributes:
+      description: Attributes for Azure config Patch Request.
+      properties:
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          example: true
+          type: boolean
+      required:
+      - is_enabled
+      type: object
+    AwsCURConfigPostRequestAttributes:
+      description: Attributes for AWS CUR config Post Request.
+      properties:
+        account_filters:
+          $ref: '#/components/schemas/AccountFilteringConfig'
+        account_id:
+          description: The AWS account ID.
+          example: '123456789123'
+          type: string
+        bucket_name:
+          description: The AWS bucket name used to store the Cost and Usage Report.
+          example: dd-cost-bucket
+          type: string
+        bucket_region:
+          description: The region the bucket is located in.
+          example: us-east-1
+          type: string
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          type: boolean
+          example: true
+        months:
+          description: The month of the report.
+          format: int32
+          maximum: 36
+          type: integer
+          example: 42
+        report_name:
+          description: The name of the Cost and Usage Report.
+          example: dd-report-name
+          type: string
+        report_prefix:
+          description: The report prefix used for the Cost and Usage Report.
+          example: dd-report-prefix
+          type: string
+      required:
+      - account_id
+      - bucket_name
+      - report_name
+      - report_prefix
+      type: object
+    AzureUCConfigPairsResponse:
+      description: Response of Azure config pair.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPair'
+      type: object
+    AzureUCConfigPostRequestAttributes:
+      description: Attributes for Azure config Post Request.
+      properties:
+        account_id:
+          description: The tenant ID of the azure account.
+          example: 1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+        actual_bill_config:
+          $ref: '#/components/schemas/BillConfig'
+        amortized_bill_config:
+          $ref: '#/components/schemas/BillConfig'
+        client_id:
+          description: The client ID of the azure account.
+          example: 1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          type: boolean
+          example: true
+        scope:
+          description: The scope of your observed subscription.
+          example: /subscriptions/1234abcd-1234-abcd-1234-1234abcd1234
+          type: string
+      required:
+      - account_id
+      - actual_bill_config
+      - amortized_bill_config
+      - client_id
+      - scope
+      type: object
+    AzureUCConfigPair:
+      description: Azure config pair.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AzureUCConfigPairAttributes'
+        id:
+          description: The ID of Cloud Cost Management account.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          $ref: '#/components/schemas/AzureUCConfigPairType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AwsCURConfigPostRequest:
+      description: AWS CUR config Post Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsCURConfigPostData'
+      required:
+      - data
+      type: object
+    AwsCURConfigAttributes:
+      description: Attributes for An AWS CUR config.
+      properties:
+        account_filters:
+          $ref: '#/components/schemas/AccountFilteringConfig'
+        account_id:
+          description: The AWS account ID.
+          example: '123456789123'
+          type: string
+        bucket_name:
+          description: The AWS bucket name used to store the Cost and Usage Report.
+          example: dd-cost-bucket
+          type: string
+        bucket_region:
+          description: The region the bucket is located in.
+          example: us-east-1
+          type: string
+        created_at:
+          description: The timestamp when the AWS CUR config was created.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: example_value
+        error_messages:
+          description: The error messages for the AWS CUR config.
+          items:
+            type: string
+          type: array
+        months:
+          deprecated: true
+          description: The number of months the report has been backfilled.
+          format: int32
+          maximum: 36
+          type: integer
+          example: 42
+        report_name:
+          description: The name of the Cost and Usage Report.
+          example: dd-report-name
+          type: string
+        report_prefix:
+          description: The report prefix used for the Cost and Usage Report.
+          example: dd-report-prefix
+          type: string
+        status:
+          description: The status of the AWS CUR.
+          example: active
+          type: string
+        status_updated_at:
+          description: The timestamp when the AWS CUR config status was updated.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: OK
+        updated_at:
+          description: The timestamp when the AWS CUR config status was updated.
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}$
+          type: string
+          x-merge-override:
+            format: false
+          example: '2026-04-17T12:00:00Z'
+      required:
+      - account_id
+      - bucket_name
+      - bucket_region
+      - report_name
+      - report_prefix
+      - status
+      type: object
+      x-merge-override:
+        required: false
+    AzureUCConfigPatchData:
+      description: Azure config Patch data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AzureUCConfigPatchRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AzureUCConfigPatchRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+  parameters:
+    CloudAccountID:
+      description: Cloud Account id.
+      in: path
+      name: cloud_account_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

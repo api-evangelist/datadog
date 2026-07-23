@@ -1,0 +1,1279 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Definition API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Definition
+paths:
+  /api/v2/services/definitions:
+    post:
+      description: Create or update service definition in the Datadog Service Catalog.
+      operationId: CreateOrUpdateServiceDefinitions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceDefinitionsCreateRequest'
+        description: Service Definition YAML/JSON.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDefinitionCreateResponse'
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - apm_service_catalog_write
+      summary: Datadog Create or Update Service Definition
+      tags:
+      - Definition
+      x-codegen-request-body-name: body
+      x-given:
+        service_definition:
+          parameters:
+          - name: body
+            value: "{\n  \"dd-service\": \"service-{{ unique_lower_alnum }}\",\n  \"dd-team\": \"my-team\",\n  \"docs\": [{\"name\": \"Architecture\",\n            \"provider\": \"google drive\",\n            \"url\": \"https://gdrive/mygivedoc\"}],\n  \"extensions\": {\"frogextension\": \"extensionfrogvalue\"},\n  \"integrations\": {\"opsgenie\": {\"region\": \"US\",\n                                \"service-url\": \"https://my-org.opsgenie.com/service/123e4567-e89b-12d3-a456-426614174000\"},\n                   \"pagerduty\": \"https://my-org.pagerduty.com/service-directory/PMyService\"},\n  \"links\": [{\"name\": \"Runbook\", \"type\": \"runbook\", \"url\": \"https://my-runbook\"}],\n  \"repos\": [{\"name\": \"Source Code\",\n             \"provider\": \"GitHub\",\n             \"url\": \"https://github.com/DataDog/given\"}],\n  \"schema-version\": \"v2\",\n  \"tags\": [\"this:tag\", \"service:tag\"],\n  \"team\": \"super-team\"\n}"
+          step: there is a valid "service_definition" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_service_catalog_write
+      x-undo:
+        operationId: DeleteServiceDefinition
+        parameters:
+        - name: service_name
+          source: data[0].attributes.schema.dd-service
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/services/definitions/{service_name}:
+    delete:
+      description: Delete a single service definition in the Datadog Service Catalog.
+      operationId: DeleteServiceDefinition
+      parameters:
+      - $ref: '#/components/parameters/ServiceName'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - apm_service_catalog_write
+      summary: Datadog Delete a Single Service Definition
+      tags:
+      - Definition
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_service_catalog_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a single service definition from the Datadog Service Catalog.
+      operationId: GetServiceDefinition
+      parameters:
+      - $ref: '#/components/parameters/ServiceName'
+      - $ref: '#/components/parameters/SchemaVersion'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDefinitionGetResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - apm_service_catalog_read
+      summary: Datadog Get a Single Service Definition
+      tags:
+      - Definition
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_service_catalog_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ServiceDefinitionV2:
+      description: Service definition V2 for providing service metadata and integrations.
+      properties:
+        contacts:
+          description: A list of contacts related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Contact'
+          type: array
+        dd-service:
+          description: Unique identifier of the service. Must be unique across all services and is used to match with a service in Datadog.
+          example: my-service
+          type: string
+        dd-team:
+          description: Experimental feature. A Team handle that matches a Team in the Datadog Teams product.
+          example: my-team
+          type: string
+        docs:
+          description: A list of documentation related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Doc'
+          type: array
+        extensions:
+          additionalProperties: {}
+          description: Extensions to V2 schema.
+          example:
+            myorg/extension: extensionValue
+          type: object
+        integrations:
+          $ref: '#/components/schemas/ServiceDefinitionV2Integrations'
+        links:
+          description: A list of links related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Link'
+          type: array
+        repos:
+          description: A list of code repositories related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Repo'
+          type: array
+        schema-version:
+          $ref: '#/components/schemas/ServiceDefinitionV2Version'
+        tags:
+          description: A set of custom tags.
+          example:
+          - my:tag
+          - service:tag
+          items:
+            type: string
+          type: array
+        team:
+          description: Team that owns the service.
+          example: my-team
+          type: string
+      required:
+      - schema-version
+      - dd-service
+      type: object
+    ServiceDefinitionV2Dot2Version:
+      default: v2.2
+      description: Schema version being used.
+      enum:
+      - v2.2
+      example: v2.2
+      type: string
+      x-enum-varnames:
+      - V2_2
+    ServiceDefinitionV1Version:
+      default: v1
+      description: Schema version being used.
+      enum:
+      - v1
+      example: v1
+      type: string
+      x-enum-varnames:
+      - V1
+    ServiceDefinitionsCreateRequest:
+      description: Create service definitions request.
+      oneOf:
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot2'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot1'
+      - $ref: '#/components/schemas/ServiceDefinitionV2'
+      - $ref: '#/components/schemas/ServiceDefinitionRaw'
+    ServiceDefinitionV2Dot1Pagerduty:
+      description: PagerDuty integration for the service.
+      properties:
+        service-url:
+          description: PagerDuty service url.
+          example: https://my-org.pagerduty.com/service-directory/PMyService
+          type: string
+      type: object
+      x-ignore-duplicate-object: true
+    ServiceDefinitionV1Org:
+      description: Org related information about the service.
+      properties:
+        application:
+          description: App feature this service supports.
+          example: E-Commerce
+          type: string
+        team:
+          description: Team that owns the service.
+          example: my-team
+          type: string
+      type: object
+    ServiceDefinitionV1ResourceType:
+      description: Link type.
+      enum:
+      - doc
+      - wiki
+      - runbook
+      - url
+      - repo
+      - dashboard
+      - oncall
+      - code
+      - link
+      example: runbook
+      type: string
+      x-enum-varnames:
+      - DOC
+      - WIKI
+      - RUNBOOK
+      - URL
+      - REPO
+      - DASHBOARD
+      - ONCALL
+      - CODE
+      - LINK
+    ServiceDefinitionV2Dot1Contact:
+      description: Service owner's contacts information.
+      oneOf:
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot1Email'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot1Slack'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot1MSTeams'
+    ServiceDefinitionV2Opsgenie:
+      description: Opsgenie integration for the service.
+      properties:
+        region:
+          $ref: '#/components/schemas/ServiceDefinitionV2OpsgenieRegion'
+        service-url:
+          description: Opsgenie service url.
+          example: https://my-org.opsgenie.com/service/123e4567-e89b-12d3-a456-426614174000
+          type: string
+      required:
+      - service-url
+      type: object
+    ServiceDefinitionV2Dot1EmailType:
+      description: Contact type.
+      enum:
+      - email
+      example: email
+      type: string
+      x-enum-varnames:
+      - EMAIL
+    ServiceDefinitionV2Dot1Version:
+      default: v2.1
+      description: Schema version being used.
+      enum:
+      - v2.1
+      example: v2.1
+      type: string
+      x-enum-varnames:
+      - V2_1
+    ServiceDefinitionV2Dot2Opsgenie:
+      description: Opsgenie integration for the service.
+      properties:
+        region:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2OpsgenieRegion'
+        service-url:
+          description: Opsgenie service url.
+          example: https://my-org.opsgenie.com/service/123e4567-e89b-12d3-a456-426614174000
+          type: string
+      required:
+      - service-url
+      type: object
+    ServiceDefinitionV2Dot1MSTeamsType:
+      description: Contact type.
+      enum:
+      - microsoft-teams
+      example: microsoft-teams
+      type: string
+      x-enum-varnames:
+      - MICROSOFT_TEAMS
+    ServiceDefinitionV2Dot1LinkType:
+      description: Link type.
+      enum:
+      - doc
+      - repo
+      - runbook
+      - dashboard
+      - other
+      example: runbook
+      type: string
+      x-enum-varnames:
+      - DOC
+      - REPO
+      - RUNBOOK
+      - DASHBOARD
+      - OTHER
+    ServiceDefinitionV2Dot2Contact:
+      description: Service owner's contacts information.
+      properties:
+        contact:
+          description: Contact value.
+          example: https://teams.microsoft.com/myteam
+          type: string
+        name:
+          description: Contact Name.
+          example: My team channel
+          type: string
+        type:
+          description: 'Contact type. Datadog recognizes the following types: `email`, `slack`, and `microsoft-teams`.'
+          example: slack
+          type: string
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2Dot1:
+      description: Service definition v2.1 for providing service metadata and integrations.
+      properties:
+        application:
+          description: Identifier for a group of related services serving a product feature, which the service is a part of.
+          example: my-app
+          type: string
+        contacts:
+          description: A list of contacts related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Dot1Contact'
+          type: array
+        dd-service:
+          description: Unique identifier of the service. Must be unique across all services and is used to match with a service in Datadog.
+          example: my-service
+          type: string
+        description:
+          description: A short description of the service.
+          example: My service description
+          type: string
+        extensions:
+          additionalProperties: {}
+          description: Extensions to v2.1 schema.
+          example:
+            myorg/extension: extensionValue
+          type: object
+        integrations:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1Integrations'
+        lifecycle:
+          description: The current life cycle phase of the service.
+          example: sandbox
+          type: string
+        links:
+          description: A list of links related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Dot1Link'
+          type: array
+        schema-version:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1Version'
+        tags:
+          description: A set of custom tags.
+          example:
+          - my:tag
+          - service:tag
+          items:
+            type: string
+          type: array
+        team:
+          description: Team that owns the service. It is used to locate a team defined in Datadog Teams if it exists.
+          example: my-team
+          type: string
+        tier:
+          description: Importance of the service.
+          example: High
+          type: string
+      required:
+      - schema-version
+      - dd-service
+      type: object
+    ServiceDefinitionSchema:
+      description: Service definition schema.
+      oneOf:
+      - $ref: '#/components/schemas/ServiceDefinitionV1'
+      - $ref: '#/components/schemas/ServiceDefinitionV2'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot1'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Dot2'
+    ServiceDefinitionSchemaVersions:
+      description: Schema versions
+      enum:
+      - v1
+      - v2
+      - v2.1
+      - v2.2
+      type: string
+      x-enum-varnames:
+      - V1
+      - V2
+      - V2_1
+      - V2_2
+    ServiceDefinitionV2Dot1SlackType:
+      description: Contact type.
+      enum:
+      - slack
+      example: slack
+      type: string
+      x-enum-varnames:
+      - SLACK
+    ServiceDefinitionV2Integrations:
+      description: Third party integrations that Datadog supports.
+      properties:
+        opsgenie:
+          $ref: '#/components/schemas/ServiceDefinitionV2Opsgenie'
+        pagerduty:
+          $ref: '#/components/schemas/ServiceDefinitionV2Pagerduty'
+      type: object
+    ServiceDefinitionMeta:
+      description: Metadata about a service definition.
+      properties:
+        github-html-url:
+          description: GitHub HTML URL.
+          type: string
+          example: https://app.datadoghq.com
+        ingested-schema-version:
+          description: Ingestion schema version.
+          type: string
+          example: example_value
+        ingestion-source:
+          description: Ingestion source of the service definition.
+          type: string
+          example: example_value
+        last-modified-time:
+          description: Last modified time of the service definition.
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        origin:
+          description: User defined origin of the service definition.
+          type: string
+          example: example_value
+        origin-detail:
+          description: User defined origin's detail of the service definition.
+          type: string
+          example: example_value
+        warnings:
+          description: A list of schema validation warnings.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionMetaWarnings'
+          type: array
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ServiceDefinitionV2Dot1Email:
+      description: Service owner's email.
+      properties:
+        contact:
+          description: Contact value.
+          example: contact@datadoghq.com
+          type: string
+        name:
+          description: Contact email.
+          example: Team Email
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1EmailType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2Doc:
+      description: Service documents.
+      properties:
+        name:
+          description: Document name.
+          example: Architecture
+          type: string
+        provider:
+          description: Document provider.
+          example: google drive
+          type: string
+        url:
+          description: Document URL.
+          example: https://gdrive/mydoc
+          type: string
+      required:
+      - name
+      - url
+      type: object
+    ServiceDefinitionV2Dot2Link:
+      description: Service's external links.
+      properties:
+        name:
+          description: Link name.
+          example: Runbook
+          type: string
+        provider:
+          description: Link provider.
+          example: Github
+          type: string
+        type:
+          description: 'Link type. Datadog recognizes the following types: `runbook`, `doc`, `repo`, `dashboard`, and `other`.'
+          example: runbook
+          type: string
+        url:
+          description: Link URL.
+          example: https://my-runbook
+          type: string
+      required:
+      - name
+      - type
+      - url
+      type: object
+    ServiceDefinitionV2Dot2Type:
+      description: The type of service.
+      example: web
+      type: string
+    ServiceDefinitionV1Contact:
+      description: Contact information about the service.
+      properties:
+        email:
+          description: Service owner’s email.
+          example: contact@datadoghq.com
+          type: string
+        slack:
+          description: Service owner’s Slack channel.
+          example: https://yourcompany.slack.com/archives/channel123
+          type: string
+      type: object
+    ServiceDefinitionV2Dot2Integrations:
+      description: Third party integrations that Datadog supports.
+      properties:
+        opsgenie:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2Opsgenie'
+        pagerduty:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2Pagerduty'
+      type: object
+    ServiceDefinitionV2Contact:
+      description: Service owner's contacts information.
+      oneOf:
+      - $ref: '#/components/schemas/ServiceDefinitionV2Email'
+      - $ref: '#/components/schemas/ServiceDefinitionV2Slack'
+      - $ref: '#/components/schemas/ServiceDefinitionV2MSTeams'
+    ServiceDefinitionV2Dot2OpsgenieRegion:
+      description: Opsgenie instance region.
+      enum:
+      - US
+      - EU
+      example: US
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+    ServiceDefinitionV2Version:
+      default: v2
+      description: Schema version being used.
+      enum:
+      - v2
+      example: v2
+      type: string
+      x-enum-varnames:
+      - V2
+    ServiceDefinitionV2LinkType:
+      description: Link type.
+      enum:
+      - doc
+      - wiki
+      - runbook
+      - url
+      - repo
+      - dashboard
+      - oncall
+      - code
+      - link
+      example: runbook
+      type: string
+      x-enum-varnames:
+      - DOC
+      - WIKI
+      - RUNBOOK
+      - URL
+      - REPO
+      - DASHBOARD
+      - ONCALL
+      - CODE
+      - LINK
+    ServiceDefinitionV2Dot1Link:
+      description: Service's external links.
+      properties:
+        name:
+          description: Link name.
+          example: Runbook
+          type: string
+        provider:
+          description: Link provider.
+          example: Github
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1LinkType'
+        url:
+          description: Link URL.
+          example: https://my-runbook
+          type: string
+      required:
+      - name
+      - type
+      - url
+      type: object
+    ServiceDefinitionV2EmailType:
+      description: Contact type.
+      enum:
+      - email
+      example: email
+      type: string
+      x-enum-varnames:
+      - EMAIL
+    ServiceDefinitionMetaWarnings:
+      description: Schema validation warnings.
+      properties:
+        instance-location:
+          description: The warning instance location.
+          type: string
+          example: example_value
+        keyword-location:
+          description: The warning keyword location.
+          type: string
+          example: example_value
+        message:
+          description: The warning message.
+          type: string
+          example: CPU usage is high on {{host.name}}
+      type: object
+    ServiceDefinitionV2Dot1OpsgenieRegion:
+      description: Opsgenie instance region.
+      enum:
+      - US
+      - EU
+      example: US
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+    ServiceDefinitionV2Slack:
+      description: Service owner's Slack channel.
+      properties:
+        contact:
+          description: Slack Channel.
+          example: https://yourcompany.slack.com/archives/channel123
+          type: string
+        name:
+          description: Contact Slack.
+          example: Team Slack
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2SlackType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionRaw:
+      description: Service Definition in raw JSON/YAML representation.
+      example: '---
+
+        schema-version: v2
+
+        dd-service: my-service
+
+        '
+      type: string
+    ServiceDefinitionV2Dot1Integrations:
+      description: Third party integrations that Datadog supports.
+      properties:
+        opsgenie:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1Opsgenie'
+        pagerduty:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1Pagerduty'
+      type: object
+    ServiceDefinitionV2Repo:
+      description: Service code repositories.
+      properties:
+        name:
+          description: Repository name.
+          example: Source Code
+          type: string
+        provider:
+          description: Repository provider.
+          example: GitHub
+          type: string
+        url:
+          description: Repository URL.
+          example: https://github.com/DataDog/schema
+          type: string
+      required:
+      - name
+      - url
+      type: object
+    ServiceDefinitionV1Resource:
+      description: Service's external links.
+      properties:
+        name:
+          description: Link name.
+          example: Runbook
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV1ResourceType'
+        url:
+          description: Link URL.
+          example: https://my-runbook
+          type: string
+      required:
+      - name
+      - type
+      - url
+      type: object
+    ServiceDefinitionData:
+      description: Service definition data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ServiceDefinitionDataAttributes'
+        id:
+          description: Service definition id.
+          type: string
+          example: abc-123-def
+        type:
+          description: Service definition type.
+          type: string
+          example: metric alert
+      type: object
+    ServiceDefinitionV2Dot1Opsgenie:
+      description: Opsgenie integration for the service.
+      properties:
+        region:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1OpsgenieRegion'
+        service-url:
+          description: Opsgenie service url.
+          example: https://my-org.opsgenie.com/service/123e4567-e89b-12d3-a456-426614174000
+          type: string
+      required:
+      - service-url
+      type: object
+    ServiceDefinitionDataAttributes:
+      description: Service definition attributes.
+      properties:
+        meta:
+          $ref: '#/components/schemas/ServiceDefinitionMeta'
+        schema:
+          $ref: '#/components/schemas/ServiceDefinitionSchema'
+      type: object
+    ServiceDefinitionV2MSTeams:
+      description: Service owner's Microsoft Teams.
+      properties:
+        contact:
+          description: Contact value.
+          example: https://teams.microsoft.com/myteam
+          type: string
+        name:
+          description: Contact Microsoft Teams.
+          example: My team channel
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2MSTeamsType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2Dot1Slack:
+      description: Service owner's Slack channel.
+      properties:
+        contact:
+          description: Slack Channel.
+          example: https://yourcompany.slack.com/archives/channel123
+          type: string
+        name:
+          description: Contact Slack.
+          example: Team Slack
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1SlackType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2Email:
+      description: Service owner's email.
+      properties:
+        contact:
+          description: Contact value.
+          example: contact@datadoghq.com
+          type: string
+        name:
+          description: Contact email.
+          example: Team Email
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2EmailType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2Pagerduty:
+      description: PagerDuty service URL for the service.
+      example: https://my-org.pagerduty.com/service-directory/PMyService
+      type: string
+    ServiceDefinitionV2Dot2:
+      description: Service definition v2.2 for providing service metadata and integrations.
+      properties:
+        application:
+          description: Identifier for a group of related services serving a product feature, which the service is a part of.
+          example: my-app
+          type: string
+        ci-pipeline-fingerprints:
+          description: A set of CI fingerprints.
+          example:
+          - j88xdEy0J5lc
+          - eZ7LMljCk8vo
+          items:
+            type: string
+          type: array
+        contacts:
+          description: A list of contacts related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Dot2Contact'
+          type: array
+        dd-service:
+          description: Unique identifier of the service. Must be unique across all services and is used to match with a service in Datadog.
+          example: my-service
+          type: string
+        description:
+          description: A short description of the service.
+          example: My service description
+          type: string
+        extensions:
+          additionalProperties: {}
+          description: Extensions to v2.2 schema.
+          example:
+            myorg/extension: extensionValue
+          type: object
+        integrations:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2Integrations'
+        languages:
+          description: 'The service''s programming language. Datadog recognizes the following languages: `dotnet`, `go`, `java`, `js`, `php`, `python`, `ruby`, and `c++`.'
+          example:
+          - dotnet
+          - go
+          - java
+          - js
+          - php
+          - python
+          - ruby
+          - c++
+          items:
+            type: string
+          type: array
+        lifecycle:
+          description: The current life cycle phase of the service.
+          example: sandbox
+          type: string
+        links:
+          description: A list of links related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV2Dot2Link'
+          type: array
+        schema-version:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2Version'
+        tags:
+          description: A set of custom tags.
+          example:
+          - my:tag
+          - service:tag
+          items:
+            type: string
+          type: array
+        team:
+          description: Team that owns the service. It is used to locate a team defined in Datadog Teams if it exists.
+          example: my-team
+          type: string
+        tier:
+          description: Importance of the service.
+          example: High
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot2Type'
+      required:
+      - schema-version
+      - dd-service
+      type: object
+    ServiceDefinitionCreateResponse:
+      description: Create service definitions response.
+      properties:
+        data:
+          description: Create service definitions response payload.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionData'
+          type: array
+      type: object
+    ServiceDefinitionV2Link:
+      description: Service's external links.
+      properties:
+        name:
+          description: Link name.
+          example: Runbook
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2LinkType'
+        url:
+          description: Link URL.
+          example: https://my-runbook
+          type: string
+      required:
+      - name
+      - type
+      - url
+      type: object
+    ServiceDefinitionV2Dot1MSTeams:
+      description: Service owner's Microsoft Teams.
+      properties:
+        contact:
+          description: Contact value.
+          example: https://teams.microsoft.com/myteam
+          type: string
+        name:
+          description: Contact Microsoft Teams.
+          example: My team channel
+          type: string
+        type:
+          $ref: '#/components/schemas/ServiceDefinitionV2Dot1MSTeamsType'
+      required:
+      - type
+      - contact
+      type: object
+    ServiceDefinitionV2OpsgenieRegion:
+      description: Opsgenie instance region.
+      enum:
+      - US
+      - EU
+      example: US
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+    ServiceDefinitionV2Dot2Pagerduty:
+      description: PagerDuty integration for the service.
+      properties:
+        service-url:
+          description: PagerDuty service url.
+          example: https://my-org.pagerduty.com/service-directory/PMyService
+          type: string
+      type: object
+      x-ignore-duplicate-object: true
+    ServiceDefinitionV1:
+      deprecated: true
+      description: Deprecated - Service definition V1 for providing additional service metadata and integrations.
+      properties:
+        contact:
+          $ref: '#/components/schemas/ServiceDefinitionV1Contact'
+        extensions:
+          additionalProperties: {}
+          description: Extensions to V1 schema.
+          example:
+            myorg/extension: extensionValue
+          type: object
+        external-resources:
+          description: A list of external links related to the services.
+          items:
+            $ref: '#/components/schemas/ServiceDefinitionV1Resource'
+          type: array
+        info:
+          $ref: '#/components/schemas/ServiceDefinitionV1Info'
+        integrations:
+          $ref: '#/components/schemas/ServiceDefinitionV1Integrations'
+        org:
+          $ref: '#/components/schemas/ServiceDefinitionV1Org'
+        schema-version:
+          $ref: '#/components/schemas/ServiceDefinitionV1Version'
+        tags:
+          description: A set of custom tags.
+          example:
+          - my:tag
+          - service:tag
+          items:
+            type: string
+          type: array
+      required:
+      - schema-version
+      - info
+      type: object
+    ServiceDefinitionV1Pagerduty:
+      description: PagerDuty service URL for the service.
+      example: https://my-org.pagerduty.com/service-directory/PMyService
+      type: string
+    ServiceDefinitionV2SlackType:
+      description: Contact type.
+      enum:
+      - slack
+      example: slack
+      type: string
+      x-enum-varnames:
+      - SLACK
+    ServiceDefinitionV1Info:
+      description: Basic information about a service.
+      properties:
+        dd-service:
+          description: Unique identifier of the service. Must be unique across all services and is used to match with a service in Datadog.
+          example: myservice
+          type: string
+        description:
+          description: A short description of the service.
+          example: A shopping cart service
+          type: string
+        display-name:
+          description: A friendly name of the service.
+          example: My Service
+          type: string
+        service-tier:
+          description: Service tier.
+          example: Tier 1
+          type: string
+      required:
+      - dd-service
+      type: object
+    ServiceDefinitionGetResponse:
+      description: Get service definition response.
+      properties:
+        data:
+          $ref: '#/components/schemas/ServiceDefinitionData'
+      type: object
+    ServiceDefinitionV2MSTeamsType:
+      description: Contact type.
+      enum:
+      - microsoft-teams
+      example: microsoft-teams
+      type: string
+      x-enum-varnames:
+      - MICROSOFT_TEAMS
+    ServiceDefinitionV1Integrations:
+      description: Third party integrations that Datadog supports.
+      properties:
+        pagerduty:
+          $ref: '#/components/schemas/ServiceDefinitionV1Pagerduty'
+      type: object
+  parameters:
+    ServiceName:
+      description: The name of the service.
+      in: path
+      name: service_name
+      required: true
+      schema:
+        example: my-service
+        type: string
+    SchemaVersion:
+      description: The schema version desired in the response.
+      in: query
+      name: schema_version
+      required: false
+      schema:
+        $ref: '#/components/schemas/ServiceDefinitionSchemaVersions'
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

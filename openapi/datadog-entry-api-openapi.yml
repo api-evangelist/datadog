@@ -1,0 +1,387 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Entry API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Entry
+paths:
+  /api/v2/integration/gcp/accounts:
+    x-merge-override:
+      get: false
+      post: false
+    post:
+      description: Create a new entry within Datadog for your STS enabled service account.
+      operationId: CreateGCPSTSAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GCPSTSServiceAccountCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GCPSTSServiceAccountResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a New Entry for Your Service Account
+      tags:
+      - Entry
+      x-codegen-request-body-name: body
+      x-given:
+        gcp_sts_account:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"client_email\": \"Test-{{ unique_hash }}@example.com\",\n      \"host_filters\": []\n    },\n    \"type\": \"gcp_service_account\"\n  }\n}"
+          step: there is a valid "gcp_sts_account" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - gcp_configurations_manage
+      x-undo:
+        operationId: DeleteGCPSTSAccount
+        parameters:
+        - name: account_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    GCPSTSServiceAccount:
+      description: Info on your service account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+        id:
+          description: Your service account's unique ID.
+          example: d291291f-12c2-22g4-j290-123456678897
+          type: string
+        meta:
+          $ref: '#/components/schemas/GCPServiceAccountMeta'
+        type:
+          $ref: '#/components/schemas/GCPServiceAccountType'
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    GCPSTSServiceAccountAttributes:
+      description: Attributes associated with your service account.
+      properties:
+        account_tags:
+          description: Tags to be associated with GCP metrics and service checks from your account.
+          items:
+            description: Account Level Tag
+            type: string
+          type: array
+        automute:
+          description: Silence monitors for expected GCE instance shutdowns.
+          type: boolean
+          example: true
+        client_email:
+          description: Your service account email address.
+          example: datadog-service-account@test-project.iam.gserviceaccount.com
+          type: string
+        cloud_run_revision_filters:
+          description: 'List of filters to limit the Cloud Run revisions that are pulled into Datadog by using tags.
+
+            Only Cloud Run revision resources that apply to specified filters are imported into Datadog.'
+          example:
+          - $KEY:$VALUE
+          items:
+            description: Cloud Run Filters
+            type: string
+          type: array
+        host_filters:
+          description: Your Host Filters.
+          items:
+            description: Host Filters
+            type: string
+          type: array
+        is_cspm_enabled:
+          description: 'When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled to be set to true.'
+          type: boolean
+          example: true
+        is_per_project_quota_enabled:
+          default: false
+          description: When enabled, Datadog applies the `X-Goog-User-Project` header, attributing Google Cloud billing and quota usage to the project being monitored rather than the default service account project.
+          example: true
+          type: boolean
+        is_resource_change_collection_enabled:
+          default: false
+          description: When enabled, Datadog scans for all resource change data in your Google Cloud environment.
+          example: true
+          type: boolean
+        is_security_command_center_enabled:
+          default: false
+          description: 'When enabled, Datadog will attempt to collect Security Command Center Findings. Note: This requires additional permissions on the service account.'
+          example: true
+          type: boolean
+        metric_namespace_configs:
+          description: Configurations for GCP metric namespaces.
+          example:
+          - disabled: true
+            id: aiplatform
+          items:
+            $ref: '#/components/schemas/GCPMetricNamespaceConfig'
+          type: array
+        resource_collection_enabled:
+          description: When enabled, Datadog scans for all resources in your GCP environment.
+          type: boolean
+          example: true
+      type: object
+      x-merge-override:
+        required: false
+    GCPSTSServiceAccountData:
+      description: Additional metadata on your generated service account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+        type:
+          $ref: '#/components/schemas/GCPServiceAccountType'
+      type: object
+      x-merge-override:
+        required: false
+    GCPMetricNamespaceConfig:
+      description: Configuration for a GCP metric namespace.
+      properties:
+        disabled:
+          default: false
+          description: When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.
+          example: true
+          type: boolean
+        id:
+          description: The id of the GCP metric namespace.
+          example: aiplatform
+          type: string
+      type: object
+    GCPServiceAccountMeta:
+      description: Additional information related to your service account.
+      properties:
+        accessible_projects:
+          description: The current list of projects accessible from your service account.
+          items:
+            description: List of GCP projects.
+            type: string
+          type: array
+      type: object
+    GCPSTSServiceAccountResponse:
+      description: The account creation response.
+      properties:
+        data:
+          $ref: '#/components/schemas/GCPSTSServiceAccount'
+      type: object
+    GCPServiceAccountType:
+      default: gcp_service_account
+      description: The type of account.
+      enum:
+      - gcp_service_account
+      example: gcp_service_account
+      type: string
+      x-enum-varnames:
+      - GCP_SERVICE_ACCOUNT
+    GCPSTSServiceAccountCreateRequest:
+      description: Data on your newly generated service account.
+      properties:
+        data:
+          $ref: '#/components/schemas/GCPSTSServiceAccountData'
+      type: object
+      x-merge-override:
+        required: false
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

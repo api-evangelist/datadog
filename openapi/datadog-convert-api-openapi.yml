@@ -1,0 +1,1133 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Convert API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Convert
+paths:
+  /api/v2/security_monitoring/rules/convert:
+    post:
+      description: 'Convert a rule that doesn''t (yet) exist from JSON to Terraform for datadog provider
+
+        resource datadog_security_monitoring_rule.'
+      operationId: ConvertSecurityMonitoringRuleFromJSONToTerraform
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringRuleConvertPayload'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringRuleConvertResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_write
+      summary: Datadog Convert a Rule from Json to Terraform
+      tags:
+      - Convert
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_rules_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/rules/{rule_id}/convert:
+    get:
+      description: 'Convert an existing rule from JSON to Terraform for datadog provider
+
+        resource datadog_security_monitoring_rule.'
+      operationId: ConvertExistingSecurityMonitoringRule
+      parameters:
+      - $ref: '#/components/parameters/SecurityMonitoringRuleID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringRuleConvertResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_rules_read
+      summary: Datadog Convert an Existing Rule from Json to Terraform
+      tags:
+      - Convert
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_rules_read
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/siem-historical-detections/jobs/signal_convert:
+    post:
+      description: Convert a job result to a signal.
+      operationId: ConvertJobResultToSignal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertJobResultsToSignalsRequest'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Convert a Job Result to a Signal
+      tags:
+      - Convert
+      x-codegen-request-body-name: body
+      x-menu-order: 24
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_write
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in beta and may be subject to changes.
+
+        Please check the documentation regularly for updates.'
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    SecurityMonitoringRuleEvaluationWindow:
+      description: 'A time window is specified to match when at least one of the cases matches true. This is a sliding window
+
+        and evaluates in real time. For third party detection method, this field is not used.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    SecurityMonitoringStandardDataSource:
+      default: logs
+      description: Source of events, either logs, audit trail, or Datadog events.
+      enum:
+      - logs
+      - audit
+      - app_sec_spans
+      - spans
+      - security_runtime
+      - network
+      - events
+      example: logs
+      type: string
+      x-enum-varnames:
+      - LOGS
+      - AUDIT
+      - APP_SEC_SPANS
+      - SPANS
+      - SECURITY_RUNTIME
+      - NETWORK
+      - EVENTS
+    SecurityMonitoringRuleMaxSignalDuration:
+      description: 'A signal will "close" regardless of the query being matched once the time exceeds the maximum duration.
+
+        This time is calculated from the first seen timestamp.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    SecurityMonitoringRuleCaseActionOptionsUserBehaviorName:
+      description: Used with the case action of type 'user_behavior'. The value specified in this field is applied as a risk tag to all users affected by the rule.
+      type: string
+    SecurityMonitoringRuleTypeCreate:
+      description: The rule type.
+      enum:
+      - application_security
+      - log_detection
+      - workload_security
+      type: string
+      x-enum-varnames:
+      - APPLICATION_SECURITY
+      - LOG_DETECTION
+      - WORKLOAD_SECURITY
+    SecurityMonitoringRuleNewValueOptionsLearningThreshold:
+      default: 0
+      description: A number of occurrences after which signals will be generated for values that weren't learned.
+      enum:
+      - 0
+      - 1
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_OCCURRENCES
+      - ONE_OCCURRENCE
+    SecurityMonitoringRuleNewValueOptionsForgetAfter:
+      description: The duration in days after which a learned value is forgotten.
+      enum:
+      - 1
+      - 2
+      - 7
+      - 14
+      - 21
+      - 28
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ONE_DAY
+      - TWO_DAYS
+      - ONE_WEEK
+      - TWO_WEEKS
+      - THREE_WEEKS
+      - FOUR_WEEKS
+    SecurityMonitoringRuleCaseActionOptions:
+      additionalProperties: {}
+      description: Options for the rule action
+      properties:
+        duration:
+          description: Duration of the action in seconds. 0 indicates no expiration.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+        userBehaviorName:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptionsUserBehaviorName'
+      type: object
+    SecurityMonitoringSignalRuleType:
+      description: The rule type.
+      enum:
+      - signal_correlation
+      type: string
+      x-enum-varnames:
+      - SIGNAL_CORRELATION
+    SecurityMonitoringRuleConvertPayload:
+      description: Convert a rule from JSON to Terraform.
+      oneOf:
+      - $ref: '#/components/schemas/SecurityMonitoringStandardRulePayload'
+      - $ref: '#/components/schemas/SecurityMonitoringSignalRulePayload'
+    ConvertJobResultsToSignalsAttributes:
+      description: Attributes for converting historical job results to signals.
+      properties:
+        id:
+          description: Request ID.
+          type: string
+          example: abc-123-def
+        jobResultIds:
+          description: Job result IDs.
+          example:
+          - ''
+          items:
+            type: string
+          type: array
+        notifications:
+          description: Notifications sent.
+          example:
+          - ''
+          items:
+            type: string
+          type: array
+        signalMessage:
+          description: Message of generated signals.
+          example: A large number of failed login attempts.
+          type: string
+        signalSeverity:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+      required:
+      - jobResultIds
+      - signalSeverity
+      - signalMessage
+      - notifications
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SecurityMonitoringRuleQueryAggregation:
+      description: The aggregation type.
+      enum:
+      - count
+      - cardinality
+      - sum
+      - max
+      - new_value
+      - geo_data
+      - event_count
+      - none
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - CARDINALITY
+      - SUM
+      - MAX
+      - NEW_VALUE
+      - GEO_DATA
+      - EVENT_COUNT
+      - NONE
+    SecurityMonitoringThirdPartyRootQuery:
+      description: A query to be combined with the third party case query.
+      properties:
+        groupByFields:
+          description: Fields to group by.
+          items:
+            description: Field.
+            type: string
+          type: array
+        query:
+          description: Query to run on logs.
+          example: source:cloudtrail
+          type: string
+      type: object
+    SecurityMonitoringRuleNewValueOptionsLearningMethod:
+      default: duration
+      description: The learning method used to determine when signals should be generated for values that weren't learned.
+      enum:
+      - duration
+      - threshold
+      type: string
+      x-enum-varnames:
+      - DURATION
+      - THRESHOLD
+    SecurityMonitoringRuleCaseAction:
+      description: Action to perform when a signal is triggered. Only available for Application Security rule type.
+      properties:
+        options:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptions'
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionType'
+      type: object
+    CloudConfigurationRegoRule:
+      description: Rule details.
+      properties:
+        policy:
+          description: 'The policy written in `rego`, see: https://www.openpolicyagent.org/docs/latest/policy-language/'
+          example: "package datadog\n\nimport data.datadog.output as dd_output\nimport future.keywords.contains\nimport future.keywords.if\nimport future.keywords.in\n\neval(resource) = \"skip\" if {\n  # Logic that evaluates to true if the resource should be skipped\n  true\n} else = \"pass\" {\n  # Logic that evaluates to true if the resource is compliant\n  true\n} else = \"fail\" {\n  # Logic that evaluates to true if the resource is not compliant\n  true\n}\n\n# This part remains unchanged for all rules\nresults contains result if {\n  some resource in input.resources[input.main_resource_type]\n  result := dd_output.format(resource, eval(resource))\n}\n"
+          type: string
+        resourceTypes:
+          description: List of resource types that will be evaluated upon. Must have at least one element.
+          example:
+          - gcp_iam_service_account
+          - gcp_iam_policy
+          items:
+            type: string
+          type: array
+      required:
+      - policy
+      - resourceTypes
+      type: object
+    ConvertJobResultsToSignalsDataType:
+      description: Type of payload.
+      enum:
+      - historicalDetectionsJobResultSignalConversion
+      type: string
+      x-enum-varnames:
+      - HISTORICALDETECTIONSJOBRESULTSIGNALCONVERSION
+    SecurityMonitoringSignalRulePayload:
+      description: The payload of a signal correlation rule.
+      properties:
+        cases:
+          description: Cases for generating signals.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringRuleCaseCreate'
+          type: array
+        filters:
+          description: Additional queries to filter matched events before they are processed. This field is deprecated for log detection, signal correlation, and workload security rules.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringFilter'
+          type: array
+        hasExtendedTitle:
+          description: Whether the notifications include the triggering group-by values in their title.
+          example: true
+          type: boolean
+        isEnabled:
+          description: Whether the rule is enabled.
+          example: true
+          type: boolean
+        message:
+          description: Message for generated signals.
+          example: ''
+          type: string
+        name:
+          description: The name of the rule.
+          example: My security monitoring rule.
+          type: string
+        options:
+          $ref: '#/components/schemas/SecurityMonitoringRuleOptions'
+        queries:
+          description: Queries for selecting signals which are part of the rule.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringSignalRuleQuery'
+          type: array
+        tags:
+          description: Tags for generated signals.
+          example:
+          - env:prod
+          - team:security
+          items:
+            description: Tag.
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSignalRuleType'
+      required:
+      - name
+      - isEnabled
+      - queries
+      - options
+      - cases
+      - message
+      type: object
+    ConvertJobResultsToSignalsData:
+      description: Data for converting historical job results to signals.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConvertJobResultsToSignalsAttributes'
+        type:
+          $ref: '#/components/schemas/ConvertJobResultsToSignalsDataType'
+      type: object
+    SecurityMonitoringRuleNewValueOptionsLearningDuration:
+      default: 0
+      description: 'The duration in days during which values are learned, and after which signals will be generated for values that
+
+        weren''t learned. If set to 0, a signal will be generated for all new values after the first value is learned.'
+      enum:
+      - 0
+      - 1
+      - 7
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_DAYS
+      - ONE_DAY
+      - SEVEN_DAYS
+    SecurityMonitoringStandardRuleQuery:
+      description: Query for matching rule.
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/SecurityMonitoringRuleQueryAggregation'
+        dataSource:
+          $ref: '#/components/schemas/SecurityMonitoringStandardDataSource'
+        distinctFields:
+          description: Field for which the cardinality is measured. Sent as an array.
+          items:
+            description: Field.
+            type: string
+          type: array
+        groupByFields:
+          description: Fields to group by.
+          items:
+            description: Field.
+            type: string
+          type: array
+        hasOptionalGroupByFields:
+          description: When false, events without a group-by value are ignored by the rule. When true, events with missing group-by fields are processed with `N/A`, replacing the missing values.
+          example: false
+          readOnly: true
+          type: boolean
+        metric:
+          deprecated: true
+          description: '(Deprecated) The target field to aggregate over when using the sum or max
+
+            aggregations. `metrics` field should be used instead.'
+          type: string
+          example: example_value
+        metrics:
+          description: Group of target fields to aggregate over when using the sum, max, geo data, or new value aggregations. The sum, max, and geo data aggregations only accept one value in this list, whereas the new value aggregation accepts up to five values.
+          items:
+            description: Field.
+            type: string
+          type: array
+        name:
+          description: Name of the query.
+          type: string
+          example: Example Monitor
+        query:
+          description: Query to run on logs.
+          example: a > 3
+          type: string
+      type: object
+    ConvertJobResultsToSignalsRequest:
+      description: Request for converting historical job results to signals.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConvertJobResultsToSignalsData'
+      type: object
+    SecurityMonitoringFilterAction:
+      description: The type of filtering action.
+      enum:
+      - require
+      - suppress
+      type: string
+      x-enum-varnames:
+      - REQUIRE
+      - SUPPRESS
+    SecurityMonitoringRuleOptions:
+      description: Options.
+      properties:
+        complianceRuleOptions:
+          $ref: '#/components/schemas/CloudConfigurationComplianceRuleOptions'
+        decreaseCriticalityBasedOnEnv:
+          $ref: '#/components/schemas/SecurityMonitoringRuleDecreaseCriticalityBasedOnEnv'
+        detectionMethod:
+          $ref: '#/components/schemas/SecurityMonitoringRuleDetectionMethod'
+        evaluationWindow:
+          $ref: '#/components/schemas/SecurityMonitoringRuleEvaluationWindow'
+        hardcodedEvaluatorType:
+          $ref: '#/components/schemas/SecurityMonitoringRuleHardcodedEvaluatorType'
+        impossibleTravelOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptions'
+        keepAlive:
+          $ref: '#/components/schemas/SecurityMonitoringRuleKeepAlive'
+        maxSignalDuration:
+          $ref: '#/components/schemas/SecurityMonitoringRuleMaxSignalDuration'
+        newValueOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptions'
+        thirdPartyRuleOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleThirdPartyOptions'
+      type: object
+    SecurityMonitoringRuleCaseCreate:
+      description: Case when signal is generated.
+      properties:
+        actions:
+          description: Action to perform for each rule case.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringRuleCaseAction'
+          type: array
+        condition:
+          description: 'A case contains logical operations (`>`,`>=`, `&&`, `||`) to determine if a signal should be generated
+
+            based on the event counts in the previously defined queries.'
+          type: string
+          example: example_value
+        name:
+          description: Name of the case.
+          type: string
+          example: Example Monitor
+        notifications:
+          description: Notification targets.
+          items:
+            description: Notification.
+            type: string
+          type: array
+        status:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+      required:
+      - status
+      type: object
+    SecurityMonitoringRuleThirdPartyOptions:
+      description: Options on third party detection method.
+      properties:
+        defaultNotifications:
+          description: Notification targets for the logs that do not correspond to any of the cases.
+          items:
+            description: Notification.
+            type: string
+          type: array
+        defaultStatus:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+        rootQueries:
+          description: Queries to be combined with third party case queries. Each of them can have different group by fields, to aggregate differently based on the type of alert.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringThirdPartyRootQuery'
+          type: array
+        signalTitleTemplate:
+          description: A template for the signal title; if omitted, the title is generated based on the case name.
+          type: string
+          example: Example Monitor
+      type: object
+    SecurityMonitoringSignalRuleQuery:
+      description: Query for matching rule on signals.
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/SecurityMonitoringRuleQueryAggregation'
+        correlatedByFields:
+          description: Fields to group by.
+          items:
+            description: Field.
+            type: string
+          type: array
+        correlatedQueryIndex:
+          description: Index of the rule query used to retrieve the correlated field.
+          format: int32
+          maximum: 9
+          type: integer
+          example: 42
+        metrics:
+          description: Group of target fields to aggregate over.
+          items:
+            description: Field.
+            type: string
+          type: array
+        name:
+          description: Name of the query.
+          type: string
+          example: Example Monitor
+        ruleId:
+          description: Rule ID to match on signals.
+          example: org-ru1-e1d
+          type: string
+      required:
+      - ruleId
+      type: object
+    SecurityMonitoringStandardRulePayload:
+      description: The payload of a rule.
+      properties:
+        cases:
+          description: Cases for generating signals.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringRuleCaseCreate'
+          type: array
+        filters:
+          description: Additional queries to filter matched events before they are processed. This field is deprecated for log detection, signal correlation, and workload security rules.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringFilter'
+          type: array
+        groupSignalsBy:
+          description: Additional grouping to perform on top of the existing groups in the query section. Must be a subset of the existing groups.
+          example:
+          - service
+          items:
+            description: Field to group by.
+            type: string
+          type: array
+        hasExtendedTitle:
+          description: Whether the notifications include the triggering group-by values in their title.
+          example: true
+          type: boolean
+        isEnabled:
+          description: Whether the rule is enabled.
+          example: true
+          type: boolean
+        message:
+          description: Message for generated signals.
+          example: ''
+          type: string
+        name:
+          description: The name of the rule.
+          example: My security monitoring rule.
+          type: string
+        options:
+          $ref: '#/components/schemas/SecurityMonitoringRuleOptions'
+        queries:
+          description: Queries for selecting logs which are part of the rule.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringStandardRuleQuery'
+          type: array
+        referenceTables:
+          description: Reference tables for the rule.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringReferenceTable'
+          type: array
+        tags:
+          description: Tags for generated signals.
+          example:
+          - env:prod
+          - team:security
+          items:
+            description: Tag.
+            type: string
+          type: array
+        thirdPartyCases:
+          description: Cases for generating signals from third-party rules. Only available for third-party rules.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringThirdPartyRuleCaseCreate'
+          type: array
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringRuleTypeCreate'
+      required:
+      - name
+      - isEnabled
+      - queries
+      - options
+      - cases
+      - message
+      type: object
+    SecurityMonitoringRuleNewValueOptions:
+      description: Options on new value detection method.
+      properties:
+        forgetAfter:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsForgetAfter'
+        learningDuration:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningDuration'
+        learningMethod:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningMethod'
+        learningThreshold:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningThreshold'
+      type: object
+    SecurityMonitoringThirdPartyRuleCaseCreate:
+      description: Case when a signal is generated by a third party rule.
+      properties:
+        name:
+          description: Name of the case.
+          type: string
+          example: Example Monitor
+        notifications:
+          description: Notification targets for each case.
+          items:
+            description: Notification.
+            type: string
+          type: array
+        query:
+          description: A query to map a third party event to this case.
+          type: string
+          example: avg:system.cpu.user{*}
+        status:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+      required:
+      - status
+      type: object
+    SecurityMonitoringReferenceTable:
+      description: Reference tables used in the queries.
+      properties:
+        checkPresence:
+          description: Whether to include or exclude the matched values.
+          type: boolean
+          example: true
+        columnName:
+          description: The name of the column in the reference table.
+          type: string
+          example: Example Monitor
+        logFieldPath:
+          description: The field in the log to match against the reference table.
+          type: string
+          example: example_value
+        ruleQueryName:
+          description: The name of the query to apply the reference table to.
+          type: string
+          example: Example Monitor
+        tableName:
+          description: The name of the reference table.
+          type: string
+          example: Example Monitor
+      type: object
+    SecurityMonitoringRuleImpossibleTravelOptions:
+      description: Options on impossible travel detection method.
+      properties:
+        baselineUserLocations:
+          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptionsBaselineUserLocations'
+      type: object
+    SecurityMonitoringRuleDecreaseCriticalityBasedOnEnv:
+      description: 'If true, signals in non-production environments have a lower severity than what is defined by the rule case, which can reduce signal noise.
+
+        The severity is decreased by one level: `CRITICAL` in production becomes `HIGH` in non-production, `HIGH` becomes `MEDIUM` and so on. `INFO` remains `INFO`.
+
+        The decrement is applied when the environment tag of the signal starts with `staging`, `test` or `dev`.'
+      example: false
+      type: boolean
+    SecurityMonitoringFilter:
+      description: The rule's suppression filter.
+      properties:
+        action:
+          $ref: '#/components/schemas/SecurityMonitoringFilterAction'
+        query:
+          description: Query for selecting logs to apply the filtering action.
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
+    SecurityMonitoringRuleKeepAlive:
+      description: 'Once a signal is generated, the signal will remain "open" if a case is matched at least once within
+
+        this keep alive window. For third party detection method, this field is not used.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    SecurityMonitoringRuleConvertResponse:
+      description: Result of the convert rule request containing Terraform content.
+      properties:
+        terraformContent:
+          description: Terraform string as a result of converting the rule from JSON.
+          type: string
+          example: example_value
+      type: object
+    CloudConfigurationComplianceRuleOptions:
+      additionalProperties: {}
+      description: 'Options for cloud_configuration rules.
+
+        Fields `resourceType` and `regoRule` are mandatory when managing custom `cloud_configuration` rules.
+
+        '
+      properties:
+        complexRule:
+          description: 'Whether the rule is a complex one.
+
+            Must be set to true if `regoRule.resourceTypes` contains more than one item. Defaults to false.
+
+            '
+          type: boolean
+          example: true
+        regoRule:
+          $ref: '#/components/schemas/CloudConfigurationRegoRule'
+        resourceType:
+          description: 'Main resource type to be checked by the rule. It should be specified again in `regoRule.resourceTypes`.
+
+            '
+          example: aws_acm
+          type: string
+      type: object
+    SecurityMonitoringRuleImpossibleTravelOptionsBaselineUserLocations:
+      description: 'If true, signals are suppressed for the first 24 hours. In that time, Datadog learns the user''s regular
+
+        access locations. This can be helpful to reduce noise and infer VPN usage or credentialed API access.'
+      example: true
+      type: boolean
+    SecurityMonitoringRuleSeverity:
+      description: Severity of the Security Signal.
+      enum:
+      - info
+      - low
+      - medium
+      - high
+      - critical
+      example: critical
+      type: string
+      x-enum-varnames:
+      - INFO
+      - LOW
+      - MEDIUM
+      - HIGH
+      - CRITICAL
+    SecurityMonitoringRuleDetectionMethod:
+      description: The detection method.
+      enum:
+      - threshold
+      - new_value
+      - anomaly_detection
+      - impossible_travel
+      - hardcoded
+      - third_party
+      - anomaly_threshold
+      type: string
+      x-enum-varnames:
+      - THRESHOLD
+      - NEW_VALUE
+      - ANOMALY_DETECTION
+      - IMPOSSIBLE_TRAVEL
+      - HARDCODED
+      - THIRD_PARTY
+      - ANOMALY_THRESHOLD
+    SecurityMonitoringRuleCaseActionType:
+      description: The action type.
+      enum:
+      - block_ip
+      - block_user
+      - user_behavior
+      type: string
+      x-enum-varnames:
+      - BLOCK_IP
+      - BLOCK_USER
+      - USER_BEHAVIOR
+    SecurityMonitoringRuleHardcodedEvaluatorType:
+      description: Hardcoded evaluator type.
+      enum:
+      - log4shell
+      type: string
+      x-enum-varnames:
+      - LOG4SHELL
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+  parameters:
+    SecurityMonitoringRuleID:
+      description: The ID of the rule.
+      in: path
+      name: rule_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

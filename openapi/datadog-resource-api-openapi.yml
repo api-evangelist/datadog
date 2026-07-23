@@ -1,0 +1,693 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Resource API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Resource
+paths:
+  /api/v2/cloud_security_management/resource_filters:
+    get:
+      description: List resource filters.
+      operationId: GetResourceEvaluationFilters
+      parameters:
+      - $ref: '#/components/parameters/ResourceFilterProvider'
+      - $ref: '#/components/parameters/ResourceFilterAccountID'
+      - $ref: '#/components/parameters/SkipCache'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResourceEvaluationFiltersResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_read
+      summary: Datadog List Resource Filters
+      tags:
+      - Resource
+      x-menu-order: 26
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: Update resource filters.
+      operationId: UpdateResourceEvaluationFilters
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateResourceEvaluationFiltersRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResourceEvaluationFiltersResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Update Resource Filters
+      tags:
+      - Resource
+      x-codegen-request-body-name: body
+      x-menu-order: 27
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/confluent-cloud/accounts/{account_id}/resources:
+    post:
+      description: Create a Confluent resource for the account associated with the provided ID.
+      operationId: CreateConfluentResource
+      parameters:
+      - $ref: '#/components/parameters/ConfluentAccountID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfluentResourceRequest'
+        description: Confluent payload
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfluentResourceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Add Resource to Confluent Account
+      tags:
+      - Resource
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/integrations/confluent-cloud/accounts/{account_id}/resources/{resource_id}:
+    x-merge-override:
+      delete: true
+    delete:
+      description: Delete a Confluent resource with the provided resource id for the account associated with the provided account ID.
+      operationId: DeleteConfluentResource
+      parameters:
+      - $ref: '#/components/parameters/ConfluentAccountID'
+      - $ref: '#/components/parameters/ConfluentResourceID'
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete Resource from Confluent Account
+      tags:
+      - Resource
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a Confluent resource with the provided resource id for the account associated with the provided account ID.
+      operationId: GetConfluentResource
+      parameters:
+      - $ref: '#/components/parameters/ConfluentAccountID'
+      - $ref: '#/components/parameters/ConfluentResourceID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfluentResourceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get Resource from Confluent Account
+      tags:
+      - Resource
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - integrations_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: Update a Confluent resource with the provided resource id for the account associated with the provided account ID.
+      operationId: UpdateConfluentResource
+      parameters:
+      - $ref: '#/components/parameters/ConfluentAccountID'
+      - $ref: '#/components/parameters/ConfluentResourceID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfluentResourceRequest'
+        description: Confluent payload
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfluentResourceResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update Resource in Confluent Account
+      tags:
+      - Resource
+      x-codegen-request-body-name: body
+      x-menu-order: 1
+      x-permission:
+        operator: OR
+        permissions:
+        - manage_integrations
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ConfluentResourceResponseData:
+      description: Confluent Cloud resource data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    UpdateResourceEvaluationFiltersResponse:
+      description: The definition of `UpdateResourceEvaluationFiltersResponse` object.
+      properties:
+        data:
+          $ref: '#/components/schemas/UpdateResourceEvaluationFiltersResponseData'
+      required:
+      - data
+      type: object
+    ConfluentResourceType:
+      default: confluent-cloud-resources
+      description: The JSON:API type for this request.
+      enum:
+      - confluent-cloud-resources
+      example: confluent-cloud-resources
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_RESOURCES
+    ResourceFilterRequestType:
+      description: Constant string to identify the request type.
+      enum:
+      - csm_resource_filter
+      example: csm_resource_filter
+      type: string
+      x-enum-varnames:
+      - CSM_RESOURCE_FILTER
+    UpdateResourceEvaluationFiltersRequestData:
+      description: The definition of `UpdateResourceFilterRequestData` object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ResourceFilterAttributes'
+        id:
+          description: The `UpdateResourceEvaluationFiltersRequestData` `id`.
+          example: csm_resource_filter
+          type: string
+        type:
+          $ref: '#/components/schemas/ResourceFilterRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ConfluentResourceRequestData:
+      description: JSON:API request for updating a Confluent resource.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentResourceRequestAttributes'
+        id:
+          description: The ID associated with a Confluent resource.
+          example: resource-id-123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    ConfluentResourceResponseAttributes:
+      description: Model representation of a Confluent Cloud resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+      x-merge-override:
+        required: false
+    ConfluentResourceResponse:
+      description: Response schema when interacting with a Confluent resource.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentResourceResponseData'
+      type: object
+    GetResourceEvaluationFiltersResponseData:
+      description: The definition of `GetResourceFilterResponseData` object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ResourceFilterAttributes'
+        id:
+          description: The `data` `id`.
+          example: csm_resource_filter
+          type: string
+        type:
+          $ref: '#/components/schemas/ResourceFilterRequestType'
+      type: object
+    ResourceFilterAttributes:
+      description: Attributes of a resource filter.
+      example:
+        aws:
+          '123456789':
+          - environment:production
+          - team:devops
+        azure:
+          sub-001:
+          - app:frontend
+        gcp:
+          project-abc:
+          - region:us-central1
+      properties:
+        cloud_provider:
+          additionalProperties:
+            additionalProperties:
+              items:
+                description: Tag filter in format "key:value"
+                example: environment:production
+                type: string
+              type: array
+            type: object
+          description: A map of cloud provider names (e.g., "aws", "gcp", "azure") to a map of account/resource IDs and their associated tag filters.
+          type: object
+        uuid:
+          description: The UUID of the resource filter.
+          type: string
+          example: abc-123-def
+      required:
+      - cloud_provider
+      type: object
+    ConfluentResourceRequest:
+      description: The JSON:API request for updating a Confluent resource.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentResourceRequestData'
+      required:
+      - data
+      type: object
+    UpdateResourceEvaluationFiltersResponseData:
+      description: The definition of `UpdateResourceFilterResponseData` object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ResourceFilterAttributes'
+        id:
+          description: The `data` `id`.
+          example: csm_resource_filter
+          type: string
+        type:
+          $ref: '#/components/schemas/ResourceFilterRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+    GetResourceEvaluationFiltersResponse:
+      description: The definition of `GetResourceEvaluationFiltersResponse` object.
+      properties:
+        data:
+          $ref: '#/components/schemas/GetResourceEvaluationFiltersResponseData'
+      required:
+      - data
+      type: object
+    ConfluentResourceRequestAttributes:
+      description: Attributes object for updating a Confluent resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+    UpdateResourceEvaluationFiltersRequest:
+      description: Request object to update a resource filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/UpdateResourceEvaluationFiltersRequestData'
+      required:
+      - data
+      type: object
+  parameters:
+    ResourceFilterProvider:
+      description: Filter resource filters by cloud provider (e.g. aws, gcp, azure).
+      in: query
+      name: cloud_provider
+      required: false
+      schema:
+        type: string
+    ResourceFilterAccountID:
+      description: Filter resource filters by cloud provider account ID. This parameter is only valid when provider is specified.
+      in: query
+      name: account_id
+      required: false
+      schema:
+        type: string
+    SkipCache:
+      description: Skip cache for resource filters.
+      in: query
+      name: skip_cache
+      required: false
+      schema:
+        type: boolean
+    ConfluentAccountID:
+      description: Confluent Account ID.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+    ConfluentResourceID:
+      description: Confluent Account Resource ID.
+      in: path
+      name: resource_id
+      required: true
+      schema:
+        type: string
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

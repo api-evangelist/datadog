@@ -1,0 +1,1893 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Filter API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Filter
+paths:
+  /api/v2/apm/config/retention-filters:
+    post:
+      description: 'Create a retention filter to index spans in your organization.
+
+        Returns the retention filter definition when the request is successful.
+
+
+        Default filters with types spans-errors-sampling-processor and spans-appsec-sampling-processor cannot be created.'
+      operationId: CreateApmRetentionFilter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetentionFilterCreateRequest'
+        description: The definition of the new retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionFilterCreateResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Retention Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-given:
+        retention_filter:
+          parameters:
+          - name: body
+            value: "{\n    \"data\": {\n        \"attributes\": {\n            \"name\": \"demo retention filter\",\n            \"rate\": 0.90,\n            \"filter\": {\n                \"query\": \"@_top_level:1 test:service-demo\"\n            },\n            \"enabled\": true,\n            \"filter_type\": \"spans-sampling-processor\"\n        },\n        \"type\": \"apm_retention_filter\"\n    }\n}"
+          step: there is a valid "retention_filter" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_retention_filter_write
+        - apm_pipelines_write
+      x-undo:
+        operationId: DeleteApmRetentionFilter
+        parameters:
+        - name: filter_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/apm/config/retention-filters/{filter_id}:
+    delete:
+      description: 'Delete a specific retention filter from your organization.
+
+
+        Default filters with types spans-errors-sampling-processor and spans-appsec-sampling-processor cannot be deleted.'
+      operationId: DeleteApmRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RetentionFilterIdParam'
+      responses:
+        '200':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Retention Filter
+      tags:
+      - Filter
+      x-menu-order: 5
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_retention_filter_write
+        - apm_pipelines_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get an APM retention filter.
+      operationId: GetApmRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RetentionFilterIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Given Apm Retention Filter
+      tags:
+      - Filter
+      x-menu-order: 3
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_retention_filter_read
+        - apm_pipelines_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: 'Update a retention filter from your organization.
+
+
+        Default filters (filters with types spans-errors-sampling-processor and spans-appsec-sampling-processor) cannot be renamed or removed.'
+      operationId: UpdateApmRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RetentionFilterIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetentionFilterUpdateRequest'
+        description: The updated definition of the retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Retention Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-permission:
+        operator: OR
+        permissions:
+        - apm_retention_filter_write
+        - apm_pipelines_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/remote_config/products/asm/waf/exclusion_filters:
+    post:
+      description: 'Create a new WAF exclusion filter with the given parameters.
+
+
+        A request matched by an exclusion filter will be ignored by the Application Security WAF product.
+
+        Go to https://app.datadoghq.com/security/appsec/passlist to review existing exclusion filters (also called passlist entries).'
+      operationId: CreateApplicationSecurityWafExclusionFilter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterCreateRequest'
+        description: The definition of the new WAF exclusion filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Waf Exclusion Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-given:
+        exclusion_filter:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"exclusion_filter\",\n    \"attributes\": {\n      \"description\": \"My Exclusion Filter\",\n      \"enabled\": true,\n      \"path_glob\": \"*\",\n      \"parameters\": [\n        \"list.search.query\"\n      ],\n      \"rules_target\": [\n        {\n          \"tags\": {\n            \"category\":\"attack_attempt\",\n            \"type\":\"xss\"\n          }\n        }\n      ],\n      \"scope\": [\n        {\n          \"env\": \"staging\",\n          \"service\": \"event-query\"\n        }\n      ]\n    }\n  }\n}"
+          step: there is a valid "exclusion_filter" in the system
+      x-menu-order: 2
+      x-permission:
+        operator: AND
+        permissions:
+        - appsec_protect_write
+      x-terraform-resource: appsec_waf_exclusion_filter
+      x-undo:
+        operationId: DeleteApplicationSecurityWafExclusionFilter
+        parameters:
+        - name: exclusion_filter_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/remote_config/products/asm/waf/exclusion_filters/{exclusion_filter_id}:
+    delete:
+      description: Delete a specific WAF exclusion filter using its identifier.
+      operationId: DeleteApplicationSecurityWafExclusionFilter
+      parameters:
+      - $ref: '#/components/parameters/ApplicationSecurityWafExclusionFilterID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Waf Exclusion Filter
+      tags:
+      - Filter
+      x-menu-order: 6
+      x-permission:
+        operator: AND
+        permissions:
+        - appsec_protect_write
+      x-terraform-resource: appsec_waf_exclusion_filter
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Retrieve a specific WAF exclusion filter using its identifier.
+      operationId: GetApplicationSecurityWafExclusionFilter
+      parameters:
+      - $ref: '#/components/parameters/ApplicationSecurityWafExclusionFilterID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Waf Exclusion Filter
+      tags:
+      - Filter
+      x-menu-order: 1
+      x-permission:
+        operator: AND
+        permissions:
+        - appsec_protect_read
+      x-terraform-resource: appsec_waf_exclusion_filter
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      description: 'Update a specific WAF exclusion filter using its identifier.
+
+        Returns the exclusion filter object when the request is successful.'
+      operationId: UpdateApplicationSecurityWafExclusionFilter
+      parameters:
+      - $ref: '#/components/parameters/ApplicationSecurityWafExclusionFilterID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateRequest'
+        description: The exclusion filter to update.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Waf Exclusion Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-menu-order: 5
+      x-permission:
+        operator: AND
+        permissions:
+        - appsec_protect_write
+      x-terraform-resource: appsec_waf_exclusion_filter
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/retention_filters:
+    post:
+      description: 'Create a RUM retention filter for a RUM application.
+
+        Returns RUM retention filter objects from the request body when the request is successful.'
+      operationId: CreateRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFilterCreateRequest'
+        description: The definition of the new RUM retention filter.
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Create a Rum Retention Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-menu-order: 3
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/rum/applications/{app_id}/retention_filters/{rf_id}:
+    delete:
+      description: Delete a RUM retention filter for a RUM application.
+      operationId: DeleteRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Delete a Rum Retention Filter
+      tags:
+      - Filter
+      x-menu-order: 5
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: Get a RUM retention filter for a RUM application.
+      operationId: GetRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Get a Rum Retention Filter
+      tags:
+      - Filter
+      x-menu-order: 2
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a RUM retention filter for a RUM application.
+
+        Returns RUM retention filter objects from the request body when the request is successful.'
+      operationId: UpdateRetentionFilter
+      parameters:
+      - $ref: '#/components/parameters/RumApplicationIDParameter'
+      - $ref: '#/components/parameters/RumRetentionFilterIDParameter'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RumRetentionFilterUpdateRequest'
+        description: New definition of the RUM retention filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RumRetentionFilterResponse'
+          description: Updated
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Update a Rum Retention Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-menu-order: 4
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/configuration/security_filters:
+    post:
+      description: 'Create a security filter.
+
+
+        See the [security filter guide](https://docs.datadoghq.com/security_platform/guide/how-to-setup-security-filters-using-security-monitoring-api/)
+
+        for more examples.'
+      operationId: CreateSecurityFilter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityFilterCreateRequest'
+        description: The definition of the new security filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Create a Security Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-given:
+        security_filter:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"security_filters\",\n    \"attributes\": {\n      \"name\": \"{{ unique }}\",\n      \"query\": \"service:{{ unique_alnum }}\",\n      \"exclusion_filters\":[\n        {\n          \"name\": \"Exclude logs from staging\",\n          \"query\": \"source:staging\"\n        }\n     ],\n      \"filtered_data_type\":\"logs\",\n      \"is_enabled\": true\n     }\n  }\n}"
+          step: there is a valid "security_filter" in the system
+      x-menu-order: 17
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        operationId: DeleteSecurityFilter
+        parameters:
+        - name: security_filter_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/configuration/security_filters/{security_filter_id}:
+    delete:
+      description: Delete a specific security filter.
+      operationId: DeleteSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Delete a Security Filter
+      tags:
+      - Filter
+      x-menu-order: 14
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: 'Get the details of a specific security filter.
+
+
+        See the [security filter guide](https://docs.datadoghq.com/security_platform/guide/how-to-setup-security-filters-using-security-monitoring-api/)
+
+        for more examples.'
+      operationId: GetSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_read
+      summary: Datadog Get a Security Filter
+      tags:
+      - Filter
+      x-menu-order: 16
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific security filter.
+
+        Returns the security filter object when the request is successful.'
+      operationId: UpdateSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityFilterUpdateRequest'
+        description: New definition of the security filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Update a Security Filter
+      tags:
+      - Filter
+      x-codegen-request-body-name: body
+      x-menu-order: 15
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    RumRetentionFilterEnabled:
+      description: Whether the retention filter is enabled.
+      example: true
+      type: boolean
+    SpansFilterCreate:
+      description: The spans filter. Spans matching this filter will be indexed and stored.
+      properties:
+        query:
+          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      required:
+      - query
+      type: object
+    SecurityFilterExclusionFilter:
+      description: Exclusion filter for the security filter.
+      example:
+        name: Exclude staging
+        query: source:staging
+      properties:
+        name:
+          description: Exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: Exclusion filter query. Logs that match this query are excluded from the security filter.
+          example: source:staging
+          type: string
+      required:
+      - name
+      - query
+      type: object
+    RetentionFilterAll:
+      description: The definition of the retention filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RetentionFilterAllAttributes'
+        id:
+          description: The ID of the retention filter.
+          example: 7RBOb7dLSYWI01yc3pIH8w
+          type: string
+        type:
+          $ref: '#/components/schemas/ApmRetentionFilterType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
+      type: string
+      x-enum-varnames:
+      - RETENTION_FILTERS
+    RetentionFilterCreateAttributes:
+      description: The object describing the configuration of the retention filter to create/update.
+      properties:
+        enabled:
+          description: Enable/Disable the retention filter.
+          example: true
+          type: boolean
+        filter:
+          $ref: '#/components/schemas/SpansFilterCreate'
+        filter_type:
+          $ref: '#/components/schemas/RetentionFilterType'
+        name:
+          description: The name of the retention filter.
+          example: my retention filter
+          type: string
+        rate:
+          description: 'Sample rate to apply to spans going through this retention filter.
+
+            A value of 1.0 keeps all spans matching the query.'
+          example: 1
+          format: double
+          type: number
+        trace_rate:
+          description: 'Sample rate to apply to traces containing spans going through this retention filter.
+
+            A value of 1.0 keeps all traces with spans matching the query.'
+          example: 1
+          format: double
+          type: number
+      required:
+      - name
+      - filter
+      - enabled
+      - filter_type
+      - rate
+      type: object
+    SecurityFilterFilteredDataType:
+      description: The filtered data type.
+      enum:
+      - logs
+      example: logs
+      type: string
+      x-enum-varnames:
+      - LOGS
+    ApplicationSecurityWafExclusionFilterResource:
+      description: A JSON:API resource for an WAF exclusion filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterAttributes'
+        id:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterID'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
+      type: object
+    ApplicationSecurityWafExclusionFilterScope:
+      description: Deploy on services based on their environment and/or service name.
+      properties:
+        env:
+          description: Deploy on this environment.
+          example: www
+          type: string
+        service:
+          description: Deploy on this service.
+          example: prod
+          type: string
+      type: object
+    SecurityFilterUpdateData:
+      description: The new security filter properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    ApplicationSecurityWafExclusionFilterUpdateData:
+      description: Object for updating a single WAF exclusion filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
+      required:
+      - attributes
+      - type
+      type: object
+    RumRetentionFilterUpdateAttributes:
+      description: The object describing attributes of a RUM retention filter to update.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      type: object
+    ApplicationSecurityWafExclusionFilterCreateRequest:
+      description: Request object for creating a single WAF exclusion filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterCreateData'
+      required:
+      - data
+      type: object
+    RumRetentionFilterQuery:
+      description: The query string for a RUM retention filter.
+      example: '@session.has_replay:true'
+      type: string
+    RetentionFilterAllType:
+      default: spans-sampling-processor
+      description: The type of retention filter.
+      enum:
+      - spans-sampling-processor
+      - spans-errors-sampling-processor
+      - spans-appsec-sampling-processor
+      example: spans-sampling-processor
+      type: string
+      x-enum-varnames:
+      - SPANS_SAMPLING_PROCESSOR
+      - SPANS_ERRORS_SAMPLING_PROCESSOR
+      - SPANS_APPSEC_SAMPLING_PROCESSOR
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SecurityFilter:
+      description: The security filter's properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterAttributes'
+        id:
+          $ref: '#/components/schemas/SecurityFilterID'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      type: object
+    RumRetentionFilterCreateRequest:
+      description: The RUM retention filter body to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterCreateData'
+      required:
+      - data
+      type: object
+    RetentionFilterCreateRequest:
+      description: The body of the retention filter to be created.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilterCreateData'
+      required:
+      - data
+      type: object
+    RumRetentionFilterEventType:
+      description: The type of RUM events to filter on.
+      enum:
+      - session
+      - view
+      - action
+      - error
+      - resource
+      - long_task
+      - vital
+      example: session
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - VIEW
+      - ACTION
+      - ERROR
+      - RESOURCE
+      - LONG_TASK
+      - VITAL
+    ApplicationSecurityWafExclusionFilterUpdateAttributes:
+      description: Attributes for updating a WAF exclusion filter.
+      properties:
+        description:
+          description: A description for the exclusion filter.
+          example: Exclude false positives on a path
+          type: string
+        enabled:
+          description: Indicates whether the exclusion filter is enabled.
+          example: true
+          type: boolean
+        ip_list:
+          description: The client IP addresses matched by the exclusion filter (CIDR notation is supported).
+          items:
+            example: 198.51.100.72
+            type: string
+          type: array
+        on_match:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterOnMatch'
+        parameters:
+          description: A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.
+          items:
+            example: list.search.query
+            type: string
+          type: array
+        path_glob:
+          description: The HTTP path glob expression matched by the exclusion filter.
+          example: /accounts/*
+          type: string
+        rules_target:
+          description: The WAF rules targeted by the exclusion filter.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTarget'
+          type: array
+        scope:
+          description: The services where the exclusion filter is deployed.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterScope'
+          type: array
+      required:
+      - description
+      - enabled
+      type: object
+    RetentionFilterResponse:
+      description: The retention filters definition.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilterAll'
+      type: object
+    SecurityFilterType:
+      default: security_filters
+      description: The type of the resource. The value should always be `security_filters`.
+      enum:
+      - security_filters
+      example: security_filters
+      type: string
+      x-enum-varnames:
+      - SECURITY_FILTERS
+    RetentionFilter:
+      description: The definition of the retention filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RetentionFilterAttributes'
+        id:
+          description: The ID of the retention filter.
+          example: 7RBOb7dLSYWI01yc3pIH8w
+          type: string
+        type:
+          $ref: '#/components/schemas/ApmRetentionFilterType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RetentionFilterCreateData:
+      description: The body of the retention filter to be created.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RetentionFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/ApmRetentionFilterType'
+      required:
+      - attributes
+      - type
+      type: object
+    RumRetentionFilterCreateData:
+      description: The new RUM retention filter properties to create.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    RumRetentionFilterSampleRate:
+      description: The sample rate for a RUM retention filter, between 0 and 100.
+      example: 25
+      format: int64
+      maximum: 100
+      minimum: 0
+      type: integer
+    RetentionFilterUpdateData:
+      description: The body of the retention filter to be updated.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RetentionFilterUpdateAttributes'
+        id:
+          description: The ID of the retention filter.
+          example: retention-filter-id
+          type: string
+        type:
+          $ref: '#/components/schemas/ApmRetentionFilterType'
+      required:
+      - id
+      - attributes
+      - type
+      type: object
+    SecurityFilterCreateData:
+      description: Object for a single security filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    ApplicationSecurityWafExclusionFilterUpdateRequest:
+      description: Request object for updating a single WAF exclusion filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateData'
+      required:
+      - data
+      type: object
+    RetentionFilterAllAttributes:
+      description: The attributes of the retention filter.
+      properties:
+        created_at:
+          description: The creation timestamp of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        created_by:
+          description: The creator of the retention filter.
+          type: string
+          example: example_value
+        editable:
+          description: Shows whether the filter can be edited.
+          example: true
+          type: boolean
+        enabled:
+          description: The status of the retention filter (Enabled/Disabled).
+          example: true
+          type: boolean
+        execution_order:
+          description: The execution order of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        filter:
+          $ref: '#/components/schemas/SpansFilter'
+        filter_type:
+          $ref: '#/components/schemas/RetentionFilterAllType'
+        modified_at:
+          description: The modification timestamp of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        modified_by:
+          description: The modifier of the retention filter.
+          type: string
+          example: example_value
+        name:
+          description: The name of the retention filter.
+          example: my retention filter
+          type: string
+        rate:
+          description: 'Sample rate to apply to spans going through this retention filter.
+
+            A value of 1.0 keeps all spans matching the query.'
+          example: 1
+          format: double
+          type: number
+        trace_rate:
+          description: 'Sample rate to apply to traces containing spans going through this retention filter.
+
+            A value of 1.0 keeps all traces with spans matching the query.'
+          example: 1
+          format: double
+          type: number
+      type: object
+    RunRetentionFilterName:
+      description: The name of a RUM retention filter.
+      example: Retention filter for session
+      type: string
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
+    ApplicationSecurityWafExclusionFilterAttributes:
+      description: Attributes describing a WAF exclusion filter.
+      properties:
+        description:
+          description: A description for the exclusion filter.
+          example: Exclude false positives on a path
+          type: string
+        enabled:
+          description: Indicates whether the exclusion filter is enabled.
+          example: true
+          type: boolean
+        event_query:
+          description: The event query matched by the legacy exclusion filter. Cannot be created nor updated.
+          type: string
+          example: avg:system.cpu.user{*}
+        ip_list:
+          description: The client IP addresses matched by the exclusion filter (CIDR notation is supported).
+          items:
+            example: 198.51.100.72
+            type: string
+          type: array
+        metadata:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterMetadata'
+        on_match:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterOnMatch'
+        parameters:
+          description: A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.
+          items:
+            example: list.search.query
+            type: string
+          type: array
+        path_glob:
+          description: The HTTP path glob expression matched by the exclusion filter.
+          example: /accounts/*
+          type: string
+        rules_target:
+          description: The WAF rules targeted by the exclusion filter.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTarget'
+          type: array
+        scope:
+          description: The services where the exclusion filter is deployed.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterScope'
+          type: array
+        search_query:
+          description: Generated event search query for traces matching the exclusion filter.
+          readOnly: true
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
+    SecurityFilterMeta:
+      description: Optional metadata associated to the response.
+      properties:
+        warning:
+          description: A warning message.
+          example: All the security filters are disabled. As a result, no logs are being analyzed.
+          type: string
+      type: object
+    RetentionFilterUpdateAttributes:
+      description: The object describing the configuration of the retention filter to create/update.
+      properties:
+        enabled:
+          description: Enable/Disable the retention filter.
+          example: true
+          type: boolean
+        filter:
+          $ref: '#/components/schemas/SpansFilterCreate'
+        filter_type:
+          $ref: '#/components/schemas/RetentionFilterAllType'
+        name:
+          description: The name of the retention filter.
+          example: my retention filter
+          type: string
+        rate:
+          description: 'Sample rate to apply to spans going through this retention filter.
+
+            A value of 1.0 keeps all spans matching the query.'
+          example: 1
+          format: double
+          type: number
+        trace_rate:
+          description: 'Sample rate to apply to traces containing spans going through this retention filter.
+
+            A value of 1.0 keeps all traces with spans matching the query.'
+          example: 1
+          format: double
+          type: number
+      required:
+      - name
+      - filter
+      - enabled
+      - filter_type
+      - rate
+      type: object
+    RetentionFilterAttributes:
+      description: The attributes of the retention filter.
+      properties:
+        created_at:
+          description: The creation timestamp of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        created_by:
+          description: The creator of the retention filter.
+          type: string
+          example: example_value
+        editable:
+          description: Shows whether the filter can be edited.
+          example: true
+          type: boolean
+        enabled:
+          description: The status of the retention filter (Enabled/Disabled).
+          example: true
+          type: boolean
+        execution_order:
+          description: The execution order of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        filter:
+          $ref: '#/components/schemas/SpansFilter'
+        filter_type:
+          $ref: '#/components/schemas/RetentionFilterType'
+        modified_at:
+          description: The modification timestamp of the retention filter.
+          format: int64
+          type: integer
+          example: 42
+        modified_by:
+          description: The modifier of the retention filter.
+          type: string
+          example: example_value
+        name:
+          description: The name of the retention filter.
+          example: my retention filter
+          type: string
+        rate:
+          description: 'Sample rate to apply to spans going through this retention filter.
+
+            A value of 1.0 keeps all spans matching the query.'
+          example: 1
+          format: double
+          type: number
+        trace_rate:
+          description: 'Sample rate to apply to traces containing spans going through this retention filter.
+
+            A value of 1.0 keeps all traces with spans matching the query.'
+          example: 1
+          format: double
+          type: number
+      type: object
+    RumRetentionFilterUpdateRequest:
+      description: The RUM retention filter body to update.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilterExclusionFilterResponse:
+      description: A single exclusion filter.
+      properties:
+        name:
+          description: The exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: The exclusion filter query.
+          example: source:staging
+          type: string
+      type: object
+    ApplicationSecurityWafExclusionFilterResponse:
+      description: Response object for a single WAF exclusion filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResource'
+      type: object
+    ApplicationSecurityWafExclusionFilterCreateAttributes:
+      description: Attributes for creating a WAF exclusion filter.
+      properties:
+        description:
+          description: A description for the exclusion filter.
+          example: Exclude false positives on a path
+          type: string
+        enabled:
+          description: Indicates whether the exclusion filter is enabled.
+          example: true
+          type: boolean
+        ip_list:
+          description: The client IP addresses matched by the exclusion filter (CIDR notation is supported).
+          items:
+            example: 198.51.100.72
+            type: string
+          type: array
+        on_match:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterOnMatch'
+        parameters:
+          description: A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.
+          items:
+            example: list.search.query
+            type: string
+          type: array
+        path_glob:
+          description: The HTTP path glob expression matched by the exclusion filter.
+          example: /accounts/*
+          type: string
+        rules_target:
+          description: The WAF rules targeted by the exclusion filter.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTarget'
+          type: array
+        scope:
+          description: The services where the exclusion filter is deployed.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterScope'
+          type: array
+      required:
+      - description
+      - enabled
+      type: object
+    SecurityFilterID:
+      description: The ID of the security filter.
+      example: 3dd-0uc-h1s
+      type: string
+    ApplicationSecurityWafExclusionFilterMetadata:
+      description: Extra information about the exclusion filter.
+      properties:
+        added_at:
+          description: The creation date of the exclusion filter.
+          format: date-time
+          type: string
+          example: example_value
+        added_by:
+          description: The handle of the user who created the exclusion filter.
+          type: string
+          example: example_value
+        added_by_name:
+          description: The name of the user who created the exclusion filter.
+          type: string
+          example: Example Monitor
+        modified_at:
+          description: The last modification date of the exclusion filter.
+          format: date-time
+          type: string
+          example: example_value
+        modified_by:
+          description: The handle of the user who last modified the exclusion filter.
+          type: string
+          example: example_value
+        modified_by_name:
+          description: The name of the user who last modified the exclusion filter.
+          type: string
+          example: Example Monitor
+      readOnly: true
+      type: object
+    RumRetentionFilterData:
+      description: The RUM retention filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      type: object
+    RumRetentionFilterAttributes:
+      description: The object describing attributes of a RUM retention filter.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      type: object
+    ApmRetentionFilterType:
+      default: apm_retention_filter
+      description: The type of the resource.
+      enum:
+      - apm_retention_filter
+      example: apm_retention_filter
+      type: string
+      x-enum-varnames:
+      - apm_retention_filter
+    SecurityFilterCreateAttributes:
+      description: Object containing the attributes of the security filter to be created.
+      properties:
+        exclusion_filters:
+          description: Exclusion filters to exclude some logs from the security filter.
+          example:
+          - name: Exclude staging
+            query: source:staging
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilter'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: true
+          type: boolean
+        name:
+          description: The name of the security filter.
+          example: Custom security filter
+          type: string
+        query:
+          description: The query of the security filter.
+          example: service:api
+          type: string
+      required:
+      - name
+      - query
+      - exclusion_filters
+      - filtered_data_type
+      - is_enabled
+      type: object
+    RetentionFilterType:
+      default: spans-sampling-processor
+      description: The type of retention filter. The value should always be spans-sampling-processor.
+      enum:
+      - spans-sampling-processor
+      example: spans-sampling-processor
+      type: string
+      x-enum-varnames:
+      - SPANS_SAMPLING_PROCESSOR
+    SecurityFilterUpdateAttributes:
+      description: The security filters properties to be updated.
+      properties:
+        exclusion_filters:
+          description: Exclusion filters to exclude some logs from the security filter.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilter'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: true
+          type: boolean
+        name:
+          description: The name of the security filter.
+          example: Custom security filter
+          type: string
+        query:
+          description: The query of the security filter.
+          example: service:api
+          type: string
+        version:
+          description: The version of the security filter to update.
+          example: 1
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    SpansFilter:
+      description: The spans filter used to index spans.
+      properties:
+        query:
+          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    ApplicationSecurityWafExclusionFilterRulesTarget:
+      description: Target WAF rules based either on an identifier or tags.
+      properties:
+        rule_id:
+          description: Target a single WAF rule based on its identifier.
+          example: dog-913-009
+          type: string
+        tags:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTargetTags'
+      type: object
+    ApplicationSecurityWafExclusionFilterOnMatch:
+      description: The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked.
+      enum:
+      - monitor
+      type: string
+      x-enum-varnames:
+      - MONITOR
+    ApplicationSecurityWafExclusionFilterType:
+      default: exclusion_filter
+      description: Type of the resource. The value should always be `exclusion_filter`.
+      enum:
+      - exclusion_filter
+      example: exclusion_filter
+      type: string
+      x-enum-varnames:
+      - EXCLUSION_FILTER
+    SecurityFilterUpdateRequest:
+      description: The new security filter body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilterUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilterCreateRequest:
+      description: Request object that includes the security filter that you would like to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilterCreateData'
+      required:
+      - data
+      type: object
+    ApplicationSecurityWafExclusionFilterRulesTargetTags:
+      additionalProperties:
+        type: string
+      description: Target multiple WAF rules based on their tags.
+      properties:
+        category:
+          description: The category of the targeted WAF rules.
+          example: attack_attempt
+          type: string
+        type:
+          description: The type of the targeted WAF rules.
+          example: lfi
+          type: string
+      type: object
+    ApplicationSecurityWafExclusionFilterID:
+      description: The identifier of the WAF exclusion filter.
+      example: 3dd-0uc-h1s
+      readOnly: true
+      type: string
+    RumRetentionFilterUpdateData:
+      description: The new RUM retention filter properties to update.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RetentionFilterCreateResponse:
+      description: The retention filters definition.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilter'
+      type: object
+    RetentionFilterUpdateRequest:
+      description: The body of the retention filter to be updated.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilterUpdateData'
+      required:
+      - data
+      type: object
+    ApplicationSecurityWafExclusionFilterCreateData:
+      description: Object for creating a single WAF exclusion filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
+      required:
+      - attributes
+      - type
+      type: object
+    SecurityFilterResponse:
+      description: Response object which includes a single security filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilter'
+        meta:
+          $ref: '#/components/schemas/SecurityFilterMeta'
+      type: object
+    SecurityFilterAttributes:
+      description: The object describing a security filter.
+      properties:
+        exclusion_filters:
+          description: The list of exclusion filters applied in this security filter.
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilterResponse'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_builtin:
+          description: Whether the security filter is the built-in filter.
+          example: false
+          type: boolean
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: false
+          type: boolean
+        name:
+          description: The security filter name.
+          example: Custom security filter
+          type: string
+        query:
+          description: The security filter query. Logs accepted by this query will be accepted by this filter.
+          example: service:api
+          type: string
+        version:
+          description: The version of the security filter.
+          example: 1
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    RumRetentionFilterCreateAttributes:
+      description: The object describing attributes of a RUM retention filter to create.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      required:
+      - event_type
+      - name
+      - sample_rate
+      type: object
+    RumRetentionFilterResponse:
+      description: The RUM retention filter object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterData'
+      type: object
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+  parameters:
+    ApplicationSecurityWafExclusionFilterID:
+      description: The identifier of the WAF exclusion filter.
+      example: 3b5-v82-ns6
+      in: path
+      name: exclusion_filter_id
+      required: true
+      schema:
+        type: string
+    SecurityFilterID:
+      description: The ID of the security filter.
+      in: path
+      name: security_filter_id
+      required: true
+      schema:
+        type: string
+    RumApplicationIDParameter:
+      description: RUM application ID.
+      in: path
+      name: app_id
+      required: true
+      schema:
+        type: string
+    RetentionFilterIdParam:
+      description: The ID of the retention filter.
+      in: path
+      name: filter_id
+      required: true
+      schema:
+        type: string
+    RumRetentionFilterIDParameter:
+      description: Retention filter ID.
+      in: path
+      name: rf_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false

@@ -1,0 +1,1514 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: support@datadoghq.com
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
+  title: Datadog Account Security API
+  version: '1.0'
+servers:
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: The regional site for Datadog customers.
+      enum:
+      - datadoghq.com
+      - us3.datadoghq.com
+      - us5.datadoghq.com
+      - ap1.datadoghq.com
+      - datadoghq.eu
+      - ddog-gov.com
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+- url: '{protocol}://{name}'
+  variables:
+    name:
+      default: api.datadoghq.com
+      description: Full site DNS name.
+    protocol:
+      default: https
+      description: The protocol for accessing the API.
+- url: https://{subdomain}.{site}
+  variables:
+    site:
+      default: datadoghq.com
+      description: Any Datadog deployment.
+    subdomain:
+      default: api
+      description: The subdomain where the API is deployed.
+security:
+- apiKeyAuth: []
+  appKeyAuth: []
+tags:
+- name: Security
+paths:
+  /api/v2/security_monitoring/configuration/security_filters:
+    get:
+      description: Get the list of configured security filters with their definitions.
+      operationId: ListSecurityFilters
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFiltersResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_read
+      summary: Datadog Get All Security Filters
+      tags:
+      - Security
+      x-menu-order: 18
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      description: 'Create a security filter.
+
+
+        See the [security filter guide](https://docs.datadoghq.com/security_platform/guide/how-to-setup-security-filters-using-security-monitoring-api/)
+
+        for more examples.'
+      operationId: CreateSecurityFilter
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityFilterCreateRequest'
+        description: The definition of the new security filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Create a Security Filter
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-given:
+        security_filter:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"type\": \"security_filters\",\n    \"attributes\": {\n      \"name\": \"{{ unique }}\",\n      \"query\": \"service:{{ unique_alnum }}\",\n      \"exclusion_filters\":[\n        {\n          \"name\": \"Exclude logs from staging\",\n          \"query\": \"source:staging\"\n        }\n     ],\n      \"filtered_data_type\":\"logs\",\n      \"is_enabled\": true\n     }\n  }\n}"
+          step: there is a valid "security_filter" in the system
+      x-menu-order: 17
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        operationId: DeleteSecurityFilter
+        parameters:
+        - name: security_filter_id
+          source: data.id
+        type: unsafe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/configuration/security_filters/{security_filter_id}:
+    delete:
+      description: Delete a specific security filter.
+      operationId: DeleteSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      responses:
+        '204':
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Delete a Security Filter
+      tags:
+      - Security
+      x-menu-order: 14
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    get:
+      description: 'Get the details of a specific security filter.
+
+
+        See the [security filter guide](https://docs.datadoghq.com/security_platform/guide/how-to-setup-security-filters-using-security-monitoring-api/)
+
+        for more examples.'
+      operationId: GetSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_read
+      summary: Datadog Get a Security Filter
+      tags:
+      - Security
+      x-menu-order: 16
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      description: 'Update a specific security filter.
+
+        Returns the security filter object when the request is successful.'
+      operationId: UpdateSecurityFilter
+      parameters:
+      - $ref: '#/components/parameters/SecurityFilterID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityFilterUpdateRequest'
+        description: New definition of the security filter.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFilterResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConcurrentModificationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_filters_write
+      summary: Datadog Update a Security Filter
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-menu-order: 15
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_filters_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/signals:
+    get:
+      description: 'The list endpoint returns security signals that match a search query.
+
+        Both this endpoint and the POST endpoint can be used interchangeably when listing
+
+        security signals.'
+      operationId: ListSecurityMonitoringSignals
+      parameters:
+      - description: The search query for security signals.
+        example: security:attack status:high
+        in: query
+        name: filter[query]
+        required: false
+        schema:
+          type: string
+      - description: The minimum timestamp for requested security signals.
+        example: '2019-01-02T09:42:36.320Z'
+        in: query
+        name: filter[from]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: The maximum timestamp for requested security signals.
+        example: '2019-01-03T09:42:36.320Z'
+        in: query
+        name: filter[to]
+        required: false
+        schema:
+          format: date-time
+          type: string
+      - description: The order of the security signals in results.
+        in: query
+        name: sort
+        required: false
+        schema:
+          $ref: '#/components/schemas/SecurityMonitoringSignalsSort'
+        example: example_value
+      - description: A list of results using the cursor provided in the previous query.
+        example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        in: query
+        name: page[cursor]
+        required: false
+        schema:
+          type: string
+      - description: The maximum number of security signals in the response.
+        example: 25
+        in: query
+        name: page[limit]
+        required: false
+        schema:
+          default: 10
+          format: int32
+          maximum: 1000
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSignalsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_signals_read
+      summary: Datadog Get a Quick List of Security Signals
+      tags:
+      - Security
+      x-menu-order: 14
+      x-pagination:
+        cursorParam: page[cursor]
+        cursorPath: meta.page.after
+        limitParam: page[limit]
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/signals/search:
+    post:
+      description: 'Returns security signals that match a search query.
+
+        Both this endpoint and the GET endpoint can be used interchangeably for listing
+
+        security signals.'
+      operationId: SearchSecurityMonitoringSignals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSignalListRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSignalsListResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/NotAuthorizedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - security_monitoring_signals_read
+      summary: Datadog Get a List of Security Signals
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-menu-order: 13
+      x-pagination:
+        cursorParam: body.page.cursor
+        cursorPath: meta.page.after
+        limitParam: body.page.limit
+        resultsPath: data
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/signals/{signal_id}/assignee:
+    patch:
+      description: Modify the triage assignee of a security signal.
+      operationId: EditSecurityMonitoringSignalAssignee
+      parameters:
+      - $ref: '#/components/parameters/SignalID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateRequest'
+        description: Attributes describing the signal update.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Modify the Triage Assignee of a Security Signal
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-menu-order: 10
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/signals/{signal_id}/incidents:
+    patch:
+      description: Change the related incidents for a security signal.
+      operationId: EditSecurityMonitoringSignalIncidents
+      parameters:
+      - $ref: '#/components/parameters/SignalID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSignalIncidentsUpdateRequest'
+        description: Attributes describing the signal update.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Change the Related Incidents of a Security Signal
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-menu-order: 11
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/security_monitoring/signals/{signal_id}/state:
+    patch:
+      description: Change the triage state of a security signal.
+      operationId: EditSecurityMonitoringSignalState
+      parameters:
+      - $ref: '#/components/parameters/SignalID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMonitoringSignalStateUpdateRequest'
+        description: Attributes describing the signal update.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+      summary: Datadog Change the Triage State of a Security Signal
+      tags:
+      - Security
+      x-codegen-request-body-name: body
+      x-menu-order: 12
+      x-permission:
+        operator: OR
+        permissions:
+        - security_monitoring_signals_write
+      x-undo:
+        type: idempotent
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /api/v2/usage/application_security:
+    get:
+      deprecated: true
+      description: 'Get hourly usage for application security .
+
+        **Note:** This endpoint has been deprecated. Hourly usage data for all products is now available in the [Get hourly usage by product family API](https://docs.datadoghq.com/api/latest/usage-metering/#get-hourly-usage-by-product-family)'
+      operationId: GetUsageApplicationSecurityMonitoring
+      parameters:
+      - description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
+        in: query
+        name: start_hr
+        required: true
+        schema:
+          format: date-time
+          type: string
+        example: example_value
+      - description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage ending
+
+          **before** this hour.'
+        in: query
+        name: end_hr
+        required: false
+        schema:
+          format: date-time
+          type: string
+        example: example_value
+      responses:
+        '200':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/UsageApplicationSecurityMonitoringResponse'
+          description: OK
+        '400':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden - User is not authorized
+        '429':
+          content:
+            application/json;datetime-format=rfc3339:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Too many requests
+      security:
+      - apiKeyAuth: []
+        appKeyAuth: []
+      - AuthZ:
+        - usage_read
+      summary: Datadog Get Hourly Usage for Application Security
+      tags:
+      - Security
+      x-menu-order: 38
+      x-permission:
+        operator: OR
+        permissions:
+        - usage_read
+      x-undo:
+        type: safe
+      x-api-evangelist-processing:
+        PascalCaseOperationSummaries: true
+        ChooseTags: true
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    SecurityMonitoringSignalIncidentsUpdateData:
+      description: Data containing the patch for changing the related incidents of a signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalIncidentsUpdateAttributes'
+      required:
+      - attributes
+      type: object
+    SecurityFilterExclusionFilter:
+      description: Exclusion filter for the security filter.
+      example:
+        name: Exclude staging
+        query: source:staging
+      properties:
+        name:
+          description: Exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: Exclusion filter query. Logs that match this query are excluded from the security filter.
+          example: source:staging
+          type: string
+      required:
+      - name
+      - query
+      type: object
+    SecurityMonitoringSignalListRequestFilter:
+      description: Search filters for listing security signals.
+      properties:
+        from:
+          description: The minimum timestamp for requested security signals.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+        query:
+          description: Search query for listing security signals.
+          example: security:attack status:high
+          type: string
+        to:
+          description: The maximum timestamp for requested security signals.
+          example: '2019-01-03T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    SecurityMonitoringSignalAssigneeUpdateAttributes:
+      description: Attributes describing the new assignee of a security signal.
+      properties:
+        assignee:
+          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
+        version:
+          $ref: '#/components/schemas/SecurityMonitoringSignalVersion'
+      required:
+      - assignee
+      type: object
+    HourlyUsageType:
+      description: Usage type that is being measured.
+      enum:
+      - app_sec_host_count
+      - observability_pipelines_bytes_processed
+      - lambda_traced_invocations_count
+      example: observability_pipelines_bytes_processed
+      type: string
+      x-enum-varnames:
+      - APP_SEC_HOST_COUNT
+      - OBSERVABILITY_PIPELINES_BYTES_PROCESSSED
+      - LAMBDA_TRACED_INVOCATIONS_COUNT
+    SecurityMonitoringSignalIncidentsUpdateRequest:
+      description: Request body for changing the related incidents of a given security monitoring signal.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalIncidentsUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilterFilteredDataType:
+      description: The filtered data type.
+      enum:
+      - logs
+      example: logs
+      type: string
+      x-enum-varnames:
+      - LOGS
+    SecurityMonitoringSignalIncidentIds:
+      description: Array of incidents that are associated with this signal.
+      example:
+      - 2066
+      items:
+        description: Public ID attribute of the incident that is associated with the signal.
+        example: 2066
+        format: int64
+        type: integer
+      type: array
+    SecurityFilterUpdateData:
+      description: The new security filter properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    SecurityMonitoringSignalsSort:
+      description: The sort parameters used for querying security signals.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    SecurityMonitoringSignalArchiveComment:
+      description: Optional comment to display on archived signals.
+      type: string
+    SecurityFiltersResponse:
+      description: All the available security filters objects.
+      properties:
+        data:
+          description: A list of security filters objects.
+          items:
+            $ref: '#/components/schemas/SecurityFilter'
+          type: array
+        meta:
+          $ref: '#/components/schemas/SecurityFilterMeta'
+      type: object
+    SecurityMonitoringSignalType:
+      default: signal
+      description: The type of event.
+      enum:
+      - signal
+      example: signal
+      type: string
+      x-enum-varnames:
+      - SIGNAL
+    SecurityMonitoringSignalsListResponse:
+      description: 'The response object with all security signals matching the request
+
+        and pagination information.'
+      properties:
+        data:
+          description: An array of security signals matching the request.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringSignal'
+          type: array
+        links:
+          $ref: '#/components/schemas/SecurityMonitoringSignalsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/SecurityMonitoringSignalsListResponseMeta'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SecurityFilter:
+      description: The security filter's properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterAttributes'
+        id:
+          $ref: '#/components/schemas/SecurityFilterID'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      type: object
+    SecurityMonitoringSignalStateUpdateAttributes:
+      description: Attributes describing the change of state of a security signal.
+      properties:
+        archive_comment:
+          $ref: '#/components/schemas/SecurityMonitoringSignalArchiveComment'
+        archive_reason:
+          $ref: '#/components/schemas/SecurityMonitoringSignalArchiveReason'
+        state:
+          $ref: '#/components/schemas/SecurityMonitoringSignalState'
+        version:
+          $ref: '#/components/schemas/SecurityMonitoringSignalVersion'
+      required:
+      - state
+      type: object
+    UsageTimeSeriesObject:
+      description: Usage timeseries data.
+      properties:
+        timestamp:
+          description: Datetime in ISO-8601 format, UTC. The hour for the usage.
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        value:
+          description: Contains the number measured for the given usage_type during the hour.
+          format: int64
+          nullable: true
+          type: integer
+          example: 42
+      type: object
+    SecurityMonitoringSignalTriageAttributes:
+      description: Attributes describing a triage state update operation over a security signal.
+      properties:
+        archive_comment:
+          $ref: '#/components/schemas/SecurityMonitoringSignalArchiveComment'
+        archive_comment_timestamp:
+          description: Timestamp of the last edit to the comment.
+          format: int64
+          minimum: 0
+          type: integer
+          example: 42
+        archive_comment_user:
+          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
+        archive_reason:
+          $ref: '#/components/schemas/SecurityMonitoringSignalArchiveReason'
+        assignee:
+          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
+        incident_ids:
+          $ref: '#/components/schemas/SecurityMonitoringSignalIncidentIds'
+        state:
+          $ref: '#/components/schemas/SecurityMonitoringSignalState'
+        state_update_timestamp:
+          description: Timestamp of the last update to the signal state.
+          format: int64
+          minimum: 0
+          type: integer
+          example: 42
+        state_update_user:
+          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
+      required:
+      - assignee
+      - state
+      - incident_ids
+      type: object
+    SecurityMonitoringSignalTriageUpdateResponse:
+      description: The response returned after all triage operations, containing the updated signal triage data.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSignalsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'The link for the next set of results. **Note**: The request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/security_monitoring/signals?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    SecurityMonitoringSignalsListResponseMeta:
+      description: Meta attributes.
+      properties:
+        page:
+          $ref: '#/components/schemas/SecurityMonitoringSignalsListResponseMetaPage'
+      type: object
+    SecurityFilterType:
+      default: security_filters
+      description: The type of the resource. The value should always be `security_filters`.
+      enum:
+      - security_filters
+      example: security_filters
+      type: string
+      x-enum-varnames:
+      - SECURITY_FILTERS
+    SecurityFilterCreateData:
+      description: Object for a single security filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterCreateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      required:
+      - type
+      - attributes
+      type: object
+    SecurityMonitoringSignalVersion:
+      description: Version of the updated signal. If server side version is higher, update will be rejected.
+      format: int64
+      type: integer
+    UsageApplicationSecurityMonitoringResponse:
+      description: Application Security Monitoring usage response.
+      properties:
+        data:
+          description: Response containing Application Security Monitoring usage.
+          items:
+            $ref: '#/components/schemas/UsageDataObject'
+          type: array
+      type: object
+    SecurityMonitoringSignalAssigneeUpdateRequest:
+      description: Request body for changing the assignee of a given security monitoring signal.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSignalListRequestPage:
+      description: The paging attributes for listing security signals.
+      properties:
+        cursor:
+          description: A list of results using the cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: The maximum number of security signals in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    SecurityFilterMeta:
+      description: Optional metadata associated to the response.
+      properties:
+        warning:
+          description: A warning message.
+          example: All the security filters are disabled. As a result, no logs are being analyzed.
+          type: string
+      type: object
+    SecurityFilterExclusionFilterResponse:
+      description: A single exclusion filter.
+      properties:
+        name:
+          description: The exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: The exclusion filter query.
+          example: source:staging
+          type: string
+      type: object
+    SecurityMonitoringSignalListRequest:
+      description: The request for a security signal list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/SecurityMonitoringSignalListRequestFilter'
+        page:
+          $ref: '#/components/schemas/SecurityMonitoringSignalListRequestPage'
+        sort:
+          $ref: '#/components/schemas/SecurityMonitoringSignalsSort'
+      type: object
+    UsageDataObject:
+      description: Usage data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UsageAttributesObject'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/UsageTimeSeriesType'
+      type: object
+    SecurityMonitoringSignalArchiveReason:
+      description: Reason a signal is archived.
+      enum:
+      - none
+      - false_positive
+      - testing_or_maintenance
+      - investigated_case_opened
+      - other
+      type: string
+      x-enum-varnames:
+      - NONE
+      - FALSE_POSITIVE
+      - TESTING_OR_MAINTENANCE
+      - INVESTIGATED_CASE_OPENED
+      - OTHER
+    SecurityFilterID:
+      description: The ID of the security filter.
+      example: 3dd-0uc-h1s
+      type: string
+    UsageAttributesObject:
+      description: Usage attributes data.
+      properties:
+        org_name:
+          description: The organization name.
+          type: string
+          example: Example Monitor
+        product_family:
+          description: The product for which usage is being reported.
+          type: string
+          example: example_value
+        public_id:
+          description: The organization public ID.
+          type: string
+          example: abc-123-def
+        region:
+          description: The region of the Datadog instance that the organization belongs to.
+          type: string
+          example: example_value
+        timeseries:
+          description: List of usage data reported for each requested hour.
+          items:
+            $ref: '#/components/schemas/UsageTimeSeriesObject'
+          type: array
+        usage_type:
+          $ref: '#/components/schemas/HourlyUsageType'
+      type: object
+    SecurityMonitoringSignalIncidentsUpdateAttributes:
+      description: Attributes describing the new list of related signals for a security signal.
+      properties:
+        incident_ids:
+          $ref: '#/components/schemas/SecurityMonitoringSignalIncidentIds'
+        version:
+          $ref: '#/components/schemas/SecurityMonitoringSignalVersion'
+      required:
+      - incident_ids
+      type: object
+    SecurityFilterUpdateAttributes:
+      description: The security filters properties to be updated.
+      properties:
+        exclusion_filters:
+          description: Exclusion filters to exclude some logs from the security filter.
+          example: []
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilter'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: true
+          type: boolean
+        name:
+          description: The name of the security filter.
+          example: Custom security filter
+          type: string
+        query:
+          description: The query of the security filter.
+          example: service:api
+          type: string
+        version:
+          description: The version of the security filter to update.
+          example: 1
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    SecurityMonitoringSignalStateUpdateRequest:
+      description: Request body for changing the state of a given security monitoring signal.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalStateUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilterCreateAttributes:
+      description: Object containing the attributes of the security filter to be created.
+      properties:
+        exclusion_filters:
+          description: Exclusion filters to exclude some logs from the security filter.
+          example:
+          - name: Exclude staging
+            query: source:staging
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilter'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: true
+          type: boolean
+        name:
+          description: The name of the security filter.
+          example: Custom security filter
+          type: string
+        query:
+          description: The query of the security filter.
+          example: service:api
+          type: string
+      required:
+      - name
+      - query
+      - exclusion_filters
+      - filtered_data_type
+      - is_enabled
+      type: object
+    SecurityMonitoringSignalAssigneeUpdateData:
+      description: Data containing the patch for changing the assignee of a signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateAttributes'
+      required:
+      - attributes
+      type: object
+    SecurityMonitoringSignalTriageUpdateData:
+      description: Data containing the updated triage attributes of the signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalTriageAttributes'
+        id:
+          description: The unique ID of the security signal.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSignalMetadataType'
+      type: object
+    SecurityMonitoringSignalStateUpdateData:
+      description: Data containing the patch for changing the state of a signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalStateUpdateAttributes'
+        id:
+          description: The unique ID of the security signal.
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSignalMetadataType'
+      required:
+      - attributes
+      type: object
+    SecurityFilterUpdateRequest:
+      description: The new security filter body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilterUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilterCreateRequest:
+      description: Request object that includes the security filter that you would like to create.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilterCreateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringTriageUser:
+      description: Object representing a given user entity.
+      properties:
+        handle:
+          description: The handle for this user account.
+          type: string
+          example: example_value
+        icon:
+          description: Gravatar icon associated to the user.
+          example: /path/to/matching/gravatar/icon
+          readOnly: true
+          type: string
+        id:
+          description: Numerical ID assigned by Datadog to this user account.
+          format: int64
+          type: integer
+          example: 42
+        name:
+          description: The name for this user account.
+          nullable: true
+          type: string
+          example: Example Monitor
+        uuid:
+          description: UUID assigned by Datadog to this user account.
+          example: 773b045d-ccf8-4808-bd3b-955ef6a8c940
+          type: string
+      required:
+      - uuid
+      type: object
+    SecurityMonitoringSignal:
+      description: Object description of a security signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalAttributes'
+        id:
+          description: The unique ID of the security signal.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSignalType'
+      type: object
+    SecurityMonitoringSignalsListResponseMetaPage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: 'The cursor used to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    SecurityMonitoringSignalState:
+      description: The new triage state of the signal.
+      enum:
+      - open
+      - archived
+      - under_review
+      example: open
+      type: string
+      x-enum-varnames:
+      - OPEN
+      - ARCHIVED
+      - UNDER_REVIEW
+    SecurityMonitoringSignalAttributes:
+      additionalProperties: {}
+      description: 'The object containing all signal attributes and their
+
+        associated values.'
+      properties:
+        custom:
+          additionalProperties: {}
+          description: A JSON object of attributes in the security signal.
+          example:
+            workflow:
+              first_seen: '2020-06-23T14:46:01.000Z'
+              last_seen: '2020-06-23T14:46:49.000Z'
+              rule:
+                id: 0f5-e0c-805
+                name: 'Brute Force Attack Grouped By User '
+                version: 12
+          type: object
+        message:
+          description: The message in the security signal defined by the rule that generated the signal.
+          example: Detect Account Take Over (ATO) through brute force attempts
+          type: string
+        tags:
+          description: An array of tags associated with the security signal.
+          example:
+          - security:attack
+          - technique:T1110-brute-force
+          items:
+            description: The tag associated with the security signal.
+            type: string
+          type: array
+        timestamp:
+          description: The timestamp of the security signal.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
+      type: object
+    SecurityFilterResponse:
+      description: Response object which includes a single security filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilter'
+        meta:
+          $ref: '#/components/schemas/SecurityFilterMeta'
+      type: object
+    SecurityFilterAttributes:
+      description: The object describing a security filter.
+      properties:
+        exclusion_filters:
+          description: The list of exclusion filters applied in this security filter.
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilterResponse'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_builtin:
+          description: Whether the security filter is the built-in filter.
+          example: false
+          type: boolean
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: false
+          type: boolean
+        name:
+          description: The security filter name.
+          example: Custom security filter
+          type: string
+        query:
+          description: The security filter query. Logs accepted by this query will be accepted by this filter.
+          example: service:api
+          type: string
+        version:
+          description: The version of the security filter.
+          example: 1
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    UsageTimeSeriesType:
+      default: usage_timeseries
+      description: Type of usage data.
+      enum:
+      - usage_timeseries
+      example: usage_timeseries
+      type: string
+      x-enum-varnames:
+      - USAGE_TIMESERIES
+    SecurityMonitoringSignalMetadataType:
+      default: signal_metadata
+      description: The type of event.
+      enum:
+      - signal_metadata
+      example: signal_metadata
+      type: string
+      x-enum-varnames:
+      - SIGNAL_METADATA
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+  parameters:
+    SignalID:
+      description: The ID of the signal.
+      in: path
+      name: signal_id
+      required: true
+      schema:
+        type: string
+    SecurityFilterID:
+      description: The ID of the security filter.
+      in: path
+      name: security_filter_id
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    AuthZ:
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/v1/authorize
+          scopes:
+            apm_api_catalog_read: View API catalog and API definitions.
+            apm_api_catalog_write: Add, modify, and delete API catalog definitions.
+            apm_read: Read and query APM and Trace Analytics.
+            apm_service_catalog_read: View service catalog and service definitions.
+            apm_service_catalog_write: Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.
+            appsec_vm_read: View infrastructure, application code, and library vulnerabilities. This does not restrict API or inventory SQL access to the vulnerability data source.
+            cases_read: View Cases.
+            cases_write: Create and update cases.
+            ci_visibility_pipelines_write: Create CI Visibility pipeline spans using the API.
+            ci_visibility_read: View CI Visibility.
+            cloud_cost_management_read: View Cloud Cost pages and the cloud cost data source in dashboards and notebooks. For more details, see the Cloud Cost Management docs.
+            cloud_cost_management_write: Configure cloud cost accounts and global customizations. For more details, see the Cloud Cost Management docs.
+            code_analysis_read: View Code Analysis.
+            continuous_profiler_pgo_read: Read and query Continuous Profiler data for Profile-Guided Optimization (PGO).
+            create_webhooks: Create webhooks integrations.
+            dashboards_embed_share: Create, modify, and delete shared dashboards with share type 'embed'.
+            dashboards_invite_share: Create, modify, and delete shared dashboards with share type 'invite'.
+            dashboards_public_share: Generate public and authenticated links to share dashboards or embeddable graphs externally.
+            dashboards_read: View dashboards.
+            dashboards_write: Create and change dashboards.
+            data_scanner_read: View Data Scanner configurations.
+            data_scanner_write: Edit Data Scanner configurations.
+            embeddable_graphs_share: Generate public links to share embeddable graphs externally.
+            events_read: Read Events data.
+            hosts_read: List hosts and their attributes.
+            incident_notification_settings_write: Configure Incidents Notification settings.
+            incident_read: View incidents in Datadog.
+            incident_settings_write: Configure Incident Settings.
+            incident_write: Create, view, and manage incidents in Datadog.
+            metrics_read: View custom metrics.
+            monitor_config_policy_write: Edit and delete monitor configuration.
+            monitors_downtime: Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.
+            monitors_read: View monitors.
+            monitors_write: Edit, delete, and resolve individual monitors.
+            org_management: Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.
+            security_comments_read: Read comments of vulnerabilities.
+            security_monitoring_filters_read: Read Security Filters.
+            security_monitoring_filters_write: Create, edit, and delete Security Filters.
+            security_monitoring_findings_read: View a list of findings that include both misconfigurations and identity risks.
+            security_monitoring_notification_profiles_read: View Rule Security Notification rules.
+            security_monitoring_notification_profiles_write: Create, edit, and delete Security Notification rules.
+            security_monitoring_rules_read: Read Detection Rules.
+            security_monitoring_rules_write: Create and edit Detection Rules.
+            security_monitoring_signals_read: View Security Signals.
+            security_monitoring_suppressions_read: Read Rule Suppressions.
+            security_monitoring_suppressions_write: Write Rule Suppressions.
+            security_pipelines_read: View Security Pipelines.
+            security_pipelines_write: Create, edit, and delete CSM Security Pipelines.
+            slos_corrections: Apply, edit, and delete SLO status corrections. A user with this permission can make status corrections, even if they do not have permission to edit those SLOs.
+            slos_read: View SLOs and status corrections.
+            slos_write: Create, edit, and delete SLOs.
+            synthetics_global_variable_read: View, search, and use Synthetics global variables.
+            synthetics_global_variable_write: Create, edit, and delete global variables for Synthetics.
+            synthetics_private_location_read: View, search, and use Synthetics private locations.
+            synthetics_private_location_write: Create and delete private locations in addition to having access to the associated installation guidelines.
+            synthetics_read: List and view configured Synthetic tests and test results.
+            synthetics_write: Create, edit, and delete Synthetic tests.
+            teams_manage: Manage Teams. Create, delete, rename, and edit metadata of all Teams. To control Team membership across all Teams, use the User Access Manage permission.
+            teams_read: Read Teams data. A User with this permission can view Team names, metadata, and which Users are on each Team.
+            test_optimization_read: View Test Optimization.
+            timeseries_query: Query Timeseries data.
+            usage_read: View your organization's usage and usage attribution.
+            user_access_invite: Invite other users to your organization.
+            user_access_manage: Disable users, manage user roles, manage SAML-to-role mappings, and configure logs restriction queries.
+            user_access_read: View users and their roles and settings.
+            workflows_read: View workflows.
+            workflows_run: Run workflows.
+            workflows_write: Create, edit, and delete workflows.
+          tokenUrl: /oauth2/v1/token
+      type: oauth2
+    apiKeyAuth:
+      description: Your Datadog API Key.
+      in: header
+      name: DD-API-KEY
+      type: apiKey
+      x-env-name: DD_API_KEY
+    appKeyAuth:
+      description: Your Datadog APP Key.
+      in: header
+      name: DD-APPLICATION-KEY
+      type: apiKey
+      x-env-name: DD_APP_KEY
+    bearerAuth:
+      scheme: bearer
+      type: http
+      x-env-name: DD_BEARER_TOKEN
+x-group-parameters: true
+x-merge-override:
+  paths: false
