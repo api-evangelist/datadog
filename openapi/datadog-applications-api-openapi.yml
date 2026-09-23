@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Applications API
+  title: Datadog Applications API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -525,7 +525,7 @@ paths:
         delay: 0
         dispatcher: FALLBACK
     post:
-      description: Publish an app for use by other users. To ensure the app is accessible to the correct users, you also need to set a [Restriction Policy](https://docs.datadoghq.com/api/latest/restriction-policies/) on the app if a policy does not yet exist.
+      description: Publish an app for use by other users. To ensure the app is accessible to the correct users, you also need to set a Restriction Policy on the app if a policy does not yet exist.
       operationId: PublishApp
       parameters:
       - description: The ID of the app to publish.
@@ -573,61 +573,6 @@ paths:
         - apps_write
       x-undo:
         type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /api/v2/application_keys:
-    get:
-      description: List all application keys available for your org
-      operationId: ListApplicationKeys
-      parameters:
-      - $ref: '#/components/parameters/PageSize'
-      - $ref: '#/components/parameters/PageNumber'
-      - $ref: '#/components/parameters/ApplicationKeysSortParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtStartParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtEndParameter'
-      - $ref: '#/components/parameters/ApplicationKeyIncludeParameter'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListApplicationKeysResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get All Application Keys
-      tags:
-      - Applications
-      x-menu-order: 9
-      x-permission:
-        operator: OR
-        permissions:
-        - org_app_keys_read
-      x-undo:
-        type: safe
       x-api-evangelist-processing:
         PascalCaseOperationSummaries: true
         ChooseTags: true
@@ -782,60 +727,6 @@ paths:
         delay: 0
         dispatcher: FALLBACK
   /api/v2/current_user/application_keys:
-    get:
-      description: List all application keys available for current user
-      operationId: ListCurrentUserApplicationKeys
-      parameters:
-      - $ref: '#/components/parameters/PageSize'
-      - $ref: '#/components/parameters/PageNumber'
-      - $ref: '#/components/parameters/ApplicationKeysSortParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtStartParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtEndParameter'
-      - $ref: '#/components/parameters/ApplicationKeyIncludeParameter'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListApplicationKeysResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get All Application Keys Owned by Current User
-      tags:
-      - Applications
-      x-menu-order: 5
-      x-permission:
-        operator: OR
-        permissions:
-        - user_app_keys
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     post:
       description: Create an application key for current user
       operationId: CreateCurrentUserApplicationKey
@@ -1036,36 +927,6 @@ paths:
     x-merge-override:
       get: false
       post: false
-    get:
-      description: List all the RUM applications in your organization.
-      operationId: GetRUMApplications
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RUMApplicationsResponse'
-          description: OK
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog List All the Rum Applications
-      tags:
-      - Applications
-      x-menu-order: 8
-      x-permission:
-        operator: OR
-        permissions:
-        - rum_apps_read
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     post:
       description: Create a new RUM application in your organization.
       operationId: CreateRUMApplication
@@ -1243,273 +1104,12 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /api/v2/service_accounts/{service_account_id}/application_keys:
-    x-merge-override:
-      get: false
-    get:
-      description: List all application keys available for this service account.
-      operationId: ListServiceAccountApplicationKeys
-      parameters:
-      - $ref: '#/components/parameters/ServiceAccountID'
-      - $ref: '#/components/parameters/PageSize'
-      - $ref: '#/components/parameters/PageNumber'
-      - $ref: '#/components/parameters/ApplicationKeysSortParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtStartParameter'
-      - $ref: '#/components/parameters/ApplicationKeyFilterCreatedAtEndParameter'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListApplicationKeysResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog List Application Keys for This Service Account
-      tags:
-      - Applications
-      x-menu-order: 6
-      x-permission:
-        operator: OR
-        permissions:
-        - service_account_write
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      description: Create an application key for this service account.
-      operationId: CreateServiceAccountApplicationKey
-      parameters:
-      - $ref: '#/components/parameters/ServiceAccountID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApplicationKeyCreateRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationKeyResponse'
-          description: Created
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Create an Application Key for This Service Account
-      tags:
-      - Applications
-      x-codegen-request-body-name: body
-      x-given:
-        service_account_application_key:
-          parameters:
-          - name: service_account_id
-            value: '"{{ service_account_user.data.id }}"'
-          - name: body
-            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\"\n    },\n    \"type\": \"application_keys\"\n  }\n}"
-          step: there is a valid "service_account_application_key" for "service_account_user"
-      x-menu-order: 5
-      x-permission:
-        operator: OR
-        permissions:
-        - service_account_write
-      x-undo:
-        operationId: DeleteServiceAccountApplicationKey
-        parameters:
-        - name: app_key_id
-          source: data.id
-        - name: service_account_id
-          source: data.relationships.owned_by.data.id
-        type: unsafe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /api/v2/service_accounts/{service_account_id}/application_keys/{app_key_id}:
-    x-merge-override:
-      delete: true
-    delete:
-      description: Delete an application key owned by this service account.
-      operationId: DeleteServiceAccountApplicationKey
-      parameters:
-      - $ref: '#/components/parameters/ServiceAccountID'
-      - $ref: '#/components/parameters/ApplicationKeyID'
-      responses:
-        '204':
-          description: No Content
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Delete an Application Key for This Service Account
-      tags:
-      - Applications
-      x-menu-order: 3
-      x-permission:
-        operator: OR
-        permissions:
-        - service_account_write
-      x-undo:
-        type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    get:
-      description: Get an application key owned by this service account.
-      operationId: GetServiceAccountApplicationKey
-      parameters:
-      - $ref: '#/components/parameters/ServiceAccountID'
-      - $ref: '#/components/parameters/ApplicationKeyID'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PartialApplicationKeyResponse'
-          description: OK
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get One Application Key for This Service Account
-      tags:
-      - Applications
-      x-menu-order: 1
-      x-permission:
-        operator: OR
-        permissions:
-        - service_account_write
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    patch:
-      description: Edit an application key owned by this service account.
-      operationId: UpdateServiceAccountApplicationKey
-      parameters:
-      - $ref: '#/components/parameters/ServiceAccountID'
-      - $ref: '#/components/parameters/ApplicationKeyID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApplicationKeyUpdateRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PartialApplicationKeyResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Edit an Application Key for This Service Account
-      tags:
-      - Applications
-      x-codegen-request-body-name: body
-      x-menu-order: 2
-      x-permission:
-        operator: OR
-        permissions:
-        - service_account_write
-      x-undo:
-        type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/usage/application_security:
     get:
       deprecated: true
       description: 'Get hourly usage for application security .
 
-        **Note:** This endpoint has been deprecated. Hourly usage data for all products is now available in the [Get hourly usage by product family API](https://docs.datadoghq.com/api/latest/usage-metering/#get-hourly-usage-by-product-family)'
+        **Note:** This endpoint has been deprecated. Hourly usage data for all products is now available in the Get hourly usage by product family API'
       operationId: GetUsageApplicationSecurityMonitoring
       parameters:
       - description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]` for usage beginning at this hour.'
@@ -1578,134 +1178,386 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    RUMApplicationUpdateRequest:
-      description: RUM application update request.
+    ApplicationKeyCreateAttributes:
+      description: Attributes used to create an application Key.
       properties:
-        data:
-          $ref: '#/components/schemas/RUMApplicationUpdate'
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          type:
+          - array
+          - 'null'
       required:
-      - data
+      - name
       type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    RUMApplicationUpdate:
-      description: RUM application update.
+      x-merge-override:
+        properties: false
+    UpdateAppResponseData:
+      description: The data object containing the updated app definition.
       properties:
         attributes:
-          $ref: '#/components/schemas/RUMApplicationUpdateAttributes'
+          $ref: '#/components/schemas/UpdateAppResponseDataAttributes'
         id:
-          description: RUM application ID.
-          example: abcd1234-0000-0000-abcd-1234abcd5678
+          description: The ID of the updated app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
           type: string
-          x-merge-override:
-            format: false
         type:
-          $ref: '#/components/schemas/RUMApplicationUpdateType'
+          $ref: '#/components/schemas/AppDefinitionType'
       required:
       - id
       - type
+      - attributes
       type: object
-    DataTransformType:
-      default: dataTransform
-      description: The data transform type.
+    Component:
+      description: '[Definition of a UI component in the app](https://docs.datadoghq.com/service_management/app_builder/components/)'
+      properties:
+        events:
+          description: Events to listen for on the UI component.
+          items:
+            $ref: '#/components/schemas/AppBuilderEvent'
+          type: array
+        id:
+          description: The ID of the UI component. This property is deprecated; use `name` to identify individual components instead.
+          type:
+          - string
+          - 'null'
+          example: abc-123-def
+        name:
+          description: A unique identifier for this UI component. This name is also visible in the app editor.
+          example: ''
+          type: string
+        properties:
+          $ref: '#/components/schemas/ComponentProperties'
+        type:
+          $ref: '#/components/schemas/ComponentType'
+      required:
+      - name
+      - type
+      - properties
+      type: object
+    ActionQueryRequiresConfirmation:
+      description: Whether to prompt the user to confirm this query before it runs.
+      oneOf:
+      - type: boolean
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+        example: ${true}
+        type: string
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    AppBuilderEventType:
+      description: The response to the event.
       enum:
-      - dataTransform
-      example: dataTransform
+      - custom
+      - setComponentState
+      - triggerQuery
+      - openModal
+      - closeModal
+      - openUrl
+      - downloadFile
+      - setStateVariableValue
+      example: triggerQuery
       type: string
       x-enum-varnames:
-      - DATATRANSFORM
-    RUMApplicationListType:
+      - CUSTOM
+      - SETCOMPONENTSTATE
+      - TRIGGERQUERY
+      - OPENMODAL
+      - CLOSEMODAL
+      - OPENURL
+      - DOWNLOADFILE
+      - SETSTATEVARIABLEVALUE
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    Deployment:
+      description: The version of the app that was published.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DeploymentAttributes'
+        id:
+          description: The deployment ID.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        meta:
+          $ref: '#/components/schemas/DeploymentMetadata'
+        type:
+          $ref: '#/components/schemas/AppDeploymentType'
+      type: object
+    ActionQueryShowToastOnError:
+      description: Whether to display a toast to the user when the query returns an error.
+      oneOf:
+      - type: boolean
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+        example: ${true}
+        type: string
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    AppRelationship:
+      description: The app's publication relationship and custom connections.
+      properties:
+        connections:
+          description: Array of custom connections used by the app.
+          items:
+            $ref: '#/components/schemas/CustomConnection'
+          type: array
+        deployment:
+          $ref: '#/components/schemas/DeploymentRelationship'
+      type: object
+    RoleAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: Number of users with that role.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      type: object
+    ListAppsResponse:
+      description: A paginated list of apps matching the specified filters and sorting.
+      properties:
+        data:
+          description: An array of app definitions.
+          items:
+            $ref: '#/components/schemas/ListAppsResponseDataItems'
+          type: array
+        included:
+          description: Data on the version of the app that was published.
+          items:
+            $ref: '#/components/schemas/Deployment'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ListAppsResponseMeta'
+      type: object
+    DeploymentRelationship:
+      description: Information pointing to the app's publication status.
+      properties:
+        data:
+          $ref: '#/components/schemas/DeploymentRelationshipData'
+        meta:
+          $ref: '#/components/schemas/DeploymentMetadata'
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    LeakedKeyAttributes:
+      description: The definition of LeakedKeyAttributes object.
+      properties:
+        date:
+          description: The LeakedKeyAttributes date.
+          example: '2017-07-21T17:32:28Z'
+          format: date-time
+          type: string
+        leak_source:
+          description: The LeakedKeyAttributes leak_source.
+          type: string
+          example: example_value
+      required:
+      - date
+      type: object
+    FullApplicationKey:
+      description: Datadog application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FullApplicationKeyAttributes'
+        id:
+          description: ID of the application key.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ApplicationKeyRelationships'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      type: object
+      x-merge-override:
+        required: false
+    ActionQuerySpecObject:
+      description: The action query spec object.
+      properties:
+        connectionGroup:
+          $ref: '#/components/schemas/ActionQuerySpecConnectionGroup'
+        connectionId:
+          description: The ID of the custom connection to use for this action query.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          type: string
+        fqn:
+          description: The fully qualified name of the action type.
+          example: com.datadoghq.http.request
+          type: string
+        inputs:
+          $ref: '#/components/schemas/ActionQuerySpecInputs'
+      required:
+      - fqn
+      type: object
+    ComponentGridProperties:
+      description: Properties of a grid component.
+      properties:
+        backgroundColor:
+          default: default
+          description: The background color of the grid.
+          type: string
+          example: example_value
+        children:
+          description: The child components of the grid.
+          items:
+            $ref: '#/components/schemas/Component'
+          type: array
+        isVisible:
+          $ref: '#/components/schemas/ComponentGridPropertiesIsVisible'
+      type: object
+    ApplicationKeyCreateRequest:
+      description: Request used to create an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationKeyCreateData'
+      required:
+      - data
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    RUMApplicationType:
       default: rum_application
-      description: RUM application list type.
+      description: RUM application response type.
       enum:
       - rum_application
       example: rum_application
       type: string
       x-enum-varnames:
       - RUM_APPLICATION
-    StateVariableType:
-      default: stateVariable
-      description: The state variable type.
-      enum:
-      - stateVariable
-      example: stateVariable
-      type: string
-      x-enum-varnames:
-      - STATEVARIABLE
-    RUMApplicationCreateRequest:
-      description: RUM application creation request attributes.
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    RelationshipToRoles:
+      description: Relationship to roles.
       properties:
         data:
-          $ref: '#/components/schemas/RUMApplicationCreate'
-      required:
-      - data
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
       type: object
-    RUMApplicationUpdateType:
-      default: rum_application_update
-      description: RUM application update type.
-      enum:
-      - rum_application_update
-      example: rum_application_update
-      type: string
-      x-enum-varnames:
-      - RUM_APPLICATION_UPDATE
-    StateVariable:
-      description: A variable, which can be set and read by other components in the app.
+      x-merge-override:
+        required: false
+    UpdateAppRequest:
+      description: A request object for updating an existing app.
+      example:
+        data:
+          attributes:
+            components:
+            - events: []
+              name: grid0
+              properties:
+                children:
+                - events: []
+                  name: gridCell0
+                  properties:
+                    children:
+                    - events: []
+                      name: calloutValue0
+                      properties:
+                        isDisabled: false
+                        isLoading: false
+                        isVisible: true
+                        label: CPU Usage
+                        size: sm
+                        style: vivid_yellow
+                        unit: kB
+                        value: '42'
+                      type: calloutValue
+                    isVisible: 'true'
+                    layout:
+                      default:
+                        height: 8
+                        width: 2
+                        x: 0
+                        y: 0
+                  type: gridCell
+              type: grid
+            description: This is a simple example app
+            name: Example App
+            queries: []
+            rootInstanceName: grid0
+          id: 9e20cbaf-68da-45a6-9ccf-54193ac29fa5
+          type: appDefinitions
       properties:
-        id:
-          description: The ID of the state variable.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        name:
-          description: A unique identifier for this state variable. This name is also used to access the variable's value throughout the app.
-          example: ordersToSubmit
-          type: string
-        properties:
-          $ref: '#/components/schemas/StateVariableProperties'
-        type:
-          $ref: '#/components/schemas/StateVariableType'
-      required:
-      - id
-      - name
-      - type
-      - properties
+        data:
+          $ref: '#/components/schemas/UpdateAppRequestData'
       type: object
-    JSONAPIErrorItem:
-      description: API error response body
-      properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the error.
-          example: Missing required attribute in body
-          type: string
-        meta:
-          additionalProperties: {}
-          description: Non-standard meta-information about the error
-          type: object
-        source:
-          $ref: '#/components/schemas/JSONAPIErrorItemSource'
-        status:
-          description: Status code of the response.
-          example: '400'
-          type: string
-        title:
-          description: Short human-readable summary of the error.
-          example: Bad Request
-          type: string
-      type: object
-    ActionQueryCondition:
-      description: Whether to run this query. If specified, the query will only run if this condition evaluates to `true` in JavaScript and all other conditions are also met.
-      oneOf:
-      - type: boolean
-      - example: ${true}
-        type: string
     ActionQuery:
       description: An action query. This query type is used to trigger an action, such as sending a HTTP request.
       properties:
@@ -1733,6 +1585,63 @@ components:
       - type
       - properties
       type: object
+    DeleteAppsRequestDataItems:
+      description: An object containing the ID of an app to delete.
+      properties:
+        id:
+          description: The ID of the app to delete.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - id
+      - type
+      type: object
+    StateVariable:
+      description: A variable, which can be set and read by other components in the app.
+      properties:
+        id:
+          description: The ID of the state variable.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        name:
+          description: A unique identifier for this state variable. This name is also used to access the variable's value throughout the app.
+          example: ordersToSubmit
+          type: string
+        properties:
+          $ref: '#/components/schemas/StateVariableProperties'
+        type:
+          $ref: '#/components/schemas/StateVariableType'
+      required:
+      - id
+      - name
+      - type
+      - properties
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    ActionQuerySpecInputs:
+      description: The inputs to the action query. These are the values that are passed to the action when it is triggered.
+      oneOf:
+      - type: string
+      - $ref: '#/components/schemas/ActionQuerySpecInput'
     ComponentType:
       description: The UI component type.
       enum:
@@ -1779,734 +1688,6 @@ components:
       - SEARCH
       - CONTAINER
       - CALLOUTVALUE
-    LeakedKeyAttributes:
-      description: The definition of LeakedKeyAttributes object.
-      properties:
-        date:
-          description: The LeakedKeyAttributes date.
-          example: '2017-07-21T17:32:28Z'
-          format: date-time
-          type: string
-        leak_source:
-          description: The LeakedKeyAttributes leak_source.
-          type: string
-          example: example_value
-      required:
-      - date
-      type: object
-    UsageTimeSeriesObject:
-      description: Usage timeseries data.
-      properties:
-        timestamp:
-          description: Datetime in ISO-8601 format, UTC. The hour for the usage.
-          format: date-time
-          type: string
-          example: '2026-04-17T12:00:00Z'
-        value:
-          description: Contains the number measured for the given usage_type during the hour.
-          format: int64
-          nullable: true
-          type: integer
-          example: 42
-      type: object
-    ActionQueryShowToastOnError:
-      description: Whether to display a toast to the user when the query returns an error.
-      oneOf:
-      - type: boolean
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-        example: ${true}
-        type: string
-    ActionQuerySpecInputs:
-      description: The inputs to the action query. These are the values that are passed to the action when it is triggered.
-      oneOf:
-      - type: string
-      - $ref: '#/components/schemas/ActionQuerySpecInput'
-    DataTransform:
-      description: A data transformer, which is custom JavaScript code that executes and transforms data when its inputs change.
-      properties:
-        id:
-          description: The ID of the data transformer.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        name:
-          description: A unique identifier for this data transformer. This name is also used to access the transformer's result throughout the app.
-          example: combineTwoOrders
-          type: string
-        properties:
-          $ref: '#/components/schemas/DataTransformProperties'
-        type:
-          $ref: '#/components/schemas/DataTransformType'
-      required:
-      - id
-      - name
-      - type
-      - properties
-      type: object
-    UserAttributes:
-      description: Attributes of user object returned by the API.
-      properties:
-        created_at:
-          description: Creation time of the user.
-          format: date-time
-          type: string
-          example: example_value
-        disabled:
-          description: Whether the user is disabled.
-          type: boolean
-          example: true
-        email:
-          description: Email of the user.
-          type: string
-          example: user@example.com
-        handle:
-          description: Handle of the user.
-          type: string
-          example: example_value
-        icon:
-          description: URL of the user's icon.
-          type: string
-          example: example_value
-        mfa_enabled:
-          description: If user has MFA enabled.
-          readOnly: true
-          type: boolean
-          example: true
-        modified_at:
-          description: Time that the user was last modified.
-          format: date-time
-          type: string
-          example: example_value
-        name:
-          description: Name of the user.
-          nullable: true
-          type: string
-          example: Example Monitor
-        service_account:
-          description: Whether the user is a service account.
-          type: boolean
-          example: true
-        status:
-          description: Status of the user.
-          type: string
-          example: OK
-        title:
-          description: Title of the user.
-          nullable: true
-          type: string
-          example: Example Monitor
-        verified:
-          description: Whether the user is verified.
-          type: boolean
-          example: true
-      type: object
-    Component:
-      description: '[Definition of a UI component in the app](https://docs.datadoghq.com/service_management/app_builder/components/)'
-      properties:
-        events:
-          description: Events to listen for on the UI component.
-          items:
-            $ref: '#/components/schemas/AppBuilderEvent'
-          type: array
-        id:
-          description: The ID of the UI component. This property is deprecated; use `name` to identify individual components instead.
-          nullable: true
-          type: string
-          example: abc-123-def
-        name:
-          description: A unique identifier for this UI component. This name is also visible in the app editor.
-          example: ''
-          type: string
-        properties:
-          $ref: '#/components/schemas/ComponentProperties'
-        type:
-          $ref: '#/components/schemas/ComponentType'
-      required:
-      - name
-      - type
-      - properties
-      type: object
-    DeploymentAttributes:
-      description: The attributes object containing the version ID of the published app.
-      properties:
-        app_version_id:
-          description: The version ID of the app that was published. For an unpublished app, this is always the nil UUID (`00000000-0000-0000-0000-000000000000`).
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-      type: object
-    CustomConnectionAttributesOnPremRunner:
-      description: Information about the Private Action Runner used by the custom connection, if the custom connection is associated with a Private Action Runner.
-      properties:
-        id:
-          description: The Private Action Runner ID.
-          type: string
-          example: abc-123-def
-        url:
-          description: The URL of the Private Action Runner.
-          type: string
-          example: https://app.datadoghq.com
-      type: object
-    DeploymentRelationship:
-      description: Information pointing to the app's publication status.
-      properties:
-        data:
-          $ref: '#/components/schemas/DeploymentRelationshipData'
-        meta:
-          $ref: '#/components/schemas/DeploymentMetadata'
-      type: object
-    PartialApplicationKeyResponse:
-      description: Response for retrieving a partial application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/PartialApplicationKey'
-        included:
-          description: Array of objects related to the application key.
-          items:
-            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
-          type: array
-      type: object
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    ActionQueryPollingIntervalInMs:
-      description: If specified, the app will poll the query at the specified interval in milliseconds. The minimum polling interval is 15 seconds. The query will only poll when the app's browser tab is active.
-      oneOf:
-      - example: 30000
-        format: double
-        minimum: 15000
-        type: number
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a number.
-        example: ${15000}
-        type: string
-    ListAppsResponse:
-      description: A paginated list of apps matching the specified filters and sorting.
-      properties:
-        data:
-          description: An array of app definitions.
-          items:
-            $ref: '#/components/schemas/ListAppsResponseDataItems'
-          type: array
-        included:
-          description: Data on the version of the app that was published.
-          items:
-            $ref: '#/components/schemas/Deployment'
-          type: array
-        meta:
-          $ref: '#/components/schemas/ListAppsResponseMeta'
-      type: object
-    GetAppResponseDataAttributes:
-      description: The app definition attributes, such as name, description, and components.
-      properties:
-        components:
-          description: The UI components that make up the app.
-          items:
-            $ref: '#/components/schemas/ComponentGrid'
-          type: array
-        description:
-          description: A human-readable description for the app.
-          type: string
-          example: example_value
-        favorite:
-          description: Whether the app is marked as a favorite by the current user.
-          type: boolean
-          example: true
-        name:
-          description: The name of the app.
-          type: string
-          example: Example Monitor
-        queries:
-          description: An array of queries, such as external actions and state variables, that the app uses.
-          items:
-            $ref: '#/components/schemas/Query'
-          type: array
-        rootInstanceName:
-          description: The name of the root component of the app. This must be a `grid` component that contains all other components.
-          type: string
-          example: Example Monitor
-        tags:
-          description: A list of tags for the app, which can be used to filter apps.
-          example:
-          - service:webshop-backend
-          - team:webshop
-          items:
-            description: An individual tag for the app.
-            type: string
-          type: array
-      type: object
-    ListApplicationKeysResponse:
-      description: Response for a list of application keys.
-      properties:
-        data:
-          description: Array of application keys.
-          items:
-            $ref: '#/components/schemas/PartialApplicationKey'
-          type: array
-        included:
-          description: Array of objects related to the application key.
-          items:
-            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
-          type: array
-        meta:
-          $ref: '#/components/schemas/ApplicationKeyResponseMeta'
-      type: object
-    ListAppsResponseDataItems:
-      description: An app definition object. This contains only basic information about the app such as ID, name, and tags.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ListAppsResponseDataItemsAttributes'
-        id:
-          description: The ID of the app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        meta:
-          $ref: '#/components/schemas/AppMeta'
-        relationships:
-          $ref: '#/components/schemas/ListAppsResponseDataItemsRelationships'
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    ActionQueryType:
-      default: action
-      description: The action query type.
-      enum:
-      - action
-      example: action
-      type: string
-      x-enum-varnames:
-      - ACTION
-    RoleAttributes:
-      description: Attributes of the role.
-      properties:
-        created_at:
-          description: Creation time of the role.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-        modified_at:
-          description: Time of last role modification.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-        name:
-          description: The name of the role. The name is neither unique nor a stable identifier of the role.
-          type: string
-          example: Example Monitor
-        user_count:
-          description: Number of users with that role.
-          format: int64
-          readOnly: true
-          type: integer
-          example: 42
-      type: object
-    FullApplicationKey:
-      description: Datadog application key.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FullApplicationKeyAttributes'
-        id:
-          description: ID of the application key.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/ApplicationKeyRelationships'
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
-      type: object
-      x-merge-override:
-        required: false
-    ActionQueryMockedOutputsObject:
-      description: The mocked outputs of the action query.
-      properties:
-        enabled:
-          $ref: '#/components/schemas/ActionQueryMockedOutputsEnabled'
-        outputs:
-          description: The mocked outputs of the action query, serialized as JSON.
-          example: '{"status": "success"}'
-          type: string
-      required:
-      - enabled
-      type: object
-    ApplicationKeyUpdateAttributes:
-      description: Attributes used to update an application Key.
-      properties:
-        name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
-          type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
-          items:
-            description: Name of scope.
-            type: string
-          nullable: true
-          type: array
-      type: object
-      x-merge-override:
-        properties: false
-    AppsSortField:
-      description: The field and direction to sort apps by
-      enum:
-      - name
-      - created_at
-      - updated_at
-      - user_name
-      - -name
-      - -created_at
-      - -updated_at
-      - -user_name
-      example: -created_at
-      type: string
-      x-enum-varnames:
-      - NAME
-      - CREATED_AT
-      - UPDATED_AT
-      - USER_NAME
-      - NAME_DESC
-      - CREATED_AT_DESC
-      - UPDATED_AT_DESC
-      - USER_NAME_DESC
-    User:
-      description: User object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
-    RUMApplicationCreateAttributes:
-      description: RUM application creation attributes.
-      properties:
-        name:
-          description: Name of the RUM application.
-          example: my_new_rum_application
-          type: string
-        type:
-          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
-          example: browser
-          type: string
-      required:
-      - name
-      type: object
-    RelationshipToUser:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserData'
-      required:
-      - data
-      type: object
-    UnpublishAppResponse:
-      description: The response object after an app is successfully unpublished.
-      properties:
-        data:
-          $ref: '#/components/schemas/Deployment'
-      type: object
-    ActionQueryOnlyTriggerManually:
-      description: Determines when this query is executed. If set to `false`, the query will run when the app loads and whenever any query arguments change. If set to `true`, the query will only run when manually triggered from elsewhere in the app.
-      oneOf:
-      - type: boolean
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-        example: ${true}
-        type: string
-    ActionQueryMockedOutputs:
-      description: The mocked outputs of the action query. This is useful for testing the app without actually running the action.
-      oneOf:
-      - type: string
-      - $ref: '#/components/schemas/ActionQueryMockedOutputsObject'
-    PublishAppResponse:
-      description: The response object after an app is successfully published.
-      properties:
-        data:
-          $ref: '#/components/schemas/Deployment'
-      type: object
-    ComponentProperties:
-      additionalProperties: {}
-      description: Properties of a UI component. Different component types can have their own additional unique properties. See the [components documentation](https://docs.datadoghq.com/service_management/app_builder/components/) for more detail on each component type and its properties.
-      properties:
-        children:
-          description: The child components of the UI component.
-          items:
-            $ref: '#/components/schemas/Component'
-          type: array
-        isVisible:
-          $ref: '#/components/schemas/ComponentPropertiesIsVisible'
-      type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
-      required:
-      - data
-      type: object
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
-    CreateAppResponseData:
-      description: The data object containing the app ID.
-      properties:
-        id:
-          description: The ID of the created app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - id
-      - type
-      type: object
-    RUMApplicationsResponse:
-      description: RUM applications response.
-      properties:
-        data:
-          description: RUM applications array response.
-          items:
-            $ref: '#/components/schemas/RUMApplicationList'
-          type: array
-      type: object
-    ApplicationKeyResponseIncludedItem:
-      description: An object related to an application key.
-      oneOf:
-      - $ref: '#/components/schemas/User'
-      - $ref: '#/components/schemas/Role'
-      - $ref: '#/components/schemas/LeakedKey'
-    CustomConnection:
-      description: A custom connection used by an app.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomConnectionAttributes'
-        id:
-          description: The ID of the custom connection.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomConnectionType'
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    ActionQueryDebounceInMs:
-      description: The minimum time in milliseconds that must pass before the query can be triggered again. This is useful for preventing accidental double-clicks from triggering the query multiple times.
-      oneOf:
-      - example: 310.5
-        format: double
-        type: number
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a number.
-        example: ${1000}
-        type: string
-    AppDefinitionType:
-      default: appDefinitions
-      description: The app definition type.
-      enum:
-      - appDefinitions
-      example: appDefinitions
-      type: string
-      x-enum-varnames:
-      - APPDEFINITIONS
-    Query:
-      description: A data query used by an app. This can take the form of an external action, a data transformation, or a state variable.
-      oneOf:
-      - $ref: '#/components/schemas/ActionQuery'
-      - $ref: '#/components/schemas/DataTransform'
-      - $ref: '#/components/schemas/StateVariable'
-    HourlyUsageType:
-      description: Usage type that is being measured.
-      enum:
-      - app_sec_host_count
-      - observability_pipelines_bytes_processed
-      - lambda_traced_invocations_count
-      example: observability_pipelines_bytes_processed
-      type: string
-      x-enum-varnames:
-      - APP_SEC_HOST_COUNT
-      - OBSERVABILITY_PIPELINES_BYTES_PROCESSSED
-      - LAMBDA_TRACED_INVOCATIONS_COUNT
-    ComponentGridProperties:
-      description: Properties of a grid component.
-      properties:
-        backgroundColor:
-          default: default
-          description: The background color of the grid.
-          type: string
-          example: example_value
-        children:
-          description: The child components of the grid.
-          items:
-            $ref: '#/components/schemas/Component'
-          type: array
-        isVisible:
-          $ref: '#/components/schemas/ComponentGridPropertiesIsVisible'
-      type: object
-    AppBuilderEventType:
-      description: The response to the event.
-      enum:
-      - custom
-      - setComponentState
-      - triggerQuery
-      - openModal
-      - closeModal
-      - openUrl
-      - downloadFile
-      - setStateVariableValue
-      example: triggerQuery
-      type: string
-      x-enum-varnames:
-      - CUSTOM
-      - SETCOMPONENTSTATE
-      - TRIGGERQUERY
-      - OPENMODAL
-      - CLOSEMODAL
-      - OPENURL
-      - DOWNLOADFILE
-      - SETSTATEVARIABLEVALUE
-    ActionQuerySpec:
-      description: The definition of the action query.
-      oneOf:
-      - type: string
-      - $ref: '#/components/schemas/ActionQuerySpecObject'
-    ComponentGridPropertiesIsVisible:
-      description: Whether the grid component and its children are visible. If a string, it must be a valid JavaScript expression that evaluates to a boolean.
-      oneOf:
-      - type: string
-      - default: true
-        type: boolean
-    CustomConnectionAttributes:
-      description: The custom connection attributes.
-      properties:
-        name:
-          description: The name of the custom connection.
-          type: string
-          example: Example Monitor
-        onPremRunner:
-          $ref: '#/components/schemas/CustomConnectionAttributesOnPremRunner'
-      type: object
-    Deployment:
-      description: The version of the app that was published.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DeploymentAttributes'
-        id:
-          description: The deployment ID.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        meta:
-          $ref: '#/components/schemas/DeploymentMetadata'
-        type:
-          $ref: '#/components/schemas/AppDeploymentType'
-      type: object
-    DeleteAppResponseData:
-      description: The definition of `DeleteAppResponseData` object.
-      properties:
-        id:
-          description: The ID of the deleted app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - id
-      - type
-      type: object
-    RUMApplicationResponse:
-      description: RUM application response.
-      properties:
-        data:
-          $ref: '#/components/schemas/RUMApplication'
-      type: object
-    DeploymentMetadata:
-      description: Metadata object containing the publication creation information.
-      properties:
-        created_at:
-          description: Timestamp of when the app was published.
-          format: date-time
-          type: string
-          example: example_value
-        user_id:
-          description: The ID of the user who published the app.
-          format: int64
-          type: integer
-          example: 42
-        user_name:
-          description: The name (or email address) of the user who published the app.
-          type: string
-          example: Example Monitor
-        user_uuid:
-          description: The UUID of the user who published the app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-      type: object
-    ActionQueryMockedOutputsEnabled:
-      description: Whether to enable the mocked outputs for testing.
-      oneOf:
-      - type: boolean
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-        example: ${true}
-        type: string
-    ApplicationKeyResponse:
-      description: Response for retrieving an application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/FullApplicationKey'
-        included:
-          description: Array of objects related to the application key.
-          items:
-            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
-          type: array
-      type: object
     ListAppsResponseDataItemsAttributes:
       description: Basic information about the app such as name, description, and tags.
       properties:
@@ -2536,69 +1717,130 @@ components:
             type: string
           type: array
       type: object
-    AppBuilderEvent:
-      additionalProperties: {}
-      description: An event on a UI component that triggers a response or action in an app.
+    DeleteAppResponseData:
+      description: The definition of `DeleteAppResponseData` object.
       properties:
-        name:
-          $ref: '#/components/schemas/AppBuilderEventName'
+        id:
+          description: The ID of the deleted app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
         type:
-          $ref: '#/components/schemas/AppBuilderEventType'
-      type: object
-    ApplicationKeyCreateData:
-      description: Object used to create an application key.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationKeyCreateAttributes'
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
+          $ref: '#/components/schemas/AppDefinitionType'
       required:
-      - attributes
+      - id
       - type
       type: object
-      x-merge-override:
-        required: false
-    AppBuilderEventName:
-      description: The triggering action for the event.
+    ApplicationKeyUpdateRequest:
+      description: Request used to update an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationKeyUpdateData'
+      required:
+      - data
+      type: object
+    ActionQueryMockedOutputs:
+      description: The mocked outputs of the action query. This is useful for testing the app without actually running the action.
+      oneOf:
+      - type: string
+      - $ref: '#/components/schemas/ActionQueryMockedOutputsObject'
+    DeleteAppsResponseDataItems:
+      description: An object containing the ID of a deleted app.
+      properties:
+        id:
+          description: The ID of the deleted app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - id
+      - type
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
       enum:
-      - pageChange
-      - tableRowClick
-      - _tableRowButtonClick
-      - change
-      - submit
-      - click
-      - toggleOpen
-      - close
-      - open
-      - executionFinished
-      example: click
+      - users
+      example: users
       type: string
       x-enum-varnames:
-      - PAGECHANGE
-      - TABLEROWCLICK
-      - TABLEROWBUTTONCLICK
-      - CHANGE
-      - SUBMIT
-      - CLICK
-      - TOGGLEOPEN
-      - CLOSE
-      - OPEN
-      - EXECUTIONFINISHED
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
+      - USERS
+    UsageAttributesObject:
+      description: Usage attributes data.
       properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
+        org_name:
+          description: The organization name.
           type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
+          example: Example Monitor
+        product_family:
+          description: The product for which usage is being reported.
           type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
+          example: example_value
+        public_id:
+          description: The organization public ID.
           type: string
+          example: abc-123-def
+        region:
+          description: The region of the Datadog instance that the organization belongs to.
+          type: string
+          example: example_value
+        timeseries:
+          description: List of usage data reported for each requested hour.
+          items:
+            $ref: '#/components/schemas/UsageTimeSeriesObject'
+          type: array
+        usage_type:
+          $ref: '#/components/schemas/HourlyUsageType'
+      type: object
+    ListAppsResponseDataItems:
+      description: An app definition object. This contains only basic information about the app such as ID, name, and tags.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ListAppsResponseDataItemsAttributes'
+        id:
+          description: The ID of the app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        meta:
+          $ref: '#/components/schemas/AppMeta'
+        relationships:
+          $ref: '#/components/schemas/ListAppsResponseDataItemsRelationships'
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    HourlyUsageType:
+      description: Usage type that is being measured.
+      enum:
+      - app_sec_host_count
+      - observability_pipelines_bytes_processed
+      - lambda_traced_invocations_count
+      example: observability_pipelines_bytes_processed
+      type: string
+      x-enum-varnames:
+      - APP_SEC_HOST_COUNT
+      - OBSERVABILITY_PIPELINES_BYTES_PROCESSSED
+      - LAMBDA_TRACED_INVOCATIONS_COUNT
+    ActionQueryType:
+      default: action
+      description: The action query type.
+      enum:
+      - action
+      example: action
+      type: string
+      x-enum-varnames:
+      - ACTION
+    RUMApplicationResponse:
+      description: RUM application response.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplication'
       type: object
     FullApplicationKeyAttributes:
       description: Attributes of a full application key.
@@ -2636,136 +1878,17 @@ components:
           items:
             description: Name of scope.
             type: string
-          nullable: true
-          type: array
+          type:
+          - array
+          - 'null'
       type: object
       x-merge-override:
         properties: false
-    DeploymentRelationshipData:
-      description: Data object containing the deployment ID.
-      properties:
-        id:
-          description: The deployment ID.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDeploymentType'
-      type: object
-    RUMApplicationCreateType:
-      default: rum_application_create
-      description: RUM application creation type.
-      enum:
-      - rum_application_create
-      example: rum_application_create
-      type: string
-      x-enum-varnames:
-      - RUM_APPLICATION_CREATE
-    CreateAppResponse:
-      description: The response object after a new app is successfully created, with the app ID.
-      properties:
-        data:
-          $ref: '#/components/schemas/CreateAppResponseData'
-      type: object
-    ComponentGrid:
-      description: A grid component. The grid component is the root canvas for an app and contains all other components.
-      properties:
-        events:
-          description: Events to listen for on the grid component.
-          items:
-            $ref: '#/components/schemas/AppBuilderEvent'
-          type: array
-        id:
-          description: The ID of the grid component. This property is deprecated; use `name` to identify individual components instead.
-          type: string
-          example: abc-123-def
-        name:
-          description: A unique identifier for this grid component. This name is also visible in the app editor.
-          example: ''
-          type: string
-        properties:
-          $ref: '#/components/schemas/ComponentGridProperties'
-        type:
-          $ref: '#/components/schemas/ComponentGridType'
-      required:
-      - name
-      - type
-      - properties
-      type: object
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
-    RUMApplicationType:
-      default: rum_application
-      description: RUM application response type.
-      enum:
-      - rum_application
-      example: rum_application
-      type: string
-      x-enum-varnames:
-      - RUM_APPLICATION
-    ApplicationKeyRelationships:
-      description: Resources related to the application key.
-      properties:
-        owned_by:
-          $ref: '#/components/schemas/RelationshipToUser'
-      type: object
-      x-merge-override:
-        properties: false
-    UsageTimeSeriesType:
-      default: usage_timeseries
-      description: Type of usage data.
-      enum:
-      - usage_timeseries
-      example: usage_timeseries
-      type: string
-      x-enum-varnames:
-      - USAGE_TIMESERIES
-    LeakedKey:
-      description: The definition of LeakedKey object.
+    RUMApplication:
+      description: RUM application.
       properties:
         attributes:
-          $ref: '#/components/schemas/LeakedKeyAttributes'
-        id:
-          description: The LeakedKey id.
-          example: id
-          type: string
-        type:
-          $ref: '#/components/schemas/LeakedKeyType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-    ApplicationKeysType:
-      default: application_keys
-      description: Application Keys resource type.
-      enum:
-      - application_keys
-      example: application_keys
-      type: string
-      x-enum-varnames:
-      - APPLICATION_KEYS
-    DeleteAppsResponse:
-      description: The response object after multiple apps are successfully deleted.
-      properties:
-        data:
-          description: An array of objects containing the IDs of the deleted apps.
-          items:
-            $ref: '#/components/schemas/DeleteAppsResponseDataItems'
-          type: array
-      type: object
-    RUMApplicationList:
-      description: RUM application list.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RUMApplicationListAttributes'
+          $ref: '#/components/schemas/RUMApplicationAttributes'
         id:
           description: RUM application ID.
           example: abcd1234-0000-0000-abcd-1234abcd5678
@@ -2773,53 +1896,48 @@ components:
           x-merge-override:
             format: false
         type:
-          $ref: '#/components/schemas/RUMApplicationListType'
+          $ref: '#/components/schemas/RUMApplicationType'
       required:
       - attributes
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    ApplicationKeyCreateAttributes:
-      description: Attributes used to create an application Key.
-      properties:
-        name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
-          type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
-          items:
-            description: Name of scope.
-            type: string
-          nullable: true
-          type: array
-      required:
-      - name
-      type: object
-      x-merge-override:
-        properties: false
-    UpdateAppResponseData:
-      description: The data object containing the updated app definition.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UpdateAppResponseDataAttributes'
-        id:
-          description: The ID of the updated app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
       - id
       - type
-      - attributes
       type: object
+    ActionQuerySpec:
+      description: The definition of the action query.
+      oneOf:
+      - type: string
+      - $ref: '#/components/schemas/ActionQuerySpecObject'
+    ComponentGridType:
+      default: grid
+      description: The grid component type.
+      enum:
+      - grid
+      example: grid
+      type: string
+      x-enum-varnames:
+      - GRID
+    AppsSortField:
+      description: The field and direction to sort apps by
+      enum:
+      - name
+      - created_at
+      - updated_at
+      - user_name
+      - -name
+      - -created_at
+      - -updated_at
+      - -user_name
+      example: -created_at
+      type: string
+      x-enum-varnames:
+      - NAME
+      - CREATED_AT
+      - UPDATED_AT
+      - USER_NAME
+      - NAME_DESC
+      - CREATED_AT_DESC
+      - UPDATED_AT_DESC
+      - USER_NAME_DESC
     UpdateAppRequestDataAttributes:
       description: App definition attributes to be updated, such as name, description, and components.
       properties:
@@ -2855,516 +1973,30 @@ components:
             type: string
           type: array
       type: object
-    DataTransformProperties:
-      description: The properties of the data transformer.
+    ComponentGrid:
+      description: A grid component. The grid component is the root canvas for an app and contains all other components.
       properties:
-        outputs:
-          description: A JavaScript function that returns the transformed data.
-          example: "${(() => {return {\n    allItems: [...fetchOrder1.outputs.items, ...fetchOrder2.outputs.items],\n}})()}"
-          type: string
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
+        events:
+          description: Events to listen for on the grid component.
           items:
-            description: A list of items.
-            example: Bad Request
-            type: string
+            $ref: '#/components/schemas/AppBuilderEvent'
           type: array
-      required:
-      - errors
-      type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
-      properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    AppRelationship:
-      description: The app's publication relationship and custom connections.
-      properties:
-        connections:
-          description: Array of custom connections used by the app.
-          items:
-            $ref: '#/components/schemas/CustomConnection'
-          type: array
-        deployment:
-          $ref: '#/components/schemas/DeploymentRelationship'
-      type: object
-    ActionQuerySpecObject:
-      description: The action query spec object.
-      properties:
-        connectionGroup:
-          $ref: '#/components/schemas/ActionQuerySpecConnectionGroup'
-        connectionId:
-          description: The ID of the custom connection to use for this action query.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          type: string
-        fqn:
-          description: The fully qualified name of the action type.
-          example: com.datadoghq.http.request
-          type: string
-        inputs:
-          $ref: '#/components/schemas/ActionQuerySpecInputs'
-      required:
-      - fqn
-      type: object
-    ApplicationKeyCreateRequest:
-      description: Request used to create an application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationKeyCreateData'
-      required:
-      - data
-      type: object
-    ListAppsResponseMeta:
-      description: Pagination metadata.
-      properties:
-        page:
-          $ref: '#/components/schemas/ListAppsResponseMetaPage'
-      type: object
-    CreateAppRequest:
-      description: A request object for creating a new app.
-      example:
-        data:
-          attributes:
-            components:
-            - events: []
-              name: grid0
-              properties:
-                children:
-                - events: []
-                  name: gridCell0
-                  properties:
-                    children:
-                    - events: []
-                      name: calloutValue0
-                      properties:
-                        isDisabled: false
-                        isLoading: false
-                        isVisible: true
-                        label: CPU Usage
-                        size: sm
-                        style: vivid_yellow
-                        unit: kB
-                        value: '42'
-                      type: calloutValue
-                    isVisible: 'true'
-                    layout:
-                      default:
-                        height: 8
-                        width: 2
-                        x: 0
-                        y: 0
-                  type: gridCell
-              type: grid
-            description: This is a simple example app
-            name: Example App
-            queries: []
-            rootInstanceName: grid0
-          type: appDefinitions
-      properties:
-        data:
-          $ref: '#/components/schemas/CreateAppRequestData'
-      type: object
-    ApplicationKeyUpdateRequest:
-      description: Request used to update an application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationKeyUpdateData'
-      required:
-      - data
-      type: object
-    ActionQueryRequiresConfirmation:
-      description: Whether to prompt the user to confirm this query before it runs.
-      oneOf:
-      - type: boolean
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-        example: ${true}
-        type: string
-    UsageApplicationSecurityMonitoringResponse:
-      description: Application Security Monitoring usage response.
-      properties:
-        data:
-          description: Response containing Application Security Monitoring usage.
-          items:
-            $ref: '#/components/schemas/UsageDataObject'
-          type: array
-      type: object
-    DeleteAppResponse:
-      description: The response object after an app is successfully deleted.
-      properties:
-        data:
-          $ref: '#/components/schemas/DeleteAppResponseData'
-      type: object
-    RUMApplicationUpdateAttributes:
-      description: RUM application update attributes.
-      properties:
-        name:
-          description: Name of the RUM application.
-          example: updated_name_for_my_existing_rum_application
-          type: string
-        type:
-          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
-          example: browser
-          type: string
-      type: object
-    RoleResponseRelationships:
-      description: Relationships of the role object returned by the API.
-      properties:
-        permissions:
-          $ref: '#/components/schemas/RelationshipToPermissions'
-      type: object
-    DeleteAppsRequestDataItems:
-      description: An object containing the ID of an app to delete.
-      properties:
         id:
-          description: The ID of the app to delete.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - id
-      - type
-      type: object
-    ApplicationKeyResponseMeta:
-      description: Additional information related to the application key response.
-      properties:
-        max_allowed_per_user:
-          description: Max allowed number of application keys per user.
-          format: int64
-          type: integer
-          example: 42
-        page:
-          $ref: '#/components/schemas/ApplicationKeyResponseMetaPage'
-      type: object
-    CreateAppRequestData:
-      description: The data object containing the app definition.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CreateAppRequestDataAttributes'
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - type
-      type: object
-    GetAppResponseData:
-      description: The data object containing the app definition.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/GetAppResponseDataAttributes'
-        id:
-          description: The ID of the app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/AppDefinitionType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    UsageAttributesObject:
-      description: Usage attributes data.
-      properties:
-        org_name:
-          description: The organization name.
-          type: string
-          example: Example Monitor
-        product_family:
-          description: The product for which usage is being reported.
-          type: string
-          example: example_value
-        public_id:
-          description: The organization public ID.
+          description: The ID of the grid component. This property is deprecated; use `name` to identify individual components instead.
           type: string
           example: abc-123-def
-        region:
-          description: The region of the Datadog instance that the organization belongs to.
-          type: string
-          example: example_value
-        timeseries:
-          description: List of usage data reported for each requested hour.
-          items:
-            $ref: '#/components/schemas/UsageTimeSeriesObject'
-          type: array
-        usage_type:
-          $ref: '#/components/schemas/HourlyUsageType'
-      type: object
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    UpdateAppResponse:
-      description: The response object after an app is successfully updated.
-      properties:
-        data:
-          $ref: '#/components/schemas/UpdateAppResponseData'
-        included:
-          description: Data on the version of the app that was published.
-          items:
-            $ref: '#/components/schemas/Deployment'
-          type: array
-        meta:
-          $ref: '#/components/schemas/AppMeta'
-        relationship:
-          $ref: '#/components/schemas/AppRelationship'
-      type: object
-    ApplicationKeyUpdateData:
-      description: Object used to update an application key.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationKeyUpdateAttributes'
-        id:
-          description: ID of the application key.
-          example: 00112233-4455-6677-8899-aabbccddeeff
-          type: string
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    StateVariableProperties:
-      description: The properties of the state variable.
-      properties:
-        defaultValue:
-          description: The default value of the state variable.
-          example: ${['order_3145', 'order_4920']}
-      type: object
-    RelationshipToOrganizationData:
-      description: Relationship to organization object.
-      properties:
-        id:
-          description: ID of the organization.
-          example: 00000000-0000-beef-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - id
-      - type
-      type: object
-    PartialApplicationKeyAttributes:
-      description: Attributes of a partial application key.
-      properties:
-        created_at:
-          description: Creation date of the application key.
-          example: '2020-11-23T10:00:00.000Z'
-          readOnly: true
-          type: string
-          x-merge-override:
-            format: false
-        last4:
-          description: The last four characters of the application key.
-          example: abcd
-          maxLength: 4
-          minLength: 4
-          readOnly: true
-          type: string
-          x-secret: true
         name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
+          description: A unique identifier for this grid component. This name is also visible in the app editor.
+          example: ''
           type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
-          items:
-            description: Name of scope.
-            type: string
-          nullable: true
-          type: array
-      type: object
-    Role:
-      description: Role object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RoleAttributes'
-        id:
-          description: The unique identifier of the role.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/RoleResponseRelationships'
+        properties:
+          $ref: '#/components/schemas/ComponentGridProperties'
         type:
-          $ref: '#/components/schemas/RolesType'
+          $ref: '#/components/schemas/ComponentGridType'
       required:
+      - name
       - type
-      type: object
-      x-merge-override:
-        required: false
-    ActionQuerySpecConnectionGroup:
-      description: The connection group to use for an action query.
-      properties:
-        id:
-          description: The ID of the connection group.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        tags:
-          description: The tags of the connection group.
-          items:
-            type: string
-          type: array
-      type: object
-    ComponentPropertiesIsVisible:
-      description: Whether the UI component is visible. If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-      oneOf:
-      - type: boolean
-      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
-        example: ${true}
-        type: string
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
-    ActionQuerySpecInput:
-      additionalProperties: {}
-      description: The inputs to the action query. See the [Actions Catalog](https://docs.datadoghq.com/actions/actions_catalog/) for more detail on each action and its inputs.
-      type: object
-    ListAppsResponseDataItemsRelationships:
-      description: The app's publication information.
-      properties:
-        deployment:
-          $ref: '#/components/schemas/DeploymentRelationship'
-      type: object
-    RUMApplication:
-      description: RUM application.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RUMApplicationAttributes'
-        id:
-          description: RUM application ID.
-          example: abcd1234-0000-0000-abcd-1234abcd5678
-          type: string
-          x-merge-override:
-            format: false
-        type:
-          $ref: '#/components/schemas/RUMApplicationType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-    AppMeta:
-      description: Metadata of an app.
-      properties:
-        created_at:
-          description: Timestamp of when the app was created.
-          format: date-time
-          type: string
-          example: example_value
-        deleted_at:
-          description: Timestamp of when the app was deleted.
-          format: date-time
-          type: string
-          example: example_value
-        org_id:
-          description: The Datadog organization ID that owns the app.
-          format: int64
-          type: integer
-          example: 42
-        updated_at:
-          description: Timestamp of when the app was last updated.
-          format: date-time
-          type: string
-          example: '2026-04-17T12:00:00Z'
-        updated_since_deployment:
-          description: Whether the app was updated since it was last published. Published apps are pinned to a specific version and do not automatically update when the app is updated.
-          type: boolean
-          example: true
-        user_id:
-          description: The ID of the user who created the app.
-          format: int64
-          type: integer
-          example: 42
-        user_name:
-          description: The name (or email address) of the user who created the app.
-          type: string
-          example: Example Monitor
-        user_uuid:
-          description: The UUID of the user who created the app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
-          type: string
-        version:
-          description: The version number of the app. This starts at 1 and increments with each update.
-          format: int64
-          type: integer
-          example: 42
-      type: object
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
-      enum:
-      - permissions
-      example: permissions
-      type: string
-      x-enum-varnames:
-      - PERMISSIONS
-    DeleteAppsRequest:
-      description: A request object for deleting multiple apps by ID.
-      example:
-        data:
-        - id: aea2ed17-b45f-40d0-ba59-c86b7972c901
-          type: appDefinitions
-        - id: f69bb8be-6168-4fe7-a30d-370256b6504a
-          type: appDefinitions
-        - id: ab1ed73e-13ad-4426-b0df-a0ff8876a088
-          type: appDefinitions
-      properties:
-        data:
-          description: An array of objects containing the IDs of the apps to delete.
-          items:
-            $ref: '#/components/schemas/DeleteAppsRequestDataItems'
-          type: array
-      type: object
-    ApplicationKeyResponseMetaPage:
-      description: Additional information related to the application key response.
-      properties:
-        total_filtered_count:
-          description: Total filtered application key count.
-          format: int64
-          type: integer
-          example: 42
+      - properties
       type: object
     RUMApplicationAttributes:
       description: RUM application attributes.
@@ -3430,22 +2062,330 @@ components:
       - updated_at
       - updated_by_handle
       type: object
-    PartialApplicationKey:
-      description: Partial Datadog application key.
+    StateVariableType:
+      default: stateVariable
+      description: The state variable type.
+      enum:
+      - stateVariable
+      example: stateVariable
+      type: string
+      x-enum-varnames:
+      - STATEVARIABLE
+    ActionQuerySpecInput:
+      additionalProperties: {}
+      description: The inputs to the action query. See the [Actions Catalog](https://docs.datadoghq.com/actions/actions_catalog/) for more detail on each action and its inputs.
+      type: object
+    RUMApplicationUpdateType:
+      default: rum_application_update
+      description: RUM application update type.
+      enum:
+      - rum_application_update
+      example: rum_application_update
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION_UPDATE
+    DeploymentAttributes:
+      description: The attributes object containing the version ID of the published app.
+      properties:
+        app_version_id:
+          description: The version ID of the app that was published. For an unpublished app, this is always the nil UUID (`00000000-0000-0000-0000-000000000000`).
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+      type: object
+    ApplicationKeyCreateData:
+      description: Object used to create an application key.
       properties:
         attributes:
-          $ref: '#/components/schemas/PartialApplicationKeyAttributes'
-        id:
-          description: ID of the application key.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/ApplicationKeyRelationships'
+          $ref: '#/components/schemas/ApplicationKeyCreateAttributes'
         type:
           $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - type
       type: object
       x-merge-override:
         required: false
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    AppBuilderEvent:
+      additionalProperties: {}
+      description: An event on a UI component that triggers a response or action in an app.
+      properties:
+        name:
+          $ref: '#/components/schemas/AppBuilderEventName'
+        type:
+          $ref: '#/components/schemas/AppBuilderEventType'
+      type: object
+    CustomConnectionAttributes:
+      description: The custom connection attributes.
+      properties:
+        name:
+          description: The name of the custom connection.
+          type: string
+          example: Example Monitor
+        onPremRunner:
+          $ref: '#/components/schemas/CustomConnectionAttributesOnPremRunner'
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    CreateAppRequest:
+      description: A request object for creating a new app.
+      example:
+        data:
+          attributes:
+            components:
+            - events: []
+              name: grid0
+              properties:
+                children:
+                - events: []
+                  name: gridCell0
+                  properties:
+                    children:
+                    - events: []
+                      name: calloutValue0
+                      properties:
+                        isDisabled: false
+                        isLoading: false
+                        isVisible: true
+                        label: CPU Usage
+                        size: sm
+                        style: vivid_yellow
+                        unit: kB
+                        value: '42'
+                      type: calloutValue
+                    isVisible: 'true'
+                    layout:
+                      default:
+                        height: 8
+                        width: 2
+                        x: 0
+                        y: 0
+                  type: gridCell
+              type: grid
+            description: This is a simple example app
+            name: Example App
+            queries: []
+            rootInstanceName: grid0
+          type: appDefinitions
+      properties:
+        data:
+          $ref: '#/components/schemas/CreateAppRequestData'
+      type: object
+    AppMeta:
+      description: Metadata of an app.
+      properties:
+        created_at:
+          description: Timestamp of when the app was created.
+          format: date-time
+          type: string
+          example: example_value
+        deleted_at:
+          description: Timestamp of when the app was deleted.
+          format: date-time
+          type: string
+          example: example_value
+        org_id:
+          description: The Datadog organization ID that owns the app.
+          format: int64
+          type: integer
+          example: 42
+        updated_at:
+          description: Timestamp of when the app was last updated.
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        updated_since_deployment:
+          description: Whether the app was updated since it was last published. Published apps are pinned to a specific version and do not automatically update when the app is updated.
+          type: boolean
+          example: true
+        user_id:
+          description: The ID of the user who created the app.
+          format: int64
+          type: integer
+          example: 42
+        user_name:
+          description: The name (or email address) of the user who created the app.
+          type: string
+          example: Example Monitor
+        user_uuid:
+          description: The UUID of the user who created the app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        version:
+          description: The version number of the app. This starts at 1 and increments with each update.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    ApplicationKeyUpdateAttributes:
+      description: Attributes used to update an application Key.
+      properties:
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          type:
+          - array
+          - 'null'
+      type: object
+      x-merge-override:
+        properties: false
+    CreateAppResponseData:
+      description: The data object containing the app ID.
+      properties:
+        id:
+          description: The ID of the created app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - id
+      - type
+      type: object
+    LeakedKeyType:
+      default: leaked_keys
+      description: The definition of LeakedKeyType object.
+      enum:
+      - leaked_keys
+      example: leaked_keys
+      type: string
+      x-enum-varnames:
+      - LEAKED_KEYS
+    DeploymentRelationshipData:
+      description: Data object containing the deployment ID.
+      properties:
+        id:
+          description: The deployment ID.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/AppDeploymentType'
+      type: object
+    CreateAppRequestData:
+      description: The data object containing the app definition.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CreateAppRequestDataAttributes'
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - type
+      type: object
+    UpdateAppResponse:
+      description: The response object after an app is successfully updated.
+      properties:
+        data:
+          $ref: '#/components/schemas/UpdateAppResponseData'
+        included:
+          description: Data on the version of the app that was published.
+          items:
+            $ref: '#/components/schemas/Deployment'
+          type: array
+        meta:
+          $ref: '#/components/schemas/AppMeta'
+        relationship:
+          $ref: '#/components/schemas/AppRelationship'
+      type: object
+    ComponentProperties:
+      additionalProperties: {}
+      description: Properties of a UI component. Different component types can have their own additional unique properties. See the [components documentation](https://docs.datadoghq.com/service_management/app_builder/components/) for more detail on each component type and its properties.
+      properties:
+        children:
+          description: The child components of the UI component.
+          items:
+            $ref: '#/components/schemas/Component'
+          type: array
+        isVisible:
+          $ref: '#/components/schemas/ComponentPropertiesIsVisible'
+      type: object
+    RUMApplicationUpdateAttributes:
+      description: RUM application update attributes.
+      properties:
+        name:
+          description: Name of the RUM application.
+          example: updated_name_for_my_existing_rum_application
+          type: string
+        type:
+          description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
+          example: browser
+          type: string
+      type: object
+    CustomConnectionAttributesOnPremRunner:
+      description: Information about the Private Action Runner used by the custom connection, if the custom connection is associated with a Private Action Runner.
+      properties:
+        id:
+          description: The Private Action Runner ID.
+          type: string
+          example: abc-123-def
+        url:
+          description: The URL of the Private Action Runner.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    ListAppsResponseMeta:
+      description: Pagination metadata.
+      properties:
+        page:
+          $ref: '#/components/schemas/ListAppsResponseMetaPage'
+      type: object
+    ActionQueryMockedOutputsEnabled:
+      description: Whether to enable the mocked outputs for testing.
+      oneOf:
+      - type: boolean
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+        example: ${true}
+        type: string
+    RUMApplicationCreateType:
+      default: rum_application_create
+      description: RUM application creation type.
+      enum:
+      - rum_application_create
+      example: rum_application_create
+      type: string
+      x-enum-varnames:
+      - RUM_APPLICATION_CREATE
+    DataTransformProperties:
+      description: The properties of the data transformer.
+      properties:
+        outputs:
+          description: A JavaScript function that returns the transformed data.
+          example: "${(() => {return {\n    allItems: [...fetchOrder1.outputs.items, ...fetchOrder2.outputs.items],\n}})()}"
+          type: string
+      type: object
     ListAppsResponseMetaPage:
       description: Information on the total number of apps, to be used for pagination.
       properties:
@@ -3460,173 +2400,37 @@ components:
           type: integer
           example: 42
       type: object
-    ApplicationKeysSort:
-      default: name
-      description: Sorting options
-      enum:
-      - created_at
-      - -created_at
-      - last4
-      - -last4
-      - name
-      - -name
-      type: string
-      x-enum-varnames:
-      - CREATED_AT_ASCENDING
-      - CREATED_AT_DESCENDING
-      - LAST4_ASCENDING
-      - LAST4_DESCENDING
-      - NAME_ASCENDING
-      - NAME_DESCENDING
-    RelationshipToRoles:
-      description: Relationship to roles.
+    ApplicationKeyRelationships:
+      description: Resources related to the application key.
       properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
-          items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
-          type: array
+        owned_by:
+          $ref: '#/components/schemas/RelationshipToUser'
       type: object
       x-merge-override:
-        required: false
-    GetAppResponse:
-      description: The full app definition response object.
+        properties: false
+    RUMApplicationCreateAttributes:
+      description: RUM application creation attributes.
       properties:
-        data:
-          $ref: '#/components/schemas/GetAppResponseData'
-        included:
-          description: Data on the version of the app that was published.
-          items:
-            $ref: '#/components/schemas/Deployment'
-          type: array
-        meta:
-          $ref: '#/components/schemas/AppMeta'
-        relationship:
-          $ref: '#/components/schemas/AppRelationship'
-      type: object
-    LeakedKeyType:
-      default: leaked_keys
-      description: The definition of LeakedKeyType object.
-      enum:
-      - leaked_keys
-      example: leaked_keys
-      type: string
-      x-enum-varnames:
-      - LEAKED_KEYS
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
-      properties:
-        data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
-      required:
-      - data
-      type: object
-    RUMApplicationCreate:
-      description: RUM application creation.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RUMApplicationCreateAttributes'
-        type:
-          $ref: '#/components/schemas/RUMApplicationCreateType'
-      required:
-      - attributes
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    ComponentGridType:
-      default: grid
-      description: The grid component type.
-      enum:
-      - grid
-      example: grid
-      type: string
-      x-enum-varnames:
-      - GRID
-    RUMApplicationListAttributes:
-      description: RUM application list attributes.
-      properties:
-        application_id:
-          description: ID of the RUM application.
-          example: abcd1234-0000-0000-abcd-1234abcd5678
-          type: string
-          x-merge-override:
-            format: false
-        created_at:
-          description: Timestamp in ms of the creation date.
-          example: 1659479836169
-          format: int64
-          type: integer
-        created_by_handle:
-          description: Handle of the creator user.
-          example: john.doe
-          type: string
-        hash:
-          description: Hash of the RUM application. Optional.
-          type: string
-          example: example_value
-        is_active:
-          description: Indicates if the RUM application is active.
-          example: true
-          type: boolean
         name:
           description: Name of the RUM application.
-          example: my_rum_application
+          example: my_new_rum_application
           type: string
-        org_id:
-          description: Org ID of the RUM application.
-          example: 999
-          format: int32
-          maximum: 2147483647
-          type: integer
         type:
           description: Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.
           example: browser
           type: string
-        updated_at:
-          description: Timestamp in ms of the last update date.
-          example: 1659479836169
-          format: int64
-          type: integer
-        updated_by_handle:
-          description: Handle of the updater user.
-          example: jane.doe
-          type: string
       required:
-      - application_id
-      - created_at
-      - created_by_handle
       - name
-      - org_id
-      - type
-      - updated_at
-      - updated_by_handle
       type: object
-    UsageDataObject:
-      description: Usage data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UsageAttributesObject'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/UsageTimeSeriesType'
-      type: object
-    CustomConnectionType:
-      default: custom_connections
-      description: The custom connection type.
+    AppDeploymentType:
+      default: deployment
+      description: The deployment type.
       enum:
-      - custom_connections
-      example: custom_connections
+      - deployment
+      example: deployment
       type: string
       x-enum-varnames:
-      - CUSTOM_CONNECTIONS
+      - DEPLOYMENT
     ActionQueryProperties:
       description: The properties of the action query.
       properties:
@@ -3652,6 +2456,151 @@ components:
           $ref: '#/components/schemas/ActionQuerySpec'
       required:
       - spec
+      type: object
+    ComponentPropertiesIsVisible:
+      description: Whether the UI component is visible. If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+      oneOf:
+      - type: boolean
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+        example: ${true}
+        type: string
+    CreateAppRequestDataAttributes:
+      description: App definition attributes such as name, description, and components.
+      properties:
+        components:
+          description: The UI components that make up the app.
+          items:
+            $ref: '#/components/schemas/ComponentGrid'
+          type: array
+        description:
+          description: A human-readable description for the app.
+          type: string
+          example: example_value
+        name:
+          description: The name of the app.
+          type: string
+          example: Example Monitor
+        queries:
+          description: An array of queries, such as external actions and state variables, that the app uses.
+          items:
+            $ref: '#/components/schemas/Query'
+          type: array
+        rootInstanceName:
+          description: The name of the root component of the app. This must be a `grid` component that contains all other components.
+          type: string
+          example: Example Monitor
+        tags:
+          description: A list of tags for the app, which can be used to filter apps.
+          example:
+          - service:webshop-backend
+          - team:webshop
+          items:
+            description: An individual tag for the app.
+            type: string
+          type: array
+      type: object
+    CustomConnectionType:
+      default: custom_connections
+      description: The custom connection type.
+      enum:
+      - custom_connections
+      example: custom_connections
+      type: string
+      x-enum-varnames:
+      - CUSTOM_CONNECTIONS
+    ActionQueryCondition:
+      description: Whether to run this query. If specified, the query will only run if this condition evaluates to `true` in JavaScript and all other conditions are also met.
+      oneOf:
+      - type: boolean
+      - example: ${true}
+        type: string
+    AppDefinitionType:
+      default: appDefinitions
+      description: The app definition type.
+      enum:
+      - appDefinitions
+      example: appDefinitions
+      type: string
+      x-enum-varnames:
+      - APPDEFINITIONS
+    ActionQueryPollingIntervalInMs:
+      description: If specified, the app will poll the query at the specified interval in milliseconds. The minimum polling interval is 15 seconds. The query will only poll when the app's browser tab is active.
+      oneOf:
+      - example: 30000
+        format: double
+        minimum: 15000
+        type: number
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a number.
+        example: ${15000}
+        type: string
+    UsageApplicationSecurityMonitoringResponse:
+      description: Application Security Monitoring usage response.
+      properties:
+        data:
+          description: Response containing Application Security Monitoring usage.
+          items:
+            $ref: '#/components/schemas/UsageDataObject'
+          type: array
+      type: object
+    GetAppResponseData:
+      description: The data object containing the app definition.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GetAppResponseDataAttributes'
+        id:
+          description: The ID of the app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/AppDefinitionType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    DeleteAppsRequest:
+      description: A request object for deleting multiple apps by ID.
+      example:
+        data:
+        - id: aea2ed17-b45f-40d0-ba59-c86b7972c901
+          type: appDefinitions
+        - id: f69bb8be-6168-4fe7-a30d-370256b6504a
+          type: appDefinitions
+        - id: ab1ed73e-13ad-4426-b0df-a0ff8876a088
+          type: appDefinitions
+      properties:
+        data:
+          description: An array of objects containing the IDs of the apps to delete.
+          items:
+            $ref: '#/components/schemas/DeleteAppsRequestDataItems'
+          type: array
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyResponse:
+      description: Response for retrieving an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/FullApplicationKey'
+        included:
+          description: Array of objects related to the application key.
+          items:
+            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
+          type: array
       type: object
     UpdateAppResponseDataAttributes:
       description: The updated app definition attributes, such as name, description, and components.
@@ -3692,83 +2641,51 @@ components:
             type: string
           type: array
       type: object
-    DeleteAppsResponseDataItems:
-      description: An object containing the ID of a deleted app.
+    ComponentGridPropertiesIsVisible:
+      description: Whether the grid component and its children are visible. If a string, it must be a valid JavaScript expression that evaluates to a boolean.
+      oneOf:
+      - type: string
+      - default: true
+        type: boolean
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
       properties:
         id:
-          description: The ID of the deleted app.
-          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
-          format: uuid
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
           type: string
         type:
-          $ref: '#/components/schemas/AppDefinitionType'
+          $ref: '#/components/schemas/OrganizationsType'
       required:
       - id
       - type
       type: object
-    UpdateAppRequest:
-      description: A request object for updating an existing app.
-      example:
-        data:
-          attributes:
-            components:
-            - events: []
-              name: grid0
-              properties:
-                children:
-                - events: []
-                  name: gridCell0
-                  properties:
-                    children:
-                    - events: []
-                      name: calloutValue0
-                      properties:
-                        isDisabled: false
-                        isLoading: false
-                        isVisible: true
-                        label: CPU Usage
-                        size: sm
-                        style: vivid_yellow
-                        unit: kB
-                        value: '42'
-                      type: calloutValue
-                    isVisible: 'true'
-                    layout:
-                      default:
-                        height: 8
-                        width: 2
-                        x: 0
-                        y: 0
-                  type: gridCell
-              type: grid
-            description: This is a simple example app
-            name: Example App
-            queries: []
-            rootInstanceName: grid0
-          id: 9e20cbaf-68da-45a6-9ccf-54193ac29fa5
-          type: appDefinitions
+    ApplicationKeysType:
+      default: application_keys
+      description: Application Keys resource type.
+      enum:
+      - application_keys
+      example: application_keys
+      type: string
+      x-enum-varnames:
+      - APPLICATION_KEYS
+    RUMApplicationUpdate:
+      description: RUM application update.
       properties:
-        data:
-          $ref: '#/components/schemas/UpdateAppRequestData'
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationUpdateAttributes'
+        id:
+          description: RUM application ID.
+          example: abcd1234-0000-0000-abcd-1234abcd5678
+          type: string
+          x-merge-override:
+            format: false
+        type:
+          $ref: '#/components/schemas/RUMApplicationUpdateType'
+      required:
+      - id
+      - type
       type: object
-    AppDeploymentType:
-      default: deployment
-      description: The deployment type.
-      enum:
-      - deployment
-      example: deployment
-      type: string
-      x-enum-varnames:
-      - DEPLOYMENT
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
     UpdateAppRequestData:
       description: The data object containing the new app definition. Any fields not included in the request remain unchanged.
       properties:
@@ -3784,19 +2701,64 @@ components:
       required:
       - type
       type: object
-    RelationshipToPermissions:
-      description: Relationship to multiple permissions objects.
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
       properties:
-        data:
-          description: Relationships to permission objects.
-          items:
-            $ref: '#/components/schemas/RelationshipToPermissionData'
-          type: array
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
       type: object
       x-merge-override:
         required: false
-    CreateAppRequestDataAttributes:
-      description: App definition attributes such as name, description, and components.
+    DeploymentMetadata:
+      description: Metadata object containing the publication creation information.
+      properties:
+        created_at:
+          description: Timestamp of when the app was published.
+          format: date-time
+          type: string
+          example: example_value
+        user_id:
+          description: The ID of the user who published the app.
+          format: int64
+          type: integer
+          example: 42
+        user_name:
+          description: The name (or email address) of the user who published the app.
+          type: string
+          example: Example Monitor
+        user_uuid:
+          description: The UUID of the user who published the app.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+      type: object
+    DeleteAppsResponse:
+      description: The response object after multiple apps are successfully deleted.
+      properties:
+        data:
+          description: An array of objects containing the IDs of the deleted apps.
+          items:
+            $ref: '#/components/schemas/DeleteAppsResponseDataItems'
+          type: array
+      type: object
+    ActionQueryMockedOutputsObject:
+      description: The mocked outputs of the action query.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/ActionQueryMockedOutputsEnabled'
+        outputs:
+          description: The mocked outputs of the action query, serialized as JSON.
+          example: '{"status": "success"}'
+          type: string
+      required:
+      - enabled
+      type: object
+    GetAppResponseDataAttributes:
+      description: The app definition attributes, such as name, description, and components.
       properties:
         components:
           description: The UI components that make up the app.
@@ -3807,6 +2769,10 @@ components:
           description: A human-readable description for the app.
           type: string
           example: example_value
+        favorite:
+          description: Whether the app is marked as a favorite by the current user.
+          type: boolean
+          example: true
         name:
           description: The name of the app.
           type: string
@@ -3830,88 +2796,436 @@ components:
             type: string
           type: array
       type: object
-  parameters:
-    ApplicationKeyFilterCreatedAtEndParameter:
-      description: Only include application keys created on or before the specified date.
-      in: query
-      name: filter[created_at][end]
-      required: false
-      schema:
-        example: '2020-11-24T18:46:21+00:00'
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    Role:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    GetAppResponse:
+      description: The full app definition response object.
+      properties:
+        data:
+          $ref: '#/components/schemas/GetAppResponseData'
+        included:
+          description: Data on the version of the app that was published.
+          items:
+            $ref: '#/components/schemas/Deployment'
+          type: array
+        meta:
+          $ref: '#/components/schemas/AppMeta'
+        relationship:
+          $ref: '#/components/schemas/AppRelationship'
+      type: object
+    CustomConnection:
+      description: A custom connection used by an app.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomConnectionAttributes'
+        id:
+          description: The ID of the custom connection.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomConnectionType'
+      type: object
+    UsageDataObject:
+      description: Usage data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UsageAttributesObject'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/UsageTimeSeriesType'
+      type: object
+    DeleteAppResponse:
+      description: The response object after an app is successfully deleted.
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteAppResponseData'
+      type: object
+    DataTransformType:
+      default: dataTransform
+      description: The data transform type.
+      enum:
+      - dataTransform
+      example: dataTransform
+      type: string
+      x-enum-varnames:
+      - DATATRANSFORM
+    ApplicationKeyResponseIncludedItem:
+      description: An object related to an application key.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Role'
+      - $ref: '#/components/schemas/LeakedKey'
+    RUMApplicationUpdateRequest:
+      description: RUM application update request.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplicationUpdate'
+      required:
+      - data
+      type: object
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    ActionQueryOnlyTriggerManually:
+      description: Determines when this query is executed. If set to `false`, the query will run when the app loads and whenever any query arguments change. If set to `true`, the query will only run when manually triggered from elsewhere in the app.
+      oneOf:
+      - type: boolean
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.
+        example: ${true}
         type: string
-        x-merge-override:
-          format: false
-    PageSize:
-      description: Size for a given page. The maximum allowed value is 100.
-      in: query
-      name: page[size]
-      required: false
-      schema:
-        default: 10
-        example: 10
-        format: int64
-        type: integer
-    ApplicationKeyFilterParameter:
-      description: Filter application keys by the specified string.
-      in: query
-      name: filter
-      required: false
-      schema:
+    UnpublishAppResponse:
+      description: The response object after an app is successfully unpublished.
+      properties:
+        data:
+          $ref: '#/components/schemas/Deployment'
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    LeakedKey:
+      description: The definition of LeakedKey object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LeakedKeyAttributes'
+        id:
+          description: The LeakedKey id.
+          example: id
+          type: string
+        type:
+          $ref: '#/components/schemas/LeakedKeyType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    ActionQuerySpecConnectionGroup:
+      description: The connection group to use for an action query.
+      properties:
+        id:
+          description: The ID of the connection group.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        tags:
+          description: The tags of the connection group.
+          items:
+            type: string
+          type: array
+      type: object
+    RUMApplicationCreateRequest:
+      description: RUM application creation request attributes.
+      properties:
+        data:
+          $ref: '#/components/schemas/RUMApplicationCreate'
+      required:
+      - data
+      type: object
+    Query:
+      description: A data query used by an app. This can take the form of an external action, a data transformation, or a state variable.
+      oneOf:
+      - $ref: '#/components/schemas/ActionQuery'
+      - $ref: '#/components/schemas/DataTransform'
+      - $ref: '#/components/schemas/StateVariable'
+    StateVariableProperties:
+      description: The properties of the state variable.
+      properties:
+        defaultValue:
+          description: The default value of the state variable.
+          example: ${['order_3145', 'order_4920']}
+      type: object
+    PublishAppResponse:
+      description: The response object after an app is successfully published.
+      properties:
+        data:
+          $ref: '#/components/schemas/Deployment'
+      type: object
+    RUMApplicationCreate:
+      description: RUM application creation.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMApplicationCreateAttributes'
+        type:
+          $ref: '#/components/schemas/RUMApplicationCreateType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    AppBuilderEventName:
+      description: The triggering action for the event.
+      enum:
+      - pageChange
+      - tableRowClick
+      - _tableRowButtonClick
+      - change
+      - submit
+      - click
+      - toggleOpen
+      - close
+      - open
+      - executionFinished
+      example: click
+      type: string
+      x-enum-varnames:
+      - PAGECHANGE
+      - TABLEROWCLICK
+      - TABLEROWBUTTONCLICK
+      - CHANGE
+      - SUBMIT
+      - CLICK
+      - TOGGLEOPEN
+      - CLOSE
+      - OPEN
+      - EXECUTIONFINISHED
+    ListAppsResponseDataItemsRelationships:
+      description: The app's publication information.
+      properties:
+        deployment:
+          $ref: '#/components/schemas/DeploymentRelationship'
+      type: object
+    CreateAppResponse:
+      description: The response object after a new app is successfully created, with the app ID.
+      properties:
+        data:
+          $ref: '#/components/schemas/CreateAppResponseData'
+      type: object
+    DataTransform:
+      description: A data transformer, which is custom JavaScript code that executes and transforms data when its inputs change.
+      properties:
+        id:
+          description: The ID of the data transformer.
+          example: 65bb1f25-52e1-4510-9f8d-22d1516ed693
+          format: uuid
+          type: string
+        name:
+          description: A unique identifier for this data transformer. This name is also used to access the transformer's result throughout the app.
+          example: combineTwoOrders
+          type: string
+        properties:
+          $ref: '#/components/schemas/DataTransformProperties'
+        type:
+          $ref: '#/components/schemas/DataTransformType'
+      required:
+      - id
+      - name
+      - type
+      - properties
+      type: object
+    ActionQueryDebounceInMs:
+      description: The minimum time in milliseconds that must pass before the query can be triggered again. This is useful for preventing accidental double-clicks from triggering the query multiple times.
+      oneOf:
+      - example: 310.5
+        format: double
+        type: number
+      - description: If this is a string, it must be a valid JavaScript expression that evaluates to a number.
+        example: ${1000}
         type: string
-    PageNumber:
-      description: Specific page number to return.
-      in: query
-      name: page[number]
-      required: false
-      schema:
-        default: 0
-        example: 0
-        format: int64
-        type: integer
-    ServiceAccountID:
-      description: The ID of the service account.
-      in: path
-      name: service_account_id
-      required: true
-      schema:
-        example: 00000000-0000-1234-0000-000000000000
-        type: string
-    ApplicationKeysSortParameter:
-      description: 'Application key attribute used to sort results. Sort order is ascending
-
-        by default. In order to specify a descending sort, prefix the
-
-        attribute with a minus sign.'
-      in: query
-      name: sort
-      required: false
-      schema:
-        $ref: '#/components/schemas/ApplicationKeysSort'
-    ApplicationKeyFilterCreatedAtStartParameter:
-      description: Only include application keys created on or after the specified date.
-      in: query
-      name: filter[created_at][start]
-      required: false
-      schema:
-        example: '2020-11-24T18:46:21+00:00'
-        type: string
-        x-merge-override:
-          format: false
-    ApplicationKeyID:
-      description: The ID of the application key.
-      in: path
-      name: app_key_id
-      required: true
-      schema:
-        type: string
-    ApplicationKeyIncludeParameter:
-      description: Resource path for related resources to include in the response. Only `owned_by` is supported.
-      in: query
-      name: include
-      required: false
-      schema:
-        example: owned_by
-        type: string
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    UsageTimeSeriesObject:
+      description: Usage timeseries data.
+      properties:
+        timestamp:
+          description: Datetime in ISO-8601 format, UTC. The hour for the usage.
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        value:
+          description: Contains the number measured for the given usage_type during the hour.
+          format: int64
+          type:
+          - integer
+          - 'null'
+          example: 42
+      type: object
+    ApplicationKeyUpdateData:
+      description: Object used to update an application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationKeyUpdateAttributes'
+        id:
+          description: ID of the application key.
+          example: 00112233-4455-6677-8899-aabbccddeeff
+          type: string
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UsageTimeSeriesType:
+      default: usage_timeseries
+      description: Type of usage data.
+      enum:
+      - usage_timeseries
+      example: usage_timeseries
+      type: string
+      x-enum-varnames:
+      - USAGE_TIMESERIES
   responses:
     NotFoundResponse:
       content:
@@ -3931,6 +3245,22 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+  parameters:
+    ApplicationKeyID:
+      description: The ID of the application key.
+      in: path
+      name: app_key_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyIncludeParameter:
+      description: Resource path for related resources to include in the response. Only `owned_by` is supported.
+      in: query
+      name: include
+      required: false
+      schema:
+        example: owned_by
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

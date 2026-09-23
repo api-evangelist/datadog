@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Billing API
+  title: Datadog Billing API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -45,56 +45,6 @@ security:
 tags:
 - name: Billing
 paths:
-  /api/v2/cost_by_tag/active_billing_dimensions:
-    get:
-      description: Get active billing dimensions for cost attribution. Cost data for a given month becomes available no later than the 19th of the following month.
-      operationId: GetActiveBillingDimensions
-      responses:
-        '200':
-          content:
-            application/json;datetime-format=rfc3339:
-              schema:
-                $ref: '#/components/schemas/ActiveBillingDimensionsResponse'
-          description: OK
-        '400':
-          content:
-            application/json;datetime-format=rfc3339:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json;datetime-format=rfc3339:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden - User is not authorized
-        '429':
-          content:
-            application/json;datetime-format=rfc3339:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Too many requests
-      security:
-      - apiKeyAuth: []
-        appKeyAuth: []
-      - AuthZ:
-        - usage_read
-      summary: Datadog Get Active Billing Dimensions for Cost Attribution
-      tags:
-      - Billing
-      x-menu-order: 5
-      x-permission:
-        operator: OR
-        permissions:
-        - usage_read
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/usage/billing_dimension_mapping:
     get:
       description: 'Get a mapping of billing dimensions to the corresponding keys for the supported usage metering public API endpoints.
@@ -102,7 +52,7 @@ paths:
         Mapping data is updated on a monthly cadence.
 
 
-        This endpoint is only accessible to [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/).'
+        This endpoint is only accessible to parent-level organizations.'
       operationId: GetBillingDimensionMapping
       parameters:
       - description: Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month.
@@ -169,21 +119,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
     BillingDimensionsMappingResponse:
       description: Billing dimensions mapping response.
       properties:
@@ -195,43 +130,6 @@ components:
       items:
         $ref: '#/components/schemas/BillingDimensionsMappingBodyItem'
       type: array
-    ActiveBillingDimensionsBody:
-      description: Active billing dimensions data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ActiveBillingDimensionsAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ActiveBillingDimensionsType'
-      type: object
-    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
-      description: Denotes whether mapping keys were available for this endpoint.
-      enum:
-      - OK
-      - NOT_FOUND
-      type: string
-      x-enum-varnames:
-      - OK
-      - NOT_FOUND
-    ActiveBillingDimensionsAttributes:
-      description: List of active billing dimensions.
-      properties:
-        month:
-          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]`.'
-          format: date-time
-          type: string
-          example: example_value
-        values:
-          description: 'List of active billing dimensions. Example: `[infra_host, apm_host, serverless_infra]`.'
-          items:
-            description: A given billing dimension in a list.
-            example: infra_host
-            type: string
-          type: array
-      type: object
     BillingDimensionsMappingBodyItemAttributes:
       description: Mapping of billing dimensions to endpoint keys.
       properties:
@@ -250,32 +148,6 @@ components:
           type: string
           example: '2026-04-17T12:00:00Z'
       type: object
-    BillingDimensionsMappingBodyItem:
-      description: The mapping data for each billing dimension.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributes'
-        id:
-          description: ID of the billing dimension.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ActiveBillingDimensionsType'
-      type: object
-    ActiveBillingDimensionsResponse:
-      description: Active billing dimensions response.
-      properties:
-        data:
-          $ref: '#/components/schemas/ActiveBillingDimensionsBody'
-      type: object
-    ActiveBillingDimensionsType:
-      default: billing_dimensions
-      description: Type of active billing dimensions data.
-      enum:
-      - billing_dimensions
-      type: string
-      x-enum-varnames:
-      - BILLING_DIMENSIONS
     BillingDimensionsMappingBodyItemAttributesEndpointsItems:
       description: An endpoint's keys mapped to the billing_dimension.
       properties:
@@ -295,6 +167,50 @@ components:
         status:
           $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus'
       type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    BillingDimensionsMappingBodyItem:
+      description: The mapping data for each billing dimension.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributes'
+        id:
+          description: ID of the billing dimension.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ActiveBillingDimensionsType'
+      type: object
+    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
+      description: Denotes whether mapping keys were available for this endpoint.
+      enum:
+      - OK
+      - NOT_FOUND
+      type: string
+      x-enum-varnames:
+      - OK
+      - NOT_FOUND
+    ActiveBillingDimensionsType:
+      default: billing_dimensions
+      description: Type of active billing dimensions data.
+      enum:
+      - billing_dimensions
+      type: string
+      x-enum-varnames:
+      - BILLING_DIMENSIONS
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

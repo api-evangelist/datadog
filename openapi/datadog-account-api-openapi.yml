@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
@@ -1450,12 +1450,12 @@ paths:
 
         **Note:** This endpoint has been deprecated. Please use the new endpoint
 
-        [`/historical_cost`](https://docs.datadoghq.com/api/latest/usage-metering/#get-historical-cost-across-your-account)
+        `/historical_cost`
 
         instead.
 
 
-        This endpoint is only accessible for [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/).'
+        This endpoint is only accessible for parent-level organizations.'
       operationId: GetCostByOrg
       parameters:
       - description: 'Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning this month.'
@@ -1531,7 +1531,7 @@ paths:
         To access historical costs prior to this, use the `/historical_cost` endpoint.
 
 
-        This endpoint is only accessible for [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/).'
+        This endpoint is only accessible for parent-level organizations.'
       operationId: GetEstimatedCostByOrg
       parameters:
       - description: String to specify whether cost is broken down at a parent-org level or at the sub-org level. Available views are `summary` and `sub-org`. Defaults to `summary`.
@@ -1634,7 +1634,7 @@ paths:
         Cost data for a given month becomes available no later than the 16th of the following month.
 
 
-        This endpoint is only accessible for [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/).'
+        This endpoint is only accessible for parent-level organizations.'
       operationId: GetHistoricalCostByOrg
       parameters:
       - description: String to specify whether cost is broken down at a parent-org level or at the sub-org level. Available views are `summary` and `sub-org`.  Defaults to `summary`.
@@ -1721,7 +1721,7 @@ paths:
         Projected cost data is only available for the current month and becomes available around the 12th of the month.
 
 
-        This endpoint is only accessible for [parent-level organizations](https://docs.datadoghq.com/account_management/multi_organization/).'
+        This endpoint is only accessible for parent-level organizations.'
       operationId: GetProjectedCost
       parameters:
       - description: String to specify whether cost is broken down at a parent-org level or at the sub-org level. Available views are `summary` and `sub-org`. Defaults to `summary`.
@@ -1787,64 +1787,129 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    CostByOrgType:
-      default: cost_by_org
-      description: Type of cost data.
-      enum:
-      - cost_by_org
-      example: cost_by_org
-      type: string
-      x-enum-varnames:
-      - COST_BY_ORG
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    CostByOrg:
-      description: Cost data.
+    ApplicationKeyCreateAttributes:
+      description: Attributes used to create an application Key.
       properties:
-        attributes:
-          $ref: '#/components/schemas/CostByOrgAttributes'
-        id:
-          description: Unique ID of the response.
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
           type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/CostByOrgType'
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          type:
+          - array
+          - 'null'
+      required:
+      - name
       type: object
-    ConfluentAccountUpdateRequest:
-      description: The JSON:API request for updating a Confluent account.
+      x-merge-override:
+        properties: false
+    GCPSTSServiceAccountUpdateRequest:
+      description: Service account info.
       properties:
         data:
-          $ref: '#/components/schemas/ConfluentAccountUpdateRequestData'
+          $ref: '#/components/schemas/GCPSTSServiceAccountUpdateRequestData'
+      type: object
+    ListApplicationKeysResponse:
+      description: Response for a list of application keys.
+      properties:
+        data:
+          description: Array of application keys.
+          items:
+            $ref: '#/components/schemas/PartialApplicationKey'
+          type: array
+        included:
+          description: Array of objects related to the application key.
+          items:
+            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ApplicationKeyResponseMeta'
+      type: object
+    PartialApplicationKey:
+      description: Partial Datadog application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PartialApplicationKeyAttributes'
+        id:
+          description: ID of the application key.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/ApplicationKeyRelationships'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
       required:
       - data
       type: object
-    LeakedKeyAttributes:
-      description: The definition of LeakedKeyAttributes object.
-      properties:
-        date:
-          description: The LeakedKeyAttributes date.
-          example: '2017-07-21T17:32:28Z'
-          format: date-time
-          type: string
-        leak_source:
-          description: The LeakedKeyAttributes leak_source.
-          type: string
-          example: example_value
-      required:
-      - date
-      type: object
-    FastlyAccountResponse:
-      description: The expected response schema when getting a Fastly account.
+    RelationshipToUser:
+      description: Relationship to user.
       properties:
         data:
-          $ref: '#/components/schemas/FastlyAccountResponseData'
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    GCPMetricNamespaceConfig:
+      description: Configuration for a GCP metric namespace.
+      properties:
+        disabled:
+          default: false
+          description: When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.
+          example: true
+          type: boolean
+        id:
+          description: The id of the GCP metric namespace.
+          example: aiplatform
+          type: string
+      type: object
+    PermissionAttributes:
+      description: Attributes of a permission.
+      properties:
+        created:
+          description: Creation time of the permission.
+          format: date-time
+          type: string
+          example: example_value
+        description:
+          description: Description of the permission.
+          type: string
+          example: example_value
+        display_name:
+          description: Displayed name for the permission.
+          type: string
+          example: Example Monitor
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
       type: object
     OrganizationAttributes:
       description: Attributes of the organization.
@@ -1884,166 +1949,62 @@ components:
           type: string
           example: https://app.datadoghq.com
       type: object
-    UserAttributes:
-      description: Attributes of user object returned by the API.
-      properties:
-        created_at:
-          description: Creation time of the user.
-          format: date-time
-          type: string
-          example: example_value
-        disabled:
-          description: Whether the user is disabled.
-          type: boolean
-          example: true
-        email:
-          description: Email of the user.
-          type: string
-          example: user@example.com
-        handle:
-          description: Handle of the user.
-          type: string
-          example: example_value
-        icon:
-          description: URL of the user's icon.
-          type: string
-          example: example_value
-        mfa_enabled:
-          description: If user has MFA enabled.
-          readOnly: true
-          type: boolean
-          example: true
-        modified_at:
-          description: Time that the user was last modified.
-          format: date-time
-          type: string
-          example: example_value
-        name:
-          description: Name of the user.
-          nullable: true
-          type: string
-          example: Example Monitor
-        service_account:
-          description: Whether the user is a service account.
-          type: boolean
-          example: true
-        status:
-          description: Status of the user.
-          type: string
-          example: OK
-        title:
-          description: Title of the user.
-          nullable: true
-          type: string
-          example: Example Monitor
-        verified:
-          description: Whether the user is verified.
-          type: boolean
-          example: true
-      type: object
-    FastlyAccountUpdateRequestAttributes:
-      description: Attributes object for updating a Fastly account.
+    CloudflareAccountCreateRequestAttributes:
+      description: Attributes object for creating a Cloudflare account.
       properties:
         api_key:
-          description: The API key of the Fastly account.
-          example: ABCDEFG123
+          description: The API key (or token) for the Cloudflare account.
+          example: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+          type: string
+        email:
+          description: The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.
+          example: test-email@example.com
           type: string
         name:
-          description: The name of the Fastly account.
+          description: The name of the Cloudflare account.
+          example: test-name
           type: string
-          example: Example Monitor
+        resources:
+          description: An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.
+          example:
+          - web
+          - dns
+          - lb
+          - worker
+          items:
+            type: string
+          type: array
+        zones:
+          description: An allowlist of zones to restrict pulling metrics for.
+          example:
+          - zone_id_1
+          - zone_id_2
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      - name
+      type: object
+    ApplicationKeyResponseMetaPage:
+      description: Additional information related to the application key response.
+      properties:
+        total_filtered_count:
+          description: Total filtered application key count.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    GCPSTSServiceAccountData:
+      description: Additional metadata on your generated service account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+        type:
+          $ref: '#/components/schemas/GCPServiceAccountType'
       type: object
       x-merge-override:
         required: false
-    ProjectedCostType:
-      default: projected_cost
-      description: Type of cost data.
-      enum:
-      - projected_cost
-      example: projected_cost
-      type: string
-      x-enum-varnames:
-      - PROJECt_COST
-    PermissionAttributes:
-      description: Attributes of a permission.
-      properties:
-        created:
-          description: Creation time of the permission.
-          format: date-time
-          type: string
-          example: example_value
-        description:
-          description: Description of the permission.
-          type: string
-          example: example_value
-        display_name:
-          description: Displayed name for the permission.
-          type: string
-          example: Example Monitor
-        display_type:
-          description: Display type.
-          type: string
-          example: metric alert
-        group_name:
-          description: Name of the permission group.
-          type: string
-          example: Example Monitor
-        name:
-          description: Name of the permission.
-          type: string
-          example: Example Monitor
-        restricted:
-          description: Whether or not the permission is restricted.
-          type: boolean
-          example: true
-      type: object
-    PartialApplicationKeyResponse:
-      description: Response for retrieving a partial application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/PartialApplicationKey'
-        included:
-          description: Array of objects related to the application key.
-          items:
-            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
-          type: array
-      type: object
-    UserResponseIncludedItem:
-      description: An object related to a user.
-      oneOf:
-      - $ref: '#/components/schemas/Organization'
-      - $ref: '#/components/schemas/Permission'
-      - $ref: '#/components/schemas/Role'
-    FastlyAccountCreateRequest:
-      description: Payload schema when adding a Fastly account.
-      properties:
-        data:
-          $ref: '#/components/schemas/FastlyAccountCreateRequestData'
-      required:
-      - data
-      type: object
-    UserRelationships:
-      description: Relationships of the user object.
-      properties:
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-    ListApplicationKeysResponse:
-      description: Response for a list of application keys.
-      properties:
-        data:
-          description: Array of application keys.
-          items:
-            $ref: '#/components/schemas/PartialApplicationKey'
-          type: array
-        included:
-          description: Array of objects related to the application key.
-          items:
-            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
-          type: array
-        meta:
-          $ref: '#/components/schemas/ApplicationKeyResponseMeta'
-      type: object
     RoleAttributes:
       description: Attributes of the role.
       properties:
@@ -2070,15 +2031,44 @@ components:
           type: integer
           example: 42
       type: object
-    OktaAccountType:
-      default: okta-accounts
-      description: Account type for an Okta account.
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
       enum:
-      - okta-accounts
-      example: okta-accounts
+      - orgs
+      example: orgs
       type: string
       x-enum-varnames:
-      - OKTA_ACCOUNTS
+      - ORGS
+    LeakedKeyAttributes:
+      description: The definition of LeakedKeyAttributes object.
+      properties:
+        date:
+          description: The LeakedKeyAttributes date.
+          example: '2017-07-21T17:32:28Z'
+          format: date-time
+          type: string
+        leak_source:
+          description: The LeakedKeyAttributes leak_source.
+          type: string
+          example: example_value
+      required:
+      - date
+      type: object
+    FastlyAccountUpdateRequestAttributes:
+      description: Attributes object for updating a Fastly account.
+      properties:
+        api_key:
+          description: The API key of the Fastly account.
+          example: ABCDEFG123
+          type: string
+        name:
+          description: The name of the Fastly account.
+          type: string
+          example: Example Monitor
+      type: object
+      x-merge-override:
+        required: false
     FullApplicationKey:
       description: Datadog application key.
       properties:
@@ -2095,274 +2085,48 @@ components:
       type: object
       x-merge-override:
         required: false
-    ApplicationKeyUpdateAttributes:
-      description: Attributes used to update an application Key.
+    CloudflareAccountCreateRequest:
+      description: Payload schema when adding a Cloudflare account.
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudflareAccountCreateRequestData'
+      required:
+      - data
+      type: object
+    FastlyAccounResponseAttributes:
+      description: Attributes object of a Fastly account.
       properties:
         name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
+          description: The name of the Fastly account.
+          example: test-name
           type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
+        services:
+          description: A list of services belonging to the parent account.
           items:
-            description: Name of scope.
-            type: string
-          nullable: true
+            $ref: '#/components/schemas/FastlyService'
           type: array
+      required:
+      - name
       type: object
-      x-merge-override:
-        properties: false
-    User:
-      description: User object returned by the API.
+    Permission:
+      description: Permission object.
       properties:
         attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUser:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserData'
-      required:
-      - data
-      type: object
-    GCPSTSDelegateAccountAttributes:
-      description: Your delegate account attributes.
-      properties:
-        delegate_account_email:
-          description: Your organization's Datadog principal email address.
-          example: ddgci-1a19n28hb1a812221893@datadog-gci-sts-us5-prod.iam.gserviceaccount.com
-          type: string
-      type: object
-    CostByOrgAttributes:
-      description: Cost attributes data.
-      properties:
-        account_name:
-          description: The account name.
-          type: string
-          example: Example Monitor
-        account_public_id:
-          description: The account public ID.
-          type: string
-          example: abc-123-def
-        charges:
-          description: List of charges data reported for the requested month.
-          items:
-            $ref: '#/components/schemas/ChargebackBreakdown'
-          type: array
-        date:
-          description: The month requested.
-          format: date-time
-          type: string
-          example: '2026-04-17T12:00:00Z'
-        org_name:
-          description: The organization name.
-          type: string
-          example: Example Monitor
-        public_id:
-          description: The organization public ID.
-          type: string
-          example: abc-123-def
-        region:
-          description: The region of the Datadog instance that the organization belongs to.
-          type: string
-          example: example_value
-        total_cost:
-          description: The total cost of products for the month.
-          format: double
-          type: number
-          example: 95.5
-      type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
-      required:
-      - data
-      type: object
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
+          $ref: '#/components/schemas/PermissionAttributes'
         id:
           description: ID of the permission.
           type: string
           example: abc-123-def
         type:
           $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
-    GCPSTSServiceAccountUpdateRequest:
-      description: Service account info.
-      properties:
-        data:
-          $ref: '#/components/schemas/GCPSTSServiceAccountUpdateRequestData'
-      type: object
-    ApplicationKeyResponseIncludedItem:
-      description: An object related to an application key.
-      oneOf:
-      - $ref: '#/components/schemas/User'
-      - $ref: '#/components/schemas/Role'
-      - $ref: '#/components/schemas/LeakedKey'
-    GCPSTSServiceAccountCreateRequest:
-      description: Data on your newly generated service account.
-      properties:
-        data:
-          $ref: '#/components/schemas/GCPSTSServiceAccountData'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
       required:
-      - id
       - type
       type: object
-      x-merge-override:
-        required: false
-    FastlyService:
-      description: The schema representation of a Fastly service.
-      properties:
-        id:
-          description: The ID of the Fastly service
-          example: 6abc7de6893AbcDe9fghIj
-          type: string
-        tags:
-          description: A list of tags for the Fastly service.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - id
-      type: object
-    GCPMetricNamespaceConfig:
-      description: Configuration for a GCP metric namespace.
-      properties:
-        disabled:
-          default: false
-          description: When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.
-          example: true
-          type: boolean
-        id:
-          description: The id of the GCP metric namespace.
-          example: aiplatform
-          type: string
-      type: object
-    ConfluentAccountCreateRequestData:
-      description: The data body for adding a Confluent account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ConfluentAccountCreateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/ConfluentAccountType'
-      required:
-      - attributes
-      - type
-      type: object
-    ConfluentResourceType:
-      default: confluent-cloud-resources
-      description: The JSON:API type for this request.
-      enum:
-      - confluent-cloud-resources
-      example: confluent-cloud-resources
-      type: string
-      x-enum-varnames:
-      - CONFLUENT_CLOUD_RESOURCES
-    CostByOrgResponse:
-      description: Chargeback Summary response.
+    ApplicationKeyCreateRequest:
+      description: Request used to create an application key.
       properties:
         data:
-          description: Response containing Chargeback Summary.
-          items:
-            $ref: '#/components/schemas/CostByOrg'
-          type: array
-      type: object
-    ConfluentAccountResponseData:
-      description: An API key and API secret pair that represents a Confluent account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ConfluentAccountResponseAttributes'
-        id:
-          description: A randomly generated ID associated with a Confluent account.
-          example: account_id_abc123
-          type: string
-        type:
-          $ref: '#/components/schemas/ConfluentAccountType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    FastlyAccountUpdateRequest:
-      description: Payload schema when updating a Fastly account.
-      properties:
-        data:
-          $ref: '#/components/schemas/FastlyAccountUpdateRequestData'
-      required:
-      - data
-      type: object
-    GCPSTSDelegateAccount:
-      description: Datadog principal service account info.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/GCPSTSDelegateAccountAttributes'
-        id:
-          description: The ID of the delegate service account.
-          example: ddgci-1a19n28hb1a812221893@datadog-gci-sts-us5-prod.iam.gserviceaccount.com
-          type: string
-        type:
-          $ref: '#/components/schemas/GCPSTSDelegateAccountType'
-      type: object
-    ConfluentResourceRequestData:
-      description: JSON:API request for updating a Confluent resource.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ConfluentResourceRequestAttributes'
-        id:
-          description: The ID associated with a Confluent resource.
-          example: resource-id-123
-          type: string
-        type:
-          $ref: '#/components/schemas/ConfluentResourceType'
-      required:
-      - attributes
-      - type
-      - id
-      type: object
-      x-merge-override:
-        required: false
-    ConfluentAccountCreateRequest:
-      description: Payload schema when adding a Confluent account.
-      properties:
-        data:
-          $ref: '#/components/schemas/ConfluentAccountCreateRequestData'
+          $ref: '#/components/schemas/ApplicationKeyCreateData'
       required:
       - data
       type: object
@@ -2395,65 +2159,217 @@ components:
       type: object
       x-merge-override:
         required: false
-    OktaAccount:
-      description: Schema for an Okta account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OktaAccountAttributes'
-        id:
-          description: The ID of the Okta account, a UUID hash of the account name.
-          example: f749daaf-682e-4208-a38d-c9b43162c609
-          type: string
-        type:
-          $ref: '#/components/schemas/OktaAccountType'
-      required:
-      - attributes
-      - type
-      type: object
-    ApplicationKeyResponse:
-      description: Response for retrieving an application key.
+    PartialApplicationKeyResponse:
+      description: Response for retrieving a partial application key.
       properties:
         data:
-          $ref: '#/components/schemas/FullApplicationKey'
+          $ref: '#/components/schemas/PartialApplicationKey'
         included:
           description: Array of objects related to the application key.
           items:
             $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
           type: array
       type: object
-    FastlyAccountCreateRequestAttributes:
-      description: Attributes object for creating a Fastly account.
+    OktaAccountAttributes:
+      description: Attributes object for an Okta account.
       properties:
         api_key:
-          description: The API key for the Fastly account.
-          example: ABCDEFG123
+          description: The API key of the Okta account.
+          type: string
+          writeOnly: true
+          example: example_value
+        auth_method:
+          description: The authorization method for an Okta account.
+          example: oauth
+          type: string
+        client_id:
+          description: The Client ID of an Okta app integration.
+          type: string
+          example: abc-123-def
+        client_secret:
+          description: The client secret of an Okta app integration.
+          type: string
+          writeOnly: true
+          example: example_value
+        domain:
+          description: The domain of the Okta account.
+          example: https://example.okta.com/
           type: string
         name:
-          description: The name of the Fastly account.
-          example: test-name
+          description: The name of the Okta account.
+          example: Okta-Prod
           type: string
-        services:
-          description: A list of services belonging to the parent account.
+      required:
+      - auth_method
+      - domain
+      - name
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
           items:
-            $ref: '#/components/schemas/FastlyService'
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    CostByOrgType:
+      default: cost_by_org
+      description: Type of cost data.
+      enum:
+      - cost_by_org
+      example: cost_by_org
+      type: string
+      x-enum-varnames:
+      - COST_BY_ORG
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    ConfluentAccountCreateRequestAttributes:
+      description: Attributes associated with the account creation request.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        api_secret:
+          description: The API secret associated with your Confluent account.
+          example: test-api-secret-123
+          type: string
+        resources:
+          description: A list of Confluent resources associated with the Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentAccountResourceAttributes'
+          type: array
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
           type: array
       required:
       - api_key
-      - name
+      - api_secret
       type: object
-    ApplicationKeyCreateData:
-      description: Object used to create an application key.
+    RelationshipToRoles:
+      description: Relationship to roles.
       properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationKeyCreateAttributes'
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
-      required:
-      - attributes
-      - type
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
       type: object
       x-merge-override:
         required: false
+    ProjectedCost:
+      description: Projected Cost data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ProjectedCostAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ProjectedCostType'
+      type: object
+    ConfluentResourceType:
+      default: confluent-cloud-resources
+      description: The JSON:API type for this request.
+      enum:
+      - confluent-cloud-resources
+      example: confluent-cloud-resources
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_RESOURCES
+    GCPServiceAccountType:
+      default: gcp_service_account
+      description: The type of account.
+      enum:
+      - gcp_service_account
+      example: gcp_service_account
+      type: string
+      x-enum-varnames:
+      - GCP_SERVICE_ACCOUNT
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyUpdateRequest:
+      description: Request used to update an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationKeyUpdateData'
+      required:
+      - data
+      type: object
+    ConfluentResourceResponseData:
+      description: Confluent Cloud resource data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
+      type: object
+      x-merge-override:
+        required: false
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ApplicationKeyResponseMeta:
+      description: Additional information related to the application key response.
+      properties:
+        max_allowed_per_user:
+          description: Max allowed number of application keys per user.
+          format: int64
+          type: integer
+          example: 42
+        page:
+          $ref: '#/components/schemas/ApplicationKeyResponseMetaPage'
+      type: object
     FullApplicationKeyAttributes:
       description: Attributes of a full application key.
       properties:
@@ -2490,31 +2406,12 @@ components:
           items:
             description: Name of scope.
             type: string
-          nullable: true
-          type: array
+          type:
+          - array
+          - 'null'
       type: object
       x-merge-override:
         properties: false
-    GCPSTSServiceAccountData:
-      description: Additional metadata on your generated service account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
-        type:
-          $ref: '#/components/schemas/GCPServiceAccountType'
-      type: object
-      x-merge-override:
-        required: false
-    CloudflareAccountUpdateRequestData:
-      description: Data object for updating a Cloudflare account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudflareAccountUpdateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/CloudflareAccountType'
-      type: object
-      x-merge-override:
-        required: false
     CloudflareAccountCreateRequestData:
       description: Data object for creating a Cloudflare account.
       properties:
@@ -2525,6 +2422,139 @@ components:
       required:
       - attributes
       - type
+      type: object
+    ConfluentAccountCreateRequestData:
+      description: The data body for adding a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    CloudflareAccountUpdateRequestData:
+      description: Data object for updating a Cloudflare account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudflareAccountUpdateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/CloudflareAccountType'
+      type: object
+      x-merge-override:
+        required: false
+    GCPSTSServiceAccountCreateRequest:
+      description: Data on your newly generated service account.
+      properties:
+        data:
+          $ref: '#/components/schemas/GCPSTSServiceAccountData'
+      type: object
+      x-merge-override:
+        required: false
+    ProjectedCostType:
+      default: projected_cost
+      description: Type of cost data.
+      enum:
+      - projected_cost
+      example: projected_cost
+      type: string
+      x-enum-varnames:
+      - PROJECt_COST
+    ServiceAccountCreateData:
+      description: Object to create a service account User.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ServiceAccountCreateAttributes'
+        relationships:
+          $ref: '#/components/schemas/UserRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - attributes
+      - type
+      type: object
+    GCPSTSDelegateAccountResponse:
+      description: Your delegate service account response data.
+      properties:
+        data:
+          $ref: '#/components/schemas/GCPSTSDelegateAccount'
+      type: object
+    OktaAccountUpdateRequest:
+      description: Payload schema when updating an Okta account.
+      properties:
+        data:
+          $ref: '#/components/schemas/OktaAccountUpdateRequestData'
+      required:
+      - data
+      type: object
+    CostByOrgResponse:
+      description: Chargeback Summary response.
+      properties:
+        data:
+          description: Response containing Chargeback Summary.
+          items:
+            $ref: '#/components/schemas/CostByOrg'
+          type: array
+      type: object
+    GCPSTSServiceAccountUpdateRequestData:
+      description: Data on your service account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+        id:
+          description: Your service account's unique ID.
+          example: d291291f-12c2-22g4-j290-123456678897
+          type: string
+        type:
+          $ref: '#/components/schemas/GCPServiceAccountType'
+      type: object
+    OktaAccount:
+      description: Schema for an Okta account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OktaAccountAttributes'
+        id:
+          description: The ID of the Okta account, a UUID hash of the account name.
+          example: f749daaf-682e-4208-a38d-c9b43162c609
+          type: string
+        type:
+          $ref: '#/components/schemas/OktaAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    ApplicationKeyCreateData:
+      description: Object used to create an application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationKeyCreateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    FastlyAccountCreateRequest:
+      description: Payload schema when adding a Fastly account.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyAccountCreateRequestData'
+      required:
+      - data
       type: object
     CloudflareAccountResponseData:
       description: Data object of a Cloudflare account.
@@ -2544,22 +2574,267 @@ components:
       type: object
       x-merge-override:
         required: false
-    Permission:
-      description: Permission object.
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    CloudflareAccountResponseAttributes:
+      description: Attributes object of a Cloudflare account.
+      properties:
+        email:
+          description: The email associated with the Cloudflare account.
+          example: test-email@example.com
+          type: string
+        name:
+          description: The name of the Cloudflare account.
+          example: test-name
+          type: string
+        resources:
+          description: An allowlist of resources, such as `web`, `dns`, `lb` (load balancer), `worker`, that restricts pulling metrics from those resources.
+          example:
+          - web
+          - dns
+          - lb
+          - worker
+          items:
+            type: string
+          type: array
+        zones:
+          description: An allowlist of zones to restrict pulling metrics for.
+          example:
+          - zone_id_1
+          - zone_id_2
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      type: object
+    ApplicationKeyUpdateAttributes:
+      description: Attributes used to update an application Key.
+      properties:
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          type:
+          - array
+          - 'null'
+      type: object
+      x-merge-override:
+        properties: false
+    ProjectedCostResponse:
+      description: Projected Cost response.
+      properties:
+        data:
+          description: Response containing Projected Cost.
+          items:
+            $ref: '#/components/schemas/ProjectedCost'
+          type: array
+      type: object
+    GCPSTSDelegateAccountType:
+      default: gcp_sts_delegate
+      description: The type of account.
+      enum:
+      - gcp_sts_delegate
+      example: gcp_sts_delegate
+      type: string
+      x-enum-varnames:
+      - GCP_STS_DELEGATE
+    LeakedKeyType:
+      default: leaked_keys
+      description: The definition of LeakedKeyType object.
+      enum:
+      - leaked_keys
+      example: leaked_keys
+      type: string
+      x-enum-varnames:
+      - LEAKED_KEYS
+    FastlyAccountResponse:
+      description: The expected response schema when getting a Fastly account.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyAccountResponseData'
+      type: object
+    CloudflareAccountResponse:
+      description: The expected response schema when getting a Cloudflare account.
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudflareAccountResponseData'
+      type: object
+    ConfluentResourceResponseAttributes:
+      description: Model representation of a Confluent Cloud resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+      x-merge-override:
+        required: false
+    ChargebackBreakdown:
+      description: Charges breakdown.
+      properties:
+        charge_type:
+          description: The type of charge for a particular product.
+          example: on_demand
+          type: string
+        cost:
+          description: The cost for a particular product and charge type during a given month.
+          format: double
+          type: number
+          example: 95.5
+        product_name:
+          description: The product for which cost is being reported.
+          example: infra_host
+          type: string
+      type: object
+    ConfluentAccountUpdateRequestAttributes:
+      description: Attributes object for updating a Confluent account.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        api_secret:
+          description: The API secret associated with your Confluent account.
+          example: test-api-secret-123
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      - api_secret
+      type: object
+    FastlyAccountCreateRequestData:
+      description: Data object for creating a Fastly account.
       properties:
         attributes:
-          $ref: '#/components/schemas/PermissionAttributes'
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
+          $ref: '#/components/schemas/FastlyAccountCreateRequestAttributes'
         type:
-          $ref: '#/components/schemas/PermissionsType'
+          $ref: '#/components/schemas/FastlyAccountType'
       required:
+      - attributes
       - type
       type: object
-    GCPSTSServiceAccountUpdateRequestData:
-      description: Data on your service account.
+    ConfluentAccountResponseAttributes:
+      description: The attributes of a Confluent account.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        resources:
+          description: A list of Confluent resources associated with the Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+          type: array
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      type: object
+    FastlyAccountUpdateRequest:
+      description: Payload schema when updating a Fastly account.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyAccountUpdateRequestData'
+      required:
+      - data
+      type: object
+    ApplicationKeyRelationships:
+      description: Resources related to the application key.
+      properties:
+        owned_by:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+      x-merge-override:
+        properties: false
+    PartialApplicationKeyAttributes:
+      description: Attributes of a partial application key.
+      properties:
+        created_at:
+          description: Creation date of the application key.
+          example: '2020-11-23T10:00:00.000Z'
+          readOnly: true
+          type: string
+          x-merge-override:
+            format: false
+        last4:
+          description: The last four characters of the application key.
+          example: abcd
+          maxLength: 4
+          minLength: 4
+          readOnly: true
+          type: string
+          x-secret: true
+        name:
+          description: Name of the application key.
+          example: Application Key for managing dashboards
+          type: string
+        scopes:
+          description: Array of scopes to grant the application key.
+          example:
+          - dashboards_read
+          - dashboards_write
+          - dashboards_public_share
+          items:
+            description: Name of scope.
+            type: string
+          type:
+          - array
+          - 'null'
+      type: object
+    GCPSTSServiceAccount:
+      description: Info on your service account.
       properties:
         attributes:
           $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
@@ -2567,9 +2842,307 @@ components:
           description: Your service account's unique ID.
           example: d291291f-12c2-22g4-j290-123456678897
           type: string
+        meta:
+          $ref: '#/components/schemas/GCPServiceAccountMeta'
         type:
           $ref: '#/components/schemas/GCPServiceAccountType'
       type: object
+      x-merge-override:
+        required: false
+    ConfluentAccountUpdateRequestData:
+      description: Data object for updating a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountUpdateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - type
+      type: object
+    ConfluentAccountUpdateRequest:
+      description: The JSON:API request for updating a Confluent account.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentAccountUpdateRequestData'
+      required:
+      - data
+      type: object
+    ConfluentResourceRequestAttributes:
+      description: Attributes object for updating a Confluent resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+    ServiceAccountCreateAttributes:
+      description: Attributes of the created user.
+      properties:
+        email:
+          description: The email of the user.
+          example: jane.doe@example.com
+          type: string
+        name:
+          description: The name of the user.
+          type: string
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account. Must be true.
+          example: true
+          type: boolean
+        title:
+          description: The title of the user.
+          type: string
+          example: Example Monitor
+      required:
+      - email
+      - service_account
+      type: object
+    OktaAccountUpdateRequestAttributes:
+      description: Attributes object for updating an Okta account.
+      properties:
+        api_key:
+          description: The API key of the Okta account.
+          type: string
+          writeOnly: true
+          example: example_value
+        auth_method:
+          description: The authorization method for an Okta account.
+          example: oauth
+          type: string
+        client_id:
+          description: The Client ID of an Okta app integration.
+          type: string
+          example: abc-123-def
+        client_secret:
+          description: The client secret of an Okta app integration.
+          type: string
+          writeOnly: true
+          example: example_value
+        domain:
+          description: The domain associated with an Okta account.
+          example: https://dev-test.okta.com/
+          type: string
+      required:
+      - auth_method
+      - domain
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ApplicationKeyResponse:
+      description: Response for retrieving an application key.
+      properties:
+        data:
+          $ref: '#/components/schemas/FullApplicationKey'
+        included:
+          description: Array of objects related to the application key.
+          items:
+            $ref: '#/components/schemas/ApplicationKeyResponseIncludedItem'
+          type: array
+      type: object
+    CostByOrg:
+      description: Cost data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CostByOrgAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/CostByOrgType'
+      type: object
+    ConfluentAccountResponseData:
+      description: An API key and API secret pair that represents a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountResponseAttributes'
+        id:
+          description: A randomly generated ID associated with a Confluent account.
+          example: account_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    ApplicationKeysType:
+      default: application_keys
+      description: Application Keys resource type.
+      enum:
+      - application_keys
+      example: application_keys
+      type: string
+      x-enum-varnames:
+      - APPLICATION_KEYS
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+    GCPServiceAccountMeta:
+      description: Additional information related to your service account.
+      properties:
+        accessible_projects:
+          description: The current list of projects accessible from your service account.
+          items:
+            description: List of GCP projects.
+            type: string
+          type: array
+      type: object
+    OktaAccountUpdateRequestData:
+      description: Data object for updating an Okta account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OktaAccountUpdateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/OktaAccountType'
+      type: object
+    FastlyAccountType:
+      default: fastly-accounts
+      description: The JSON:API type for this API. Should always be `fastly-accounts`.
+      enum:
+      - fastly-accounts
+      example: fastly-accounts
+      type: string
+      x-enum-varnames:
+      - FASTLY_ACCOUNTS
+    ConfluentResourcesResponse:
+      description: Response schema when interacting with a list of Confluent resources.
+      properties:
+        data:
+          description: The JSON:API data attribute.
+          items:
+            $ref: '#/components/schemas/ConfluentResourceResponseData'
+          type: array
+      type: object
+    FastlyAccountResponseData:
+      description: Data object of a Fastly account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyAccounResponseAttributes'
+        id:
+          description: The ID of the Fastly account, a hash of the account name.
+          example: abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/FastlyAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    FastlyAccountUpdateRequestData:
+      description: Data object for updating a Fastly account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyAccountUpdateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/FastlyAccountType'
+      type: object
+      x-merge-override:
+        required: false
+    CloudflareAccountUpdateRequest:
+      description: Payload schema when updating a Cloudflare account.
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudflareAccountUpdateRequestData'
+      required:
+      - data
+      type: object
+    CloudflareAccountUpdateRequestAttributes:
+      description: Attributes object for updating a Cloudflare account.
+      properties:
+        api_key:
+          description: The API key of the Cloudflare account.
+          example: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+          type: string
+        email:
+          description: The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.
+          example: test-email@example.com
+          type: string
+        name:
+          description: The name of the Cloudflare account.
+          type: string
+          example: Example Monitor
+        resources:
+          description: An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.
+          example:
+          - web
+          - dns
+          - lb
+          - worker
+          items:
+            type: string
+          type: array
+        zones:
+          description: An allowlist of zones to restrict pulling metrics for.
+          example:
+          - zone_id_1
+          - zone_id_2
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      type: object
+      x-merge-override:
+        required: false
     GCPSTSServiceAccountAttributes:
       description: Attributes associated with your service account.
       properties:
@@ -2637,622 +3210,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
-    ConfluentAccountCreateRequestAttributes:
-      description: Attributes associated with the account creation request.
-      properties:
-        api_key:
-          description: The API key associated with your Confluent account.
-          example: TESTAPIKEY123
-          type: string
-        api_secret:
-          description: The API secret associated with your Confluent account.
-          example: test-api-secret-123
-          type: string
-        resources:
-          description: A list of Confluent resources associated with the Confluent account.
-          items:
-            $ref: '#/components/schemas/ConfluentAccountResourceAttributes'
-          type: array
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - api_key
-      - api_secret
-      type: object
-    ApplicationKeyRelationships:
-      description: Resources related to the application key.
-      properties:
-        owned_by:
-          $ref: '#/components/schemas/RelationshipToUser'
-      type: object
-      x-merge-override:
-        properties: false
-    LeakedKey:
-      description: The definition of LeakedKey object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/LeakedKeyAttributes'
-        id:
-          description: The LeakedKey id.
-          example: id
-          type: string
-        type:
-          $ref: '#/components/schemas/LeakedKeyType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-    CloudflareAccountCreateRequest:
-      description: Payload schema when adding a Cloudflare account.
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudflareAccountCreateRequestData'
-      required:
-      - data
-      type: object
-    ApplicationKeysType:
-      default: application_keys
-      description: Application Keys resource type.
-      enum:
-      - application_keys
-      example: application_keys
-      type: string
-      x-enum-varnames:
-      - APPLICATION_KEYS
-    ProjectedCost:
-      description: Projected Cost data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ProjectedCostAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ProjectedCostType'
-      type: object
-    OktaAccountUpdateRequest:
-      description: Payload schema when updating an Okta account.
-      properties:
-        data:
-          $ref: '#/components/schemas/OktaAccountUpdateRequestData'
-      required:
-      - data
-      type: object
-    ApplicationKeyCreateAttributes:
-      description: Attributes used to create an application Key.
-      properties:
-        name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
-          type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
-          items:
-            description: Name of scope.
-            type: string
-          nullable: true
-          type: array
-      required:
-      - name
-      type: object
-      x-merge-override:
-        properties: false
-    OktaAccountRequest:
-      description: Request object for an Okta account.
-      properties:
-        data:
-          $ref: '#/components/schemas/OktaAccount'
-      required:
-      - data
-      type: object
-    CloudflareAccountUpdateRequestAttributes:
-      description: Attributes object for updating a Cloudflare account.
-      properties:
-        api_key:
-          description: The API key of the Cloudflare account.
-          example: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
-          type: string
-        email:
-          description: The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.
-          example: test-email@example.com
-          type: string
-        name:
-          description: The name of the Cloudflare account.
-          type: string
-          example: Example Monitor
-        resources:
-          description: An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.
-          example:
-          - web
-          - dns
-          - lb
-          - worker
-          items:
-            type: string
-          type: array
-        zones:
-          description: An allowlist of zones to restrict pulling metrics for.
-          example:
-          - zone_id_1
-          - zone_id_2
-          items:
-            type: string
-          type: array
-      required:
-      - api_key
-      type: object
-      x-merge-override:
-        required: false
-    CloudflareAccountCreateRequestAttributes:
-      description: Attributes object for creating a Cloudflare account.
-      properties:
-        api_key:
-          description: The API key (or token) for the Cloudflare account.
-          example: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
-          type: string
-        email:
-          description: The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.
-          example: test-email@example.com
-          type: string
-        name:
-          description: The name of the Cloudflare account.
-          example: test-name
-          type: string
-        resources:
-          description: An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.
-          example:
-          - web
-          - dns
-          - lb
-          - worker
-          items:
-            type: string
-          type: array
-        zones:
-          description: An allowlist of zones to restrict pulling metrics for.
-          example:
-          - zone_id_1
-          - zone_id_2
-          items:
-            type: string
-          type: array
-      required:
-      - api_key
-      - name
-      type: object
-    CloudflareAccountResponse:
-      description: The expected response schema when getting a Cloudflare account.
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudflareAccountResponseData'
-      type: object
-    GCPServiceAccountType:
-      default: gcp_service_account
-      description: The type of account.
-      enum:
-      - gcp_service_account
-      example: gcp_service_account
-      type: string
-      x-enum-varnames:
-      - GCP_SERVICE_ACCOUNT
-    ConfluentResourcesResponse:
-      description: Response schema when interacting with a list of Confluent resources.
-      properties:
-        data:
-          description: The JSON:API data attribute.
-          items:
-            $ref: '#/components/schemas/ConfluentResourceResponseData'
-          type: array
-      type: object
-    UserResponse:
-      description: Response containing information about a single user.
-      properties:
-        data:
-          $ref: '#/components/schemas/User'
-        included:
-          description: Array of objects related to the user.
-          items:
-            $ref: '#/components/schemas/UserResponseIncludedItem'
-          type: array
-      type: object
-    CloudflareAccountUpdateRequest:
-      description: Payload schema when updating a Cloudflare account.
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudflareAccountUpdateRequestData'
-      required:
-      - data
-      type: object
-    GCPSTSDelegateAccountType:
-      default: gcp_sts_delegate
-      description: The type of account.
-      enum:
-      - gcp_sts_delegate
-      example: gcp_sts_delegate
-      type: string
-      x-enum-varnames:
-      - GCP_STS_DELEGATE
-    ServiceAccountCreateData:
-      description: Object to create a service account User.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ServiceAccountCreateAttributes'
-        relationships:
-          $ref: '#/components/schemas/UserRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - attributes
-      - type
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    ConfluentResourceResponseAttributes:
-      description: Model representation of a Confluent Cloud resource.
-      properties:
-        enable_custom_metrics:
-          default: false
-          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
-          example: false
-          type: boolean
-        id:
-          description: The ID associated with the Confluent resource.
-          example: resource_id_abc123
-          type: string
-        resource_type:
-          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
-          example: kafka
-          type: string
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - resource_type
-      type: object
-      x-merge-override:
-        required: false
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
-      properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    CloudflareAccountResponseAttributes:
-      description: Attributes object of a Cloudflare account.
-      properties:
-        email:
-          description: The email associated with the Cloudflare account.
-          example: test-email@example.com
-          type: string
-        name:
-          description: The name of the Cloudflare account.
-          example: test-name
-          type: string
-        resources:
-          description: An allowlist of resources, such as `web`, `dns`, `lb` (load balancer), `worker`, that restricts pulling metrics from those resources.
-          example:
-          - web
-          - dns
-          - lb
-          - worker
-          items:
-            type: string
-          type: array
-        zones:
-          description: An allowlist of zones to restrict pulling metrics for.
-          example:
-          - zone_id_1
-          - zone_id_2
-          items:
-            type: string
-          type: array
-      required:
-      - name
-      type: object
-    ConfluentResourceResponse:
-      description: Response schema when interacting with a Confluent resource.
-      properties:
-        data:
-          $ref: '#/components/schemas/ConfluentResourceResponseData'
-      type: object
-    GCPServiceAccountMeta:
-      description: Additional information related to your service account.
-      properties:
-        accessible_projects:
-          description: The current list of projects accessible from your service account.
-          items:
-            description: List of GCP projects.
-            type: string
-          type: array
-      type: object
-    ApplicationKeyCreateRequest:
-      description: Request used to create an application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationKeyCreateData'
-      required:
-      - data
-      type: object
-    ApplicationKeyUpdateRequest:
-      description: Request used to update an application key.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationKeyUpdateData'
-      required:
-      - data
-      type: object
-    FastlyAccountUpdateRequestData:
-      description: Data object for updating a Fastly account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FastlyAccountUpdateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/FastlyAccountType'
-      type: object
-      x-merge-override:
-        required: false
-    OktaAccountUpdateRequestData:
-      description: Data object for updating an Okta account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OktaAccountUpdateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/OktaAccountType'
-      type: object
-    RoleResponseRelationships:
-      description: Relationships of the role object returned by the API.
-      properties:
-        permissions:
-          $ref: '#/components/schemas/RelationshipToPermissions'
-      type: object
-    ProjectedCostResponse:
-      description: Projected Cost response.
-      properties:
-        data:
-          description: Response containing Projected Cost.
-          items:
-            $ref: '#/components/schemas/ProjectedCost'
-          type: array
-      type: object
-    ApplicationKeyResponseMeta:
-      description: Additional information related to the application key response.
-      properties:
-        max_allowed_per_user:
-          description: Max allowed number of application keys per user.
-          format: int64
-          type: integer
-          example: 42
-        page:
-          $ref: '#/components/schemas/ApplicationKeyResponseMetaPage'
-      type: object
-    FastlyAccounResponseAttributes:
-      description: Attributes object of a Fastly account.
-      properties:
-        name:
-          description: The name of the Fastly account.
-          example: test-name
-          type: string
-        services:
-          description: A list of services belonging to the parent account.
-          items:
-            $ref: '#/components/schemas/FastlyService'
-          type: array
-      required:
-      - name
-      type: object
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    OktaAccountAttributes:
-      description: Attributes object for an Okta account.
-      properties:
-        api_key:
-          description: The API key of the Okta account.
-          type: string
-          writeOnly: true
-          example: example_value
-        auth_method:
-          description: The authorization method for an Okta account.
-          example: oauth
-          type: string
-        client_id:
-          description: The Client ID of an Okta app integration.
-          type: string
-          example: abc-123-def
-        client_secret:
-          description: The client secret of an Okta app integration.
-          type: string
-          writeOnly: true
-          example: example_value
-        domain:
-          description: The domain of the Okta account.
-          example: https://example.okta.com/
-          type: string
-        name:
-          description: The name of the Okta account.
-          example: Okta-Prod
-          type: string
-      required:
-      - auth_method
-      - domain
-      - name
-      type: object
-    ApplicationKeyUpdateData:
-      description: Object used to update an application key.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationKeyUpdateAttributes'
-        id:
-          description: ID of the application key.
-          example: 00112233-4455-6677-8899-aabbccddeeff
-          type: string
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToOrganizationData:
-      description: Relationship to organization object.
-      properties:
-        id:
-          description: ID of the organization.
-          example: 00000000-0000-beef-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - id
-      - type
-      type: object
-    FastlyAccountResponseData:
-      description: Data object of a Fastly account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FastlyAccounResponseAttributes'
-        id:
-          description: The ID of the Fastly account, a hash of the account name.
-          example: abc123
-          type: string
-        type:
-          $ref: '#/components/schemas/FastlyAccountType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    ConfluentResourceRequestAttributes:
-      description: Attributes object for updating a Confluent resource.
-      properties:
-        enable_custom_metrics:
-          default: false
-          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
-          example: false
-          type: boolean
-        resource_type:
-          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
-          example: kafka
-          type: string
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - resource_type
-      type: object
-    PartialApplicationKeyAttributes:
-      description: Attributes of a partial application key.
-      properties:
-        created_at:
-          description: Creation date of the application key.
-          example: '2020-11-23T10:00:00.000Z'
-          readOnly: true
-          type: string
-          x-merge-override:
-            format: false
-        last4:
-          description: The last four characters of the application key.
-          example: abcd
-          maxLength: 4
-          minLength: 4
-          readOnly: true
-          type: string
-          x-secret: true
-        name:
-          description: Name of the application key.
-          example: Application Key for managing dashboards
-          type: string
-        scopes:
-          description: Array of scopes to grant the application key.
-          example:
-          - dashboards_read
-          - dashboards_write
-          - dashboards_public_share
-          items:
-            description: Name of scope.
-            type: string
-          nullable: true
-          type: array
-      type: object
-    Organization:
-      description: Organization object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OrganizationAttributes'
-        id:
-          description: ID of the organization.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - type
-      type: object
     Role:
       description: Role object returned by the API.
       properties:
@@ -3271,184 +3228,176 @@ components:
       type: object
       x-merge-override:
         required: false
-    ConfluentAccountType:
-      default: confluent-cloud-accounts
-      description: The JSON:API type for this API. Should always be `confluent-cloud-accounts`.
-      enum:
-      - confluent-cloud-accounts
-      example: confluent-cloud-accounts
-      type: string
-      x-enum-varnames:
-      - CONFLUENT_CLOUD_ACCOUNTS
-    RelationshipToUsers:
-      description: Relationship to users.
+    UserResponse:
+      description: Response containing information about a single user.
       properties:
         data:
-          description: Relationships to user objects.
+          $ref: '#/components/schemas/User'
+        included:
+          description: Array of objects related to the user.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ConfluentResourceRequest:
+      description: The JSON:API request for updating a Confluent resource.
+      properties:
+        data:
+          $ref: '#/components/schemas/ConfluentResourceRequestData'
+      required:
+      - data
+      type: object
+    FastlyAccountCreateRequestAttributes:
+      description: Attributes object for creating a Fastly account.
+      properties:
+        api_key:
+          description: The API key for the Fastly account.
+          example: ABCDEFG123
+          type: string
+        name:
+          description: The name of the Fastly account.
+          example: test-name
+          type: string
+        services:
+          description: A list of services belonging to the parent account.
+          items:
+            $ref: '#/components/schemas/FastlyService'
+          type: array
+      required:
+      - api_key
+      - name
+      type: object
+    ApplicationKeyResponseIncludedItem:
+      description: An object related to an application key.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Role'
+      - $ref: '#/components/schemas/LeakedKey'
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
           example: []
           items:
-            $ref: '#/components/schemas/RelationshipToUserData'
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
           type: array
       required:
       - data
       type: object
-    FastlyAccountType:
-      default: fastly-accounts
-      description: The JSON:API type for this API. Should always be `fastly-accounts`.
-      enum:
-      - fastly-accounts
-      example: fastly-accounts
-      type: string
-      x-enum-varnames:
-      - FASTLY_ACCOUNTS
-    ConfluentResourceResponseData:
-      description: Confluent Cloud resource data.
+    UserAttributes:
+      description: Attributes of user object returned by the API.
       properties:
-        attributes:
-          $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
-        id:
-          description: The ID associated with the Confluent resource.
-          example: resource_id_abc123
+        created_at:
+          description: Creation time of the user.
+          format: date-time
           type: string
-        type:
-          $ref: '#/components/schemas/ConfluentResourceType'
-      required:
-      - attributes
-      - type
-      - id
-      type: object
-      x-merge-override:
-        required: false
-    OktaAccountResponse:
-      description: Response object for an Okta account.
-      properties:
-        data:
-          $ref: '#/components/schemas/OktaAccount'
-      type: object
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
-      enum:
-      - permissions
-      example: permissions
-      type: string
-      x-enum-varnames:
-      - PERMISSIONS
-    GCPSTSDelegateAccountResponse:
-      description: Your delegate service account response data.
-      properties:
-        data:
-          $ref: '#/components/schemas/GCPSTSDelegateAccount'
-      type: object
-    ApplicationKeyResponseMetaPage:
-      description: Additional information related to the application key response.
-      properties:
-        total_filtered_count:
-          description: Total filtered application key count.
-          format: int64
-          type: integer
-          example: 42
-      type: object
-    ConfluentAccountUpdateRequestAttributes:
-      description: Attributes object for updating a Confluent account.
-      properties:
-        api_key:
-          description: The API key associated with your Confluent account.
-          example: TESTAPIKEY123
-          type: string
-        api_secret:
-          description: The API secret associated with your Confluent account.
-          example: test-api-secret-123
-          type: string
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - api_key
-      - api_secret
-      type: object
-    ServiceAccountCreateAttributes:
-      description: Attributes of the created user.
-      properties:
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
         email:
-          description: The email of the user.
-          example: jane.doe@example.com
+          description: Email of the user.
           type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
         name:
-          description: The name of the user.
-          type: string
+          description: Name of the user.
+          type:
+          - string
+          - 'null'
           example: Example Monitor
         service_account:
-          description: Whether the user is a service account. Must be true.
-          example: true
+          description: Whether the user is a service account.
           type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
         title:
-          description: The title of the user.
+          description: Title of the user.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    CostByOrgAttributes:
+      description: Cost attributes data.
+      properties:
+        account_name:
+          description: The account name.
           type: string
           example: Example Monitor
-      required:
-      - email
-      - service_account
-      type: object
-    PartialApplicationKey:
-      description: Partial Datadog application key.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PartialApplicationKeyAttributes'
-        id:
-          description: ID of the application key.
+        account_public_id:
+          description: The account public ID.
           type: string
           example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/ApplicationKeyRelationships'
-        type:
-          $ref: '#/components/schemas/ApplicationKeysType'
-      type: object
-      x-merge-override:
-        required: false
-    CloudflareAccountType:
-      default: cloudflare-accounts
-      description: The JSON:API type for this API. Should always be `cloudflare-accounts`.
-      enum:
-      - cloudflare-accounts
-      example: cloudflare-accounts
-      type: string
-      x-enum-varnames:
-      - CLOUDFLARE_ACCOUNTS
-    ApplicationKeysSort:
-      default: name
-      description: Sorting options
-      enum:
-      - created_at
-      - -created_at
-      - last4
-      - -last4
-      - name
-      - -name
-      type: string
-      x-enum-varnames:
-      - CREATED_AT_ASCENDING
-      - CREATED_AT_DESCENDING
-      - LAST4_ASCENDING
-      - LAST4_DESCENDING
-      - NAME_ASCENDING
-      - NAME_DESCENDING
-    RelationshipToRoles:
-      description: Relationship to roles.
-      properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
+        charges:
+          description: List of charges data reported for the requested month.
           items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
+            $ref: '#/components/schemas/ChargebackBreakdown'
           type: array
+        date:
+          description: The month requested.
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        org_name:
+          description: The organization name.
+          type: string
+          example: Example Monitor
+        public_id:
+          description: The organization public ID.
+          type: string
+          example: abc-123-def
+        region:
+          description: The region of the Datadog instance that the organization belongs to.
+          type: string
+          example: example_value
+        total_cost:
+          description: The total cost of products for the month.
+          format: double
+          type: number
+          example: 95.5
       type: object
-      x-merge-override:
-        required: false
     ProjectedCostAttributes:
       description: Projected Cost attributes data.
       properties:
@@ -3488,143 +3437,140 @@ components:
           type: string
           example: example_value
       type: object
-    LeakedKeyType:
-      default: leaked_keys
-      description: The definition of LeakedKeyType object.
-      enum:
-      - leaked_keys
-      example: leaked_keys
-      type: string
-      x-enum-varnames:
-      - LEAKED_KEYS
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    ConfluentAccountCreateRequest:
+      description: Payload schema when adding a Confluent account.
       properties:
         data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
+          $ref: '#/components/schemas/ConfluentAccountCreateRequestData'
       required:
       - data
       type: object
-    ConfluentAccountUpdateRequestData:
-      description: Data object for updating a Confluent account.
+    OktaAccountResponse:
+      description: Response object for an Okta account.
+      properties:
+        data:
+          $ref: '#/components/schemas/OktaAccount'
+      type: object
+    GCPSTSDelegateAccountAttributes:
+      description: Your delegate account attributes.
+      properties:
+        delegate_account_email:
+          description: Your organization's Datadog principal email address.
+          example: ddgci-1a19n28hb1a812221893@datadog-gci-sts-us5-prod.iam.gserviceaccount.com
+          type: string
+      type: object
+    ServiceAccountCreateRequest:
+      description: Create a service account.
+      properties:
+        data:
+          $ref: '#/components/schemas/ServiceAccountCreateData'
+      required:
+      - data
+      type: object
+    LeakedKey:
+      description: The definition of LeakedKey object.
       properties:
         attributes:
-          $ref: '#/components/schemas/ConfluentAccountUpdateRequestAttributes'
+          $ref: '#/components/schemas/LeakedKeyAttributes'
+        id:
+          description: The LeakedKey id.
+          example: id
+          type: string
         type:
-          $ref: '#/components/schemas/ConfluentAccountType'
+          $ref: '#/components/schemas/LeakedKeyType'
       required:
       - attributes
+      - id
       - type
       type: object
+    OktaAccountRequest:
+      description: Request object for an Okta account.
+      properties:
+        data:
+          $ref: '#/components/schemas/OktaAccount'
+      required:
+      - data
+      type: object
+    UserResponseIncludedItem:
+      description: An object related to a user.
+      oneOf:
+      - $ref: '#/components/schemas/Organization'
+      - $ref: '#/components/schemas/Permission'
+      - $ref: '#/components/schemas/Role'
     GCPSTSServiceAccountResponse:
       description: The account creation response.
       properties:
         data:
           $ref: '#/components/schemas/GCPSTSServiceAccount'
       type: object
-    ConfluentAccountResponseAttributes:
-      description: The attributes of a Confluent account.
-      properties:
-        api_key:
-          description: The API key associated with your Confluent account.
-          example: TESTAPIKEY123
-          type: string
-        resources:
-          description: A list of Confluent resources associated with the Confluent account.
-          items:
-            $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
-          type: array
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - api_key
-      type: object
-    OktaAccountUpdateRequestAttributes:
-      description: Attributes object for updating an Okta account.
-      properties:
-        api_key:
-          description: The API key of the Okta account.
-          type: string
-          writeOnly: true
-          example: example_value
-        auth_method:
-          description: The authorization method for an Okta account.
-          example: oauth
-          type: string
-        client_id:
-          description: The Client ID of an Okta app integration.
-          type: string
-          example: abc-123-def
-        client_secret:
-          description: The client secret of an Okta app integration.
-          type: string
-          writeOnly: true
-          example: example_value
-        domain:
-          description: The domain associated with an Okta account.
-          example: https://dev-test.okta.com/
-          type: string
-      required:
-      - auth_method
-      - domain
-      type: object
-    GCPSTSServiceAccount:
-      description: Info on your service account.
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    ConfluentResourceRequestData:
+      description: JSON:API request for updating a Confluent resource.
       properties:
         attributes:
-          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+          $ref: '#/components/schemas/ConfluentResourceRequestAttributes'
         id:
-          description: Your service account's unique ID.
-          example: d291291f-12c2-22g4-j290-123456678897
+          description: The ID associated with a Confluent resource.
+          example: resource-id-123
           type: string
-        meta:
-          $ref: '#/components/schemas/GCPServiceAccountMeta'
         type:
-          $ref: '#/components/schemas/GCPServiceAccountType'
+          $ref: '#/components/schemas/ConfluentResourceType'
+      required:
+      - attributes
+      - type
+      - id
       type: object
       x-merge-override:
         required: false
-    ConfluentResourceRequest:
-      description: The JSON:API request for updating a Confluent resource.
+    ConfluentResourceResponse:
+      description: Response schema when interacting with a Confluent resource.
       properties:
         data:
-          $ref: '#/components/schemas/ConfluentResourceRequestData'
+          $ref: '#/components/schemas/ConfluentResourceResponseData'
+      type: object
+    Organization:
+      description: Organization object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OrganizationAttributes'
+        id:
+          description: ID of the organization.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
       required:
-      - data
+      - type
       type: object
-    ConfluentAccountResponse:
-      description: The expected response schema when getting a Confluent account.
+    UserRelationships:
+      description: Relationships of the user object.
       properties:
-        data:
-          $ref: '#/components/schemas/ConfluentAccountResponseData'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
       type: object
-    ChargebackBreakdown:
-      description: Charges breakdown.
-      properties:
-        charge_type:
-          description: The type of charge for a particular product.
-          example: on_demand
-          type: string
-        cost:
-          description: The cost for a particular product and charge type during a given month.
-          format: double
-          type: number
-          example: 95.5
-        product_name:
-          description: The product for which cost is being reported.
-          example: infra_host
-          type: string
-      type: object
+    ConfluentAccountType:
+      default: confluent-cloud-accounts
+      description: The JSON:API type for this API. Should always be `confluent-cloud-accounts`.
+      enum:
+      - confluent-cloud-accounts
+      example: confluent-cloud-accounts
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_ACCOUNTS
     RolesType:
       default: roles
       description: Roles type.
@@ -3634,139 +3580,103 @@ components:
       type: string
       x-enum-varnames:
       - ROLES
-    FastlyAccountCreateRequestData:
-      description: Data object for creating a Fastly account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FastlyAccountCreateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/FastlyAccountType'
-      required:
-      - attributes
-      - type
-      type: object
-    RelationshipToPermissions:
-      description: Relationship to multiple permissions objects.
+    OktaAccountType:
+      default: okta-accounts
+      description: Account type for an Okta account.
+      enum:
+      - okta-accounts
+      example: okta-accounts
+      type: string
+      x-enum-varnames:
+      - OKTA_ACCOUNTS
+    ConfluentAccountResponse:
+      description: The expected response schema when getting a Confluent account.
       properties:
         data:
-          description: Relationships to permission objects.
+          $ref: '#/components/schemas/ConfluentAccountResponseData'
+      type: object
+    FastlyService:
+      description: The schema representation of a Fastly service.
+      properties:
+        id:
+          description: The ID of the Fastly service
+          example: 6abc7de6893AbcDe9fghIj
+          type: string
+        tags:
+          description: A list of tags for the Fastly service.
+          example:
+          - myTag
+          - myTag2:myValue
           items:
-            $ref: '#/components/schemas/RelationshipToPermissionData'
+            type: string
           type: array
+      required:
+      - id
+      type: object
+    CloudflareAccountType:
+      default: cloudflare-accounts
+      description: The JSON:API type for this API. Should always be `cloudflare-accounts`.
+      enum:
+      - cloudflare-accounts
+      example: cloudflare-accounts
+      type: string
+      x-enum-varnames:
+      - CLOUDFLARE_ACCOUNTS
+    ApplicationKeyUpdateData:
+      description: Object used to update an application key.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationKeyUpdateAttributes'
+        id:
+          description: ID of the application key.
+          example: 00112233-4455-6677-8899-aabbccddeeff
+          type: string
+        type:
+          $ref: '#/components/schemas/ApplicationKeysType'
+      required:
+      - attributes
+      - id
+      - type
       type: object
       x-merge-override:
         required: false
-    ServiceAccountCreateRequest:
-      description: Create a service account.
+    ApplicationKeysSort:
+      default: name
+      description: Sorting options
+      enum:
+      - created_at
+      - -created_at
+      - last4
+      - -last4
+      - name
+      - -name
+      type: string
+      x-enum-varnames:
+      - CREATED_AT_ASCENDING
+      - CREATED_AT_DESCENDING
+      - LAST4_ASCENDING
+      - LAST4_DESCENDING
+      - NAME_ASCENDING
+      - NAME_DESCENDING
+    GCPSTSDelegateAccount:
+      description: Datadog principal service account info.
       properties:
-        data:
-          $ref: '#/components/schemas/ServiceAccountCreateData'
-      required:
-      - data
+        attributes:
+          $ref: '#/components/schemas/GCPSTSDelegateAccountAttributes'
+        id:
+          description: The ID of the delegate service account.
+          example: ddgci-1a19n28hb1a812221893@datadog-gci-sts-us5-prod.iam.gserviceaccount.com
+          type: string
+        type:
+          $ref: '#/components/schemas/GCPSTSDelegateAccountType'
       type: object
-  parameters:
-    ApplicationKeyFilterCreatedAtEndParameter:
-      description: Only include application keys created on or before the specified date.
-      in: query
-      name: filter[created_at][end]
-      required: false
-      schema:
-        example: '2020-11-24T18:46:21+00:00'
-        type: string
-        x-merge-override:
-          format: false
-    ConfluentAccountID:
-      description: Confluent Account ID.
-      in: path
-      name: account_id
-      required: true
-      schema:
-        type: string
-    ConfluentResourceID:
-      description: Confluent Account Resource ID.
-      in: path
-      name: resource_id
-      required: true
-      schema:
-        type: string
-    PageSize:
-      description: Size for a given page. The maximum allowed value is 100.
-      in: query
-      name: page[size]
-      required: false
-      schema:
-        default: 10
-        example: 10
-        format: int64
-        type: integer
-    ApplicationKeyFilterParameter:
-      description: Filter application keys by the specified string.
-      in: query
-      name: filter
-      required: false
-      schema:
-        type: string
-    PageNumber:
-      description: Specific page number to return.
-      in: query
-      name: page[number]
-      required: false
-      schema:
-        default: 0
-        example: 0
-        format: int64
-        type: integer
-    GCPSTSServiceAccountID:
-      description: Your GCP STS enabled service account's unique ID.
-      in: path
-      name: account_id
-      required: true
-      schema:
-        type: string
-    ServiceAccountID:
-      description: The ID of the service account.
-      in: path
-      name: service_account_id
-      required: true
-      schema:
-        example: 00000000-0000-1234-0000-000000000000
-        type: string
-    ApplicationKeysSortParameter:
-      description: 'Application key attribute used to sort results. Sort order is ascending
-
-        by default. In order to specify a descending sort, prefix the
-
-        attribute with a minus sign.'
-      in: query
-      name: sort
-      required: false
-      schema:
-        $ref: '#/components/schemas/ApplicationKeysSort'
-    ApplicationKeyFilterCreatedAtStartParameter:
-      description: Only include application keys created on or after the specified date.
-      in: query
-      name: filter[created_at][start]
-      required: false
-      schema:
-        example: '2020-11-24T18:46:21+00:00'
-        type: string
-        x-merge-override:
-          format: false
-    FastlyAccountID:
-      description: Fastly Account id.
-      in: path
-      name: account_id
-      required: true
-      schema:
-        type: string
-    ApplicationKeyID:
-      description: The ID of the application key.
-      in: path
-      name: app_key_id
-      required: true
-      schema:
-        type: string
   responses:
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
     NotFoundResponse:
       content:
         application/json:
@@ -3785,30 +3695,126 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
     BadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+  parameters:
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
+        format: int64
+        type: integer
+    ApplicationKeyID:
+      description: The ID of the application key.
+      in: path
+      name: app_key_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyFilterCreatedAtEndParameter:
+      description: Only include application keys created on or before the specified date.
+      in: query
+      name: filter[created_at][end]
+      required: false
+      schema:
+        example: '2020-11-24T18:46:21+00:00'
+        type: string
+        x-merge-override:
+          format: false
+    ApplicationKeysSortParameter:
+      description: 'Application key attribute used to sort results. Sort order is ascending
+
+        by default. In order to specify a descending sort, prefix the
+
+        attribute with a minus sign.'
+      in: query
+      name: sort
+      required: false
+      schema:
+        $ref: '#/components/schemas/ApplicationKeysSort'
+    ConfluentAccountID:
+      description: Confluent Account ID.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyFilterParameter:
+      description: Filter application keys by the specified string.
+      in: query
+      name: filter
+      required: false
+      schema:
+        type: string
+    GCPSTSServiceAccountID:
+      description: Your GCP STS enabled service account's unique ID.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
+      in: query
+      name: page[size]
+      required: false
+      schema:
+        default: 10
+        example: 10
+        format: int64
+        type: integer
+    ConfluentResourceID:
+      description: Confluent Account Resource ID.
+      in: path
+      name: resource_id
+      required: true
+      schema:
+        type: string
+    ApplicationKeyFilterCreatedAtStartParameter:
+      description: Only include application keys created on or after the specified date.
+      in: query
+      name: filter[created_at][start]
+      required: false
+      schema:
+        example: '2020-11-24T18:46:21+00:00'
+        type: string
+        x-merge-override:
+          format: false
+    ServiceAccountID:
+      description: The ID of the service account.
+      in: path
+      name: service_account_id
+      required: true
+      schema:
+        example: 00000000-0000-1234-0000-000000000000
+        type: string
+    FastlyAccountID:
+      description: Fastly Account id.
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

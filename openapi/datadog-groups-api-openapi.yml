@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Groups API
+  title: Datadog Groups API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -115,150 +115,7 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-    post:
-      description: 'Create a new group.
-
-        The group may contain members.'
-      operationId: CreateSCIMGroup
-      requestBody:
-        content:
-          application/json:
-            examples:
-              json-request-body:
-                value:
-                  displayName: Group 1
-                  externalId: group1
-                  members:
-                  - $ref: https://app.datadoghq.com/api/scim/v2/Users/d34a5f93-5690-4d3f-a293-f2ad5c7a82a4
-                    display: John Doe
-                    type: User
-                    value: d34a5f93-5690-4d3f-a293-f2ad5c7a82a4
-                  - $ref: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-                    display: Jane Doe
-                    type: User
-                    value: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-                  schemas:
-                  - urn:ietf:params:scim:schemas:core:2.0:Group
-            schema:
-              $ref: '#/components/schemas/ExternalUserGroup'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExternalUserGroup'
-          description: Created
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      security:
-      - bearerAuth: []
-      summary: Datadog Create Group
-      tags:
-      - Groups
-      x-menu-order: 8
-      x-permission:
-        operator: AND
-        permissions:
-        - user_access_invite
-        - user_access_manage
-      x-undo:
-        operationId: DeleteSCIMGroup
-        parameters:
-        - name: group_id
-          source: <RESPONSE_PATH>
-        type: unsafe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/scim/Groups/{group_id}:
-    delete:
-      description: Delete the group with the given `group_id`.
-      operationId: DeleteSCIMGroup
-      parameters:
-      - description: None
-        in: path
-        name: group_id
-        required: true
-        schema:
-          type: string
-        example: abc-123-def
-      responses:
-        '204':
-          description: No Content
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      security:
-      - bearerAuth: []
-      summary: Datadog Delete Group
-      tags:
-      - Groups
-      x-menu-order: 12
-      x-permission:
-        operator: AND
-        permissions:
-        - user_access_invite
-        - user_access_manage
-      x-undo:
-        type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    get:
-      description: Get a single group using the `group_id`.
-      operationId: GetSCIMGroup
-      parameters:
-      - description: None
-        in: path
-        name: group_id
-        required: true
-        schema:
-          type: string
-        example: abc-123-def
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExternalUserGroup'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      security:
-      - bearerAuth: []
-      summary: Datadog Get Group
-      tags:
-      - Groups
-      x-menu-order: 9
-      x-permission:
-        operator: AND
-        permissions:
-        - user_access_invite
-        - user_access_manage
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     patch:
       description: Patch the group with the given `group_id`.
       operationId: PatchSCIMGroup
@@ -488,126 +345,7 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /api/v2/sensitive-data-scanner/config/groups:
-    post:
-      description: 'Create a scanning group.
-
-        The request MAY include a configuration relationship.
-
-        A rules relationship can be omitted entirely, but if it is included it MUST be
-
-        null or an empty array (rules cannot be created at the same time).
-
-        The new group will be ordered last within the configuration.'
-      operationId: CreateScanningGroup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SensitiveDataScannerGroupCreateRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SensitiveDataScannerCreateGroupResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Authentication Error
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Create Scanning Group
-      tags:
-      - Groups
-      x-codegen-request-body-name: body
-      x-given:
-        group:
-          parameters:
-          - name: body
-            value: "{\n  \"data\": {\n    \"type\": \"sensitive_data_scanner_group\",\n    \"attributes\": {\n      \"name\": \"my-test-group\",\n      \"is_enabled\": false,\n      \"product_list\": [\n          \"logs\"\n      ],\n      \"filter\": {\n          \"query\": \"*\"\n      }\n    },\n    \"relationships\": {\n      \"configuration\": {\n        \"data\": {\n          \"id\": \"{{ configuration.data.id }}\",\n          \"type\": \"{{ configuration.data.type }}\"\n        }\n      },\n      \"rules\": {\n          \"data\": []\n      }\n    }\n  },\n  \"meta\": {}\n}"
-          step: there is a valid "scanning_group" in the system
-      x-menu-order: 4
-      x-permission:
-        operator: OR
-        permissions:
-        - data_scanner_write
-      x-undo:
-        operationId: DeleteScanningGroup
-        parameters:
-        - name: group_id
-          source: data.id
-        - name: body
-          template: "{\n  \"meta\": {}\n}"
-        type: unsafe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/sensitive-data-scanner/config/groups/{group_id}:
-    delete:
-      description: Delete a given group.
-      operationId: DeleteScanningGroup
-      parameters:
-      - $ref: '#/components/parameters/SensitiveDataScannerGroupID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SensitiveDataScannerGroupDeleteRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SensitiveDataScannerGroupDeleteResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Authentication Error
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Delete Scanning Group
-      tags:
-      - Groups
-      x-codegen-request-body-name: body
-      x-menu-order: 6
-      x-permission:
-        operator: OR
-        permissions:
-        - data_scanner_write
-      x-undo:
-        type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     patch:
       description: 'Update a group, including the order of the rules.
 
@@ -666,311 +404,15 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  parameters:
+    SensitiveDataScannerGroupID:
+      description: The ID of a group of rules.
+      in: path
+      name: group_id
+      required: true
+      schema:
+        type: string
   schemas:
-    ExternalUserGroup:
-      description: Definition of a group.
-      properties:
-        displayName:
-          description: A human-readable name for the group.
-          type: string
-          example: Example Monitor
-        externalId:
-          description: An identifier for the resource as defined by the provisioning client.
-          type: string
-          example: abc-123-def
-        id:
-          description: The identifier of the resource. Not required when creating a group.
-          type: string
-          example: abc-123-def
-        members:
-          description: Members of the group.
-          items:
-            $ref: '#/components/schemas/ExternalUserGroupMembersItems'
-          type: array
-        meta:
-          $ref: '#/components/schemas/ExternalUserGroupMeta'
-        schemas:
-          description: Input JSON Schemas.
-          example:
-          - urn:ietf:params:scim:schemas:core:2.0:Group
-          items:
-            type: string
-          type: array
-      type: object
-    ListExternalUserGroupResponseResourcesItems:
-      description: Resources returned in response to a List groups request.
-      properties:
-        displayName:
-          description: A human-readable name for the group.
-          example: My test group
-          type: string
-        externalId:
-          description: An identifier for the resource as defined by the provisioning client.
-          example: 346af543-e5ab-4855-937d-133231cd59ed
-          type: string
-        id:
-          description: The identifier of the resource. Not required when creating a group.
-          example: 0e80d350-9519-4771-9aa8-ce849fc36c20
-          type: string
-        members:
-          description: A list of members belonging to the team.
-          items:
-            $ref: '#/components/schemas/ListExternalUserGroupResponseResourcesItemsMembersItems'
-          type: array
-        meta:
-          $ref: '#/components/schemas/ExternalUserGroupMeta'
-        schemas:
-          description: Group JSON Schemas.
-          example:
-          - urn:ietf:params:scim:schemas:core:2.0:Group
-          items:
-            type: string
-          type: array
-      type: object
-    SensitiveDataScannerStandardPatternData:
-      description: A standard pattern.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerStandardPattern'
-      type: object
-    SensitiveDataScannerReorderConfig:
-      description: Data related to the reordering of scanning groups.
-      properties:
-        id:
-          description: ID of the configuration.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
-      type: object
-    SensitiveDataScannerStandardPattern:
-      description: Data containing the standard pattern id.
-      properties:
-        id:
-          description: ID of the standard pattern.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerStandardPatternType'
-      type: object
-    ExternalUserGroupMeta:
-      description: Metadata associated with a group.
-      properties:
-        created:
-          description: The date and time the group was created.
-          example: '2024-10-17T12:53:35.793Z'
-          format: date-time
-          type: string
-        lastModified:
-          description: The date and time the group was last changed.
-          example: '2024-10-19T12:53:35.793Z'
-          format: date-time
-          type: string
-        location:
-          description: URL identifying the resource.
-          example: https://app.datadoghq.com/api/scim/v2/Groups/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-          type: string
-        resourceType:
-          description: Type of resource.
-          example: Group
-          type: string
-      type: object
-    SensitiveDataScannerGroupUpdateResponse:
-      description: Update group response.
-      properties:
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      type: object
-    SensitiveDataScannerConfiguration:
-      description: A Sensitive Data Scanner configuration.
-      properties:
-        id:
-          description: ID of the configuration.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
-      type: object
-    SensitiveDataScannerConfigurationData:
-      description: A Sensitive Data Scanner configuration data.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerConfiguration'
-      type: object
-    SensitiveDataScannerGroupData:
-      description: A scanning group data.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerGroup'
-      type: object
-    SensitiveDataScannerGroupDeleteResponse:
-      description: Delete group response.
-      properties:
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      type: object
-    SensitiveDataScannerReorderGroupsResponse:
-      description: Group reorder response.
-      properties:
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMeta'
-      type: object
-    SensitiveDataScannerGroupList:
-      description: List of groups, ordered.
-      properties:
-        data:
-          description: List of groups. The order is important.
-          items:
-            $ref: '#/components/schemas/SensitiveDataScannerGroupItem'
-          type: array
-      type: object
-    ExternalUserGroupMembersItems:
-      description: The definition of a member belonging to a group.
-      properties:
-        $ref:
-          description: The URI corresponding to a SCIM resource that is a member of this group.
-          example: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-          type: string
-        display:
-          description: A human-readable name for the group member.
-          example: John Doe
-          type: string
-        type:
-          description: A label indicating the type of resource.
-          example: User
-          type: string
-        value:
-          description: The identifier of the member of this group.
-          example: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-          type: string
-      type: object
-    SensitiveDataScannerMetaVersionOnly:
-      description: Meta payload containing information about the API.
-      properties:
-        version:
-          description: Version of the API (optional).
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-      type: object
-    SensitiveDataScannerGroupUpdateRequest:
-      description: Update group request.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupUpdate'
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      required:
-      - data
-      - meta
-      type: object
-    SensitiveDataScannerMeta:
-      description: Meta response containing information about the API.
-      properties:
-        count_limit:
-          description: Maximum number of scanning rules allowed for the org.
-          format: int64
-          type: integer
-          example: 42
-        group_count_limit:
-          description: Maximum number of scanning groups allowed for the org.
-          format: int64
-          type: integer
-          example: 42
-        has_highlight_enabled:
-          default: true
-          deprecated: true
-          description: (Deprecated) Whether or not scanned events are highlighted in Logs or RUM for the org.
-          type: boolean
-          example: true
-        has_multi_pass_enabled:
-          deprecated: true
-          description: (Deprecated) Whether or not scanned events have multi-pass enabled.
-          type: boolean
-          example: true
-        is_pci_compliant:
-          description: Whether or not the org is compliant to the payment card industry standard.
-          type: boolean
-          example: true
-        version:
-          description: Version of the API.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-      type: object
-    SensitiveDataScannerGroupIncludedItem:
-      description: A Scanning Group included item.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupAttributes'
-        id:
-          description: ID of the group.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
-      type: object
-    SensitiveDataScannerRuleData:
-      description: Rules included in the group.
-      properties:
-        data:
-          description: Rules included in the group. The order is important.
-          items:
-            $ref: '#/components/schemas/SensitiveDataScannerRule'
-          type: array
-      type: object
-    SensitiveDataScannerCreateGroupResponse:
-      description: Create group response.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupResponse'
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      type: object
-    SensitiveDataScannerGroupAttributes:
-      description: Attributes of the Sensitive Data Scanner group.
-      properties:
-        description:
-          description: Description of the group.
-          type: string
-          example: example_value
-        filter:
-          $ref: '#/components/schemas/SensitiveDataScannerFilter'
-        is_enabled:
-          description: Whether or not the group is enabled.
-          type: boolean
-          example: true
-        name:
-          description: Name of the group.
-          type: string
-          example: Example Monitor
-        product_list:
-          description: List of products the scanning group applies.
-          items:
-            $ref: '#/components/schemas/SensitiveDataScannerProduct'
-          type: array
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
     SensitiveDataScannerRuleAttributes:
       description: Attributes of the Sensitive Data Scanner rule.
       properties:
@@ -1023,6 +465,264 @@ components:
         text_replacement:
           $ref: '#/components/schemas/SensitiveDataScannerTextReplacement'
       type: object
+    SensitiveDataScannerRuleRelationships:
+      description: Relationships of a scanning rule.
+      properties:
+        group:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupData'
+        standard_pattern:
+          $ref: '#/components/schemas/SensitiveDataScannerStandardPatternData'
+      type: object
+    SensitiveDataScannerConfigurationData:
+      description: A Sensitive Data Scanner configuration data.
+      properties:
+        data:
+          $ref: '#/components/schemas/SensitiveDataScannerConfiguration'
+      type: object
+    SensitiveDataScannerRuleData:
+      description: Rules included in the group.
+      properties:
+        data:
+          description: Rules included in the group. The order is important.
+          items:
+            $ref: '#/components/schemas/SensitiveDataScannerRule'
+          type: array
+      type: object
+    SensitiveDataScannerRule:
+      description: Rule item included in the group.
+      properties:
+        id:
+          description: ID of the rule.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerRuleType'
+      type: object
+    SensitiveDataScannerGroupList:
+      description: List of groups, ordered.
+      properties:
+        data:
+          description: List of groups. The order is important.
+          items:
+            $ref: '#/components/schemas/SensitiveDataScannerGroupItem'
+          type: array
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SensitiveDataScannerGroupUpdateResponse:
+      description: Update group response.
+      properties:
+        meta:
+          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
+      type: object
+    SensitiveDataScannerStandardPatternType:
+      default: sensitive_data_scanner_standard_pattern
+      description: Sensitive Data Scanner standard pattern type.
+      enum:
+      - sensitive_data_scanner_standard_pattern
+      example: sensitive_data_scanner_standard_pattern
+      type: string
+      x-enum-varnames:
+      - SENSITIVE_DATA_SCANNER_STANDARD_PATTERN
+    SensitiveDataScannerRuleIncludedItem:
+      description: A Scanning Rule included item.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SensitiveDataScannerRuleAttributes'
+        id:
+          description: ID of the rule.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/SensitiveDataScannerRuleRelationships'
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerRuleType'
+      type: object
+    SensitiveDataScannerReorderGroupsResponse:
+      description: Group reorder response.
+      properties:
+        meta:
+          $ref: '#/components/schemas/SensitiveDataScannerMeta'
+      type: object
+    SensitiveDataScannerMetaVersionOnly:
+      description: Meta payload containing information about the API.
+      properties:
+        version:
+          description: Version of the API (optional).
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+      type: object
+    SensitiveDataScannerRuleType:
+      default: sensitive_data_scanner_rule
+      description: Sensitive Data Scanner rule type.
+      enum:
+      - sensitive_data_scanner_rule
+      example: sensitive_data_scanner_rule
+      type: string
+      x-enum-varnames:
+      - SENSITIVE_DATA_SCANNER_RULE
+    SensitiveDataScannerMeta:
+      description: Meta response containing information about the API.
+      properties:
+        count_limit:
+          description: Maximum number of scanning rules allowed for the org.
+          format: int64
+          type: integer
+          example: 42
+        group_count_limit:
+          description: Maximum number of scanning groups allowed for the org.
+          format: int64
+          type: integer
+          example: 42
+        has_highlight_enabled:
+          default: true
+          deprecated: true
+          description: (Deprecated) Whether or not scanned events are highlighted in Logs or RUM for the org.
+          type: boolean
+          example: true
+        has_multi_pass_enabled:
+          deprecated: true
+          description: (Deprecated) Whether or not scanned events have multi-pass enabled.
+          type: boolean
+          example: true
+        is_pci_compliant:
+          description: Whether or not the org is compliant to the payment card industry standard.
+          type: boolean
+          example: true
+        version:
+          description: Version of the API.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+      type: object
+    SensitiveDataScannerGroupItem:
+      description: Data related to a Sensitive Data Scanner Group.
+      properties:
+        id:
+          description: ID of the group.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
+      type: object
+    SensitiveDataScannerGetConfigIncludedArray:
+      description: Included objects from relationships.
+      items:
+        $ref: '#/components/schemas/SensitiveDataScannerGetConfigIncludedItem'
+      type: array
+    SensitiveDataScannerProduct:
+      default: logs
+      description: Datadog product onto which Sensitive Data Scanner can be activated.
+      enum:
+      - logs
+      - rum
+      - events
+      - apm
+      type: string
+      x-enum-varnames:
+      - LOGS
+      - RUM
+      - EVENTS
+      - APM
+    SensitiveDataScannerGroup:
+      description: A scanning group.
+      properties:
+        id:
+          description: ID of the group.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
+      type: object
+    SensitiveDataScannerConfigRequest:
+      description: Group reorder request.
+      properties:
+        data:
+          $ref: '#/components/schemas/SensitiveDataScannerReorderConfig'
+        meta:
+          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
+      required:
+      - data
+      - meta
+      type: object
+    SensitiveDataScannerConfigurationRelationships:
+      description: Relationships of the configuration.
+      properties:
+        groups:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupList'
+      type: object
+    SensitiveDataScannerGroupData:
+      description: A scanning group data.
+      properties:
+        data:
+          $ref: '#/components/schemas/SensitiveDataScannerGroup'
+      type: object
+    SensitiveDataScannerTextReplacement:
+      description: Object describing how the scanned event will be replaced.
+      properties:
+        number_of_chars:
+          description: 'Required if type == ''partial_replacement_from_beginning''
+
+            or ''partial_replacement_from_end''. It must be > 0.'
+          format: int64
+          minimum: 0
+          type: integer
+          example: 42
+        replacement_string:
+          description: Required if type == 'replacement_string'.
+          type: string
+          example: example_value
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerTextReplacementType'
+      type: object
+    SensitiveDataScannerGroupUpdateRequest:
+      description: Update group request.
+      properties:
+        data:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupUpdate'
+        meta:
+          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
+      required:
+      - data
+      - meta
+      type: object
+    ExternalUserGroupPatchRequest:
+      description: Request object for patching a group.
+      properties:
+        Operations:
+          description: A list of update operations to be performed on a group.
+          items:
+            $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItems'
+          type: array
+        schemas:
+          description: Input JSON Schemas
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          items:
+            type: string
+          type: array
+      type: object
+    SensitiveDataScannerGetConfigIncludedItem:
+      description: An object related to the configuration.
+      oneOf:
+      - $ref: '#/components/schemas/SensitiveDataScannerRuleIncludedItem'
+      - $ref: '#/components/schemas/SensitiveDataScannerGroupIncludedItem'
     SensitiveDataScannerTextReplacementType:
       default: none
       description: 'Type of the replacement text. None means no replacement.
@@ -1049,23 +749,38 @@ components:
       - REPLACEMENT_STRING
       - PARTIAL_REPLACEMENT_FROM_BEGINNING
       - PARTIAL_REPLACEMENT_FROM_END
-    SensitiveDataScannerRuleRelationships:
-      description: Relationships of a scanning rule.
+    SensitiveDataScannerGetConfigResponseData:
+      description: Response data related to the scanning groups.
       properties:
-        group:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupData'
-        standard_pattern:
-          $ref: '#/components/schemas/SensitiveDataScannerStandardPatternData'
+        attributes:
+          additionalProperties: {}
+          description: Attributes of the Sensitive Data configuration.
+          type: object
+        id:
+          description: ID of the configuration.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationRelationships'
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
       type: object
-    SensitiveDataScannerStandardPatternType:
-      default: sensitive_data_scanner_standard_pattern
-      description: Sensitive Data Scanner standard pattern type.
-      enum:
-      - sensitive_data_scanner_standard_pattern
-      example: sensitive_data_scanner_standard_pattern
-      type: string
-      x-enum-varnames:
-      - SENSITIVE_DATA_SCANNER_STANDARD_PATTERN
+    SensitiveDataScannerStandardPattern:
+      description: Data containing the standard pattern id.
+      properties:
+        id:
+          description: ID of the standard pattern.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerStandardPatternType'
+      type: object
+    SensitiveDataScannerStandardPatternData:
+      description: A standard pattern.
+      properties:
+        data:
+          $ref: '#/components/schemas/SensitiveDataScannerStandardPattern'
+      type: object
     SensitiveDataScannerGroupType:
       default: sensitive_data_scanner_group
       description: Sensitive Data Scanner group type.
@@ -1075,16 +790,40 @@ components:
       type: string
       x-enum-varnames:
       - SENSITIVE_DATA_SCANNER_GROUP
-    SensitiveDataScannerGroupRelationships:
-      description: Relationships of the group.
+    SensitiveDataScannerConfigurationType:
+      default: sensitive_data_scanner_configuration
+      description: Sensitive Data Scanner configuration type.
+      enum:
+      - sensitive_data_scanner_configuration
+      example: sensitive_data_scanner_configuration
+      type: string
+      x-enum-varnames:
+      - SENSITIVE_DATA_SCANNER_CONFIGURATIONS
+    SensitiveDataScannerGroupAttributes:
+      description: Attributes of the Sensitive Data Scanner group.
       properties:
-        configuration:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationData'
-        rules:
-          $ref: '#/components/schemas/SensitiveDataScannerRuleData'
+        description:
+          description: Description of the group.
+          type: string
+          example: example_value
+        filter:
+          $ref: '#/components/schemas/SensitiveDataScannerFilter'
+        is_enabled:
+          description: Whether or not the group is enabled.
+          type: boolean
+          example: true
+        name:
+          description: Name of the group.
+          type: string
+          example: Example Monitor
+        product_list:
+          description: List of products the scanning group applies.
+          items:
+            $ref: '#/components/schemas/SensitiveDataScannerProduct'
+          type: array
       type: object
-    SensitiveDataScannerGroupResponse:
-      description: Response data related to the creation of a group.
+    SensitiveDataScannerGroupIncludedItem:
+      description: A Scanning Group included item.
       properties:
         attributes:
           $ref: '#/components/schemas/SensitiveDataScannerGroupAttributes'
@@ -1097,6 +836,116 @@ components:
         type:
           $ref: '#/components/schemas/SensitiveDataScannerGroupType'
       type: object
+    SensitiveDataScannerReorderConfig:
+      description: Data related to the reordering of scanning groups.
+      properties:
+        id:
+          description: ID of the configuration.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationRelationships'
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
+      type: object
+    ExternalUserGroupMembersItems:
+      description: The definition of a member belonging to a group.
+      properties:
+        $ref:
+          description: The URI corresponding to a SCIM resource that is a member of this group.
+          example: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+        display:
+          description: A human-readable name for the group member.
+          example: John Doe
+          type: string
+        type:
+          description: A label indicating the type of resource.
+          example: User
+          type: string
+        value:
+          description: The identifier of the member of this group.
+          example: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+      type: object
+    SensitiveDataScannerFilter:
+      description: Filter for the Scanning Group.
+      properties:
+        query:
+          description: Query to filter the events.
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
+    SensitiveDataScannerGroupRelationships:
+      description: Relationships of the group.
+      properties:
+        configuration:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationData'
+        rules:
+          $ref: '#/components/schemas/SensitiveDataScannerRuleData'
+      type: object
+    ExternalUserGroupMeta:
+      description: Metadata associated with a group.
+      properties:
+        created:
+          description: The date and time the group was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
+          type: string
+        lastModified:
+          description: The date and time the group was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
+          type: string
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Groups/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+        resourceType:
+          description: Type of resource.
+          example: Group
+          type: string
+      type: object
+    SensitiveDataScannerConfiguration:
+      description: A Sensitive Data Scanner configuration.
+      properties:
+        id:
+          description: ID of the configuration.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
+      type: object
+    ListExternalUserGroupResponseResourcesItems:
+      description: Resources returned in response to a List groups request.
+      properties:
+        displayName:
+          description: A human-readable name for the group.
+          example: My test group
+          type: string
+        externalId:
+          description: An identifier for the resource as defined by the provisioning client.
+          example: 346af543-e5ab-4855-937d-133231cd59ed
+          type: string
+        id:
+          description: The identifier of the resource. Not required when creating a group.
+          example: 0e80d350-9519-4771-9aa8-ce849fc36c20
+          type: string
+        members:
+          description: A list of members belonging to the team.
+          items:
+            $ref: '#/components/schemas/ListExternalUserGroupResponseResourcesItemsMembersItems'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ExternalUserGroupMeta'
+        schemas:
+          description: Group JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:Group
+          items:
+            type: string
+          type: array
+      type: object
     ExternalUserGroupPatchRequestOperationsItemsOp:
       description: The operation to be performed.
       enum:
@@ -1108,15 +957,32 @@ components:
       - ADD
       - REPLACE
       - REMOVE
-    SensitiveDataScannerGetConfigResponse:
-      description: Get all groups response.
+    ExternalUserGroupPatchRequestOperationsItems:
+      description: The definition of an individual patch operation in a patch request.
       properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerGetConfigResponseData'
-        included:
-          $ref: '#/components/schemas/SensitiveDataScannerGetConfigIncludedArray'
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMeta'
+        op:
+          $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItemsOp'
+        path:
+          description: An attribute path describing the target of the operation.
+          example: members
+          type: string
+        value:
+          description: JSON element containing the target values required to apply the patch operation.
+          example: "{\n    \"displayName\": \"Real new group\",\n    \"id\": \"80df3a9b-24f5-4ebf-9ba0-714455453621\"\n}"
+      type: object
+    SensitiveDataScannerGroupUpdate:
+      description: Data related to the update of a group.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupAttributes'
+        id:
+          description: ID of the group.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupRelationships'
+        type:
+          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
       type: object
     SensitiveDataScannerIncludedKeywordConfiguration:
       description: 'Object defining a set of keywords and a number of characters that help reduce noise.
@@ -1156,82 +1022,66 @@ components:
       - keywords
       - character_count
       type: object
-    SensitiveDataScannerConfigurationType:
-      default: sensitive_data_scanner_configuration
-      description: Sensitive Data Scanner configuration type.
-      enum:
-      - sensitive_data_scanner_configuration
-      example: sensitive_data_scanner_configuration
-      type: string
-      x-enum-varnames:
-      - SENSITIVE_DATA_SCANNER_CONFIGURATIONS
-    ExternalUserGroupPatchRequest:
-      description: Request object for patching a group.
+    ExternalUserGroup:
+      description: Definition of a group.
       properties:
-        Operations:
-          description: A list of update operations to be performed on a group.
+        displayName:
+          description: A human-readable name for the group.
+          type: string
+          example: Example Monitor
+        externalId:
+          description: An identifier for the resource as defined by the provisioning client.
+          type: string
+          example: abc-123-def
+        id:
+          description: The identifier of the resource. Not required when creating a group.
+          type: string
+          example: abc-123-def
+        members:
+          description: Members of the group.
           items:
-            $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItems'
+            $ref: '#/components/schemas/ExternalUserGroupMembersItems'
           type: array
+        meta:
+          $ref: '#/components/schemas/ExternalUserGroupMeta'
         schemas:
-          description: Input JSON Schemas
+          description: Input JSON Schemas.
           example:
-          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          - urn:ietf:params:scim:schemas:core:2.0:Group
           items:
             type: string
           type: array
       type: object
-    SensitiveDataScannerGroupCreateRequest:
-      description: Create group request.
+    ListExternalUserGroupResponseResourcesItemsMembersItems:
+      description: The definition of a member belonging to a group in the List groups response.
+      properties:
+        $ref:
+          description: The URI corresponding to a resource that is a member of this group.
+          example: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+        display:
+          description: Full name of the user.
+          example: John Doe
+          type: string
+        type:
+          description: A label indicating the type of resource. Only supported value is "User".
+          example: User
+          type: string
+        value:
+          description: The identifier of the member of this group.
+          example: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
+          type: string
+      type: object
+    SensitiveDataScannerGetConfigResponse:
+      description: Get all groups response.
       properties:
         data:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupCreate'
+          $ref: '#/components/schemas/SensitiveDataScannerGetConfigResponseData'
+        included:
+          $ref: '#/components/schemas/SensitiveDataScannerGetConfigIncludedArray'
         meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
+          $ref: '#/components/schemas/SensitiveDataScannerMeta'
       type: object
-    SensitiveDataScannerGetConfigResponseData:
-      description: Response data related to the scanning groups.
-      properties:
-        attributes:
-          additionalProperties: {}
-          description: Attributes of the Sensitive Data configuration.
-          type: object
-        id:
-          description: ID of the configuration.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerConfigurationType'
-      type: object
-    SensitiveDataScannerGroupCreate:
-      description: Data related to the creation of a group.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupAttributes'
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
-      required:
-      - type
-      - attributes
-      type: object
-    SensitiveDataScannerProduct:
-      default: logs
-      description: Datadog product onto which Sensitive Data Scanner can be activated.
-      enum:
-      - logs
-      - rum
-      - events
-      - apm
-      type: string
-      x-enum-varnames:
-      - LOGS
-      - RUM
-      - EVENTS
-      - APM
     ListExternalUserGroupResponse:
       description: List groups response object.
       example:
@@ -1314,174 +1164,13 @@ components:
           type: integer
           example: 42
       type: object
-    SensitiveDataScannerConfigRequest:
-      description: Group reorder request.
-      properties:
-        data:
-          $ref: '#/components/schemas/SensitiveDataScannerReorderConfig'
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      required:
-      - data
-      - meta
-      type: object
-    SensitiveDataScannerGroup:
-      description: A scanning group.
-      properties:
-        id:
-          description: ID of the group.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
-      type: object
-    SensitiveDataScannerGetConfigIncludedItem:
-      description: An object related to the configuration.
-      oneOf:
-      - $ref: '#/components/schemas/SensitiveDataScannerRuleIncludedItem'
-      - $ref: '#/components/schemas/SensitiveDataScannerGroupIncludedItem'
-    SensitiveDataScannerRule:
-      description: Rule item included in the group.
-      properties:
-        id:
-          description: ID of the rule.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerRuleType'
-      type: object
-    SensitiveDataScannerGroupItem:
-      description: Data related to a Sensitive Data Scanner Group.
-      properties:
-        id:
-          description: ID of the group.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
-      type: object
-    SensitiveDataScannerGroupDeleteRequest:
-      description: Delete group request.
-      properties:
-        meta:
-          $ref: '#/components/schemas/SensitiveDataScannerMetaVersionOnly'
-      required:
-      - meta
-      type: object
-    SensitiveDataScannerRuleIncludedItem:
-      description: A Scanning Rule included item.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SensitiveDataScannerRuleAttributes'
-        id:
-          description: ID of the rule.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerRuleRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerRuleType'
-      type: object
-    SensitiveDataScannerConfigurationRelationships:
-      description: Relationships of the configuration.
-      properties:
-        groups:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupList'
-      type: object
-    SensitiveDataScannerRuleType:
-      default: sensitive_data_scanner_rule
-      description: Sensitive Data Scanner rule type.
-      enum:
-      - sensitive_data_scanner_rule
-      example: sensitive_data_scanner_rule
-      type: string
-      x-enum-varnames:
-      - SENSITIVE_DATA_SCANNER_RULE
-    SensitiveDataScannerTextReplacement:
-      description: Object describing how the scanned event will be replaced.
-      properties:
-        number_of_chars:
-          description: 'Required if type == ''partial_replacement_from_beginning''
-
-            or ''partial_replacement_from_end''. It must be > 0.'
-          format: int64
-          minimum: 0
-          type: integer
-          example: 42
-        replacement_string:
-          description: Required if type == 'replacement_string'.
-          type: string
-          example: example_value
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerTextReplacementType'
-      type: object
-    ExternalUserGroupPatchRequestOperationsItems:
-      description: The definition of an individual patch operation in a patch request.
-      properties:
-        op:
-          $ref: '#/components/schemas/ExternalUserGroupPatchRequestOperationsItemsOp'
-        path:
-          description: An attribute path describing the target of the operation.
-          example: members
-          type: string
-        value:
-          description: JSON element containing the target values required to apply the patch operation.
-          example: "{\n    \"displayName\": \"Real new group\",\n    \"id\": \"80df3a9b-24f5-4ebf-9ba0-714455453621\"\n}"
-      type: object
-    SensitiveDataScannerFilter:
-      description: Filter for the Scanning Group.
-      properties:
-        query:
-          description: Query to filter the events.
-          type: string
-          example: avg:system.cpu.user{*}
-      type: object
-    SensitiveDataScannerGetConfigIncludedArray:
-      description: Included objects from relationships.
-      items:
-        $ref: '#/components/schemas/SensitiveDataScannerGetConfigIncludedItem'
-      type: array
-    ListExternalUserGroupResponseResourcesItemsMembersItems:
-      description: The definition of a member belonging to a group in the List groups response.
-      properties:
-        $ref:
-          description: The URI corresponding to a resource that is a member of this group.
-          example: https://app.datadoghq.com/api/scim/v2/Users/429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-          type: string
-        display:
-          description: Full name of the user.
-          example: John Doe
-          type: string
-        type:
-          description: A label indicating the type of resource. Only supported value is "User".
-          example: User
-          type: string
-        value:
-          description: The identifier of the member of this group.
-          example: 429ebce5-8ed3-4da9-9f1e-662f2dbc2fe6
-          type: string
-      type: object
-    SensitiveDataScannerGroupUpdate:
-      description: Data related to the update of a group.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupAttributes'
-        id:
-          description: ID of the group.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupRelationships'
-        type:
-          $ref: '#/components/schemas/SensitiveDataScannerGroupType'
-      type: object
   responses:
-    TooManyRequestsResponse:
+    ConflictResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
+      description: Conflict
     NotFoundResponse:
       content:
         application/json:
@@ -1494,20 +1183,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
-    ConflictResponse:
+    TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-  parameters:
-    SensitiveDataScannerGroupID:
-      description: The ID of a group of rules.
-      in: path
-      name: group_id
-      required: true
-      schema:
-        type: string
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

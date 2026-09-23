@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Order API
+  title: Datadog Order API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -45,104 +45,6 @@ security:
 tags:
 - name: Order
 paths:
-  /api/v2/logs/config/archive-order:
-    get:
-      description: 'Get the current order of your archives.
-
-        This endpoint takes no JSON arguments.'
-      operationId: GetLogsArchiveOrder
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LogsArchiveOrder'
-          description: OK
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get Archive Order
-      tags:
-      - Order
-      x-menu-order: 9
-      x-permission:
-        operator: OR
-        permissions:
-        - logs_read_config
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    put:
-      description: 'Update the order of your archives. Since logs are processed sequentially, reordering an archive may change
-
-        the structure and content of the data processed by other archives.
-
-
-        **Note**: Using the `PUT` method updates your archive''s order by replacing the current order
-
-        with the new one.'
-      operationId: UpdateLogsArchiveOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogsArchiveOrder'
-        description: An object containing the new ordered list of archive IDs.
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LogsArchiveOrder'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Unprocessable Entity
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Update Archive Order
-      tags:
-      - Order
-      x-codegen-request-body-name: body
-      x-menu-order: 10
-      x-permission:
-        operator: OR
-        permissions:
-        - logs_write_archives
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/rum/applications/{app_id}/relationships/retention_filters:
     patch:
       description: 'Order RUM retention filters for a RUM application.
@@ -186,16 +88,38 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    RumRetentionFiltersOrderRequest:
-      description: 'The list of RUM retention filter IDs along with their corresponding type to reorder.
-
-        All retention filter IDs should be included in the list created for a RUM application.'
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
+    RumRetentionFiltersOrderResponse:
+      description: The list of RUM retention filter IDs along with type.
       properties:
         data:
           description: A list of RUM retention filter IDs along with type.
           items:
             $ref: '#/components/schemas/RumRetentionFiltersOrderData'
           type: array
+      type: object
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
+      type: string
+      x-enum-varnames:
+      - RETENTION_FILTERS
+    RumRetentionFiltersOrderData:
+      description: The RUM retention filter data for ordering.
+      properties:
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
       type: object
     APIErrorResponse:
       description: API error response.
@@ -212,76 +136,10 @@ components:
       required:
       - errors
       type: object
-    RumRetentionFilterID:
-      description: ID of retention filter in UUID.
-      example: 051601eb-54a0-abc0-03f9-cc02efa18892
-      type: string
-    LogsArchiveOrder:
-      description: A ordered list of archive IDs.
-      properties:
-        data:
-          $ref: '#/components/schemas/LogsArchiveOrderDefinition'
-      type: object
-    RumRetentionFiltersOrderData:
-      description: The RUM retention filter data for ordering.
-      properties:
-        id:
-          $ref: '#/components/schemas/RumRetentionFilterID'
-        type:
-          $ref: '#/components/schemas/RumRetentionFilterType'
-      required:
-      - id
-      - type
-      type: object
-    RumRetentionFilterType:
-      default: retention_filters
-      description: The type of the resource. The value should always be retention_filters.
-      enum:
-      - retention_filters
-      example: retention_filters
-      type: string
-      x-enum-varnames:
-      - RETENTION_FILTERS
-    LogsArchiveOrderDefinition:
-      description: The definition of an archive order.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/LogsArchiveOrderAttributes'
-        type:
-          $ref: '#/components/schemas/LogsArchiveOrderDefinitionType'
-      required:
-      - type
-      - attributes
-      type: object
-    LogsArchiveOrderAttributes:
-      description: The attributes associated with the archive order.
-      properties:
-        archive_ids:
-          description: 'An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array
+    RumRetentionFiltersOrderRequest:
+      description: 'The list of RUM retention filter IDs along with their corresponding type to reorder.
 
-            define the overall archives order for Datadog.'
-          example:
-          - a2zcMylnM4OCHpYusxIi1g
-          - a2zcMylnM4OCHpYusxIi2g
-          - a2zcMylnM4OCHpYusxIi3g
-          items:
-            description: A given archive ID.
-            type: string
-          type: array
-      required:
-      - archive_ids
-      type: object
-    LogsArchiveOrderDefinitionType:
-      default: archive_order
-      description: Type of the archive order definition.
-      enum:
-      - archive_order
-      example: archive_order
-      type: string
-      x-enum-varnames:
-      - ARCHIVE_ORDER
-    RumRetentionFiltersOrderResponse:
-      description: The list of RUM retention filter IDs along with type.
+        All retention filter IDs should be included in the list created for a RUM application.'
       properties:
         data:
           description: A list of RUM retention filter IDs along with type.

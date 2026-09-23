@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Cardinality API
+  title: Datadog Cardinality API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -47,7 +47,7 @@ tags:
 paths:
   /api/v2/metrics/{metric_name}/estimate:
     get:
-      description: Returns the estimated cardinality for a metric with a given tag, percentile and number of aggregations configuration using Metrics without Limits&trade;.
+      description: Returns the estimated cardinality for a metric with a given tag, percentile and number of aggregations configuration using Metrics without Limits™.
       operationId: EstimateMetricsOutputSeries
       parameters:
       - $ref: '#/components/parameters/MetricName'
@@ -141,6 +141,25 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    MetricEstimateType:
+      default: count_or_gauge
+      description: Estimate type based on the queried configuration. By default, `count_or_gauge` is returned. `distribution` is returned for distribution metrics without percentiles enabled. Lastly, `percentile` is returned if `filter[pct]=true` is queried with a distribution metric.
+      enum:
+      - count_or_gauge
+      - distribution
+      - percentile
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT_OR_GAUGE
+      - DISTRIBUTION
+      - PERCENTILE
+    MetricEstimateResponse:
+      description: Response object that includes metric cardinality estimates.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricEstimate'
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -156,10 +175,6 @@ components:
       required:
       - errors
       type: object
-    MetricName:
-      description: The metric name for this resource.
-      example: test.metric.latency
-      type: string
     MetricEstimate:
       description: Object for a metric cardinality estimate.
       properties:
@@ -172,25 +187,19 @@ components:
       type: object
       x-merge-override:
         required: false
-    MetricEstimateResponse:
-      description: Response object that includes metric cardinality estimates.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricEstimate'
-      type: object
-    MetricEstimateType:
-      default: count_or_gauge
-      description: Estimate type based on the queried configuration. By default, `count_or_gauge` is returned. `distribution` is returned for distribution metrics without percentiles enabled. Lastly, `percentile` is returned if `filter[pct]=true` is queried with a distribution metric.
+    MetricName:
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    MetricEstimateResourceType:
+      default: metric_cardinality_estimate
+      description: The metric estimate resource type.
       enum:
-      - count_or_gauge
-      - distribution
-      - percentile
-      example: distribution
+      - metric_cardinality_estimate
+      example: metric_cardinality_estimate
       type: string
       x-enum-varnames:
-      - COUNT_OR_GAUGE
-      - DISTRIBUTION
-      - PERCENTILE
+      - METRIC_CARDINALITY_ESTIMATE
     MetricEstimateAttributes:
       description: Object containing the definition of a metric estimate attribute.
       properties:
@@ -209,15 +218,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    MetricEstimateResourceType:
-      default: metric_cardinality_estimate
-      description: The metric estimate resource type.
-      enum:
-      - metric_cardinality_estimate
-      example: metric_cardinality_estimate
-      type: string
-      x-enum-varnames:
-      - METRIC_CARDINALITY_ESTIMATE
   parameters:
     MetricName:
       description: The name of the metric.

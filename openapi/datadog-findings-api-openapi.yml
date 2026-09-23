@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Findings API
+  title: Datadog Findings API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -47,7 +47,56 @@ tags:
 paths:
   /api/v2/posture_management/findings:
     get:
-      description: "Get a list of findings. These include both misconfigurations and identity risks.\n\n**Note**: To filter and return only identity risks, add the following query parameter: `?filter[tags]=dd_rule_type:ciem`\n\n### Filtering\n\nFilters can be applied by appending query parameters to the URL.\n\n  - Using a single filter: `?filter[attribute_key]=attribute_value`\n  - Chaining filters: `?filter[attribute_key]=attribute_value&filter[attribute_key]=attribute_value...`\n  - Filtering on tags: `?filter[tags]=tag_key:tag_value&filter[tags]=tag_key_2:tag_value_2`\n\nHere, `attribute_key` can be any of the filter keys described further below.\n\nQuery parameters of type `integer` support comparison operators (`>`, `>=`, `<`, `<=`). This is particularly useful when filtering by `evaluation_changed_at` or `resource_discovery_timestamp`. For example: `?filter[evaluation_changed_at]=>20123123121`.\n\nYou can also use the negation operator on strings. For example, use `filter[resource_type]=-aws*` to filter for any non-AWS resources.\n\nThe operator must come after the equal sign. For example, to filter with the `>=` operator, add the operator after the equal sign: `filter[evaluation_changed_at]=>=1678809373257`.\n\nQuery parameters must be only among the documented ones and with values of correct types. Duplicated query parameters (e.g. `filter[status]=low&filter[status]=info`) are not allowed.\n\n### Response\n\nThe response includes an array of finding objects, pagination metadata, and a count of items that match the query.\n\nEach finding object contains the following:\n\n- The finding ID that can be used in a `GetFinding` request to retrieve the full finding details.\n- Core attributes, including status, evaluation, high-level resource details, muted state, and rule details.\n- `evaluation_changed_at` and `resource_discovery_date` time stamps.\n- An array of associated tags.\n"
+      description: 'Get a list of findings. These include both misconfigurations and identity risks.
+
+
+        **Note**: To filter and return only identity risks, add the following query parameter: `?filter[tags]=dd_rule_type:ciem`
+
+
+        ### Filtering
+
+
+        Filters can be applied by appending query parameters to the URL.
+
+
+        - Using a single filter: `?filter[attribute_key]=attribute_value`
+
+        - Chaining filters: `?filter[attribute_key]=attribute_value&filter[attribute_key]=attribute_value...`
+
+        - Filtering on tags: `?filter[tags]=tag_key:tag_value&filter[tags]=tag_key_2:tag_value_2`
+
+
+        Here, `attribute_key` can be any of the filter keys described further below.
+
+
+        Query parameters of type `integer` support comparison operators (`>`, `>=`, `20123123121`.
+
+
+        You can also use the negation operator on strings. For example, use `filter[resource_type]=-aws*` to filter for any non-AWS resources.
+
+
+        The operator must come after the equal sign. For example, to filter with the `>=` operator, add the operator after the equal sign: `filter[evaluation_changed_at]=>=1678809373257`.
+
+
+        Query parameters must be only among the documented ones and with values of correct types. Duplicated query parameters (e.g. `filter[status]=low&filter[status]=info`) are not allowed.
+
+
+        ### Response
+
+
+        The response includes an array of finding objects, pagination metadata, and a count of items that match the query.
+
+
+        Each finding object contains the following:
+
+
+        - The finding ID that can be used in a `GetFinding` request to retrieve the full finding details.
+
+        - Core attributes, including status, evaluation, high-level resource details, muted state, and rule details.
+
+        - `evaluation_changed_at` and `resource_discovery_date` time stamps.
+
+        - An array of associated tags.'
       operationId: ListFindings
       parameters:
       - description: Limit the number of findings returned. Must be <= 1000.
@@ -191,106 +240,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-    patch:
-      description: Mute or unmute findings.
-      operationId: MuteFindings
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BulkMuteFindingsRequest'
-        description: "### Attributes\n\nAll findings are updated with the same attributes. The request body must include at least two attributes: `muted` and `reason`.\nThe allowed reasons depend on whether the finding is being muted or unmuted:\n  - To mute a finding: `PENDING_FIX`, `FALSE_POSITIVE`, `ACCEPTED_RISK`, `OTHER`.\n  - To unmute a finding : `NO_PENDING_FIX`, `HUMAN_ERROR`, `NO_LONGER_ACCEPTED_RISK`, `OTHER`.\n\n### Meta\n\nThe request body must include a list of the finding IDs to be updated.\n"
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BulkMuteFindingsResponse'
-          description: OK
-        '400':
-          $ref: '#/components/responses/FindingsBadRequestResponse'
-        '403':
-          $ref: '#/components/responses/FindingsForbiddenResponse'
-        '404':
-          $ref: '#/components/responses/FindingsNotFoundResponse'
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JSONAPIErrorResponse'
-          description: 'Invalid Request: The server understands the request syntax but cannot process it due to invalid data.'
-        '429':
-          $ref: '#/components/responses/FindingsTooManyRequestsResponse'
-      security:
-      - apiKeyAuth: []
-        appKeyAuth: []
-      summary: Datadog Mute or Unmute a Batch of Findings
-      tags:
-      - Findings
-      x-codegen-request-body-name: body
-      x-menu-order: 2
-      x-undo:
-        type: safe
-      x-unstable: '**Note**: This endpoint is in public beta.
-
-        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
 components:
   schemas:
-    ListFindingsResponse:
-      description: The expected response schema when listing findings.
-      properties:
-        data:
-          $ref: '#/components/schemas/ListFindingsData'
-        meta:
-          $ref: '#/components/schemas/ListFindingsMeta'
-      required:
-      - data
-      - meta
-      type: object
-    FindingResourceDiscoveryDate:
-      description: The date on which the resource was discovered (Unix ms).
-      example: 1678721573794
-      format: int64
-      minimum: 1
-      type: integer
-    FindingRule:
-      additionalProperties: false
-      description: The rule that triggered this finding.
-      properties:
-        id:
-          description: The ID of the rule that triggered this finding.
-          example: dv2-jzf-41i
-          type: string
-        name:
-          description: The name of the rule that triggered this finding.
-          example: Soft delete is enabled for Azure Storage
-          type: string
-      type: object
-    BulkMuteFindingsResponse:
-      description: The expected response schema.
-      properties:
-        data:
-          $ref: '#/components/schemas/BulkMuteFindingsResponseData'
-      required:
-      - data
-      type: object
-    FindingResource:
-      description: The resource name of this finding.
-      example: my_resource_name
-      type: string
-    FindingEvaluationChangedAt:
-      description: The date on which the evaluation for this finding changed (Unix ms).
-      example: 1678721573794
-      format: int64
-      minimum: 1
-      type: integer
     FindingMute:
       additionalProperties: false
       description: Information about the mute status of this finding.
@@ -320,6 +271,58 @@ components:
           example: e51c9744-d158-11ec-ad23-da7ad0900002
           type: string
       type: object
+    FindingRule:
+      additionalProperties: false
+      description: The rule that triggered this finding.
+      properties:
+        id:
+          description: The ID of the rule that triggered this finding.
+          example: dv2-jzf-41i
+          type: string
+        name:
+          description: The name of the rule that triggered this finding.
+          example: Soft delete is enabled for Azure Storage
+          type: string
+      type: object
+    FindingType:
+      default: finding
+      description: The JSON:API type for findings.
+      enum:
+      - finding
+      example: finding
+      type: string
+      x-enum-varnames:
+      - FINDING
+    FindingEvaluation:
+      description: The evaluation of the finding.
+      enum:
+      - pass
+      - fail
+      example: pass
+      type: string
+      x-enum-varnames:
+      - PASS
+      - FAIL
+    FindingMuteReason:
+      description: The reason why this finding is muted or unmuted.
+      enum:
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
+      example: ACCEPTED_RISK
+      type: string
+      x-enum-varnames:
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
     JSONAPIErrorItem:
       description: API error response body
       properties:
@@ -342,137 +345,6 @@ components:
           example: Bad Request
           type: string
       type: object
-    ListFindingsMeta:
-      additionalProperties: false
-      description: Metadata for pagination.
-      properties:
-        page:
-          $ref: '#/components/schemas/ListFindingsPage'
-        snapshot_timestamp:
-          description: The point in time corresponding to the listed findings.
-          example: 1678721573794
-          format: int64
-          minimum: 1
-          type: integer
-      type: object
-    ListFindingsPage:
-      additionalProperties: false
-      description: Pagination and findings count information.
-      properties:
-        cursor:
-          description: The cursor used to paginate requests.
-          example: eyJhZnRlciI6IkFRQUFBWWJiaEJXQS1OY1dqUUFBQUFCQldXSmlhRUpYUVVGQlJFSktkbTlDTUdaWFRVbDNRVUUiLCJ2YWx1ZXMiOlsiY3JpdGljYWwiXX0=
-          type: string
-        total_filtered_count:
-          description: The total count of findings after the filter has been applied.
-          example: 213
-          format: int64
-          type: integer
-      type: object
-    FindingTags:
-      description: The tags associated with this finding.
-      example:
-      - cloud_provider:aws
-      - myTag:myValue
-      items:
-        description: The list of tags.
-        type: string
-      type: array
-    BulkMuteFindingsRequestMeta:
-      description: Meta object containing the findings to be updated.
-      properties:
-        findings:
-          description: Array of findings.
-          items:
-            $ref: '#/components/schemas/BulkMuteFindingsRequestMetaFindings'
-          type: array
-      type: object
-    BulkMuteFindingsRequest:
-      description: The new bulk mute finding request.
-      properties:
-        data:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestData'
-      required:
-      - data
-      type: object
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
-      properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
-    FindingResourceType:
-      description: The resource type of this finding.
-      example: azure_storage_account
-      type: string
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    BulkMuteFindingsRequestData:
-      description: Data object containing the new bulk mute properties of the finding.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestAttributes'
-        id:
-          description: UUID to identify the request
-          example: dbe5f567-192b-4404-b908-29b70e1c9f76
-          type: string
-        meta:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestMeta'
-        type:
-          $ref: '#/components/schemas/FindingType'
-      required:
-      - id
-      - type
-      - attributes
-      - meta
-      type: object
-    FindingType:
-      default: finding
-      description: The JSON:API type for findings.
-      enum:
-      - finding
-      example: finding
-      type: string
-      x-enum-varnames:
-      - FINDING
-    FindingID:
-      description: The unique ID for this finding.
-      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
-      type: string
-    FindingEvaluation:
-      description: The evaluation of the finding.
-      enum:
-      - pass
-      - fail
-      example: pass
-      type: string
-      x-enum-varnames:
-      - PASS
-      - FAIL
-    ListFindingsData:
-      description: Array of findings.
-      items:
-        $ref: '#/components/schemas/Finding'
-      type: array
     FindingStatus:
       description: The status of the finding.
       enum:
@@ -489,6 +361,128 @@ components:
       - MEDIUM
       - LOW
       - INFO
+    ListFindingsPage:
+      additionalProperties: false
+      description: Pagination and findings count information.
+      properties:
+        cursor:
+          description: The cursor used to paginate requests.
+          example: eyJhZnRlciI6IkFRQUFBWWJiaEJXQS1OY1dqUUFBQUFCQldXSmlhRUpYUVVGQlJFSktkbTlDTUdaWFRVbDNRVUUiLCJ2YWx1ZXMiOlsiY3JpdGljYWwiXX0=
+          type: string
+        total_filtered_count:
+          description: The total count of findings after the filter has been applied.
+          example: 213
+          format: int64
+          type: integer
+      type: object
+    FindingVulnerabilityType:
+      description: The vulnerability type of the finding.
+      enum:
+      - misconfiguration
+      - attack_path
+      - identity_risk
+      - api_security
+      example: misconfiguration
+      type: string
+      x-enum-varnames:
+      - MISCONFIGURATION
+      - ATTACK_PATH
+      - IDENTITY_RISK
+      - API_SECURITY
+    ListFindingsMeta:
+      additionalProperties: false
+      description: Metadata for pagination.
+      properties:
+        page:
+          $ref: '#/components/schemas/ListFindingsPage'
+        snapshot_timestamp:
+          description: The point in time corresponding to the listed findings.
+          example: 1678721573794
+          format: int64
+          minimum: 1
+          type: integer
+      type: object
+    ListFindingsResponse:
+      description: The expected response schema when listing findings.
+      properties:
+        data:
+          $ref: '#/components/schemas/ListFindingsData'
+        meta:
+          $ref: '#/components/schemas/ListFindingsMeta'
+      required:
+      - data
+      - meta
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    FindingID:
+      description: The unique ID for this finding.
+      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
+      type: string
+    FindingResourceDiscoveryDate:
+      description: The date on which the resource was discovered (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    FindingResourceType:
+      description: The resource type of this finding.
+      example: azure_storage_account
+      type: string
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    FindingTags:
+      description: The tags associated with this finding.
+      example:
+      - cloud_provider:aws
+      - myTag:myValue
+      items:
+        description: The list of tags.
+        type: string
+      type: array
+    FindingResource:
+      description: The resource name of this finding.
+      example: my_resource_name
+      type: string
+    FindingEvaluationChangedAt:
+      description: The date on which the evaluation for this finding changed (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    Finding:
+      description: A single finding without the message and resource configuration.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FindingAttributes'
+        id:
+          $ref: '#/components/schemas/FindingID'
+        type:
+          $ref: '#/components/schemas/FindingType'
+      type: object
     FindingAttributes:
       description: The JSON:API attributes of the finding.
       properties:
@@ -513,103 +507,18 @@ components:
         vulnerability_type:
           $ref: '#/components/schemas/FindingVulnerabilityType'
       type: object
-    BulkMuteFindingsRequestAttributes:
-      additionalProperties: false
-      description: The mute properties to be updated.
-      properties:
-        mute:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestProperties'
-      required:
-      - mute
-      type: object
-    BulkMuteFindingsResponseData:
-      description: Data object containing the ID of the request that was updated.
-      properties:
-        id:
-          description: UUID used to identify the request
-          example: 93bfeb70-af47-424d-908a-948d3f08e37f
-          type: string
-        type:
-          $ref: '#/components/schemas/FindingType'
-      type: object
-    FindingMuteReason:
-      description: The reason why this finding is muted or unmuted.
-      enum:
-      - PENDING_FIX
-      - FALSE_POSITIVE
-      - ACCEPTED_RISK
-      - NO_PENDING_FIX
-      - HUMAN_ERROR
-      - NO_LONGER_ACCEPTED_RISK
-      - OTHER
-      example: ACCEPTED_RISK
-      type: string
-      x-enum-varnames:
-      - PENDING_FIX
-      - FALSE_POSITIVE
-      - ACCEPTED_RISK
-      - NO_PENDING_FIX
-      - HUMAN_ERROR
-      - NO_LONGER_ACCEPTED_RISK
-      - OTHER
-    BulkMuteFindingsRequestProperties:
-      additionalProperties: false
-      description: Object containing the new mute properties of the findings.
-      properties:
-        description:
-          description: Additional information about the reason why those findings are muted or unmuted. This field has a maximum limit of 280 characters.
-          type: string
-          example: example_value
-        expiration_date:
-          description: 'The expiration date of the mute or unmute action (Unix ms). It must be set to a value greater than the current timestamp.
-
-            If this field is not provided, the finding will be muted or unmuted indefinitely, which is equivalent to setting the expiration date to 9999999999999.
-
-            '
-          example: 1778721573794
-          format: int64
-          type: integer
-        muted:
-          description: Whether those findings should be muted or unmuted.
-          example: true
-          type: boolean
-        reason:
-          $ref: '#/components/schemas/FindingMuteReason'
-      required:
-      - muted
-      - reason
-      type: object
-    Finding:
-      description: A single finding without the message and resource configuration.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FindingAttributes'
-        id:
-          $ref: '#/components/schemas/FindingID'
-        type:
-          $ref: '#/components/schemas/FindingType'
-      type: object
-    BulkMuteFindingsRequestMetaFindings:
-      description: Finding object containing the finding information.
-      properties:
-        finding_id:
-          $ref: '#/components/schemas/FindingID'
-      type: object
-    FindingVulnerabilityType:
-      description: The vulnerability type of the finding.
-      enum:
-      - misconfiguration
-      - attack_path
-      - identity_risk
-      - api_security
-      example: misconfiguration
-      type: string
-      x-enum-varnames:
-      - MISCONFIGURATION
-      - ATTACK_PATH
-      - IDENTITY_RISK
-      - API_SECURITY
+    ListFindingsData:
+      description: Array of findings.
+      items:
+        $ref: '#/components/schemas/Finding'
+      type: array
   responses:
+    FindingsBadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
     FindingsTooManyRequestsResponse:
       content:
         application/json:
@@ -622,12 +531,6 @@ components:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Not Found: The requested finding cannot be found.'
-    FindingsBadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
     FindingsForbiddenResponse:
       content:
         application/json:

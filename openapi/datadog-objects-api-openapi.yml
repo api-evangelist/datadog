@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Objects API
+  title: Datadog Objects API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -45,167 +45,11 @@ security:
 tags:
 - name: Objects
 paths:
-  /api/v2/integration/opsgenie/services:
-    x-merge-override:
-      get: true
-      post: true
-    get:
-      description: Get a list of all services from the Datadog Opsgenie integration.
-      operationId: ListOpsgenieServices
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OpsgenieServicesResponse'
-          description: OK
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get All Service Objects
-      tags:
-      - Objects
-      x-menu-order: 1
-      x-permission:
-        operator: OR
-        permissions:
-        - integrations_read
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      description: Create a new service object in the Opsgenie integration.
-      operationId: CreateOpsgenieService
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OpsgenieServiceCreateRequest'
-        description: Opsgenie service payload
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OpsgenieServiceResponse'
-          description: CREATED
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
-        '409':
-          $ref: '#/components/responses/ConflictResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Create a New Service Object
-      tags:
-      - Objects
-      x-codegen-request-body-name: body
-      x-given:
-        opsgenie_service:
-          parameters:
-          - name: body
-            value: "{\n  \"data\": {\n    \"attributes\": {\n      \"name\": \"{{ unique }}\",\n      \"opsgenie_api_key\": \"00000000-0000-0000-0000-000000000000\",\n      \"region\": \"us\"\n     },\n     \"type\": \"opsgenie-service\"\n  }\n}"
-          step: there is a valid "opsgenie_service" in the system
-      x-menu-order: 2
-      x-permission:
-        operator: OR
-        permissions:
-        - manage_integrations
-      x-undo:
-        operationId: DeleteOpsgenieService
-        parameters:
-        - name: integration_service_id
-          source: data.id
-        type: unsafe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /api/v2/integration/opsgenie/services/{integration_service_id}:
     x-merge-override:
       delete: true
       get: true
       patch: true
-    delete:
-      description: Delete a single service object in the Datadog Opsgenie integration.
-      operationId: DeleteOpsgenieService
-      parameters:
-      - $ref: '#/components/parameters/OpsgenieServiceIDPathParameter'
-      responses:
-        '204':
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Delete a Single Service Object
-      tags:
-      - Objects
-      x-menu-order: 5
-      x-permission:
-        operator: OR
-        permissions:
-        - manage_integrations
-      x-undo:
-        type: idempotent
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    get:
-      description: Get a single service from the Datadog Opsgenie integration.
-      operationId: GetOpsgenieService
-      parameters:
-      - $ref: '#/components/parameters/OpsgenieServiceIDPathParameter'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OpsgenieServiceResponse'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '409':
-          $ref: '#/components/responses/ConflictResponse'
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Get a Single Service Object
-      tags:
-      - Objects
-      x-menu-order: 3
-      x-permission:
-        operator: OR
-        permissions:
-        - integrations_read
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     patch:
       description: Update a single service object in the Datadog Opsgenie integration.
       operationId: UpdateOpsgenieService
@@ -254,93 +98,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    OpsgenieServiceResponseAttributes:
-      description: The attributes from an Opsgenie service response.
-      properties:
-        custom_url:
-          description: The custom URL for a custom region.
-          example: null
-          nullable: true
-          type: string
-        name:
-          description: The name for the Opsgenie service.
-          example: fake-opsgenie-service-name
-          maxLength: 100
-          type: string
-        region:
-          $ref: '#/components/schemas/OpsgenieServiceRegionType'
-      type: object
-      x-merge-override:
-        required: false
-    OpsgenieServiceCreateAttributes:
-      description: The Opsgenie service attributes for a create request.
-      properties:
-        custom_url:
-          description: The custom URL for a custom region.
-          example: https://example.com
-          type: string
-        name:
-          description: The name for the Opsgenie service.
-          example: fake-opsgenie-service-name
-          maxLength: 100
-          type: string
-        opsgenie_api_key:
-          description: The Opsgenie API key for your Opsgenie service.
-          example: 00000000-0000-0000-0000-000000000000
-          type: string
-        region:
-          $ref: '#/components/schemas/OpsgenieServiceRegionType'
-      required:
-      - name
-      - opsgenie_api_key
-      - region
-      type: object
-    OpsgenieServiceUpdateAttributes:
-      description: The Opsgenie service attributes for an update request.
-      properties:
-        custom_url:
-          description: The custom URL for a custom region.
-          example: https://example.com
-          nullable: true
-          type: string
-        name:
-          description: The name for the Opsgenie service.
-          example: fake-opsgenie-service-name
-          maxLength: 100
-          type: string
-        opsgenie_api_key:
-          description: The Opsgenie API key for your Opsgenie service.
-          example: 00000000-0000-0000-0000-000000000000
-          type: string
-        region:
-          $ref: '#/components/schemas/OpsgenieServiceRegionType'
-      type: object
-      x-merge-override:
-        required: false
-    OpsgenieServicesResponse:
-      description: Response with a list of Opsgenie services.
-      properties:
-        data:
-          description: An array of Opsgenie services.
-          example:
-          - attributes:
-              custom_url: null
-              name: fake-opsgenie-service-name
-              region: us
-            id: 596da4af-0563-4097-90ff-07230c3f9db3
-            type: opsgenie-service
-          - attributes:
-              custom_url: null
-              name: fake-opsgenie-service-name-2
-              region: eu
-            id: 0d2937f1-b561-44fa-914a-99910f848014
-            type: opsgenie-service
-          items:
-            $ref: '#/components/schemas/OpsgenieServiceResponseData'
-          type: array
-      required:
-      - data
-      type: object
     OpsgenieServiceRegionType:
       description: The region for the Opsgenie service.
       enum:
@@ -353,73 +110,20 @@ components:
       - US
       - EU
       - CUSTOM
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
+    OpsgenieServiceType:
+      default: opsgenie-service
+      description: Opsgenie service resource type.
+      enum:
+      - opsgenie-service
+      example: opsgenie-service
+      type: string
+      x-enum-varnames:
+      - OPSGENIE_SERVICE
     OpsgenieServiceUpdateRequest:
       description: Update request for an Opsgenie service.
       properties:
         data:
           $ref: '#/components/schemas/OpsgenieServiceUpdateData'
-      required:
-      - data
-      type: object
-    OpsgenieServiceUpdateData:
-      description: Opsgenie service for an update request.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OpsgenieServiceUpdateAttributes'
-        id:
-          description: The ID of the Opsgenie service.
-          example: 596da4af-0563-4097-90ff-07230c3f9db3
-          maxLength: 100
-          minLength: 1
-          type: string
-        type:
-          $ref: '#/components/schemas/OpsgenieServiceType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-      x-merge-override:
-        required: false
-    OpsgenieServiceCreateRequest:
-      description: Create request for an Opsgenie service.
-      properties:
-        data:
-          $ref: '#/components/schemas/OpsgenieServiceCreateData'
-      required:
-      - data
-      type: object
-    OpsgenieServiceCreateData:
-      description: Opsgenie service data for a create request.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OpsgenieServiceCreateAttributes'
-        type:
-          $ref: '#/components/schemas/OpsgenieServiceType'
-      required:
-      - type
-      - attributes
-      type: object
-    OpsgenieServiceResponse:
-      description: Response of an Opsgenie service.
-      properties:
-        data:
-          $ref: '#/components/schemas/OpsgenieServiceResponseData'
       required:
       - data
       type: object
@@ -443,24 +147,110 @@ components:
       type: object
       x-merge-override:
         required: false
-    OpsgenieServiceType:
-      default: opsgenie-service
-      description: Opsgenie service resource type.
-      enum:
-      - opsgenie-service
-      example: opsgenie-service
-      type: string
-      x-enum-varnames:
-      - OPSGENIE_SERVICE
-  parameters:
-    OpsgenieServiceIDPathParameter:
-      description: The UUID of the service.
-      in: path
-      name: integration_service_id
-      required: true
-      schema:
-        type: string
+    OpsgenieServiceUpdateData:
+      description: Opsgenie service for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OpsgenieServiceUpdateAttributes'
+        id:
+          description: The ID of the Opsgenie service.
+          example: 596da4af-0563-4097-90ff-07230c3f9db3
+          maxLength: 100
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/OpsgenieServiceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServiceResponseAttributes:
+      description: The attributes from an Opsgenie service response.
+      properties:
+        custom_url:
+          description: The custom URL for a custom region.
+          example: null
+          type:
+          - string
+          - 'null'
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
+      type: object
+      x-merge-override:
+        required: false
+    OpsgenieServiceUpdateAttributes:
+      description: The Opsgenie service attributes for an update request.
+      properties:
+        custom_url:
+          description: The custom URL for a custom region.
+          example: https://example.com
+          type:
+          - string
+          - 'null'
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        opsgenie_api_key:
+          description: The Opsgenie API key for your Opsgenie service.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    OpsgenieServiceResponse:
+      description: Response of an Opsgenie service.
+      properties:
+        data:
+          $ref: '#/components/schemas/OpsgenieServiceResponseData'
+      required:
+      - data
+      type: object
   responses:
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
     TooManyRequestsResponse:
       content:
         application/json:
@@ -473,24 +263,14 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
+  parameters:
+    OpsgenieServiceIDPathParameter:
+      description: The UUID of the service.
+      in: path
+      name: integration_service_id
+      required: true
+      schema:
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

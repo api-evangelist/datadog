@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Available API
+  title: Datadog Available API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -81,6 +81,38 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    AWSNamespacesResponse:
+      description: AWS Namespaces response body.
+      properties:
+        data:
+          $ref: '#/components/schemas/AWSNamespacesResponseData'
+      required:
+      - data
+      type: object
+    AWSNamespacesResponseDataType:
+      default: namespaces
+      description: The `AWSNamespacesResponseData` `type`.
+      enum:
+      - namespaces
+      example: namespaces
+      type: string
+      x-enum-varnames:
+      - NAMESPACES
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
     AWSNamespacesResponseData:
       description: AWS Namespaces response data.
       properties:
@@ -97,38 +129,6 @@ components:
       - id
       - type
       type: object
-    AWSNamespacesResponse:
-      description: AWS Namespaces response body.
-      properties:
-        data:
-          $ref: '#/components/schemas/AWSNamespacesResponseData'
-      required:
-      - data
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    AWSNamespacesResponseDataType:
-      default: namespaces
-      description: The `AWSNamespacesResponseData` `type`.
-      enum:
-      - namespaces
-      example: namespaces
-      type: string
-      x-enum-varnames:
-      - NAMESPACES
     AWSNamespacesResponseAttributes:
       description: AWS Namespaces response attributes.
       properties:
@@ -144,18 +144,18 @@ components:
       - namespaces
       type: object
   responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     ForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

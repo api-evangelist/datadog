@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Dashboards API
+  title: Datadog Dashboards API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -159,80 +159,6 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-    post:
-      description: Add dashboards to an existing dashboard list.
-      operationId: CreateDashboardListItems
-      parameters:
-      - description: ID of the dashboard list to add items to.
-        in: path
-        name: dashboard_list_id
-        required: true
-        schema:
-          format: int64
-          type: integer
-        example: 42
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DashboardListAddItemsRequest'
-        description: Dashboards to add to the dashboard list.
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DashboardListAddItemsResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Bad Request
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Forbidden
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIErrorResponse'
-          description: Not Found
-        '429':
-          $ref: '#/components/responses/TooManyRequestsResponse'
-      summary: Datadog Add Items to a Dashboard List
-      tags:
-      - Dashboards
-      x-codegen-request-body-name: body
-      x-given:
-        dashboard_list_dashboard:
-          parameters:
-          - name: dashboard_list_id
-            source: dashboard_list.id
-          - name: body
-            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ dashboard.id }}\",\n      \"type\": \"custom_timeboard\"\n    }\n  ]\n}"
-          step: the "dashboard_list" has the "dashboard"
-        dashboard_list_screenboard_dashboard:
-          parameters:
-          - name: dashboard_list_id
-            source: dashboard_list.id
-          - name: body
-            value: "{\n  \"dashboards\": [\n    {\n      \"id\": \"{{ screenboard_dashboard.id }}\",\n      \"type\": \"custom_screenboard\"\n    }\n  ]\n}"
-          step: the "dashboard_list" has the "screenboard_dashboard"
-      x-menu-order: 2
-      x-undo:
-        type: safe
-      x-api-evangelist-processing:
-        PascalCaseOperationSummaries: true
-        ChooseTags: true
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
     put:
       description: Update dashboards of an existing dashboard list.
       operationId: UpdateDashboardListItems
@@ -294,32 +220,32 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    DashboardListUpdateItemsResponse:
-      description: Response containing a list of updated dashboards.
+    DashboardListDeleteItemsResponse:
+      description: Response containing a list of deleted dashboards.
       properties:
-        dashboards:
-          description: List of dashboards in the dashboard list.
+        deleted_dashboards_from_list:
+          description: List of dashboards deleted from the dashboard list.
           items:
             $ref: '#/components/schemas/DashboardListItemResponse'
           type: array
       type: object
-    DashboardListItems:
-      description: Dashboards within a list.
+    Creator:
+      description: Creator of the object.
       properties:
-        dashboards:
-          description: List of dashboards in the dashboard list.
-          example: []
-          items:
-            $ref: '#/components/schemas/DashboardListItem'
-          type: array
-        total:
-          description: Number of dashboards in the dashboard list.
-          format: int64
-          readOnly: true
-          type: integer
-          example: 42
-      required:
-      - dashboards
+        email:
+          description: Email of the creator.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the creator.
+          type: string
+          example: example_value
+        name:
+          description: Name of the creator.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
       type: object
     APIErrorResponse:
       description: API error response.
@@ -336,31 +262,34 @@ components:
       required:
       - errors
       type: object
-    Creator:
-      description: Creator of the object.
+    DashboardType:
+      description: The type of the dashboard.
+      enum:
+      - custom_timeboard
+      - custom_screenboard
+      - integration_screenboard
+      - integration_timeboard
+      - host_timeboard
+      example: host_timeboard
+      type: string
+      x-enum-varnames:
+      - CUSTOM_TIMEBOARD
+      - CUSTOM_SCREENBOARD
+      - INTEGRATION_SCREENBOARD
+      - INTEGRATION_TIMEBOARD
+      - HOST_TIMEBOARD
+    DashboardListItemRequest:
+      description: A dashboard within a list.
       properties:
-        email:
-          description: Email of the creator.
+        id:
+          description: ID of the dashboard.
+          example: q5j-nti-fv6
           type: string
-          example: user@example.com
-        handle:
-          description: Handle of the creator.
-          type: string
-          example: example_value
-        name:
-          description: Name of the creator.
-          nullable: true
-          type: string
-          example: Example Monitor
-      type: object
-    DashboardListAddItemsResponse:
-      description: Response containing a list of added dashboards.
-      properties:
-        added_dashboards_to_list:
-          description: List of dashboards added to the dashboard list.
-          items:
-            $ref: '#/components/schemas/DashboardListItemResponse'
-          type: array
+        type:
+          $ref: '#/components/schemas/DashboardType'
+      required:
+      - type
+      - id
       type: object
     DashboardListItem:
       description: A dashboard within a list.
@@ -375,9 +304,10 @@ components:
           example: example_value
         icon:
           description: URL to the icon of the dashboard.
-          nullable: true
           readOnly: true
-          type: string
+          type:
+          - string
+          - 'null'
           example: example_value
         id:
           description: ID of the dashboard.
@@ -385,9 +315,10 @@ components:
           type: string
         integration_id:
           description: The short name of the integration.
-          nullable: true
           readOnly: true
-          type: string
+          type:
+          - string
+          - 'null'
           example: abc-123-def
         is_favorite:
           description: Whether or not the dashboard is in the favorites.
@@ -423,9 +354,10 @@ components:
             description: The name of a Datadog team, formatted as `team:<name>`
             type: string
           maxItems: 5
-          nullable: true
           readOnly: true
-          type: array
+          type:
+          - array
+          - 'null'
         title:
           description: Title of the dashboard.
           readOnly: true
@@ -442,20 +374,38 @@ components:
       - type
       - id
       type: object
+    DashboardListUpdateItemsResponse:
+      description: Response containing a list of updated dashboards.
+      properties:
+        dashboards:
+          description: List of dashboards in the dashboard list.
+          items:
+            $ref: '#/components/schemas/DashboardListItemResponse'
+          type: array
+      type: object
+    DashboardListItems:
+      description: Dashboards within a list.
+      properties:
+        dashboards:
+          description: List of dashboards in the dashboard list.
+          example: []
+          items:
+            $ref: '#/components/schemas/DashboardListItem'
+          type: array
+        total:
+          description: Number of dashboards in the dashboard list.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      required:
+      - dashboards
+      type: object
     DashboardListUpdateItemsRequest:
       description: Request containing the list of dashboards to update to.
       properties:
         dashboards:
           description: List of dashboards to update the dashboard list to.
-          items:
-            $ref: '#/components/schemas/DashboardListItemRequest'
-          type: array
-      type: object
-    DashboardListAddItemsRequest:
-      description: Request containing a list of dashboards to add.
-      properties:
-        dashboards:
-          description: List of dashboards to add the dashboard list.
           items:
             $ref: '#/components/schemas/DashboardListItemRequest'
           type: array
@@ -482,44 +432,6 @@ components:
       required:
       - type
       - id
-      type: object
-    DashboardListItemRequest:
-      description: A dashboard within a list.
-      properties:
-        id:
-          description: ID of the dashboard.
-          example: q5j-nti-fv6
-          type: string
-        type:
-          $ref: '#/components/schemas/DashboardType'
-      required:
-      - type
-      - id
-      type: object
-    DashboardType:
-      description: The type of the dashboard.
-      enum:
-      - custom_timeboard
-      - custom_screenboard
-      - integration_screenboard
-      - integration_timeboard
-      - host_timeboard
-      example: host_timeboard
-      type: string
-      x-enum-varnames:
-      - CUSTOM_TIMEBOARD
-      - CUSTOM_SCREENBOARD
-      - INTEGRATION_SCREENBOARD
-      - INTEGRATION_TIMEBOARD
-      - HOST_TIMEBOARD
-    DashboardListDeleteItemsResponse:
-      description: Response containing a list of deleted dashboards.
-      properties:
-        deleted_dashboards_from_list:
-          description: List of dashboards deleted from the dashboard list.
-          items:
-            $ref: '#/components/schemas/DashboardListItemResponse'
-          type: array
       type: object
   responses:
     TooManyRequestsResponse:

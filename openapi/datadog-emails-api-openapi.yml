@@ -1,11 +1,11 @@
-openapi: 3.0.0
+openapi: 3.2.0
 info:
   contact:
     email: support@datadoghq.com
     name: Datadog Support
     url: https://www.datadoghq.com/support/
   description: The Datadog API is an HTTP REST API. The API uses resource-oriented URLs to call the API, uses status codes to indicate the success or failure of requests, returns JSON from all requests, and uses standard HTTP response codes. Use the Datadog API to access the Datadog platform programmatically.
-  title: Datadog Account Emails API
+  title: Datadog Emails API
   version: '1.0'
 servers:
 - url: https://{subdomain}.{site}
@@ -107,6 +107,14 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
     UserInvitationDataAttributes:
       description: Attributes of a user invitation.
       properties:
@@ -129,6 +137,32 @@ components:
           type: string
           example: abc-123-def
       type: object
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
+      enum:
+      - user_invitations
+      example: user_invitations
+      type: string
+      x-enum-varnames:
+      - USER_INVITATIONS
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
+      properties:
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      required:
+      - user
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
     APIErrorResponse:
       description: API error response.
       properties:
@@ -144,6 +178,18 @@ components:
       required:
       - errors
       type: object
+    UserInvitationsRequest:
+      description: Object to invite users to join the organization.
+      properties:
+        data:
+          description: List of user invitations.
+          example: []
+          items:
+            $ref: '#/components/schemas/UserInvitationData'
+          type: array
+      required:
+      - data
+      type: object
     RelationshipToUserData:
       description: Relationship to user object.
       properties:
@@ -156,44 +202,6 @@ components:
       required:
       - id
       - type
-      type: object
-      x-merge-override:
-        required: false
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    RelationshipToUser:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserData'
-      required:
-      - data
-      type: object
-    UserInvitationRelationships:
-      description: Relationships data for user invitation.
-      properties:
-        user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      required:
-      - user
-      type: object
-    UserInvitationData:
-      description: Object to create a user invitation.
-      properties:
-        relationships:
-          $ref: '#/components/schemas/UserInvitationRelationships'
-        type:
-          $ref: '#/components/schemas/UserInvitationsType'
-      required:
-      - type
-      - relationships
       type: object
       x-merge-override:
         required: false
@@ -213,15 +221,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    UserInvitationsType:
-      default: user_invitations
-      description: User invitations type.
-      enum:
-      - user_invitations
-      example: user_invitations
-      type: string
-      x-enum-varnames:
-      - USER_INVITATIONS
     UserInvitationsResponse:
       description: User invitations as returned by the API.
       properties:
@@ -231,18 +230,19 @@ components:
             $ref: '#/components/schemas/UserInvitationResponseData'
           type: array
       type: object
-    UserInvitationsRequest:
-      description: Object to invite users to join the organization.
+    UserInvitationData:
+      description: Object to create a user invitation.
       properties:
-        data:
-          description: List of user invitations.
-          example: []
-          items:
-            $ref: '#/components/schemas/UserInvitationData'
-          type: array
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
       required:
-      - data
+      - type
+      - relationships
       type: object
+      x-merge-override:
+        required: false
   responses:
     TooManyRequestsResponse:
       content:

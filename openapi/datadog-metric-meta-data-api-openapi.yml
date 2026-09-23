@@ -1,0 +1,111 @@
+openapi: 3.2.0
+info:
+  title: Datadog Metrics Metric Metadata API
+  description: The Datadog Metrics API allows you to post metrics data to be graphed on Datadog dashboards, query metrics from any time period as timeseries or scalar values, and modify tag configurations for metrics. It also supports viewing tags and volumes for metrics. Metrics data is stored as time series and can be queried programmatically for analysis and visualization.
+  version: v2
+  contact:
+    name: Datadog Support
+    url: https://www.datadoghq.com/support/
+  termsOfService: https://www.datadoghq.com/legal/terms/
+servers:
+- url: https://api.datadoghq.com
+  description: Datadog API Production Server
+security:
+- apiKeyAuth: []
+tags:
+- name: Metric Meta Data
+  description: View and manage metric metadata and active metrics
+paths:
+  /api/v1/metrics:
+    get:
+      operationId: listActiveMetrics
+      summary: Datadog List Active Metrics
+      description: Returns the list of actively reporting metric names for a given hour. Optionally filters by host and metric name prefix. Metrics are considered active if they reported at least one data point within the last 48 hours. Useful for metric discovery and auditing.
+      tags:
+      - Metric Meta Data
+      parameters:
+      - name: from
+        in: query
+        required: true
+        description: POSIX timestamp (seconds) indicating the start of the time window to query active metrics
+        schema:
+          type: integer
+          format: int64
+        example: 42
+      - name: host
+        in: query
+        required: false
+        description: Filter metrics by the hostname that is actively reporting the metric
+        schema:
+          type: string
+        example: example_value
+      - name: tag_filter
+        in: query
+        required: false
+        description: Filter metrics by tag key or key:value pair (e.g., env:prod)
+        schema:
+          type: string
+        example: env:production
+      responses:
+        '200':
+          description: Successful response with list of active metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsListResponse'
+        '400':
+          description: Bad request - invalid or missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions for this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    MetricsListResponse:
+      type: object
+      description: Response containing the list of active metric names
+      properties:
+        from:
+          type: string
+          description: The start time of the active metrics query window as a Unix timestamp string
+          example: example_value
+        metrics:
+          type: array
+          description: The list of active metric names for the specified time window
+          items:
+            type: string
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: DD-API-KEY
+      description: Datadog API key for authenticating requests. Obtain from the Datadog organization settings under API Keys.
+externalDocs:
+  description: Datadog Metrics API Documentation
+  url: https://docs.datadoghq.com/api/latest/metrics/
