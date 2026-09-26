@@ -1,0 +1,95 @@
+generated: '2026-09-23'
+method: searched
+source: https://docs.datadoghq.com/cli.md
+name: Pup CLI
+description: >-
+  Pup is Datadog's official AI-agent-ready command-line interface. It exposes
+  the Datadog API surface for use in terminal and AI-agent workflows, structures
+  commands so agents can navigate them without external documentation, supports
+  OAuth2/PKCE for scoped authentication (falling back to API keys), and returns
+  JSON/YAML for machine consumption.
+repository: https://github.com/DataDog/pup
+install:
+  - method: homebrew
+    platforms: [macOS, Linux]
+    commands:
+      - brew tap datadog-labs/pack
+      - brew install datadog-labs/pack/pup
+  - method: source
+    commands:
+      - git clone https://github.com/DataDog/pup.git && cd pup
+      - cargo build --release
+      - cp target/release/pup /usr/local/bin/pup
+  - method: binary
+    url: https://github.com/DataDog/pup/releases/latest
+authentication:
+  primary: OAuth2 (browser flow via `pup auth login`), with PKCE
+  fallback: API keys via DD_API_KEY / DD_APP_KEY
+  stateless: DD_ACCESS_TOKEN bearer for WASM/headless
+commands:
+  - group: auth
+    examples:
+      - pup auth login
+      - pup auth login --org
+  - group: monitors
+    examples:
+      - pup monitors list --tags="team:api-platform"
+  - group: logs
+    examples:
+      - pup logs search --query="status:error" --from="1h"
+  - group: metrics
+    examples:
+      - pup metrics query --query="avg:system.cpu.user{*}" --from="1h"
+  - group: dashboards
+    examples:
+      - pup dashboards get <DASHBOARD_ID>
+      - pup dashboards delete <DASHBOARD_ID> --yes
+product_coverage:
+  - Core Observability (Metrics, logs, events, RUM, APM, traces)
+  - Monitoring and Alerting (Monitors, dashboards, SLOs, synthetics, downtimes, workflows)
+  - Security and Compliance (Security rules, signals, findings, audit logs, CSM threats)
+  - Infrastructure and Cloud (Hosts, tags, containers, network, AWS/GCP/Azure integrations)
+  - Incident and Operations (Incidents, on-call, work management, error tracking, service catalog)
+  - CI/CD and Development (CI visibility, test optimization, DORA metrics, deployment gates)
+  - Organization and Access (Users, API keys, application keys, organizations)
+  - Platform and Configuration (Usage metering, cost management, feature flags, observability pipelines)
+global_flags:
+  - flag: -o, --output
+    description: 'Output format (json, table, yaml). Default: json.'
+  - flag: -y, --yes
+    description: Skip confirmation prompts for destructive operations.
+  - flag: --agent
+    description: Enable agent mode.
+  - flag: --no-agent
+    description: Disable agent mode.
+  - flag: --read-only
+    description: Block all write operations (create, update, delete).
+  - flag: --org <org>
+    description: Use a named org profile for multi-account workflows.
+environment_variables:
+  - name: DD_ACCESS_TOKEN
+    description: Bearer token for stateless authentication.
+  - name: DD_API_KEY
+    description: Datadog API key (optional if using OAuth2 or DD_ACCESS_TOKEN).
+  - name: DD_APP_KEY
+    description: Datadog application key (optional if using OAuth2 or DD_ACCESS_TOKEN).
+  - name: DD_SITE
+    description: 'Datadog site (default: datadoghq.com).'
+  - name: DD_AUTO_APPROVE
+    description: Auto-approve destructive operations (true/false).
+  - name: DD_TOKEN_STORAGE
+    description: 'Token storage backend (keychain or file, default: auto-detect).'
+agent_mode:
+  description: >-
+    When Pup is invoked by a supported AI coding agent, it auto-detects and
+    switches to agent mode: structured JSON responses, metadata, error details,
+    hints, and auto-approval of confirmation prompts. Explicit enable via
+    --agent or FORCE_AGENT_MODE=1.
+additional_features:
+  - runbooks (local execution engine for YAML-defined operational procedures)
+  - agent skills (ships domain agents/skills embedded in the binary; installable with `pup skills install`)
+  - ACP server (`pup acp serve` runs a local AI agent server; ACP and OpenAI-compatible protocols)
+notes: >-
+  There is also a legacy Python-shipped `dog` CLI bundled with the `datadogpy`
+  library (pypi: datadog); Pup is the current AI-agent-ready CLI documented on
+  the docs site.

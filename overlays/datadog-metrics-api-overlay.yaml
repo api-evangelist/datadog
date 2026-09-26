@@ -1,0 +1,36 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist Metrics surface overlay (Datadog)
+  version: 1.0.0
+extends: openapi/datadog-metrics-api-openapi.yml
+x-generated: '2026-09-23'
+x-method: generated
+x-source: openapi/datadog-metrics-api-openapi.yml
+x-rationale: >-
+  Wire the Metrics submit + query operations to their MCP tools, arazzo
+  workflow, and Agent Skill without mutating the underlying spec.
+actions:
+  - target: $.info
+    description: Attach MCP + workflow pointers to info.
+    update:
+      x-mcp-tools:
+        - {tool: get_datadog_metric,        toolset: core, binding: rest, backs: [GetMetricMetadata]}
+        - {tool: get_datadog_metric_context, toolset: core, binding: rest, backs: [ListTagsByMetricName]}
+        - {tool: search_datadog_metrics,     toolset: core, binding: rest, backs: [ListActiveMetrics]}
+      x-arazzo-workflows:
+        - ../arazzo/datadog-submit-and-query-metrics-workflow.yml
+        - ../arazzo/datadog-manage-metric-metadata-workflow.yml
+      x-agent-skill: skills/datadog-submit-and-query-metrics.md
+  - target: "$.paths['/api/v2/series'].post"
+    description: Note gzip payload and rate-limit expectations for SubmitMetrics.
+    update:
+      x-agent-guidance: >-
+        SubmitMetrics accepts gzip-compressed payloads with
+        `Content-Encoding: gzip`. Prefer batch submissions of up to 100 series
+        per request. See rate-limits/datadog-rate-limits.yml.
+  - target: "$.paths['/api/v2/query/timeseries'].post"
+    description: Point read paths at the queryMetricsTimeseries workflow step.
+    update:
+      x-workflow-step:
+        workflow: datadog-submit-and-query-metrics-workflow.yml
+        step: queryMetricsBackFromSubmit

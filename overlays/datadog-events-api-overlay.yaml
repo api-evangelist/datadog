@@ -1,0 +1,25 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist Events surface overlay (Datadog)
+  version: 1.0.0
+extends: openapi/datadog-events-api-openapi.yml
+x-generated: '2026-09-23'
+x-method: generated
+x-source: openapi/datadog-events-api-openapi.yml
+x-rationale: >-
+  Wire the Events v2 surface (CreateEvent + SearchEvents + ListEvents) to its
+  MCP tool and skill. Does not mutate the underlying spec.
+actions:
+  - target: $.info
+    description: Attach MCP + workflow pointers to info.
+    update:
+      x-mcp-tools:
+        - {tool: search_datadog_events, toolset: core, binding: rest, backs: [SearchEvents, ListEvents]}
+      x-arazzo-workflow: ../arazzo/datadog-post-and-search-events-workflow.yml
+      x-agent-skill: skills/datadog-post-and-search-events.md
+  - target: "$.paths['/api/v2/events'].post"
+    description: CreateEvent is a write path; note the audit trail integration.
+    update:
+      x-agent-guidance: >-
+        CreateEvent posts to /api/v2/events. Include `title`, `text`, tags, and
+        `alert_type`. All calls are audited; see security/datadog-security.yml.

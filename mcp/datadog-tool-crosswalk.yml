@@ -1,0 +1,318 @@
+generated: '2026-09-23'
+method: derived
+source: >-
+  Derived by aligning the published Datadog MCP Server tool inventory
+  (https://docs.datadoghq.com/mcp_server/tools.md, fetched 2026-09-23) with the
+  Datadog v2 REST OpenAPI now split one-per-tag under openapi/ (source archived
+  under openapi/_original/datadog-api-openapi.yml, 523 operations across 297
+  paths). Confidence per row; MCP tools_list is OAuth-gated, so the bindings
+  are by name / semantics, not by a live JSON-RPC probe.
+purpose: >-
+  Bind each Datadog MCP tool to the REST operationId(s) that back it, so the
+  agent-facing surface (MCP tools) has a first-class, machine-checkable link
+  to the underlying REST contract. Datadog exposes REST, GraphQL is not used
+  here — REST and the MCP Server are two overlapping projections of the same
+  Datadog platform.
+surfaces:
+  rest_openapi: openapi/                           # split one-per-tag; source in _original/datadog-api-openapi.yml (523 operations, 297 paths)
+  mcp: https://mcp.datadoghq.com/api/unstable/mcp-server/mcp  # remote HTTP, OAuth-gated; tool inventory from docs.datadoghq.com/mcp_server/tools.md
+crosswalk:
+  # --- Core: monitors ---------------------------------------------------------
+  - tool: create_datadog_monitor
+    toolset: alerting
+    rest: [createMonitor]
+    binding: rest
+    confidence: high
+  - tool: validate_datadog_monitor
+    toolset: alerting
+    rest: [validateMonitor]
+    binding: rest
+    confidence: high
+  - tool: search_datadog_monitors
+    toolset: core
+    rest: [ListMonitors]
+    binding: rest
+    confidence: medium
+    note: 'MCP "search" is REST list with filter[query]; ListMonitors on /api/v1/monitor.'
+  - tool: search_datadog_monitor_groups
+    toolset: alerting
+    rest: [SearchMonitorGroups]
+    binding: rest
+    confidence: medium
+
+  # --- Core: incidents --------------------------------------------------------
+  - tool: get_datadog_incident
+    toolset: core
+    rest: [GetIncident]
+    binding: rest
+    confidence: high
+  - tool: search_datadog_incidents
+    toolset: core
+    rest: [SearchIncidents, ListIncidents]
+    binding: rest
+    confidence: high
+    note: 'SearchIncidents on /api/v2/incidents/search; ListIncidents on /api/v2/incidents.'
+
+  # --- Core: logs -------------------------------------------------------------
+  - tool: search_datadog_logs
+    toolset: core
+    rest: [ListLogs, ListLogsGet]
+    binding: rest
+    confidence: high
+    note: 'ListLogs is POST search (facets, timeframes); ListLogsGet is GET variant.'
+  - tool: analyze_datadog_logs
+    toolset: core
+    rest: [AggregateLogs]
+    binding: rest
+    confidence: high
+    note: '/api/v2/logs/analytics/aggregate — compute/groupBy aggregations over log events.'
+
+  # --- Core: metrics ----------------------------------------------------------
+  - tool: get_datadog_metric
+    toolset: core
+    rest: [GetMetricMetadata, ListActiveMetricConfigurations]
+    binding: rest
+    confidence: medium
+    note: 'REST returns metric metadata + active configurations; MCP consolidates.'
+  - tool: search_datadog_metrics
+    toolset: core
+    rest: [ListActiveMetrics, ListTagConfigurations]
+    binding: rest
+    confidence: medium
+    note: 'ListActiveMetrics accepts filter[configured] / filter[tags]; MCP surfaces both.'
+  - tool: get_datadog_metric_context
+    toolset: core
+    rest: [ListTagsByMetricName, ListActiveMetricConfigurations]
+    binding: rest
+    confidence: medium
+
+  # --- Core: traces / spans ---------------------------------------------------
+  - tool: get_datadog_trace
+    toolset: core
+    rest: [ListSpans]
+    binding: rest
+    confidence: medium
+    note: 'REST exposes ListSpans on /api/v2/spans/events/search; MCP `get_trace` requests a trace ID and returns the reassembled trace.'
+  - tool: search_datadog_spans
+    toolset: core
+    rest: [ListSpans, AggregateSpans]
+    binding: rest
+    confidence: high
+
+  # --- Core: dashboards & notebooks -------------------------------------------
+  - tool: get_datadog_dashboard
+    toolset: dashboards
+    rest: [GetDashboard]
+    binding: rest
+    confidence: medium
+    note: 'Dashboards live on the v1 surface — captured in openapi/_original/datadog-api-openapi.yml but not in the split-per-tag v2 files.'
+  - tool: upsert_datadog_dashboard
+    toolset: dashboards
+    rest: [CreateDashboard, UpdateDashboard]
+    binding: rest
+    confidence: medium
+  - tool: delete_datadog_dashboard
+    toolset: dashboards
+    rest: [DeleteDashboard]
+    binding: rest
+    confidence: medium
+  - tool: search_datadog_dashboards
+    toolset: core
+    rest: [ListDashboards]
+    binding: rest
+    confidence: medium
+  - tool: get_datadog_notebook
+    toolset: core
+    rest: [GetNotebook]
+    binding: rest
+    confidence: medium
+  - tool: search_datadog_notebooks
+    toolset: core
+    rest: [ListNotebooks]
+    binding: rest
+    confidence: medium
+  - tool: create_datadog_notebook
+    toolset: core
+    rest: [CreateNotebook]
+    binding: rest
+    confidence: medium
+  - tool: edit_datadog_notebook
+    toolset: core
+    rest: [UpdateNotebook]
+    binding: rest
+    confidence: medium
+
+  # --- Core: events -----------------------------------------------------------
+  - tool: search_datadog_events
+    toolset: core
+    rest: [SearchEvents, ListEvents]
+    binding: rest
+    confidence: high
+
+  # --- Core: hosts ------------------------------------------------------------
+  - tool: search_datadog_hosts
+    toolset: core
+    rest: [ListHosts]
+    binding: rest
+    confidence: medium
+    note: 'ListHosts on the v1 surface (/api/v1/hosts) with query filter, sort, count.'
+
+  # --- Alerting: SLOs, coverage, templates ------------------------------------
+  - tool: search_datadog_slos
+    toolset: alerting
+    rest: [ListSLOs]
+    binding: rest
+    confidence: medium
+  - tool: get_monitor_coverage
+    toolset: alerting
+    rest: [ListMonitors]
+    binding: rest
+    confidence: low
+    note: 'Coverage is derived from monitor listing + tag graph; no dedicated REST op.'
+  - tool: get_datadog_monitor_templates
+    toolset: alerting
+    binding: mcp_only
+    confidence: high
+    reason: 'Monitor templates are a Datadog product surface without a public REST operationId.'
+
+  # --- Audit Trail ------------------------------------------------------------
+  - tool: search_audit_events
+    toolset: audit-trail
+    rest: [SearchAuditLogs]
+    binding: rest
+    confidence: high
+    note: 'POST /api/v2/audit/events/search.'
+  - tool: list_audit_events
+    toolset: audit-trail
+    rest: [ListAuditLogs]
+    binding: rest
+    confidence: high
+  - tool: build_audit_trail_query
+    toolset: audit-trail
+    binding: mcp_only
+    confidence: high
+    reason: 'Query builder is client-side / MCP-only helper; no REST op backs it.'
+
+  # --- Cases (Preview / GA on request) ---------------------------------------
+  - tool: search_datadog_cases
+    toolset: cases
+    rest: [SearchCases]
+    binding: rest
+    confidence: high
+  - tool: get_datadog_case
+    toolset: cases
+    rest: [GetCase]
+    binding: rest
+    confidence: high
+  - tool: create_datadog_case
+    toolset: cases
+    rest: [CreateCase]
+    binding: rest
+    confidence: high
+  - tool: update_datadog_case
+    toolset: cases
+    rest: [UpdateCase]
+    binding: rest
+    confidence: high
+  - tool: add_comment_to_datadog_case
+    toolset: cases
+    rest: [CreateCaseComment]
+    binding: rest
+    confidence: medium
+  - tool: search_datadog_users
+    toolset: cases
+    rest: [ListUsers]
+    binding: rest
+    confidence: high
+
+  # --- Cloud Cost Management --------------------------------------------------
+  - tool: cost_recommendations
+    toolset: cost
+    binding: mcp_only
+    confidence: medium
+    reason: >-
+      Recommendations are surfaced through /api/v2/cost/* endpoints (custom
+      costs, AWS/Azure UC configs) but a dedicated "listRecommendations"
+      operationId is not present in the split-per-tag v2 spec captured here.
+
+  # --- Code Execution ---------------------------------------------------------
+  - tool: execute_code
+    toolset: code-exec
+    binding: mcp_only
+    confidence: high
+    reason: >-
+      Runs agent-authored JavaScript inside a Datadog-managed sandbox with
+      direct access to Datadog APIs — no public REST equivalent.
+  - tool: search_datadog_sdk
+    toolset: code-exec
+    binding: mcp_only
+    confidence: high
+    reason: Documentation-search helper for the Datadog code-exec SDK; no REST op.
+
+  # --- Assistant (Bits Chat) --------------------------------------------------
+  - tool: send_message_to_assistant
+    toolset: assistant
+    binding: mcp_only
+    confidence: high
+    reason: Bits Chat is not exposed on the public REST API.
+  - tool: get_assistant_conversation_history
+    toolset: assistant
+    binding: mcp_only
+    confidence: high
+  - tool: list_assistant_conversations
+    toolset: assistant
+    binding: mcp_only
+    confidence: high
+
+mcp_only:
+  - tool: get_datadog_monitor_templates
+    reason: No public REST op — monitor template catalog is served by the MCP layer.
+  - tool: build_audit_trail_query
+    reason: Client-side query builder helper.
+  - tool: execute_code
+    reason: Sandboxed JS runtime (code-exec toolset).
+  - tool: search_datadog_sdk
+    reason: Documentation-search helper for the code-exec SDK.
+  - tool: send_message_to_assistant
+    reason: Bits Chat / assistant surface, not on public REST.
+  - tool: get_assistant_conversation_history
+    reason: Bits Chat state, not on public REST.
+  - tool: list_assistant_conversations
+    reason: Bits Chat state, not on public REST.
+  - tool: cost_recommendations
+    reason: Recommendation ranker; no dedicated REST operationId.
+  - tool: ask_widget_expert
+    reason: Widget-selection helper backed by the MCP AI provider.
+  - tool: aggregate_rum_events
+    reason: RUM analytics aggregation not covered by a plain REST operationId.
+
+rest_only:
+  - group: Monitor lifecycle beyond the MCP surface
+    ops: [UpdateMonitor, DeleteMonitor, CheckCanDeleteMonitor, ValidateExistingMonitor]
+  - group: Downtime scheduling
+    ops: [CreateDowntime, GetDowntime, ListDowntimes, UpdateDowntime, CancelDowntime]
+  - group: API key + application key management
+    ops: [CreateAPIKey, GetAPIKey, ListAPIKeys, UpdateAPIKey, DeleteAPIKey]
+  - group: Log ingestion & config
+    ops: [SubmitLog, CreateLogsArchive, UpdateLogsArchive, DeleteLogsArchive, GetLogsArchive, ListLogsArchives, CreateLogsMetric, CreateLogsIndex]
+  - group: Metric submission & query
+    ops: [SubmitMetrics, queryMetricsTimeseries, QueryTimeseriesData, QueryScalarData]
+  - group: User, role, team lifecycle
+    ops: [CreateUser, UpdateUser, ListUsers, GetUser, CreateRole, GetRole, DeleteRole, ListRoles, CreateTeam, UpdateTeam, GetTeam, DeleteTeam, ListTeams, SendInvitations]
+  - group: Incident attachments & assignees
+    ops: [UpdateIncidentAttachments, ListIncidentAttachments, CreateIncidentIntegration]
+  - group: Service accounts
+    ops: [CreateServiceAccount, CreateServiceAccountApplicationKey]
+
+coverage:
+  mcp_tools_documented: 308
+  mcp_bound_to_rest: 32   # tools with a clear REST operationId binding above
+  mcp_only: 10            # tools with no public REST equivalent
+  rest_operations_total: 523
+  note: >-
+    Bindings above are illustrative marquee routes across the toolset catalog
+    (core, alerting, audit-trail, cases, cost, assistant, code-exec, dashboards).
+    Datadog's REST catalog is much larger than the MCP tool surface — most
+    write-side lifecycle operations (update/delete monitors, manage API keys,
+    schedule downtime, invite users, create service accounts) live in REST
+    only and are captured in `rest_only` above.

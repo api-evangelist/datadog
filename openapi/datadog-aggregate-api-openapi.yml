@@ -267,77 +267,110 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    CIAppResponseMetadataWithPagination:
-      description: The metadata associated with a request.
+    CIAppComputes:
+      additionalProperties:
+        $ref: '#/components/schemas/CIAppAggregateBucketValue'
+      description: A map of the metric name to value for regular compute, or a list of values for a timeseries.
+      type: object
+    RUMGroupBy:
+      description: A group-by rule.
       properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
+        facet:
+          description: The name of the facet to use (required).
+          example: '@view.time_spent'
+          type: string
+        histogram:
+          $ref: '#/components/schemas/RUMGroupByHistogram'
+        limit:
+          default: 10
+          description: The maximum buckets to return for this group-by.
           format: int64
           type: integer
-        page:
-          $ref: '#/components/schemas/CIAppResponsePage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/CIAppResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
+          example: 42
+        missing:
+          $ref: '#/components/schemas/RUMGroupByMissing'
+        sort:
+          $ref: '#/components/schemas/RUMAggregateSort'
+        total:
+          $ref: '#/components/schemas/RUMGroupByTotal'
+      required:
+      - facet
+      type: object
+    CIAppTestsAggregationBucketsResponse:
+      description: The query results.
+      properties:
+        buckets:
+          description: The list of matching buckets, one item per bucket.
           items:
-            $ref: '#/components/schemas/CIAppWarning'
+            $ref: '#/components/schemas/CIAppTestsBucketResponse'
           type: array
       type: object
-    RUMAggregateSort:
-      description: A sort rule.
-      example:
-        aggregation: count
-        order: asc
+    SpansAggregateBucketAttributes:
+      description: A bucket values.
       properties:
-        aggregation:
-          $ref: '#/components/schemas/RUMAggregationFunction'
-        metric:
-          description: The metric to sort by (only used for `type=measure`).
-          example: '@duration'
-          type: string
-        order:
-          $ref: '#/components/schemas/RUMSortOrder'
-        type:
-          $ref: '#/components/schemas/RUMAggregateSortType'
+        by:
+          additionalProperties:
+            description: The values for each group by.
+          description: The key, value pairs for each group by.
+          example:
+            '@state': success
+            '@version': abc
+          type: object
+        compute:
+          description: The compute data.
+          type: object
+        computes:
+          additionalProperties:
+            $ref: '#/components/schemas/SpansAggregateBucketValue'
+          description: A map of the metric name -> value for regular compute or list of values for a timeseries.
+          type: object
       type: object
-    CIAppResponseLinks:
-      description: Links attributes.
+    CIAppComputeType:
+      default: total
+      description: The type of compute.
+      enum:
+      - timeseries
+      - total
+      type: string
+      x-enum-varnames:
+      - TIMESERIES
+      - TOTAL
+    RUMGroupByMissing:
+      description: The value to use for logs that don't have the facet used to group by.
+      oneOf:
+      - $ref: '#/components/schemas/RUMGroupByMissingString'
+      - $ref: '#/components/schemas/RUMGroupByMissingNumber'
+    CIAppGroupByTotal:
+      default: false
+      description: A resulting object to put the given computes in over all the matching records.
+      oneOf:
+      - $ref: '#/components/schemas/CIAppGroupByTotalBoolean'
+      - $ref: '#/components/schemas/CIAppGroupByTotalString'
+      - $ref: '#/components/schemas/CIAppGroupByTotalNumber'
+    LogsResponseMetadataPage:
+      description: Paging attributes.
       properties:
-        next:
-          description: 'Link for the next set of results. The request can also be made using the
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
 
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/ci/tests/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
       type: object
-    SpansQueryFilter:
-      description: The search and filter query settings.
+    SpansAggregateBucketValueTimeseriesPoint:
+      description: A timeseries point.
       properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
-          example: now-15m
+        time:
+          description: The time value for this point.
+          example: '2023-06-08T11:55:00Z'
           type: string
-        query:
-          default: '*'
-          description: The search query - following the span search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-        to:
-          default: now
-          description: The maximum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
-          example: now
-          type: string
+        value:
+          description: The value for this point.
+          example: 19
+          format: double
+          type: number
       type: object
-    RUMAggregateBucketValueTimeseriesPoint:
+    CIAppAggregateBucketValueTimeseriesPoint:
       description: A timeseries point.
       properties:
         time:
@@ -351,101 +384,34 @@ components:
           format: double
           type: number
       type: object
-    LogsAggregateResponse:
-      description: The response object for the logs aggregate API endpoint
-      properties:
-        data:
-          $ref: '#/components/schemas/LogsAggregateResponseData'
-        meta:
-          $ref: '#/components/schemas/LogsResponseMetadata'
-      type: object
-    CIAppTestsGroupBy:
-      description: A group-by rule.
-      properties:
-        facet:
-          description: The name of the facet to use (required).
-          example: '@test.service'
-          type: string
-        histogram:
-          $ref: '#/components/schemas/CIAppGroupByHistogram'
-        limit:
-          default: 10
-          description: The maximum buckets to return for this group-by.
-          format: int64
-          type: integer
-          example: 42
-        missing:
-          $ref: '#/components/schemas/CIAppGroupByMissing'
-        sort:
-          $ref: '#/components/schemas/CIAppAggregateSort'
-        total:
-          $ref: '#/components/schemas/CIAppGroupByTotal'
-      required:
-      - facet
-      type: object
-    SpansQueryOptions:
-      description: 'Global query options that are used during the query.
-
-        Note: You should only supply timezone or time offset but not both otherwise the query will fail.'
-      properties:
-        timeOffset:
-          description: The time offset (in seconds) to apply to the query.
-          format: int64
-          type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
-          type: string
-      type: object
-    SpansAggregateSortType:
-      default: alphabetical
-      description: The type of sorting algorithm.
+    RUMComputeType:
+      default: total
+      description: The type of compute.
       enum:
-      - alphabetical
-      - measure
+      - timeseries
+      - total
       type: string
       x-enum-varnames:
-      - ALPHABETICAL
-      - MEASURE
-    LogsAggregateRequestPage:
-      description: Paging settings
+      - TIMESERIES
+      - TOTAL
+    LogsAggregateSort:
+      description: A sort rule
+      example:
+        aggregation: count
+        order: asc
       properties:
-        cursor:
-          description: 'The returned paging point to use to get the next results. Note: at most 1000 results can be paged.'
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        aggregation:
+          $ref: '#/components/schemas/LogsAggregationFunction'
+        metric:
+          description: The metric to sort by (only used for `type=measure`)
+          example: '@duration'
           type: string
+        order:
+          $ref: '#/components/schemas/LogsSortOrder'
+        type:
+          $ref: '#/components/schemas/LogsAggregateSortType'
       type: object
-    RUMGroupByTotal:
-      default: false
-      description: A resulting object to put the given computes in over all the matching records.
-      oneOf:
-      - $ref: '#/components/schemas/RUMGroupByTotalBoolean'
-      - $ref: '#/components/schemas/RUMGroupByTotalString'
-      - $ref: '#/components/schemas/RUMGroupByTotalNumber'
-    RUMQueryPageOptions:
-      description: Paging attributes for listing events.
-      properties:
-        cursor:
-          description: List following results with a cursor provided in the previous query.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-        limit:
-          default: 10
-          description: Maximum number of events in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
-      type: object
-    CIAppAggregateBucketValue:
-      description: A bucket value, can either be a timeseries or a single value.
-      oneOf:
-      - $ref: '#/components/schemas/CIAppAggregateBucketValueSingleString'
-      - $ref: '#/components/schemas/CIAppAggregateBucketValueSingleNumber'
-      - $ref: '#/components/schemas/CIAppAggregateBucketValueTimeseries'
-    RUMWarning:
+    CIAppWarning:
       description: A warning message indicating something that went wrong with the query.
       properties:
         code:
@@ -461,165 +427,76 @@ components:
           example: One or several indexes are missing or invalid, results hold data from the other indexes
           type: string
       type: object
-    SpansGroupByTotalBoolean:
-      description: If set to true, creates an additional bucket labeled "$facet_total".
-      type: boolean
-    CIAppPipelinesAggregateRequest:
-      description: The object sent with the request to retrieve aggregation buckets of pipeline events from your organization.
+    CIAppResponseMetadata:
+      description: The metadata associated with a request.
       properties:
-        compute:
-          description: The list of metrics or timeseries to compute for the retrieved buckets.
-          items:
-            $ref: '#/components/schemas/CIAppCompute'
-          type: array
-        filter:
-          $ref: '#/components/schemas/CIAppPipelinesQueryFilter'
-        group_by:
-          description: The rules for the group-by.
-          items:
-            $ref: '#/components/schemas/CIAppPipelinesGroupBy'
-          type: array
-        options:
-          $ref: '#/components/schemas/CIAppQueryOptions'
-      type: object
-    SpansAggregateBucketType:
-      description: The spans aggregate bucket type.
-      enum:
-      - bucket
-      example: bucket
-      type: string
-      x-enum-varnames:
-      - BUCKET
-    LogsQueryOptions:
-      deprecated: true
-      description: 'Global query options that are used during the query.
-
-        Note: These fields are currently deprecated and do not affect the query results.'
-      properties:
-        timeOffset:
-          description: The time offset (in seconds) to apply to the query.
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
           format: int64
           type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
           type: string
+        status:
+          $ref: '#/components/schemas/CIAppResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/CIAppWarning'
+          type: array
       type: object
-    LogsAggregateBucketValueTimeseriesPoint:
-      description: A timeseries point
+    RUMAggregateBucketValueTimeseriesPoint:
+      description: A timeseries point.
       properties:
         time:
-          description: The time value for this point
-          example: '2020-06-08T11:55:00Z'
+          description: The time value for this point.
+          example: '2020-06-08T11:55:00.123Z'
+          format: date-time
           type: string
         value:
-          description: The value for this point
+          description: The value for this point.
           example: 19
           format: double
           type: number
       type: object
-    LogsAggregateBucketValueSingleString:
-      description: A single string value
-      type: string
-    CIAppGroupByTotalNumber:
-      description: A number to use as the key value for the total bucket.
+    CIAppPipelinesAnalyticsAggregateResponse:
+      description: The response object for the pipeline events aggregate API endpoint.
+      properties:
+        data:
+          $ref: '#/components/schemas/CIAppPipelinesAggregationBucketsResponse'
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadata'
+      type: object
+    RUMAggregateBucketValueSingleNumber:
+      description: A single number value.
       format: double
       type: number
-    RUMAggregateBucketValueTimeseries:
-      description: A timeseries array.
-      items:
-        $ref: '#/components/schemas/RUMAggregateBucketValueTimeseriesPoint'
-      type: array
-      x-generate-alias-as-model: true
-    SpansAggregateBucketValue:
-      description: A bucket value, can be either a timeseries or a single value.
-      oneOf:
-      - $ref: '#/components/schemas/SpansAggregateBucketValueSingleString'
-      - $ref: '#/components/schemas/SpansAggregateBucketValueSingleNumber'
-      - $ref: '#/components/schemas/SpansAggregateBucketValueTimeseries'
-    CIAppTestsBucketResponse:
-      description: Bucket values.
+    LogsGroupByMissingNumber:
+      description: The missing value to use if there is a number valued facet.
+      format: double
+      type: number
+    LogsWarning:
+      description: A warning message indicating something that went wrong with the query
       properties:
-        by:
-          additionalProperties:
-            description: The values for each group-by.
-          description: The key-value pairs for each group-by.
-          example:
-            '@test.service': web-ui-tests
-            '@test.status': skip
-          type: object
-        computes:
-          $ref: '#/components/schemas/CIAppComputes'
-      type: object
-    LogsAggregateBucketValue:
-      description: A bucket value, can be either a timeseries or a single value
-      oneOf:
-      - $ref: '#/components/schemas/LogsAggregateBucketValueSingleString'
-      - $ref: '#/components/schemas/LogsAggregateBucketValueSingleNumber'
-      - $ref: '#/components/schemas/LogsAggregateBucketValueTimeseries'
-    LogsGroupByMissing:
-      description: The value to use for logs that don't have the facet used to group by
-      oneOf:
-      - $ref: '#/components/schemas/LogsGroupByMissingString'
-      - $ref: '#/components/schemas/LogsGroupByMissingNumber'
-    CIAppAggregateSortType:
-      default: alphabetical
-      description: The type of sorting algorithm.
-      enum:
-      - alphabetical
-      - measure
-      type: string
-      x-enum-varnames:
-      - ALPHABETICAL
-      - MEASURE
-    CIAppPipelinesGroupBy:
-      description: A group-by rule.
-      properties:
-        facet:
-          description: The name of the facet to use (required).
-          example: '@ci.status'
+        code:
+          description: A unique code for this type of warning
+          example: unknown_index
           type: string
-        histogram:
-          $ref: '#/components/schemas/CIAppGroupByHistogram'
-        limit:
-          default: 10
-          description: The maximum buckets to return for this group-by.
-          format: int64
-          type: integer
-          example: 42
-        missing:
-          $ref: '#/components/schemas/CIAppGroupByMissing'
-        sort:
-          $ref: '#/components/schemas/CIAppAggregateSort'
-        total:
-          $ref: '#/components/schemas/CIAppGroupByTotal'
-      required:
-      - facet
+        detail:
+          description: A detailed explanation of this specific warning
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
       type: object
-    LogsAggregateBucketValueTimeseries:
-      description: A timeseries array
-      items:
-        $ref: '#/components/schemas/LogsAggregateBucketValueTimeseriesPoint'
-      type: array
-      x-generate-alias-as-model: true
-    CIAppResponseStatus:
-      description: The status of the response.
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    RUMGroupByTotalBoolean:
-      description: If set to true, creates an additional bucket labeled "$facet_total".
-      type: boolean
-    SpansGroupByMissingString:
-      description: The missing value to use if there is string valued facet.
-      type: string
     SpansGroupBy:
       description: A group by rule.
       properties:
@@ -644,7 +521,104 @@ components:
       required:
       - facet
       type: object
-    SpansSortOrder:
+    RUMCompute:
+      description: A compute rule to compute metrics or timeseries.
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/RUMAggregationFunction'
+        interval:
+          description: 'The time buckets'' size (only used for type=timeseries)
+
+            Defaults to a resolution of 150 points.'
+          example: 5m
+          type: string
+        metric:
+          description: The metric to use.
+          example: '@duration'
+          type: string
+        type:
+          $ref: '#/components/schemas/RUMComputeType'
+      required:
+      - aggregation
+      type: object
+    CIAppPipelinesBucketResponse:
+      description: Bucket values.
+      properties:
+        by:
+          additionalProperties:
+            description: The values for each group-by.
+          description: The key-value pairs for each group-by.
+          example:
+            '@ci.provider.name': gitlab
+            '@ci.status': success
+          type: object
+        computes:
+          $ref: '#/components/schemas/CIAppComputes'
+      type: object
+    LogsAggregateResponseStatus:
+      description: The status of the response
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    LogsSortOrder:
+      description: The order to use, ascending or descending
+      enum:
+      - asc
+      - desc
+      example: asc
+      type: string
+      x-enum-varnames:
+      - ASCENDING
+      - DESCENDING
+    CIAppResponseMetadataWithPagination:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/CIAppResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/CIAppWarning'
+          type: array
+      type: object
+    CIAppTestsQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@test.service:web-ui-tests AND @test.status:fail'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    CIAppSortOrder:
       description: The order to use, ascending or descending.
       enum:
       - asc
@@ -674,130 +648,27 @@ components:
         page:
           $ref: '#/components/schemas/LogsAggregateRequestPage'
       type: object
-    CIAppPipelinesBucketResponse:
-      description: Bucket values.
-      properties:
-        by:
-          additionalProperties:
-            description: The values for each group-by.
-          description: The key-value pairs for each group-by.
-          example:
-            '@ci.provider.name': gitlab
-            '@ci.status': success
-          type: object
-        computes:
-          $ref: '#/components/schemas/CIAppComputes'
-      type: object
-    LogsAggregateResponseStatus:
-      description: The status of the response
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    CIAppTestsAnalyticsAggregateResponse:
-      description: The response object for the test events aggregate API endpoint.
-      properties:
-        data:
-          $ref: '#/components/schemas/CIAppTestsAggregationBucketsResponse'
-        links:
-          $ref: '#/components/schemas/CIAppResponseLinks'
-        meta:
-          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
-      type: object
-    CIAppAggregateBucketValueSingleString:
-      description: A single string value.
-      type: string
-    CIAppGroupByMissingString:
-      description: The missing value to use if there is a string valued facet.
-      type: string
-    LogsAggregationFunction:
-      description: An aggregation function
-      enum:
-      - count
-      - cardinality
-      - pc75
-      - pc90
-      - pc95
-      - pc98
-      - pc99
-      - sum
-      - min
-      - max
-      - avg
-      - median
-      example: pc90
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - CARDINALITY
-      - PERCENTILE_75
-      - PERCENTILE_90
-      - PERCENTILE_95
-      - PERCENTILE_98
-      - PERCENTILE_99
-      - SUM
-      - MIN
-      - MAX
-      - AVG
-      - MEDIAN
-    CIAppCompute:
-      description: A compute rule to compute metrics or timeseries.
+    SpansAggregateSort:
+      description: A sort rule.
+      example:
+        aggregation: count
+        order: asc
       properties:
         aggregation:
-          $ref: '#/components/schemas/CIAppAggregationFunction'
-        interval:
-          description: 'The time buckets'' size (only used for type=timeseries)
-
-            Defaults to a resolution of 150 points.'
-          example: 5m
-          type: string
+          $ref: '#/components/schemas/SpansAggregationFunction'
         metric:
-          description: The metric to use.
+          description: The metric to sort by (only used for `type=measure`).
           example: '@duration'
           type: string
+        order:
+          $ref: '#/components/schemas/SpansSortOrder'
         type:
-          $ref: '#/components/schemas/CIAppComputeType'
-      required:
-      - aggregation
+          $ref: '#/components/schemas/SpansAggregateSortType'
       type: object
-    SpansAggregateResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/SpansAggregateResponseStatus'
-        warnings:
-          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/SpansWarning'
-          type: array
-      type: object
-    CIAppAggregateBucketValueSingleNumber:
-      description: A single number value.
-      format: double
-      type: number
-    LogsGroupByTotal:
-      default: false
-      description: A resulting object to put the given computes in over all the matching records.
-      oneOf:
-      - $ref: '#/components/schemas/LogsGroupByTotalBoolean'
-      - $ref: '#/components/schemas/LogsGroupByTotalString'
-      - $ref: '#/components/schemas/LogsGroupByTotalNumber'
-    CIAppComputeType:
+    RUMAggregateBucketValueSingleString:
+      description: A single string value.
+      type: string
+    SpansComputeType:
       default: total
       description: The type of compute.
       enum:
@@ -807,63 +678,93 @@ components:
       x-enum-varnames:
       - TIMESERIES
       - TOTAL
-    CIAppSortOrder:
-      description: The order to use, ascending or descending.
-      enum:
-      - asc
-      - desc
-      example: asc
-      type: string
-      x-enum-varnames:
-      - ASCENDING
-      - DESCENDING
-    RUMAggregateRequest:
-      description: The object sent with the request to retrieve aggregation buckets of RUM events from your organization.
+    CIAppAggregateSort:
+      description: A sort rule. The `aggregation` field is required when `type` is `measure`.
+      example:
+        aggregation: count
+        order: asc
       properties:
-        compute:
-          description: The list of metrics or timeseries to compute for the retrieved buckets.
-          items:
-            $ref: '#/components/schemas/RUMCompute'
-          type: array
-        filter:
-          $ref: '#/components/schemas/RUMQueryFilter'
-        group_by:
-          description: The rules for the group by.
-          items:
-            $ref: '#/components/schemas/RUMGroupBy'
-          type: array
-        options:
-          $ref: '#/components/schemas/RUMQueryOptions'
-        page:
-          $ref: '#/components/schemas/RUMQueryPageOptions'
+        aggregation:
+          $ref: '#/components/schemas/CIAppAggregationFunction'
+        metric:
+          description: The metric to sort by (only used for `type=measure`).
+          example: '@duration'
+          type: string
+        order:
+          $ref: '#/components/schemas/CIAppSortOrder'
+        type:
+          $ref: '#/components/schemas/CIAppAggregateSortType'
       type: object
-    RUMAggregateSortType:
-      default: alphabetical
-      description: The type of sorting algorithm.
-      enum:
-      - alphabetical
-      - measure
-      type: string
-      x-enum-varnames:
-      - ALPHABETICAL
-      - MEASURE
-    CIAppResponsePage:
-      description: Paging attributes.
+    RUMGroupByMissingNumber:
+      description: The missing value to use if there is a number valued facet.
+      format: double
+      type: number
+    LogsAggregateBucketValueSingleNumber:
+      description: A single number value
+      format: double
+      type: number
+    RUMQueryFilter:
+      description: The search and filter query settings.
       properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the RUM search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now
           type: string
       type: object
-    RUMAggregationBucketsResponse:
-      description: The query results.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        buckets:
-          description: The list of matching buckets, one item per bucket.
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
           items:
-            $ref: '#/components/schemas/RUMBucketResponse'
+            description: A list of items.
+            example: Bad Request
+            type: string
           type: array
+      required:
+      - errors
       type: object
+    RUMBucketResponse:
+      description: Bucket values.
+      properties:
+        by:
+          additionalProperties:
+            description: The values for each group-by.
+            type: string
+          description: The key-value pairs for each group-by.
+          example:
+            '@session.type': user
+            '@type': view
+          type: object
+        computes:
+          additionalProperties:
+            $ref: '#/components/schemas/RUMAggregateBucketValue'
+          description: A map of the metric name to value for regular compute, or a list of values for a timeseries.
+          type: object
+      type: object
+    SpansAggregateResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
     LogsAggregateBucket:
       description: A bucket values
       properties:
@@ -881,109 +782,45 @@ components:
           description: A map of the metric name -> value for regular compute or list of values for a timeseries
           type: object
       type: object
-    CIAppResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/CIAppResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/CIAppWarning'
-          type: array
-      type: object
-    RUMGroupByMissing:
-      description: The value to use for logs that don't have the facet used to group by.
+    CIAppAggregateBucketValueSingleString:
+      description: A single string value.
+      type: string
+    SpansAggregateRequestType:
+      default: aggregate_request
+      description: The type of resource. The value should always be aggregate_request.
+      enum:
+      - aggregate_request
+      example: aggregate_request
+      type: string
+      x-enum-varnames:
+      - AGGREGATE_REQUEST
+    SpansGroupByMissing:
+      description: The value to use for spans that don't have the facet used to group by.
       oneOf:
-      - $ref: '#/components/schemas/RUMGroupByMissingString'
-      - $ref: '#/components/schemas/RUMGroupByMissingNumber'
-    CIAppTestsQueryFilter:
-      description: The search and filter query settings.
+      - $ref: '#/components/schemas/SpansGroupByMissingString'
+      - $ref: '#/components/schemas/SpansGroupByMissingNumber'
+    SpansAggregateData:
+      description: The object containing the query content.
       properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
-          example: now-15m
-          type: string
-        query:
-          default: '*'
-          description: The search query following the CI Visibility Explorer search syntax.
-          example: '@test.service:web-ui-tests AND @test.status:fail'
-          type: string
-        to:
-          default: now
-          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
-          example: now
-          type: string
-      type: object
-    CIAppTestsAggregateRequest:
-      description: The object sent with the request to retrieve aggregation buckets of test events from your organization.
-      properties:
-        compute:
-          description: The list of metrics or timeseries to compute for the retrieved buckets.
-          items:
-            $ref: '#/components/schemas/CIAppCompute'
-          type: array
-        filter:
-          $ref: '#/components/schemas/CIAppTestsQueryFilter'
-        group_by:
-          description: The rules for the group-by.
-          items:
-            $ref: '#/components/schemas/CIAppTestsGroupBy'
-          type: array
-        options:
-          $ref: '#/components/schemas/CIAppQueryOptions'
-      type: object
-    CIAppPipelinesQueryFilter:
-      description: The search and filter query settings.
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
-          example: now-15m
-          type: string
-        query:
-          default: '*'
-          description: The search query following the CI Visibility Explorer search syntax.
-          example: '@ci.provider.name:github AND @ci.status:error'
-          type: string
-        to:
-          default: now
-          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
-          example: now
-          type: string
-      type: object
-    RUMCompute:
-      description: A compute rule to compute metrics or timeseries.
-      properties:
-        aggregation:
-          $ref: '#/components/schemas/RUMAggregationFunction'
-        interval:
-          description: 'The time buckets'' size (only used for type=timeseries)
-
-            Defaults to a resolution of 150 points.'
-          example: 5m
-          type: string
-        metric:
-          description: The metric to use.
-          example: '@duration'
-          type: string
+        attributes:
+          $ref: '#/components/schemas/SpansAggregateRequestAttributes'
         type:
-          $ref: '#/components/schemas/RUMComputeType'
-      required:
-      - aggregation
+          $ref: '#/components/schemas/SpansAggregateRequestType'
       type: object
+    RUMGroupByTotalNumber:
+      description: A number to use as the key value for the total bucket.
+      format: double
+      type: number
+    SpansAggregateSortType:
+      default: alphabetical
+      description: The type of sorting algorithm.
+      enum:
+      - alphabetical
+      - measure
+      type: string
+      x-enum-varnames:
+      - ALPHABETICAL
+      - MEASURE
     RUMResponseStatus:
       description: The status of the response.
       enum:
@@ -994,68 +831,273 @@ components:
       x-enum-varnames:
       - DONE
       - TIMEOUT
-    SpansGroupByMissing:
-      description: The value to use for spans that don't have the facet used to group by.
-      oneOf:
-      - $ref: '#/components/schemas/SpansGroupByMissingString'
-      - $ref: '#/components/schemas/SpansGroupByMissingNumber'
+    RUMResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    SpansGroupByTotalBoolean:
+      description: If set to true, creates an additional bucket labeled "$facet_total".
+      type: boolean
+    LogsResponseMetadata:
+      description: The metadata associated with a request
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/LogsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/LogsAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/LogsWarning'
+          type: array
+      type: object
+    SpansGroupByMissingString:
+      description: The missing value to use if there is string valued facet.
+      type: string
     SpansGroupByTotalString:
       description: A string to use as the key value for the total bucket.
       type: string
-    CIAppWarning:
-      description: A warning message indicating something that went wrong with the query.
+    CIAppAggregateSortType:
+      default: alphabetical
+      description: The type of sorting algorithm.
+      enum:
+      - alphabetical
+      - measure
+      type: string
+      x-enum-varnames:
+      - ALPHABETICAL
+      - MEASURE
+    RUMQueryPageOptions:
+      description: Paging attributes for listing events.
       properties:
-        code:
-          description: A unique code for this type of warning.
-          example: unknown_index
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
-        detail:
-          description: A detailed explanation of this specific warning.
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning.
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
       type: object
+    CIAppTestsAnalyticsAggregateResponse:
+      description: The response object for the test events aggregate API endpoint.
+      properties:
+        data:
+          $ref: '#/components/schemas/CIAppTestsAggregationBucketsResponse'
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
+      type: object
+    RUMAggregateBucketValue:
+      description: A bucket value, can be either a timeseries or a single value.
+      oneOf:
+      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleString'
+      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleNumber'
+      - $ref: '#/components/schemas/RUMAggregateBucketValueTimeseries'
+    LogsAggregateSortType:
+      default: alphabetical
+      description: The type of sorting algorithm
+      enum:
+      - alphabetical
+      - measure
+      type: string
+      x-enum-varnames:
+      - ALPHABETICAL
+      - MEASURE
+    LogsGroupByTotalNumber:
+      description: A number to use as the key value for the total bucket
+      format: double
+      type: number
+    SpansAggregateRequestAttributes:
+      description: The object containing all the query parameters.
+      properties:
+        compute:
+          description: The list of metrics or timeseries to compute for the retrieved buckets.
+          items:
+            $ref: '#/components/schemas/SpansCompute'
+          type: array
+        filter:
+          $ref: '#/components/schemas/SpansQueryFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/SpansGroupBy'
+          type: array
+        options:
+          $ref: '#/components/schemas/SpansQueryOptions'
+      type: object
+    CIAppAggregateBucketValue:
+      description: A bucket value, can either be a timeseries or a single value.
+      oneOf:
+      - $ref: '#/components/schemas/CIAppAggregateBucketValueSingleString'
+      - $ref: '#/components/schemas/CIAppAggregateBucketValueSingleNumber'
+      - $ref: '#/components/schemas/CIAppAggregateBucketValueTimeseries'
+    RUMGroupByTotal:
+      default: false
+      description: A resulting object to put the given computes in over all the matching records.
+      oneOf:
+      - $ref: '#/components/schemas/RUMGroupByTotalBoolean'
+      - $ref: '#/components/schemas/RUMGroupByTotalString'
+      - $ref: '#/components/schemas/RUMGroupByTotalNumber'
+    LogsAggregateBucketValueTimeseriesPoint:
+      description: A timeseries point
+      properties:
+        time:
+          description: The time value for this point
+          example: '2020-06-08T11:55:00Z'
+          type: string
+        value:
+          description: The value for this point
+          example: 19
+          format: double
+          type: number
+      type: object
+    CIAppGroupByHistogram:
+      description: 'Used to perform a histogram computation (only for measure facets).
+
+        At most, 100 buckets are allowed, the number of buckets is `(max - min)/interval`.'
+      properties:
+        interval:
+          description: The bin size of the histogram buckets.
+          example: 10
+          format: double
+          type: number
+        max:
+          description: 'The maximum value for the measure used in the histogram
+
+            (values greater than this one are filtered out).'
+          example: 100
+          format: double
+          type: number
+        min:
+          description: 'The minimum value for the measure used in the histogram
+
+            (values smaller than this one are filtered out).'
+          example: 50
+          format: double
+          type: number
+      required:
+      - interval
+      - min
+      - max
+      type: object
+    LogsGroupByTotalString:
+      description: A string to use as the key value for the total bucket
+      type: string
     SpansGroupByMissingNumber:
       description: The missing value to use if there is a number valued facet.
       format: double
       type: number
-    CIAppGroupByTotal:
-      default: false
-      description: A resulting object to put the given computes in over all the matching records.
+    LogsGroupByMissing:
+      description: The value to use for logs that don't have the facet used to group by
       oneOf:
-      - $ref: '#/components/schemas/CIAppGroupByTotalBoolean'
-      - $ref: '#/components/schemas/CIAppGroupByTotalString'
-      - $ref: '#/components/schemas/CIAppGroupByTotalNumber'
-    SpansAggregateBucketAttributes:
-      description: A bucket values.
+      - $ref: '#/components/schemas/LogsGroupByMissingString'
+      - $ref: '#/components/schemas/LogsGroupByMissingNumber'
+    CIAppResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    LogsAggregateResponseData:
+      description: The query results
+      properties:
+        buckets:
+          description: The list of matching buckets, one item per bucket
+          items:
+            $ref: '#/components/schemas/LogsAggregateBucket'
+          type: array
+      type: object
+    CIAppAggregateBucketValueSingleNumber:
+      description: A single number value.
+      format: double
+      type: number
+    LogsAggregateBucketValue:
+      description: A bucket value, can be either a timeseries or a single value
+      oneOf:
+      - $ref: '#/components/schemas/LogsAggregateBucketValueSingleString'
+      - $ref: '#/components/schemas/LogsAggregateBucketValueSingleNumber'
+      - $ref: '#/components/schemas/LogsAggregateBucketValueTimeseries'
+    CIAppTestsBucketResponse:
+      description: Bucket values.
       properties:
         by:
           additionalProperties:
-            description: The values for each group by.
-          description: The key, value pairs for each group by.
+            description: The values for each group-by.
+          description: The key-value pairs for each group-by.
           example:
-            '@state': success
-            '@version': abc
-          type: object
-        compute:
-          description: The compute data.
+            '@test.service': web-ui-tests
+            '@test.status': skip
           type: object
         computes:
-          additionalProperties:
-            $ref: '#/components/schemas/SpansAggregateBucketValue'
-          description: A map of the metric name -> value for regular compute or list of values for a timeseries.
-          type: object
+          $ref: '#/components/schemas/CIAppComputes'
       type: object
-    RUMAggregateBucketValueSingleString:
-      description: A single string value.
+    CIAppPipelinesAggregationBucketsResponse:
+      description: The query results.
+      properties:
+        buckets:
+          description: The list of matching buckets, one item per bucket.
+          items:
+            $ref: '#/components/schemas/CIAppPipelinesBucketResponse'
+          type: array
+      type: object
+    CIAppGroupByTotalString:
+      description: A string to use as the key value for the total bucket.
       type: string
-    CIAppComputes:
-      additionalProperties:
-        $ref: '#/components/schemas/CIAppAggregateBucketValue'
-      description: A map of the metric name to value for regular compute, or a list of values for a timeseries.
+    LogsComputeType:
+      default: total
+      description: The type of compute
+      enum:
+      - timeseries
+      - total
+      type: string
+      x-enum-varnames:
+      - TIMESERIES
+      - TOTAL
+    CIAppGroupByMissingNumber:
+      description: The missing value to use if there is a number valued facet.
+      format: double
+      type: number
+    RUMResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    CIAppResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. The request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/ci/tests/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
       type: object
     CIAppAggregateBucketValueTimeseries:
       description: A timeseries array.
@@ -1063,9 +1105,6 @@ components:
         $ref: '#/components/schemas/CIAppAggregateBucketValueTimeseriesPoint'
       type: array
       x-generate-alias-as-model: true
-    RUMGroupByMissingString:
-      description: The missing value to use if there is string valued facet.
-      type: string
     LogsCompute:
       description: A compute rule to compute metrics or timeseries
       properties:
@@ -1086,27 +1125,104 @@ components:
       required:
       - aggregation
       type: object
-    CIAppGroupByMissing:
-      description: The value to use for logs that don't have the facet used to group-by.
+    LogsGroupByTotal:
+      default: false
+      description: A resulting object to put the given computes in over all the matching records.
       oneOf:
-      - $ref: '#/components/schemas/CIAppGroupByMissingString'
-      - $ref: '#/components/schemas/CIAppGroupByMissingNumber'
-    SpansAggregateBucketValueTimeseries:
-      description: A timeseries array.
-      items:
-        $ref: '#/components/schemas/SpansAggregateBucketValueTimeseriesPoint'
-      type: array
-      x-generate-alias-as-model: true
-    RUMResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
+      - $ref: '#/components/schemas/LogsGroupByTotalBoolean'
+      - $ref: '#/components/schemas/LogsGroupByTotalString'
+      - $ref: '#/components/schemas/LogsGroupByTotalNumber'
+    CIAppGroupByTotalNumber:
+      description: A number to use as the key value for the total bucket.
+      format: double
+      type: number
+    SpansGroupByHistogram:
+      description: 'Used to perform a histogram computation (only for measure facets).
 
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        Note: At most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
+      properties:
+        interval:
+          description: The bin size of the histogram buckets.
+          example: 10
+          format: double
+          type: number
+        max:
+          description: 'The maximum value for the measure used in the histogram
+
+            (values greater than this one are filtered out).'
+          example: 100
+          format: double
+          type: number
+        min:
+          description: 'The minimum value for the measure used in the histogram
+
+            (values smaller than this one are filtered out).'
+          example: 50
+          format: double
+          type: number
+      required:
+      - interval
+      - min
+      - max
+      type: object
+    CIAppPipelinesAggregateRequest:
+      description: The object sent with the request to retrieve aggregation buckets of pipeline events from your organization.
+      properties:
+        compute:
+          description: The list of metrics or timeseries to compute for the retrieved buckets.
+          items:
+            $ref: '#/components/schemas/CIAppCompute'
+          type: array
+        filter:
+          $ref: '#/components/schemas/CIAppPipelinesQueryFilter'
+        group_by:
+          description: The rules for the group-by.
+          items:
+            $ref: '#/components/schemas/CIAppPipelinesGroupBy'
+          type: array
+        options:
+          $ref: '#/components/schemas/CIAppQueryOptions'
+      type: object
+    RUMGroupByTotalString:
+      description: A string to use as the key value for the total bucket.
+      type: string
+    LogsAggregateRequestPage:
+      description: Paging settings
+      properties:
+        cursor:
+          description: 'The returned paging point to use to get the next results. Note: at most 1000 results can be paged.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
       type: object
+    SpansWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    LogsGroupByMissingString:
+      description: The missing value to use if there is string valued facet.
+      type: string
+    CIAppResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
     LogsGroupBy:
       description: A group by rule
       properties:
@@ -1133,29 +1249,113 @@ components:
       required:
       - facet
       type: object
-    SpansCompute:
-      description: A compute rule to compute metrics or timeseries.
-      properties:
-        aggregation:
-          $ref: '#/components/schemas/SpansAggregationFunction'
-        interval:
-          description: 'The time buckets'' size (only used for type=timeseries)
+    SpansQueryOptions:
+      description: 'Global query options that are used during the query.
 
-            Defaults to a resolution of 150 points.'
-          example: 5m
+        Note: You should only supply timezone or time offset but not both otherwise the query will fail.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
           type: string
-        metric:
-          description: The metric to use.
-          example: '@duration'
-          type: string
-        type:
-          $ref: '#/components/schemas/SpansComputeType'
-      required:
-      - aggregation
       type: object
-    LogsGroupByTotalBoolean:
-      description: If set to true, creates an additional bucket labeled "$facet_total"
-      type: boolean
+    RUMAggregateRequest:
+      description: The object sent with the request to retrieve aggregation buckets of RUM events from your organization.
+      properties:
+        compute:
+          description: The list of metrics or timeseries to compute for the retrieved buckets.
+          items:
+            $ref: '#/components/schemas/RUMCompute'
+          type: array
+        filter:
+          $ref: '#/components/schemas/RUMQueryFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RUMGroupBy'
+          type: array
+        options:
+          $ref: '#/components/schemas/RUMQueryOptions'
+        page:
+          $ref: '#/components/schemas/RUMQueryPageOptions'
+      type: object
+    LogsQueryFilter:
+      description: The search and filter query settings
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now-15m
+          type: string
+        indexes:
+          default:
+          - '*'
+          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
+          example:
+          - main
+          - web
+          items:
+            description: The name of a log index.
+            type: string
+          type: array
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        storage_tier:
+          $ref: '#/components/schemas/LogsStorageTier'
+        to:
+          default: now
+          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+    LogsStorageTier:
+      default: indexes
+      description: Specifies storage type as indexes, online-archives or flex
+      enum:
+      - indexes
+      - online-archives
+      - flex
+      example: indexes
+      type: string
+      x-enum-varnames:
+      - INDEXES
+      - ONLINE_ARCHIVES
+      - FLEX
+    SpansAggregateBucketType:
+      description: The spans aggregate bucket type.
+      enum:
+      - bucket
+      example: bucket
+      type: string
+      x-enum-varnames:
+      - BUCKET
+    SpansAggregateBucket:
+      description: Spans aggregate.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansAggregateBucketAttributes'
+        id:
+          description: ID of the spans aggregate.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SpansAggregateBucketType'
+      type: object
+    RUMAggregateBucketValueTimeseries:
+      description: A timeseries array.
+      items:
+        $ref: '#/components/schemas/RUMAggregateBucketValueTimeseriesPoint'
+      type: array
+      x-generate-alias-as-model: true
     CIAppAggregationFunction:
       description: An aggregation function.
       enum:
@@ -1194,379 +1394,19 @@ components:
       - EARLIEST
       - MOST_FREQUENT
       - DELTA
-    CIAppTestsAggregationBucketsResponse:
-      description: The query results.
-      properties:
-        buckets:
-          description: The list of matching buckets, one item per bucket.
-          items:
-            $ref: '#/components/schemas/CIAppTestsBucketResponse'
-          type: array
-      type: object
-    CIAppAggregateSort:
-      description: A sort rule. The `aggregation` field is required when `type` is `measure`.
-      example:
-        aggregation: count
-        order: asc
-      properties:
-        aggregation:
-          $ref: '#/components/schemas/CIAppAggregationFunction'
-        metric:
-          description: The metric to sort by (only used for `type=measure`).
-          example: '@duration'
-          type: string
-        order:
-          $ref: '#/components/schemas/CIAppSortOrder'
-        type:
-          $ref: '#/components/schemas/CIAppAggregateSortType'
-      type: object
-    CIAppGroupByTotalString:
-      description: A string to use as the key value for the total bucket.
-      type: string
-    CIAppGroupByTotalBoolean:
-      description: If set to true, creates an additional bucket labeled "$facet_total".
-      type: boolean
-    RUMGroupByHistogram:
-      description: 'Used to perform a histogram computation (only for measure facets).
-
-        Note: At most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
-      properties:
-        interval:
-          description: The bin size of the histogram buckets.
-          example: 10
-          format: double
-          type: number
-        max:
-          description: 'The maximum value for the measure used in the histogram
-
-            (values greater than this one are filtered out).'
-          example: 100
-          format: double
-          type: number
-        min:
-          description: 'The minimum value for the measure used in the histogram
-
-            (values smaller than this one are filtered out).'
-          example: 50
-          format: double
-          type: number
-      required:
-      - interval
-      - min
-      - max
-      type: object
-    SpansAggregateBucketValueTimeseriesPoint:
-      description: A timeseries point.
-      properties:
-        time:
-          description: The time value for this point.
-          example: '2023-06-08T11:55:00Z'
-          type: string
-        value:
-          description: The value for this point.
-          example: 19
-          format: double
-          type: number
-      type: object
-    CIAppGroupByMissingNumber:
-      description: The missing value to use if there is a number valued facet.
-      format: double
-      type: number
-    RUMAggregateBucketValue:
-      description: A bucket value, can be either a timeseries or a single value.
-      oneOf:
-      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleString'
-      - $ref: '#/components/schemas/RUMAggregateBucketValueSingleNumber'
-      - $ref: '#/components/schemas/RUMAggregateBucketValueTimeseries'
-    LogsComputeType:
-      default: total
-      description: The type of compute
-      enum:
-      - timeseries
-      - total
-      type: string
-      x-enum-varnames:
-      - TIMESERIES
-      - TOTAL
     SpansAggregateRequest:
       description: The object sent with the request to retrieve a list of aggregated spans from your organization.
       properties:
         data:
           $ref: '#/components/schemas/SpansAggregateData'
       type: object
-    LogsQueryFilter:
-      description: The search and filter query settings
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
-          example: now-15m
-          type: string
-        indexes:
-          default:
-          - '*'
-          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
-          example:
-          - main
-          - web
-          items:
-            description: The name of a log index.
-            type: string
-          type: array
-        query:
-          default: '*'
-          description: The search query - following the log search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-        storage_tier:
-          $ref: '#/components/schemas/LogsStorageTier'
-        to:
-          default: now
-          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
-          example: now
-          type: string
-      type: object
-    LogsAggregateSortType:
-      default: alphabetical
-      description: The type of sorting algorithm
-      enum:
-      - alphabetical
-      - measure
-      type: string
-      x-enum-varnames:
-      - ALPHABETICAL
-      - MEASURE
-    LogsAggregateSort:
-      description: A sort rule
-      example:
-        aggregation: count
-        order: asc
-      properties:
-        aggregation:
-          $ref: '#/components/schemas/LogsAggregationFunction'
-        metric:
-          description: The metric to sort by (only used for `type=measure`)
-          example: '@duration'
-          type: string
-        order:
-          $ref: '#/components/schemas/LogsSortOrder'
-        type:
-          $ref: '#/components/schemas/LogsAggregateSortType'
-      type: object
-    LogsGroupByHistogram:
-      description: 'Used to perform a histogram computation (only for measure facets).
-
-        Note: at most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
-      properties:
-        interval:
-          description: The bin size of the histogram buckets
-          example: 10
-          format: double
-          type: number
-        max:
-          description: 'The maximum value for the measure used in the histogram
-
-            (values greater than this one are filtered out)'
-          example: 100
-          format: double
-          type: number
-        min:
-          description: 'The minimum value for the measure used in the histogram
-
-            (values smaller than this one are filtered out)'
-          example: 50
-          format: double
-          type: number
-      required:
-      - interval
-      - min
-      - max
-      type: object
-    SpansAggregateSort:
-      description: A sort rule.
-      example:
-        aggregation: count
-        order: asc
-      properties:
-        aggregation:
-          $ref: '#/components/schemas/SpansAggregationFunction'
-        metric:
-          description: The metric to sort by (only used for `type=measure`).
-          example: '@duration'
-          type: string
-        order:
-          $ref: '#/components/schemas/SpansSortOrder'
-        type:
-          $ref: '#/components/schemas/SpansAggregateSortType'
-      type: object
-    SpansAggregateBucket:
-      description: Spans aggregate.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SpansAggregateBucketAttributes'
-        id:
-          description: ID of the spans aggregate.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SpansAggregateBucketType'
-      type: object
     SpansAggregateBucketValueSingleString:
       description: A single string value.
       type: string
-    RUMGroupByMissingNumber:
-      description: The missing value to use if there is a number valued facet.
-      format: double
-      type: number
-    RUMBucketResponse:
-      description: Bucket values.
-      properties:
-        by:
-          additionalProperties:
-            description: The values for each group-by.
-            type: string
-          description: The key-value pairs for each group-by.
-          example:
-            '@session.type': user
-            '@type': view
-          type: object
-        computes:
-          additionalProperties:
-            $ref: '#/components/schemas/RUMAggregateBucketValue'
-          description: A map of the metric name to value for regular compute, or a list of values for a timeseries.
-          type: object
-      type: object
-    RUMAggregateBucketValueSingleNumber:
-      description: A single number value.
-      format: double
-      type: number
-    CIAppAggregateBucketValueTimeseriesPoint:
-      description: A timeseries point.
-      properties:
-        time:
-          description: The time value for this point.
-          example: '2020-06-08T11:55:00.123Z'
-          format: date-time
-          type: string
-        value:
-          description: The value for this point.
-          example: 19
-          format: double
-          type: number
-      type: object
-    CIAppGroupByHistogram:
-      description: 'Used to perform a histogram computation (only for measure facets).
-
-        At most, 100 buckets are allowed, the number of buckets is `(max - min)/interval`.'
-      properties:
-        interval:
-          description: The bin size of the histogram buckets.
-          example: 10
-          format: double
-          type: number
-        max:
-          description: 'The maximum value for the measure used in the histogram
-
-            (values greater than this one are filtered out).'
-          example: 100
-          format: double
-          type: number
-        min:
-          description: 'The minimum value for the measure used in the histogram
-
-            (values smaller than this one are filtered out).'
-          example: 50
-          format: double
-          type: number
-      required:
-      - interval
-      - min
-      - max
-      type: object
-    SpansAggregateRequestAttributes:
-      description: The object containing all the query parameters.
-      properties:
-        compute:
-          description: The list of metrics or timeseries to compute for the retrieved buckets.
-          items:
-            $ref: '#/components/schemas/SpansCompute'
-          type: array
-        filter:
-          $ref: '#/components/schemas/SpansQueryFilter'
-        group_by:
-          description: The rules for the group by.
-          items:
-            $ref: '#/components/schemas/SpansGroupBy'
-          type: array
-        options:
-          $ref: '#/components/schemas/SpansQueryOptions'
-      type: object
-    RUMResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/RUMResponsePage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/RUMResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/RUMWarning'
-          type: array
-      type: object
-    LogsStorageTier:
-      default: indexes
-      description: Specifies storage type as indexes, online-archives or flex
-      enum:
-      - indexes
-      - online-archives
-      - flex
-      example: indexes
-      type: string
-      x-enum-varnames:
-      - INDEXES
-      - ONLINE_ARCHIVES
-      - FLEX
-    SpansAggregateResponse:
-      description: The response object for the spans aggregate API endpoint.
-      properties:
-        data:
-          description: The list of matching buckets, one item per bucket.
-          items:
-            $ref: '#/components/schemas/SpansAggregateBucket'
-          type: array
-        meta:
-          $ref: '#/components/schemas/SpansAggregateResponseMetadata'
-      type: object
-    LogsGroupByMissingNumber:
-      description: The missing value to use if there is a number valued facet.
-      format: double
-      type: number
-    LogsSortOrder:
-      description: The order to use, ascending or descending
-      enum:
-      - asc
-      - desc
-      example: asc
-      type: string
-      x-enum-varnames:
-      - ASCENDING
-      - DESCENDING
-    CIAppQueryOptions:
+    RUMQueryOptions:
       description: 'Global query options that are used during the query.
 
-        Only supply timezone or time offset, not both. Otherwise, the query fails.'
+        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
       properties:
         time_offset:
           description: The time offset (in seconds) to apply to the query.
@@ -1579,154 +1419,31 @@ components:
           example: GMT
           type: string
       type: object
-    APIErrorResponse:
-      description: API error response.
+    CIAppPipelinesGroupBy:
+      description: A group-by rule.
       properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    LogsAggregateResponseData:
-      description: The query results
-      properties:
-        buckets:
-          description: The list of matching buckets, one item per bucket
-          items:
-            $ref: '#/components/schemas/LogsAggregateBucket'
-          type: array
-      type: object
-    RUMGroupByTotalString:
-      description: A string to use as the key value for the total bucket.
-      type: string
-    LogsAggregateBucketValueSingleNumber:
-      description: A single number value
-      format: double
-      type: number
-    LogsGroupByTotalNumber:
-      description: A number to use as the key value for the total bucket
-      format: double
-      type: number
-    SpansAggregateRequestType:
-      default: aggregate_request
-      description: The type of resource. The value should always be aggregate_request.
-      enum:
-      - aggregate_request
-      example: aggregate_request
-      type: string
-      x-enum-varnames:
-      - AGGREGATE_REQUEST
-    RUMComputeType:
-      default: total
-      description: The type of compute.
-      enum:
-      - timeseries
-      - total
-      type: string
-      x-enum-varnames:
-      - TIMESERIES
-      - TOTAL
-    RUMSortOrder:
-      description: The order to use, ascending or descending.
-      enum:
-      - asc
-      - desc
-      example: asc
-      type: string
-      x-enum-varnames:
-      - ASCENDING
-      - DESCENDING
-    SpansGroupByHistogram:
-      description: 'Used to perform a histogram computation (only for measure facets).
-
-        Note: At most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
-      properties:
-        interval:
-          description: The bin size of the histogram buckets.
-          example: 10
-          format: double
-          type: number
-        max:
-          description: 'The maximum value for the measure used in the histogram
-
-            (values greater than this one are filtered out).'
-          example: 100
-          format: double
-          type: number
-        min:
-          description: 'The minimum value for the measure used in the histogram
-
-            (values smaller than this one are filtered out).'
-          example: 50
-          format: double
-          type: number
-      required:
-      - interval
-      - min
-      - max
-      type: object
-    LogsResponseMetadataPage:
-      description: Paging attributes.
-      properties:
-        after:
-          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
-
-            parameters with the addition of the `page[cursor]`.'
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        facet:
+          description: The name of the facet to use (required).
+          example: '@ci.status'
           type: string
+        histogram:
+          $ref: '#/components/schemas/CIAppGroupByHistogram'
+        limit:
+          default: 10
+          description: The maximum buckets to return for this group-by.
+          format: int64
+          type: integer
+          example: 42
+        missing:
+          $ref: '#/components/schemas/CIAppGroupByMissing'
+        sort:
+          $ref: '#/components/schemas/CIAppAggregateSort'
+        total:
+          $ref: '#/components/schemas/CIAppGroupByTotal'
+      required:
+      - facet
       type: object
-    RUMAggregationFunction:
-      description: An aggregation function.
-      enum:
-      - count
-      - cardinality
-      - pc75
-      - pc90
-      - pc95
-      - pc98
-      - pc99
-      - sum
-      - min
-      - max
-      - avg
-      - median
-      example: pc90
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - CARDINALITY
-      - PERCENTILE_75
-      - PERCENTILE_90
-      - PERCENTILE_95
-      - PERCENTILE_98
-      - PERCENTILE_99
-      - SUM
-      - MIN
-      - MAX
-      - AVG
-      - MEDIAN
-    LogsGroupByMissingString:
-      description: The missing value to use if there is string valued facet.
-      type: string
-    RUMGroupByTotalNumber:
-      description: A number to use as the key value for the total bucket.
-      format: double
-      type: number
-    SpansAggregateBucketValueSingleNumber:
-      description: A single number value.
-      format: double
-      type: number
-    LogsGroupByTotalString:
-      description: A string to use as the key value for the total bucket
-      type: string
-    SpansWarning:
+    RUMWarning:
       description: A warning message indicating something that went wrong with the query.
       properties:
         code:
@@ -1742,49 +1459,18 @@ components:
           example: One or several indexes are missing or invalid, results hold data from the other indexes
           type: string
       type: object
-    SpansGroupByTotalNumber:
-      description: A number to use as the key value for the total bucket.
-      format: double
-      type: number
-    LogsWarning:
-      description: A warning message indicating something that went wrong with the query
+    LogsGroupByTotalBoolean:
+      description: If set to true, creates an additional bucket labeled "$facet_total"
+      type: boolean
+    RUMAnalyticsAggregateResponse:
+      description: The response object for the RUM events aggregate API endpoint.
       properties:
-        code:
-          description: A unique code for this type of warning
-          example: unknown_index
-          type: string
-        detail:
-          description: A detailed explanation of this specific warning
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
-      type: object
-    RUMGroupBy:
-      description: A group-by rule.
-      properties:
-        facet:
-          description: The name of the facet to use (required).
-          example: '@view.time_spent'
-          type: string
-        histogram:
-          $ref: '#/components/schemas/RUMGroupByHistogram'
-        limit:
-          default: 10
-          description: The maximum buckets to return for this group-by.
-          format: int64
-          type: integer
-          example: 42
-        missing:
-          $ref: '#/components/schemas/RUMGroupByMissing'
-        sort:
-          $ref: '#/components/schemas/RUMAggregateSort'
-        total:
-          $ref: '#/components/schemas/RUMGroupByTotal'
-      required:
-      - facet
+        data:
+          $ref: '#/components/schemas/RUMAggregationBucketsResponse'
+        links:
+          $ref: '#/components/schemas/RUMResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RUMResponseMetadata'
       type: object
     SpansAggregationFunction:
       description: An aggregation function.
@@ -1816,24 +1502,217 @@ components:
       - MAX
       - AVG
       - MEDIAN
-    RUMQueryFilter:
-      description: The search and filter query settings.
+    RUMAggregateSortType:
+      default: alphabetical
+      description: The type of sorting algorithm.
+      enum:
+      - alphabetical
+      - measure
+      type: string
+      x-enum-varnames:
+      - ALPHABETICAL
+      - MEASURE
+    CIAppGroupByTotalBoolean:
+      description: If set to true, creates an additional bucket labeled "$facet_total".
+      type: boolean
+    SpansCompute:
+      description: A compute rule to compute metrics or timeseries.
       properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
-          example: now-15m
+        aggregation:
+          $ref: '#/components/schemas/SpansAggregationFunction'
+        interval:
+          description: 'The time buckets'' size (only used for type=timeseries)
+
+            Defaults to a resolution of 150 points.'
+          example: 5m
           type: string
-        query:
-          default: '*'
-          description: The search query following the RUM search syntax.
-          example: '@type:session AND @session.type:user'
+        metric:
+          description: The metric to use.
+          example: '@duration'
           type: string
-        to:
-          default: now
-          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
-          example: now
+        type:
+          $ref: '#/components/schemas/SpansComputeType'
+      required:
+      - aggregation
+      type: object
+    LogsGroupByHistogram:
+      description: 'Used to perform a histogram computation (only for measure facets).
+
+        Note: at most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
+      properties:
+        interval:
+          description: The bin size of the histogram buckets
+          example: 10
+          format: double
+          type: number
+        max:
+          description: 'The maximum value for the measure used in the histogram
+
+            (values greater than this one are filtered out)'
+          example: 100
+          format: double
+          type: number
+        min:
+          description: 'The minimum value for the measure used in the histogram
+
+            (values smaller than this one are filtered out)'
+          example: 50
+          format: double
+          type: number
+      required:
+      - interval
+      - min
+      - max
+      type: object
+    RUMAggregateSort:
+      description: A sort rule.
+      example:
+        aggregation: count
+        order: asc
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/RUMAggregationFunction'
+        metric:
+          description: The metric to sort by (only used for `type=measure`).
+          example: '@duration'
           type: string
+        order:
+          $ref: '#/components/schemas/RUMSortOrder'
+        type:
+          $ref: '#/components/schemas/RUMAggregateSortType'
+      type: object
+    SpansAggregateBucketValue:
+      description: A bucket value, can be either a timeseries or a single value.
+      oneOf:
+      - $ref: '#/components/schemas/SpansAggregateBucketValueSingleString'
+      - $ref: '#/components/schemas/SpansAggregateBucketValueSingleNumber'
+      - $ref: '#/components/schemas/SpansAggregateBucketValueTimeseries'
+    RUMResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/RUMResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/RUMResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/RUMWarning'
+          type: array
+      type: object
+    SpansGroupByTotalNumber:
+      description: A number to use as the key value for the total bucket.
+      format: double
+      type: number
+    CIAppGroupByMissingString:
+      description: The missing value to use if there is a string valued facet.
+      type: string
+    SpansAggregateResponse:
+      description: The response object for the spans aggregate API endpoint.
+      properties:
+        data:
+          description: The list of matching buckets, one item per bucket.
+          items:
+            $ref: '#/components/schemas/SpansAggregateBucket'
+          type: array
+        meta:
+          $ref: '#/components/schemas/SpansAggregateResponseMetadata'
+      type: object
+    LogsAggregateBucketValueSingleString:
+      description: A single string value
+      type: string
+    CIAppTestsAggregateRequest:
+      description: The object sent with the request to retrieve aggregation buckets of test events from your organization.
+      properties:
+        compute:
+          description: The list of metrics or timeseries to compute for the retrieved buckets.
+          items:
+            $ref: '#/components/schemas/CIAppCompute'
+          type: array
+        filter:
+          $ref: '#/components/schemas/CIAppTestsQueryFilter'
+        group_by:
+          description: The rules for the group-by.
+          items:
+            $ref: '#/components/schemas/CIAppTestsGroupBy'
+          type: array
+        options:
+          $ref: '#/components/schemas/CIAppQueryOptions'
+      type: object
+    CIAppCompute:
+      description: A compute rule to compute metrics or timeseries.
+      properties:
+        aggregation:
+          $ref: '#/components/schemas/CIAppAggregationFunction'
+        interval:
+          description: 'The time buckets'' size (only used for type=timeseries)
+
+            Defaults to a resolution of 150 points.'
+          example: 5m
+          type: string
+        metric:
+          description: The metric to use.
+          example: '@duration'
+          type: string
+        type:
+          $ref: '#/components/schemas/CIAppComputeType'
+      required:
+      - aggregation
+      type: object
+    RUMAggregationBucketsResponse:
+      description: The query results.
+      properties:
+        buckets:
+          description: The list of matching buckets, one item per bucket.
+          items:
+            $ref: '#/components/schemas/RUMBucketResponse'
+          type: array
+      type: object
+    LogsAggregateBucketValueTimeseries:
+      description: A timeseries array
+      items:
+        $ref: '#/components/schemas/LogsAggregateBucketValueTimeseriesPoint'
+      type: array
+      x-generate-alias-as-model: true
+    RUMGroupByHistogram:
+      description: 'Used to perform a histogram computation (only for measure facets).
+
+        Note: At most 100 buckets are allowed, the number of buckets is (max - min)/interval.'
+      properties:
+        interval:
+          description: The bin size of the histogram buckets.
+          example: 10
+          format: double
+          type: number
+        max:
+          description: 'The maximum value for the measure used in the histogram
+
+            (values greater than this one are filtered out).'
+          example: 100
+          format: double
+          type: number
+        min:
+          description: 'The minimum value for the measure used in the histogram
+
+            (values smaller than this one are filtered out).'
+          example: 50
+          format: double
+          type: number
+      required:
+      - interval
+      - min
+      - max
       type: object
     SpansGroupByTotal:
       default: false
@@ -1842,10 +1721,216 @@ components:
       - $ref: '#/components/schemas/SpansGroupByTotalBoolean'
       - $ref: '#/components/schemas/SpansGroupByTotalString'
       - $ref: '#/components/schemas/SpansGroupByTotalNumber'
-    RUMQueryOptions:
+    SpansAggregateBucketValueTimeseries:
+      description: A timeseries array.
+      items:
+        $ref: '#/components/schemas/SpansAggregateBucketValueTimeseriesPoint'
+      type: array
+      x-generate-alias-as-model: true
+    CIAppTestsGroupBy:
+      description: A group-by rule.
+      properties:
+        facet:
+          description: The name of the facet to use (required).
+          example: '@test.service'
+          type: string
+        histogram:
+          $ref: '#/components/schemas/CIAppGroupByHistogram'
+        limit:
+          default: 10
+          description: The maximum buckets to return for this group-by.
+          format: int64
+          type: integer
+          example: 42
+        missing:
+          $ref: '#/components/schemas/CIAppGroupByMissing'
+        sort:
+          $ref: '#/components/schemas/CIAppAggregateSort'
+        total:
+          $ref: '#/components/schemas/CIAppGroupByTotal'
+      required:
+      - facet
+      type: object
+    RUMAggregationFunction:
+      description: An aggregation function.
+      enum:
+      - count
+      - cardinality
+      - pc75
+      - pc90
+      - pc95
+      - pc98
+      - pc99
+      - sum
+      - min
+      - max
+      - avg
+      - median
+      example: pc90
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - CARDINALITY
+      - PERCENTILE_75
+      - PERCENTILE_90
+      - PERCENTILE_95
+      - PERCENTILE_98
+      - PERCENTILE_99
+      - SUM
+      - MIN
+      - MAX
+      - AVG
+      - MEDIAN
+    SpansQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query - following the span search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested spans, supports date-time ISO8601, date math, and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+    LogsAggregationFunction:
+      description: An aggregation function
+      enum:
+      - count
+      - cardinality
+      - pc75
+      - pc90
+      - pc95
+      - pc98
+      - pc99
+      - sum
+      - min
+      - max
+      - avg
+      - median
+      example: pc90
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - CARDINALITY
+      - PERCENTILE_75
+      - PERCENTILE_90
+      - PERCENTILE_95
+      - PERCENTILE_98
+      - PERCENTILE_99
+      - SUM
+      - MIN
+      - MAX
+      - AVG
+      - MEDIAN
+    RUMGroupByMissingString:
+      description: The missing value to use if there is string valued facet.
+      type: string
+    LogsQueryOptions:
+      deprecated: true
       description: 'Global query options that are used during the query.
 
-        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
+        Note: These fields are currently deprecated and do not affect the query results.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    CIAppPipelinesQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@ci.provider.name:github AND @ci.status:error'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    CIAppGroupByMissing:
+      description: The value to use for logs that don't have the facet used to group-by.
+      oneOf:
+      - $ref: '#/components/schemas/CIAppGroupByMissingString'
+      - $ref: '#/components/schemas/CIAppGroupByMissingNumber'
+    LogsAggregateResponse:
+      description: The response object for the logs aggregate API endpoint
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsAggregateResponseData'
+        meta:
+          $ref: '#/components/schemas/LogsResponseMetadata'
+      type: object
+    RUMSortOrder:
+      description: The order to use, ascending or descending.
+      enum:
+      - asc
+      - desc
+      example: asc
+      type: string
+      x-enum-varnames:
+      - ASCENDING
+      - DESCENDING
+    SpansAggregateResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/SpansAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/SpansWarning'
+          type: array
+      type: object
+    RUMGroupByTotalBoolean:
+      description: If set to true, creates an additional bucket labeled "$facet_total".
+      type: boolean
+    SpansSortOrder:
+      description: The order to use, ascending or descending.
+      enum:
+      - asc
+      - desc
+      example: asc
+      type: string
+      x-enum-varnames:
+      - ASCENDING
+      - DESCENDING
+    CIAppQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Only supply timezone or time offset, not both. Otherwise, the query fails.'
       properties:
         time_offset:
           description: The time offset (in seconds) to apply to the query.
@@ -1858,120 +1943,35 @@ components:
           example: GMT
           type: string
       type: object
-    SpansAggregateData:
-      description: The object containing the query content.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SpansAggregateRequestAttributes'
-        type:
-          $ref: '#/components/schemas/SpansAggregateRequestType'
-      type: object
-    SpansComputeType:
-      default: total
-      description: The type of compute.
-      enum:
-      - timeseries
-      - total
-      type: string
-      x-enum-varnames:
-      - TIMESERIES
-      - TOTAL
-    RUMAnalyticsAggregateResponse:
-      description: The response object for the RUM events aggregate API endpoint.
-      properties:
-        data:
-          $ref: '#/components/schemas/RUMAggregationBucketsResponse'
-        links:
-          $ref: '#/components/schemas/RUMResponseLinks'
-        meta:
-          $ref: '#/components/schemas/RUMResponseMetadata'
-      type: object
-    RUMResponsePage:
-      description: Paging attributes.
-      properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    SpansAggregateResponseStatus:
-      description: The status of the response.
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    CIAppPipelinesAnalyticsAggregateResponse:
-      description: The response object for the pipeline events aggregate API endpoint.
-      properties:
-        data:
-          $ref: '#/components/schemas/CIAppPipelinesAggregationBucketsResponse'
-        links:
-          $ref: '#/components/schemas/CIAppResponseLinks'
-        meta:
-          $ref: '#/components/schemas/CIAppResponseMetadata'
-      type: object
-    CIAppPipelinesAggregationBucketsResponse:
-      description: The query results.
-      properties:
-        buckets:
-          description: The list of matching buckets, one item per bucket.
-          items:
-            $ref: '#/components/schemas/CIAppPipelinesBucketResponse'
-          type: array
-      type: object
-    LogsResponseMetadata:
-      description: The metadata associated with a request
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/LogsResponseMetadataPage'
-        request_id:
-          description: The identifier of the request
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/LogsAggregateResponseStatus'
-        warnings:
-          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/LogsWarning'
-          type: array
-      type: object
+    SpansAggregateBucketValueSingleNumber:
+      description: A single number value.
+      format: double
+      type: number
   responses:
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
-    NotAuthorizedResponse:
+    ForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
+      description: Forbidden
     BadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

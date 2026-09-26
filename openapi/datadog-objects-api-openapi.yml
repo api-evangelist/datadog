@@ -98,18 +98,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    OpsgenieServiceRegionType:
-      description: The region for the Opsgenie service.
-      enum:
-      - us
-      - eu
-      - custom
-      example: us
-      type: string
-      x-enum-varnames:
-      - US
-      - EU
-      - CUSTOM
     OpsgenieServiceType:
       default: opsgenie-service
       description: Opsgenie service resource type.
@@ -119,14 +107,25 @@ components:
       type: string
       x-enum-varnames:
       - OPSGENIE_SERVICE
-    OpsgenieServiceUpdateRequest:
-      description: Update request for an Opsgenie service.
+    OpsgenieServiceResponseAttributes:
+      description: The attributes from an Opsgenie service response.
       properties:
-        data:
-          $ref: '#/components/schemas/OpsgenieServiceUpdateData'
-      required:
-      - data
+        custom_url:
+          description: The custom URL for a custom region.
+          example: null
+          type:
+          - string
+          - 'null'
+        name:
+          description: The name for the Opsgenie service.
+          example: fake-opsgenie-service-name
+          maxLength: 100
+          type: string
+        region:
+          $ref: '#/components/schemas/OpsgenieServiceRegionType'
       type: object
+      x-merge-override:
+        required: false
     OpsgenieServiceResponseData:
       description: Opsgenie service data from a response.
       properties:
@@ -147,45 +146,33 @@ components:
       type: object
       x-merge-override:
         required: false
-    OpsgenieServiceUpdateData:
-      description: Opsgenie service for an update request.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        attributes:
-          $ref: '#/components/schemas/OpsgenieServiceUpdateAttributes'
-        id:
-          description: The ID of the Opsgenie service.
-          example: 596da4af-0563-4097-90ff-07230c3f9db3
-          maxLength: 100
-          minLength: 1
-          type: string
-        type:
-          $ref: '#/components/schemas/OpsgenieServiceType'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
       required:
-      - id
-      - type
-      - attributes
+      - errors
       type: object
-      x-merge-override:
-        required: false
-    OpsgenieServiceResponseAttributes:
-      description: The attributes from an Opsgenie service response.
-      properties:
-        custom_url:
-          description: The custom URL for a custom region.
-          example: null
-          type:
-          - string
-          - 'null'
-        name:
-          description: The name for the Opsgenie service.
-          example: fake-opsgenie-service-name
-          maxLength: 100
-          type: string
-        region:
-          $ref: '#/components/schemas/OpsgenieServiceRegionType'
-      type: object
-      x-merge-override:
-        required: false
+    OpsgenieServiceRegionType:
+      description: The region for the Opsgenie service.
+      enum:
+      - us
+      - eu
+      - custom
+      example: us
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+      - CUSTOM
     OpsgenieServiceUpdateAttributes:
       description: The Opsgenie service attributes for an update request.
       properties:
@@ -209,20 +196,13 @@ components:
       type: object
       x-merge-override:
         required: false
-    APIErrorResponse:
-      description: API error response.
+    OpsgenieServiceUpdateRequest:
+      description: Update request for an Opsgenie service.
       properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
+        data:
+          $ref: '#/components/schemas/OpsgenieServiceUpdateData'
       required:
-      - errors
+      - data
       type: object
     OpsgenieServiceResponse:
       description: Response of an Opsgenie service.
@@ -232,6 +212,26 @@ components:
       required:
       - data
       type: object
+    OpsgenieServiceUpdateData:
+      description: Opsgenie service for an update request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OpsgenieServiceUpdateAttributes'
+        id:
+          description: The ID of the Opsgenie service.
+          example: 596da4af-0563-4097-90ff-07230c3f9db3
+          maxLength: 100
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/OpsgenieServiceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+      x-merge-override:
+        required: false
   responses:
     BadRequestResponse:
       content:
@@ -239,30 +239,30 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
     NotFoundResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
   parameters:
     OpsgenieServiceIDPathParameter:
       description: The UUID of the service.

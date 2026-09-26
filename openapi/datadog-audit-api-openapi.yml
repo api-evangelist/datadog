@@ -195,6 +195,113 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    AuditLogsSearchEventsRequest:
+      description: The request for a Audit Logs events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/AuditLogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/AuditLogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/AuditLogsQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/AuditLogsSort'
+      type: object
+    AuditLogsResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    AuditLogsResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    AuditLogsResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/audit/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    AuditLogsResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: Time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/AuditLogsResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/AuditLogsResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/AuditLogsWarning'
+          type: array
+      type: object
+    AuditLogsEvent:
+      description: Object description of an Audit Logs event after it is processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AuditLogsEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/AuditLogsEventType'
+      type: object
+    AuditLogsWarning:
+      description: Warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: Unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: Detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: Short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
     AuditLogsEventAttributes:
       description: JSON object containing all event attributes and their associated values.
       properties:
@@ -240,46 +347,6 @@ components:
       type: string
       x-enum-varnames:
       - Audit
-    AuditLogsResponseStatus:
-      description: The status of the response.
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    AuditLogsResponsePage:
-      description: Paging attributes.
-      properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    AuditLogsSearchEventsRequest:
-      description: The request for a Audit Logs events list.
-      properties:
-        filter:
-          $ref: '#/components/schemas/AuditLogsQueryFilter'
-        options:
-          $ref: '#/components/schemas/AuditLogsQueryOptions'
-        page:
-          $ref: '#/components/schemas/AuditLogsQueryPageOptions'
-        sort:
-          $ref: '#/components/schemas/AuditLogsSort'
-      type: object
-    AuditLogsResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/audit/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
     AuditLogsQueryFilter:
       description: Search and filter query settings.
       properties:
@@ -299,57 +366,27 @@ components:
           example: now
           type: string
       type: object
-    AuditLogsEvent:
-      description: Object description of an Audit Logs event after it is processed and stored by Datadog.
+    AuditLogsSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    AuditLogsEventsResponse:
+      description: Response object with all events matching the request and pagination information.
       properties:
-        attributes:
-          $ref: '#/components/schemas/AuditLogsEventAttributes'
-        id:
-          description: Unique ID of the event.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
-          type: string
-        type:
-          $ref: '#/components/schemas/AuditLogsEventType'
-      type: object
-    AuditLogsResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: Time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/AuditLogsResponsePage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/AuditLogsResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
+        data:
+          description: Array of events matching the request.
           items:
-            $ref: '#/components/schemas/AuditLogsWarning'
+            $ref: '#/components/schemas/AuditLogsEvent'
           type: array
-      type: object
-    AuditLogsWarning:
-      description: Warning message indicating something that went wrong with the query.
-      properties:
-        code:
-          description: Unique code for this type of warning.
-          example: unknown_index
-          type: string
-        detail:
-          description: Detailed explanation of this specific warning.
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: Short human-readable summary of the warning.
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
+        links:
+          $ref: '#/components/schemas/AuditLogsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/AuditLogsResponseMetadata'
       type: object
     AuditLogsQueryOptions:
       description: 'Global query options that are used during the query.
@@ -367,30 +404,6 @@ components:
           example: GMT
           type: string
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    AuditLogsSort:
-      description: Sort parameters when querying events.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
     AuditLogsQueryPageOptions:
       description: Paging attributes for listing events.
       properties:
@@ -405,19 +418,6 @@ components:
           format: int32
           maximum: 1000
           type: integer
-      type: object
-    AuditLogsEventsResponse:
-      description: Response object with all events matching the request and pagination information.
-      properties:
-        data:
-          description: Array of events matching the request.
-          items:
-            $ref: '#/components/schemas/AuditLogsEvent'
-          type: array
-        links:
-          $ref: '#/components/schemas/AuditLogsResponseLinks'
-        meta:
-          $ref: '#/components/schemas/AuditLogsResponseMetadata'
       type: object
   responses:
     BadRequestResponse:

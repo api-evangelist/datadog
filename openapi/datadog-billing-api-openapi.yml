@@ -119,17 +119,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    BillingDimensionsMappingResponse:
-      description: Billing dimensions mapping response.
-      properties:
-        data:
-          $ref: '#/components/schemas/BillingDimensionsMappingBody'
-      type: object
-    BillingDimensionsMappingBody:
-      description: Billing dimensions mapping data.
-      items:
-        $ref: '#/components/schemas/BillingDimensionsMappingBodyItem'
-      type: array
     BillingDimensionsMappingBodyItemAttributes:
       description: Mapping of billing dimensions to endpoint keys.
       properties:
@@ -147,6 +136,27 @@ components:
           format: date-time
           type: string
           example: '2026-04-17T12:00:00Z'
+      type: object
+    BillingDimensionsMappingResponse:
+      description: Billing dimensions mapping response.
+      properties:
+        data:
+          $ref: '#/components/schemas/BillingDimensionsMappingBody'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
       type: object
     BillingDimensionsMappingBodyItemAttributesEndpointsItems:
       description: An endpoint's keys mapped to the billing_dimension.
@@ -167,21 +177,15 @@ components:
         status:
           $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus'
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
+    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
+      description: Denotes whether mapping keys were available for this endpoint.
+      enum:
+      - OK
+      - NOT_FOUND
+      type: string
+      x-enum-varnames:
+      - OK
+      - NOT_FOUND
     BillingDimensionsMappingBodyItem:
       description: The mapping data for each billing dimension.
       properties:
@@ -194,15 +198,6 @@ components:
         type:
           $ref: '#/components/schemas/ActiveBillingDimensionsType'
       type: object
-    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
-      description: Denotes whether mapping keys were available for this endpoint.
-      enum:
-      - OK
-      - NOT_FOUND
-      type: string
-      x-enum-varnames:
-      - OK
-      - NOT_FOUND
     ActiveBillingDimensionsType:
       default: billing_dimensions
       description: Type of active billing dimensions data.
@@ -211,6 +206,11 @@ components:
       type: string
       x-enum-varnames:
       - BILLING_DIMENSIONS
+    BillingDimensionsMappingBody:
+      description: Billing dimensions mapping data.
+      items:
+        $ref: '#/components/schemas/BillingDimensionsMappingBodyItem'
+      type: array
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

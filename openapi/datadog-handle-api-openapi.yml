@@ -141,6 +141,43 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MicrosoftTeamsWorkflowsWebhookHandleAttributes:
+      description: Workflows Webhook handle attributes.
+      properties:
+        name:
+          description: Workflows Webhook handle name.
+          example: fake-handle-name
+          maxLength: 255
+          type: string
+        url:
+          description: Workflows Webhook URL.
+          example: https://fake.url.com
+          maxLength: 255
+          type: string
+      type: object
+    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequest:
+      description: Update Workflows webhook handle request.
+      properties:
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData'
+      required:
+      - data
+      type: object
     MicrosoftTeamsTenantBasedHandleResponseData:
       description: Tenant-based handle data from a response.
       properties:
@@ -157,28 +194,33 @@ components:
       type: object
       x-merge-override:
         required: false
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    MicrosoftTeamsTenantBasedHandleResponse:
-      description: Response of a tenant-based handle.
+    MicrosoftTeamsWorkflowsWebhookHandleResponse:
+      description: Response of a Workflows webhook handle.
       properties:
         data:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleResponseData'
+          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleResponseData'
       required:
       - data
+      type: object
+    MicrosoftTeamsWorkflowsWebhookResponseAttributes:
+      description: Workflows Webhook handle attributes.
+      properties:
+        name:
+          description: Workflows Webhook handle name.
+          example: fake-handle-name
+          maxLength: 255
+          type: string
+      type: object
+    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData:
+      description: Workflows Webhook handle data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleAttributes'
+        type:
+          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
+      required:
+      - type
+      - attributes
       type: object
     MicrosoftTeamsTenantBasedHandleAttributes:
       description: Tenant-based handle attributes.
@@ -206,43 +248,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequest:
-      description: Update Workflows webhook handle request.
-      properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData'
-      required:
-      - data
-      type: object
-    MicrosoftTeamsWorkflowsWebhookResponseAttributes:
-      description: Workflows Webhook handle attributes.
-      properties:
-        name:
-          description: Workflows Webhook handle name.
-          example: fake-handle-name
-          maxLength: 255
-          type: string
-      type: object
-    MicrosoftTeamsTenantBasedHandleType:
-      default: tenant-based-handle
-      description: Specifies the tenant-based handle resource type.
-      enum:
-      - tenant-based-handle
-      example: tenant-based-handle
-      type: string
-      x-enum-varnames:
-      - TENANT_BASED_HANDLE
-    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData:
-      description: Workflows Webhook handle data from a response.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleAttributes'
-        type:
-          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
-      required:
-      - type
-      - attributes
-      type: object
     MicrosoftTeamsWorkflowsWebhookHandleResponseData:
       description: Workflows Webhook handle data from a response.
       properties:
@@ -257,36 +262,15 @@ components:
         type:
           $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
       type: object
-    MicrosoftTeamsWorkflowsWebhookHandleAttributes:
-      description: Workflows Webhook handle attributes.
-      properties:
-        name:
-          description: Workflows Webhook handle name.
-          example: fake-handle-name
-          maxLength: 255
-          type: string
-        url:
-          description: Workflows Webhook URL.
-          example: https://fake.url.com
-          maxLength: 255
-          type: string
-      type: object
-    MicrosoftTeamsWorkflowsWebhookHandleResponse:
-      description: Response of a Workflows webhook handle.
-      properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleResponseData'
-      required:
-      - data
-      type: object
-    MicrosoftTeamsUpdateTenantBasedHandleRequest:
-      description: Update tenant-based handle request.
-      properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsUpdateTenantBasedHandleRequestData'
-      required:
-      - data
-      type: object
+    MicrosoftTeamsTenantBasedHandleType:
+      default: tenant-based-handle
+      description: Specifies the tenant-based handle resource type.
+      enum:
+      - tenant-based-handle
+      example: tenant-based-handle
+      type: string
+      x-enum-varnames:
+      - TENANT_BASED_HANDLE
     MicrosoftTeamsUpdateTenantBasedHandleRequestData:
       description: Tenant-based handle data from a response.
       properties:
@@ -309,43 +293,59 @@ components:
       type: string
       x-enum-varnames:
       - WORKFLOWS_WEBHOOK_HANDLE
+    MicrosoftTeamsTenantBasedHandleResponse:
+      description: Response of a tenant-based handle.
+      properties:
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleResponseData'
+      required:
+      - data
+      type: object
+    MicrosoftTeamsUpdateTenantBasedHandleRequest:
+      description: Update tenant-based handle request.
+      properties:
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsUpdateTenantBasedHandleRequestData'
+      required:
+      - data
+      type: object
   responses:
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
     ConflictResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Conflict
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     PreconditionFailedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Failed Precondition
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
   parameters:
     MicrosoftTeamsWorkflowsWebhookHandleIDPathParameter:
       description: Your Workflows webhook handle id.

@@ -1,0 +1,40 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist Monitors surface overlay (Datadog)
+  version: 1.0.0
+extends: openapi/datadog-monitors-api-openapi.yml
+x-generated: '2026-09-23'
+x-method: generated
+x-source: openapi/datadog-monitors-api-openapi.yml
+x-rationale: >-
+  The Monitors split-per-tag file already carries apiKeyAuth + appKeyAuth. This
+  overlay wires the operations to the arazzo workflows and MCP tool crosswalk
+  that consume them, without mutating the underlying spec.
+actions:
+  - target: $.info
+    description: Attach MCP + workflow pointers to info.
+    update:
+      x-mcp-tools:
+        - {tool: create_datadog_monitor,   toolset: alerting, binding: rest}
+        - {tool: validate_datadog_monitor, toolset: alerting, binding: rest}
+        - {tool: search_datadog_monitors,  toolset: core,     binding: rest}
+      x-arazzo-workflows:
+        - ../arazzo/datadog-create-monitor-workflow.yml
+        - ../arazzo/datadog-tune-monitor-thresholds-workflow.yml
+        - ../arazzo/datadog-mute-monitor-workflow.yml
+        - ../arazzo/datadog-bulk-mute-monitors-workflow.yml
+        - ../arazzo/datadog-cleanup-stale-monitors-workflow.yml
+      x-agent-skill: skills/datadog-create-monitor.md
+  - target: "$.paths['/api/v1/monitor'].post"
+    description: Flag createMonitor as the recommended write path from agents.
+    update:
+      x-agent-guidance: >-
+        Prefer calling `validateMonitor` first (POST /api/v1/monitor/validate)
+        so the agent surfaces query errors before any write. See
+        skills/datadog-create-monitor.md.
+  - target: "$.paths['/api/v1/monitor/{monitor_id}'].get"
+    description: Note that getMonitor is the read-back step in the create workflow.
+    update:
+      x-workflow-step:
+        workflow: datadog-create-monitor-workflow.yml
+        step: readBackMonitor

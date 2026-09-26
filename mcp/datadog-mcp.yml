@@ -1,0 +1,138 @@
+generated: '2026-09-23'
+method: probed
+status: published
+source: https://docs.datadoghq.com/mcp_server.md
+setup_source: https://docs.datadoghq.com/mcp_server/setup.md
+tools_source: https://docs.datadoghq.com/mcp_server/tools.md
+llms_index: https://docs.datadoghq.com/datadog_mcp_server/llms.txt
+name: Datadog MCP Server
+description: >-
+  Official Datadog MCP Server bridging Datadog observability data (APM, logs,
+  metrics, monitors, dashboards, incidents, security signals, RUM, synthetics,
+  CI Visibility, cloud cost, and more) to any MCP-compatible AI agent. Remote,
+  HTTP transport with OAuth-based authentication scoped to the caller's own
+  Datadog role permissions. Ships with 300+ tools organised into ~35 toolsets
+  and a Datadog-managed JavaScript sandbox (`code-exec`) for multi-signal
+  investigation in a single tool call.
+server:
+  name: datadog
+  transport: http
+  # Regional MCP hosts follow the pattern `mcp.<site>` — the setup page renders
+  # the exact endpoint via the site selector; this US1 host was verified live
+  # (HTTP 401 JSON on POST, which is the expected "unauthenticated" response).
+  url: https://mcp.datadoghq.com/api/unstable/mcp-server/mcp
+  regional_endpoints:
+    US1: https://mcp.datadoghq.com/api/unstable/mcp-server/mcp
+    EU:  https://mcp.datadoghq.eu/api/unstable/mcp-server/mcp
+  unsupported_sites:
+  - app.ddog-gov.com
+  - us2.ddog-gov.com
+  listings:
+  - Cursor MCP directory ("Datadog", first-party plugin)
+  - Claude Connector directory ("Datadog", first-party connector)
+  - ChatGPT Apps directory (Preview, US1 only)
+  - JetBrains IDE plugin ("Datadog")
+  - VS Code / Copilot plugin marketplace ("Datadog")
+  - Warp, Goose, OpenCode, Kiro, Devin, Grok Build, Gemini CLI, Codex CLI, Copilot CLI (direct HTTP)
+auth:
+  methods:
+  - oauth2
+  - env_credentials
+  oauth2:
+    flow: authorization_code_with_pkce
+    ux: >-
+      Client redirects the user to their Datadog site sign-in; on success the
+      MCP client stores an access token and refreshes silently. A `subdomain`
+      query parameter is supported for orgs on a custom Datadog subdomain so
+      the OAuth flow starts on the right host.
+  env_credentials:
+    description: >-
+      Some plugins (Claude Code, Copilot CLI) also accept Datadog API key +
+      Application key via environment variables as an alternative to the
+      interactive OAuth flow.
+  permissions:
+    read: mcp_read (plus the resource-level Datadog permission, e.g. monitors_read)
+    write: mcp_write (plus the resource-level Datadog permission, e.g. monitors_write)
+    note: >-
+      The MCP Server forwards the authenticated user's own credentials to
+      Datadog APIs. Existing RBAC, Data Access Control, and log restriction
+      queries apply exactly as they do for direct API/UI access.
+fair_use_rate_limits:
+  burst: 50 requests per 10 seconds
+  monthly_tool_calls: 100000
+  source: https://docs.datadoghq.com/mcp_server.md
+tool_count: 308
+toolsets_ga:
+- {name: core,              description: 'Default toolset — logs, metrics, traces, dashboards, monitors, incidents, hosts, services, events, notebooks.'}
+- {name: alerting,          description: 'Validating and creating monitors, monitor group search, monitor templates, monitor coverage, SLO search.'}
+- {name: assistant,         description: 'Bits Chat interaction — send messages, retrieve conversation history, list conversations.'}
+- {name: audit-trail,       description: 'Search/retrieve Audit Trail events, build search queries.'}
+- {name: code-exec,         description: 'Run agent-authored JavaScript in a Datadog-managed sandbox with direct access to Datadog APIs.'}
+- {name: cost,              description: 'Cloud Cost Management — list cost-saving recommendations ranked by potential daily savings.'}
+- {name: dashboards,        description: 'Retrieve/create/update/delete dashboards; widget schema reference and validation.'}
+- {name: data-observability, description: 'Data catalog search, lineage, data quality monitoring, warehouse cost and Spark performance recommendations.'}
+- {name: dbm,               description: 'Database Monitoring tools.'}
+- {name: ddsql,             description: 'DDSQL — SQL over Datadog data (infra resources, logs, metrics, RUM, spans, more).'}
+- {name: error-tracking,    description: 'Error Tracking issue search and enrichment.'}
+- {name: feature-flags,     description: 'Feature flags — create, list, update flags and environments.'}
+- {name: kubernetes,        description: 'Search and describe Kubernetes resources; retrieve manifests across clusters.'}
+- {name: llmobs,            description: 'Agent Observability (LLM Observability) span/experiment search and analysis.'}
+- {name: networks,          description: 'Cloud Network Monitoring and Network Device Monitoring analysis.'}
+- {name: notebooks,         description: 'Extended notebook tools beyond the notebook subset in `core`.'}
+- {name: onboarding,        description: 'Agentic onboarding — guided Datadog setup and configuration.'}
+- {name: product-analytics, description: 'Product Analytics queries.'}
+- {name: profiling,         description: 'Continuous Profiler — discovery, exploration, and analysis.'}
+- {name: reference-tables,  description: 'Reference Tables — list, read rows, append rows, create tables from cloud storage.'}
+- {name: rum,               description: 'Real User Monitoring — app resolution, performance summary, retention filters, custom RUM metrics.'}
+- {name: security,          description: 'Code security scans plus security signal and misconfiguration finding search.'}
+- {name: sheets,            description: 'Datadog Sheets — create/read/update/delete spreadsheets.'}
+- {name: software-delivery, description: 'CI Visibility and Test Optimization.'}
+- {name: synthetics,        description: 'Datadog Synthetic tests.'}
+- {name: widgets,           description: 'Dashboard/notebook widget visualization, validation, and type conversion.'}
+- {name: workflows,         description: 'Workflow Automation — list, inspect, execute, and configure workflows.'}
+toolsets_preview:
+- {name: apm,            access: 'Product Preview sign-up',   description: 'In-depth APM trace analysis, span search, Watchdog insights, performance investigation.'}
+- {name: cases,          access: 'GA on request',             description: 'Case Management — create/search/update cases, projects, Jira links.'}
+- {name: investigator,   access: 'preview',                   description: 'Trigger/search/steer Bits Investigation for monitor alerts, incidents, general troubleshooting.'}
+- {name: live-debugger,  access: 'preview',                   description: 'Debug running applications with Live Debugger logpoints (runtime variables without redeploy).'}
+- {name: remote-actions, access: 'Product Preview sign-up',   description: 'On-host diagnostics via the Agent — read files, list directories, run safe read-only shell commands.'}
+tool_configuration:
+  query_params:
+    toolsets: 'Comma-separated toolset names, or `all` for all GA toolsets.'
+    omit_tools: 'Comma-separated tool names to exclude after resolving toolsets.'
+    subdomain: 'Custom Datadog subdomain (routes OAuth to `<subdomain>.datadoghq.com`).'
+  example_urls:
+  - 'https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=apm,llmobs'
+  - 'https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=all&omit_tools=create_datadog_notebook,edit_datadog_notebook'
+compliance:
+  hipaa_eligible: true
+  govcloud: false
+  telemetry: >-
+    Datadog collects tool-call metadata (tool name, arguments, user identifiers,
+    error info) for 120 days to improve the server. The MCP Server itself makes
+    no outbound calls to third-party AI providers.
+observability:
+  audit_trail_event: 'MCP Server'
+  metrics:
+  - {name: datadog.mcp.session.starts, description: 'Emitted on each MCP session initialization.'}
+  - {name: datadog.mcp.tool.usage,     description: 'Distribution metric emitted on each tool call. Tags: user_id, user_email, client, tool_name.'}
+related:
+  code_security_mcp: https://docs.datadoghq.com/security/code_security/dev_tool_int/mcp_server.md
+  llmobs_mcp: https://docs.datadoghq.com/llm_observability/build_with_ai/mcp_server.md
+  blog: https://www.datadoghq.com/blog/datadog-remote-mcp-server/
+notes: >-
+  Endpoint probed 2026-09-23 with an unauthenticated POST to
+  https://mcp.datadoghq.com/api/unstable/mcp-server/mcp and got HTTP 401
+  application/json (27 bytes) — the expected control-plane response for a real
+  MCP endpoint that requires OAuth. Root paths on `mcp.datadoghq.com` and
+  `mcp.datadoghq.eu` return 404 for GET (as intended). Setup and tools pages
+  fetched as markdown twins from docs.datadoghq.com (mcp_server.md,
+  mcp_server/setup.md, mcp_server/tools.md), so all names, toolset lists,
+  rate limits, and permissions are copied verbatim from the vendor docs. There
+  is no local-stdio companion package; the server is remote-only.
+deployment:
+  mode: remote
+  endpoint: https://mcp.datadoghq.com/api/unstable/mcp-server/mcp
+  auth: oauth
+  verified: probed
+  probe: 'POST https://mcp.datadoghq.com/api/unstable/mcp-server/mcp -> 401 application/json (2026-09-23)'

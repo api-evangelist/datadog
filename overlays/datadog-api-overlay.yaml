@@ -1,0 +1,49 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancement overlay for the Datadog v2 API
+  version: 1.0.0
+extends: ../openapi/_original/datadog-api-openapi.yml
+x-generated: '2026-09-23'
+x-method: generated
+x-source: openapi/_original/datadog-api-openapi.yml
+x-rationale: >-
+  The captured spec already ships four security schemes (`apiKeyAuth`,
+  `appKeyAuth`, `AuthZ`, `bearerAuth`) and a root security requirement
+  (apiKeyAuth + appKeyAuth). This overlay does not mutate those. It documents
+  the agent-facing surface that is NOT expressible in vanilla OpenAPI: (1) the
+  Datadog MCP Server that fronts a subset of these operations for AI agents,
+  (2) the arazzo workflows in ../arazzo/ that chain these operations into
+  business flows, and (3) the packaged Agent Skills in ../skills/ grounded in
+  real operationIds. Apply with any Overlay 1.0.0 processor against the
+  file listed in `extends`.
+actions:
+  - target: $.info
+    description: Attach an MCP Server pointer and rate-limit note to info.
+    update:
+      x-mcp-server:
+        name: Datadog MCP Server
+        endpoint: https://mcp.datadoghq.com/api/unstable/mcp-server/mcp
+        auth: oauth2
+        docs: https://docs.datadoghq.com/mcp_server.md
+        tool_inventory: https://docs.datadoghq.com/mcp_server/tools.md
+        crosswalk: mcp/datadog-tool-crosswalk.yml
+      x-rate-limit-headers:
+        remaining: X-RateLimit-Remaining
+        limit: X-RateLimit-Limit
+        period: X-RateLimit-Period
+        reset: X-RateLimit-Reset
+        name: X-RateLimit-Name
+        note: >-
+          Rate-limit headers are returned on every response. See
+          rate-limits/datadog-rate-limits.yml.
+      x-arazzo-workflows: ../arazzo/
+      x-agent-skills: ../skills/_index.yml
+  - target: $.components.securitySchemes.apiKeyAuth
+    description: Attach a longer human description explaining rotation and scope of the API key.
+    update:
+      x-key-rotation: 'Rotate via /api/v2/api_keys (CreateAPIKey / UpdateAPIKey / DeleteAPIKey).'
+      x-agent-guidance: >-
+        The MCP Server forwards the caller's OAuth-scoped credentials; agents
+        should NOT hard-code apiKeyAuth values but let the MCP layer handle
+        authentication. For direct REST use, keep the key in
+        DD_API_KEY / DD_APP_KEY environment variables.

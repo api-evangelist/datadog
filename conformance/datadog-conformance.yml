@@ -1,0 +1,60 @@
+generated: '2026-09-23'
+method: searched
+source: https://trust.datadoghq.com/
+sources:
+- https://trust.datadoghq.com/
+- https://docs.datadoghq.com/api/latest/authentication.md
+- https://docs.datadoghq.com/extend/authorization/oauth2_in_datadog.md
+- openapi/datadog-api-openapi.yml
+standards:
+- id: oauth2
+  conforms: true
+  evidence: The Datadog contract declares an OAuth 2.0 `authorizationCode` flow at /oauth2/v1/authorize + /oauth2/v1/token with 68 scopes, used
+    for Datadog Marketplace/Integrations partner apps. See openapi/datadog-api-openapi.yml and https://docs.datadoghq.com/extend/authorization/oauth2_in_datadog.md.
+- id: json:api
+  conforms: partial
+  evidence: v2 endpoints follow JSON:API shape (page[cursor]/page[limit] pagination, JSONAPIErrorResponse with status/title/detail/source/meta).
+    v1 endpoints pre-date this and use a simple errors[] shape. See openapi/datadog-api-openapi.yml schemas JSONAPIErrorItem and JSONAPIErrorResponse.
+- id: rfc9457
+  conforms: false
+  evidence: No response in the Datadog contract uses application/problem+json; errors are returned as application/json with either a simple errors[]
+    of strings (v1) or JSON:API-shaped errors (v2).
+- id: rfc8594
+  conforms: false
+  evidence: 'No Sunset or Deprecation HTTP headers are documented on the API. The spec marks 19 operations `deprecated: true`, but no dated sunset
+    is surfaced at runtime.'
+- id: pci-dss
+  conforms: claimed
+  evidence: Trust Center lists PCI DSS among compliance certifications (https://trust.datadoghq.com/).
+- id: soc2
+  conforms: claimed
+  evidence: Trust Center lists SOC 2 among compliance certifications (https://trust.datadoghq.com/).
+- id: iso27001
+  conforms: claimed
+  evidence: Trust Center lists ISO/IEC 27001, 27017, and 27018 among certifications (https://trust.datadoghq.com/).
+- id: hipaa
+  conforms: claimed
+  evidence: Trust Center lists HIPAA compliance (https://trust.datadoghq.com/).
+- id: fedramp
+  conforms: claimed
+  evidence: Trust Center lists FedRAMP authorization (https://trust.datadoghq.com/). Datadog operates a dedicated Government site at ddog-gov.com.
+- id: gdpr
+  conforms: claimed
+  evidence: Trust Center and Datadog Privacy Policy state GDPR / UK GDPR compliance (https://trust.datadoghq.com/, https://www.datadoghq.com/legal/privacy/).
+- id: csa-star
+  conforms: claimed
+  evidence: Trust Center lists CSA STAR (https://trust.datadoghq.com/).
+- id: openapi-3.2
+  conforms: true
+  evidence: the document declares 3.2.0
+- id: idempotency
+  conforms: false
+  evidence: no idempotency key parameter on mutating operations
+- id: pagination
+  conforms: true
+  evidence: list operations take id_offset, limit, page, page[cursor], page[limit], page[offset]
+domain_standard:
+  applies: false
+  note: Observability providers do NOT declare a domain-standard surface in their HTTP APIs (OpenTelemetry OTLP is a wire protocol used by the
+    Datadog Agent and OTLP ingest endpoints, not a REST surface declared in the OpenAPI contract examined here). Reward-only slot; leaving unclaimed
+    rather than inventing a signature the contract does not carry.

@@ -224,6 +224,76 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    DowntimeScope:
+      description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
+      example: env:(staging OR prod) AND datacenter:us-east-1
+      type: string
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MetricSuggestedTagsAndAggregations:
+      description: Object for a single metric's actively queried tags and aggregations.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricSuggestedTagsAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricActiveConfigurationType'
+      type: object
+    MetricCustomTimeAggregation:
+      description: A time aggregation for use in query.
+      enum:
+      - avg
+      - count
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - COUNT
+      - MAX
+      - MIN
+      - SUM
+    MonitorDowntimeMatchResponse:
+      description: Response for retrieving all downtime matches for a monitor.
+      properties:
+        data:
+          description: An array of downtime matches.
+          items:
+            $ref: '#/components/schemas/MonitorDowntimeMatchResponseData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/DowntimeMeta'
+      type: object
+    MetricCustomSpaceAggregation:
+      description: A space aggregation for use in query.
+      enum:
+      - avg
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - MAX
+      - MIN
+      - SUM
     MonitorDowntimeMatchResponseAttributes:
       description: Downtime match details.
       properties:
@@ -252,60 +322,20 @@ components:
           format: date-time
           type: string
       type: object
-    MetricCustomSpaceAggregation:
-      description: A space aggregation for use in query.
-      enum:
-      - avg
-      - max
-      - min
-      - sum
-      example: sum
-      type: string
-      x-enum-varnames:
-      - AVG
-      - MAX
-      - MIN
-      - SUM
-    MetricSuggestedTagsAndAggregationsResponse:
-      description: Response object that includes a single metric's actively queried tags and aggregations.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricSuggestedTagsAndAggregations'
-      readOnly: true
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    ActiveBillingDimensionsType:
-      default: billing_dimensions
-      description: Type of active billing dimensions data.
-      enum:
-      - billing_dimensions
-      type: string
-      x-enum-varnames:
-      - BILLING_DIMENSIONS
-    MetricSuggestedAggregations:
-      description: List of aggregation combinations that have been actively queried.
+    MetricCustomAggregation:
+      description: A time and space aggregation combination for use in query.
       example:
-      - space: sum
+        space: sum
         time: sum
-      - space: sum
-        time: count
-      items:
-        $ref: '#/components/schemas/MetricCustomAggregation'
-      type: array
+      properties:
+        space:
+          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
+        time:
+          $ref: '#/components/schemas/MetricCustomTimeAggregation'
+      required:
+      - time
+      - space
+      type: object
     MetricActiveConfigurationType:
       default: actively_queried_configurations
       description: The metric actively queried configuration resource type.
@@ -315,59 +345,17 @@ components:
       type: string
       x-enum-varnames:
       - ACTIVELY_QUERIED_CONFIGURATIONS
-    DowntimeScope:
-      description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
-      example: env:(staging OR prod) AND datacenter:us-east-1
-      type: string
-    MetricName:
-      description: The metric name for this resource.
-      example: test.metric.latency
-      type: string
-    MonitorDowntimeMatchResponse:
-      description: Response for retrieving all downtime matches for a monitor.
-      properties:
-        data:
-          description: An array of downtime matches.
-          items:
-            $ref: '#/components/schemas/MonitorDowntimeMatchResponseData'
-          type: array
-        meta:
-          $ref: '#/components/schemas/DowntimeMeta'
-      type: object
-    MonitorDowntimeMatchResponseData:
-      description: A downtime match.
+    ActiveBillingDimensionsBody:
+      description: Active billing dimensions data.
       properties:
         attributes:
-          $ref: '#/components/schemas/MonitorDowntimeMatchResponseAttributes'
+          $ref: '#/components/schemas/ActiveBillingDimensionsAttributes'
         id:
-          description: The downtime ID.
-          example: 00000000-0000-1234-0000-000000000000
-          type:
-          - string
-          - 'null'
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
         type:
-          $ref: '#/components/schemas/MonitorDowntimeMatchResourceType'
-      type: object
-    DowntimeMeta:
-      description: Pagination metadata returned by the API.
-      properties:
-        page:
-          $ref: '#/components/schemas/DowntimeMetaPage'
-      type: object
-    MetricSuggestedTagsAttributes:
-      description: Object containing the definition of a metric's actively queried tags and aggregations.
-      properties:
-        active_aggregations:
-          $ref: '#/components/schemas/MetricSuggestedAggregations'
-        active_tags:
-          description: List of tag keys that have been actively queried.
-          example:
-          - app
-          - datacenter
-          items:
-            description: Actively queried tag keys.
-            type: string
-          type: array
+          $ref: '#/components/schemas/ActiveBillingDimensionsType'
       type: object
     ActiveBillingDimensionsAttributes:
       description: List of active billing dimensions.
@@ -394,6 +382,14 @@ components:
           type: integer
           example: 42
       type: object
+    ActiveBillingDimensionsType:
+      default: billing_dimensions
+      description: Type of active billing dimensions data.
+      enum:
+      - billing_dimensions
+      type: string
+      x-enum-varnames:
+      - BILLING_DIMENSIONS
     MonitorDowntimeMatchResourceType:
       default: downtime_match
       description: Monitor Downtime Match resource type.
@@ -403,73 +399,69 @@ components:
       type: string
       x-enum-varnames:
       - DOWNTIME_MATCH
-    MetricCustomAggregation:
-      description: A time and space aggregation combination for use in query.
-      example:
-        space: sum
-        time: sum
+    MetricSuggestedTagsAndAggregationsResponse:
+      description: Response object that includes a single metric's actively queried tags and aggregations.
       properties:
-        space:
-          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
-        time:
-          $ref: '#/components/schemas/MetricCustomTimeAggregation'
-      required:
-      - time
-      - space
+        data:
+          $ref: '#/components/schemas/MetricSuggestedTagsAndAggregations'
+      readOnly: true
       type: object
-    ActiveBillingDimensionsBody:
-      description: Active billing dimensions data.
+    MetricSuggestedTagsAttributes:
+      description: Object containing the definition of a metric's actively queried tags and aggregations.
       properties:
-        attributes:
-          $ref: '#/components/schemas/ActiveBillingDimensionsAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ActiveBillingDimensionsType'
+        active_aggregations:
+          $ref: '#/components/schemas/MetricSuggestedAggregations'
+        active_tags:
+          description: List of tag keys that have been actively queried.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Actively queried tag keys.
+            type: string
+          type: array
       type: object
-    MetricCustomTimeAggregation:
-      description: A time aggregation for use in query.
-      enum:
-      - avg
-      - count
-      - max
-      - min
-      - sum
-      example: sum
-      type: string
-      x-enum-varnames:
-      - AVG
-      - COUNT
-      - MAX
-      - MIN
-      - SUM
+    DowntimeMeta:
+      description: Pagination metadata returned by the API.
+      properties:
+        page:
+          $ref: '#/components/schemas/DowntimeMetaPage'
+      type: object
     ActiveBillingDimensionsResponse:
       description: Active billing dimensions response.
       properties:
         data:
           $ref: '#/components/schemas/ActiveBillingDimensionsBody'
       type: object
-    MetricSuggestedTagsAndAggregations:
-      description: Object for a single metric's actively queried tags and aggregations.
+    MonitorDowntimeMatchResponseData:
+      description: A downtime match.
       properties:
         attributes:
-          $ref: '#/components/schemas/MetricSuggestedTagsAttributes'
+          $ref: '#/components/schemas/MonitorDowntimeMatchResponseAttributes'
         id:
-          $ref: '#/components/schemas/MetricName'
+          description: The downtime ID.
+          example: 00000000-0000-1234-0000-000000000000
+          type:
+          - string
+          - 'null'
         type:
-          $ref: '#/components/schemas/MetricActiveConfigurationType'
+          $ref: '#/components/schemas/MonitorDowntimeMatchResourceType'
       type: object
-  parameters:
+    MetricSuggestedAggregations:
+      description: List of aggregation combinations that have been actively queried.
+      example:
+      - space: sum
+        time: sum
+      - space: sum
+        time: count
+      items:
+        $ref: '#/components/schemas/MetricCustomAggregation'
+      type: array
     MetricName:
-      description: The name of the metric.
-      example: dist.http.endpoint.request
-      in: path
-      name: metric_name
-      required: true
-      schema:
-        type: string
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+  parameters:
     PageOffset:
       description: Specific offset to use as the beginning of the returned page.
       in: query
@@ -480,6 +472,14 @@ components:
         example: 0
         format: int64
         type: integer
+    MetricName:
+      description: The name of the metric.
+      example: dist.http.endpoint.request
+      in: path
+      name: metric_name
+      required: true
+      schema:
+        type: string
   responses:
     TooManyRequestsResponse:
       content:

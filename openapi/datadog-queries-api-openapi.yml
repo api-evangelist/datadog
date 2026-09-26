@@ -161,6 +161,44 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    RelationshipToRole:
+      description: Relationship to role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToRoleData'
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    RestrictionQueryWithoutRelationshipsResponse:
+      description: Response containing information about a single restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
+      type: object
     RelationshipToRoleData:
       description: Relationship to role object.
       properties:
@@ -173,6 +211,20 @@ components:
       type: object
       x-merge-override:
         required: false
+    RestrictionQueryUpdateData:
+      description: Data related to the update of a restriction query.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/LogsRestrictionQueriesType'
+      type: object
+    RestrictionQueryUpdatePayload:
+      description: Update a restriction query.
+      properties:
+        data:
+          $ref: '#/components/schemas/RestrictionQueryUpdateData'
+      type: object
     LogsRestrictionQueriesType:
       default: logs_restriction_queries
       description: Restriction query resource type.
@@ -182,12 +234,20 @@ components:
       type: string
       x-enum-varnames:
       - LOGS_RESTRICTION_QUERIES
-    RestrictionQueryUpdateAttributes:
-      description: Attributes of the edited restriction query.
+    RestrictionQueryWithoutRelationships:
+      description: Restriction query object returned by the API.
       properties:
-        restriction_query:
-          description: The restriction query.
-          example: env:sandbox
+        attributes:
+          $ref: '#/components/schemas/RestrictionQueryAttributes'
+        id:
+          description: ID of the restriction query.
+          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
+          type: string
+        type:
+          default: logs_restriction_queries
+          description: Restriction queries type.
+          example: logs_restriction_queries
+          readOnly: true
           type: string
       type: object
     RestrictionQueryAttributes:
@@ -210,81 +270,14 @@ components:
           example: env:sandbox
           type: string
       type: object
-    RestrictionQueryWithoutRelationshipsResponse:
-      description: Response containing information about a single restriction query.
+    RestrictionQueryUpdateAttributes:
+      description: Attributes of the edited restriction query.
       properties:
-        data:
-          $ref: '#/components/schemas/RestrictionQueryWithoutRelationships'
-      type: object
-    RestrictionQueryWithoutRelationships:
-      description: Restriction query object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RestrictionQueryAttributes'
-        id:
-          description: ID of the restriction query.
-          example: 79a0e60a-644a-11ea-ad29-43329f7f58b5
-          type: string
-        type:
-          default: logs_restriction_queries
-          description: Restriction queries type.
-          example: logs_restriction_queries
-          readOnly: true
+        restriction_query:
+          description: The restriction query.
+          example: env:sandbox
           type: string
       type: object
-    RestrictionQueryUpdatePayload:
-      description: Update a restriction query.
-      properties:
-        data:
-          $ref: '#/components/schemas/RestrictionQueryUpdateData'
-      type: object
-    RelationshipToRole:
-      description: Relationship to role.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToRoleData'
-      type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    RestrictionQueryUpdateData:
-      description: Data related to the update of a restriction query.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RestrictionQueryUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/LogsRestrictionQueriesType'
-      type: object
-  responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   parameters:
     RestrictionQueryID:
       description: The ID of the restriction query.
@@ -293,6 +286,13 @@ components:
       required: true
       schema:
         type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

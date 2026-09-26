@@ -1,0 +1,113 @@
+generated: '2026-09-23'
+method: searched
+source: https://docs.datadoghq.com/api/latest.md
+sources:
+  - https://docs.datadoghq.com/api/latest.md
+  - https://docs.datadoghq.com/api/latest/using-the-api.md
+  - https://docs.datadoghq.com/api/latest/authentication.md
+  - https://docs.datadoghq.com/api/latest/rate-limits.md
+  - openapi/datadog-api-openapi.yml
+authentication:
+  style: header-key
+  headers:
+    - DD-API-KEY
+    - DD-APPLICATION-KEY
+  oauth2:
+    flow: authorizationCode
+    authorization_url: /oauth2/v1/authorize
+    token_url: /oauth2/v1/token
+    scope_count: 68
+    used_by: Marketplace/Integrations partner apps
+  see_also: authentication/datadog-authentication.yml
+idempotency:
+  coverage: none
+  scope: []
+  note: >-
+    The Datadog OpenAPI contract does not define an idempotency-key header on
+    any write operation, and the docs do not describe replay protection at the
+    API layer. Retries on non-idempotent writes may create duplicate resources.
+  probed: openapi/datadog-api-openapi.yml (297 paths inspected; 0 idempotency parameters)
+pagination:
+  style: json-api-cursor-and-page
+  description: >-
+    Datadog v2 endpoints use JSON:API-shaped page parameters. Different endpoint
+    families use different sub-params (cursor, limit, size, number, offset,
+    token, next_record_id) depending on the collection.
+  parameters:
+    - page[cursor]
+    - page[limit]
+    - page[size]
+    - page[number]
+    - page[offset]
+    - page[token]
+    - page[next_record_id]
+    - page
+    - page_id
+versioning:
+  style: path
+  active: [v1, v2]
+  see_also: lifecycle/datadog-lifecycle.yml
+error_envelope:
+  v1:
+    schema: APIErrorResponse
+    shape:
+      errors: [<string>]
+    example:
+      errors: ['Bad Request']
+  v2:
+    schema: JSONAPIErrorResponse
+    shape:
+      errors:
+        - status: '<string>'
+          title: '<string>'
+          detail: '<string>'
+          source: {}
+          meta: {}
+    example:
+      errors:
+        - status: '400'
+          title: 'Bad Request'
+          detail: 'Missing required attribute in body'
+rate_limits:
+  signaling: response-headers
+  headers:
+    limit: X-RateLimit-Limit
+    period: X-RateLimit-Period
+    remaining: X-RateLimit-Remaining
+    reset: X-RateLimit-Reset
+    name: X-RateLimit-Name
+  exhaustion_status: 429
+  see_also: rate-limits/datadog-rate-limits.yml
+metadata_and_tracing:
+  request_id:
+    documented: false
+    note: >-
+      The public docs do not describe a persistent per-request correlation
+      header on the HTTP API surface. Datadog's own products (APM/RUM) attach
+      trace headers to instrumented workloads, but these are agent SDK concerns
+      rather than an external API convention.
+regional_hosts:
+  description: >-
+    Callers must select the correct regional host (server) that matches the
+    site of the account. The `Authentication -> Validate API Key` page enumerates
+    the endpoints per site.
+  see_also: authentication/datadog-authentication.yml
+content_types:
+  request: application/json
+  response: application/json
+reversibility:
+  status: partial-write-surface
+  note: >-
+    Datadog has many write surfaces; reversibility varies by resource. Common
+    reversal paths documented in the contract include:
+      - Monitors: DELETE /api/v1/monitor/{monitor_id} and PATCH to restore/mute
+        via mute/unmute endpoints.
+      - Downtimes: /api/v2/downtime supports create/update/cancel.
+      - Incidents: PATCH /api/v2/incidents/{incident_id} for update; incidents
+        remain in place after resolution.
+      - Dashboards / users / API keys: standard delete/update; no restore
+        window is documented at the API layer.
+    Windows are not published; agents should not assume any restore-after-delete
+    grace period.
+  documented: partial
+  verified: false

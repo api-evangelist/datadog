@@ -1,7 +1,7 @@
-generated: '2026-07-11'
-method: derived
-source: openapi/datadog-api-openapi.yml, openapi/datadog-events-openapi.yml, openapi/datadog-incidents-openapi.yml,
-  openapi/datadog-logs-openapi.yml, openapi/datadog-metrics-openapi.yml, openapi/datadog-monitors-openapi.yml
+generated: '2026-09-23'
+method: searched
+source: https://docs.datadoghq.com/api/latest/authentication.md
+docs: https://docs.datadoghq.com/account_management/api-app-keys.md
 summary:
   types:
   - apiKey
@@ -11,22 +11,20 @@ summary:
   - header
   oauth2_flows:
   - authorizationCode
+description: >-
+  All requests to the Datadog API must be authenticated. Write requests require an
+  `API key` (header DD-API-KEY). Read requests require an `application key`
+  (header DD-APPLICATION-KEY) in addition to the API key. Datadog also publishes
+  an OAuth 2.0 authorization-code flow used by Datadog Marketplace/Integrations
+  (developer platform partner apps).
 schemes:
-- name: AuthZ
-  type: oauth2
-  flows:
-  - flow: authorizationCode
-    authorizationUrl: /oauth2/v1/authorize
-    tokenUrl: /oauth2/v1/token
-    scopes: 68
-  description: This API uses OAuth 2 with the implicit grant flow.
-  sources:
-  - openapi/datadog-api-openapi.yml
 - name: apiKeyAuth
   type: apiKey
   in: header
   parameter: DD-API-KEY
-  description: Your Datadog API Key.
+  description: >-
+    API key used to write data to Datadog. Manage keys under
+    https://app.datadoghq.com/organization-settings/api-keys.
   sources:
   - openapi/datadog-api-openapi.yml
   - openapi/datadog-events-openapi.yml
@@ -34,17 +32,65 @@ schemes:
   - openapi/datadog-logs-openapi.yml
   - openapi/datadog-metrics-openapi.yml
   - openapi/datadog-monitors-openapi.yml
+  - https://docs.datadoghq.com/api/latest/authentication.md
 - name: appKeyAuth
   type: apiKey
   in: header
   parameter: DD-APPLICATION-KEY
-  description: Your Datadog APP Key.
+  description: >-
+    Application key used to read data from Datadog. Scoped to the user who created
+    it; permissions inherit the creator's roles. Some APIs require additional
+    scopes on the application key.
   sources:
   - openapi/datadog-api-openapi.yml
   - openapi/datadog-incidents-openapi.yml
   - openapi/datadog-monitors-openapi.yml
+  - https://docs.datadoghq.com/account_management/api-app-keys.md
 - name: bearerAuth
   type: http
   scheme: bearer
+  description: Bearer token authentication used on selected v2 endpoints.
   sources:
   - openapi/datadog-api-openapi.yml
+- name: AuthZ
+  type: oauth2
+  description: >-
+    OAuth 2.0 authorization-code flow used by Marketplace/Integrations partner
+    applications built on the Datadog Developer Platform. Confidential clients
+    obtain tokens on behalf of installing customers.
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: /oauth2/v1/authorize
+    tokenUrl: /oauth2/v1/token
+    scopes: 68
+  sources:
+  - openapi/datadog-api-openapi.yml
+  - https://docs.datadoghq.com/extend/authorization/oauth2_in_datadog.md
+site_endpoints:
+  description: >-
+    Datadog validate-key endpoint per regional site. Copied verbatim from
+    https://docs.datadoghq.com/api/latest/authentication.md
+  hosts:
+  - site: ap1.datadoghq.com
+    endpoint: https://api.ap1.datadoghq.com/api/v1/validate
+  - site: ap2.datadoghq.com
+    endpoint: https://api.ap2.datadoghq.com/api/v1/validate
+  - site: app.datadoghq.eu
+    endpoint: https://api.datadoghq.eu/api/v1/validate
+  - site: app.ddog-gov.com
+    endpoint: https://api.ddog-gov.com/api/v1/validate
+  - site: us2.ddog-gov.com
+    endpoint: https://api.us2.ddog-gov.com/api/v1/validate
+  - site: uk1.datadoghq.com
+    endpoint: https://api.uk1.datadoghq.com/api/v1/validate
+  - site: app.datadoghq.com
+    endpoint: https://api.datadoghq.com/api/v1/validate
+  - site: us3.datadoghq.com
+    endpoint: https://api.us3.datadoghq.com/api/v1/validate
+  - site: us5.datadoghq.com
+    endpoint: https://api.us5.datadoghq.com/api/v1/validate
+one_time_read_mode:
+  description: >-
+    One-Time Read (OTR) mode limits application key secrets to display-once at
+    creation time; the secret cannot be retrieved later.
+  source: https://docs.datadoghq.com/account_management/api-app-keys.md

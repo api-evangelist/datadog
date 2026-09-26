@@ -105,19 +105,13 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    IPAllowlistEntryData:
-      description: Data of the IP allowlist entry object.
+    IPAllowlistEntry:
+      description: IP allowlist entry object.
       properties:
-        attributes:
-          $ref: '#/components/schemas/IPAllowlistEntryAttributes'
-        id:
-          description: The unique identifier of the IP allowlist entry.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/IPAllowlistEntryType'
+        data:
+          $ref: '#/components/schemas/IPAllowlistEntryData'
       required:
-      - type
+      - data
       type: object
     IPAllowlistData:
       description: IP allowlist data.
@@ -133,19 +127,57 @@ components:
       required:
       - type
       type: object
-    IPAllowlistEntry:
-      description: IP allowlist entry object.
+    IPAllowlistEntryData:
+      description: Data of the IP allowlist entry object.
       properties:
-        data:
-          $ref: '#/components/schemas/IPAllowlistEntryData'
+        attributes:
+          $ref: '#/components/schemas/IPAllowlistEntryAttributes'
+        id:
+          description: The unique identifier of the IP allowlist entry.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/IPAllowlistEntryType'
       required:
-      - data
+      - type
       type: object
     IPAllowlistResponse:
       description: Response containing information about the IP allowlist.
       properties:
         data:
           $ref: '#/components/schemas/IPAllowlistData'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    IPAllowlistEntryType:
+      default: ip_allowlist_entry
+      description: IP allowlist Entry type.
+      enum:
+      - ip_allowlist_entry
+      example: ip_allowlist_entry
+      type: string
+      x-enum-varnames:
+      - IP_ALLOWLIST_ENTRY
+    IPAllowlistUpdateRequest:
+      description: Update the IP allowlist.
+      properties:
+        data:
+          $ref: '#/components/schemas/IPAllowlistData'
+      required:
+      - data
       type: object
     IPAllowlistEntryAttributes:
       description: Attributes of the IP allowlist entry.
@@ -170,38 +202,6 @@ components:
           description: A note describing the IP allowlist entry.
           type: string
           example: example_value
-      type: object
-    IPAllowlistEntryType:
-      default: ip_allowlist_entry
-      description: IP allowlist Entry type.
-      enum:
-      - ip_allowlist_entry
-      example: ip_allowlist_entry
-      type: string
-      x-enum-varnames:
-      - IP_ALLOWLIST_ENTRY
-    IPAllowlistUpdateRequest:
-      description: Update the IP allowlist.
-      properties:
-        data:
-          $ref: '#/components/schemas/IPAllowlistData'
-      required:
-      - data
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
       type: object
     IPAllowlistAttributes:
       description: Attributes of the IP allowlist.
@@ -232,12 +232,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
     TooManyRequestsResponse:
       content:
         application/json:
@@ -250,6 +244,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

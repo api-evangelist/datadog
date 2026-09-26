@@ -226,16 +226,34 @@ components:
           description: 'Fields in Cost Attribution by tag(s). Example: `infra_host_on_demand_cost`, `infra_host_committed_cost`, `infra_host_total_cost`, `infra_host_percentage_in_org`, `infra_host_percentage_in_account`.'
           type: object
       type: object
-    SortDirection:
-      default: desc
-      description: The direction to sort by.
-      enum:
-      - desc
-      - asc
-      type: string
-      x-enum-varnames:
-      - DESC
-      - ASC
+    CostAttributionAggregates:
+      description: An array of available aggregates.
+      items:
+        $ref: '#/components/schemas/CostAttributionAggregatesBody'
+      type: array
+    MonthlyCostAttributionResponse:
+      description: Response containing the monthly cost attribution by tag(s).
+      properties:
+        data:
+          description: Response containing cost attribution.
+          items:
+            $ref: '#/components/schemas/MonthlyCostAttributionBody'
+          type: array
+        meta:
+          $ref: '#/components/schemas/MonthlyCostAttributionMeta'
+      type: object
+    MonthlyCostAttributionBody:
+      description: Cost data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonthlyCostAttributionAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/CostAttributionType'
+      type: object
     MonthlyCostAttributionPagination:
       description: The metadata for the current pagination.
       properties:
@@ -246,6 +264,56 @@ components:
           - 'null'
           example: abc-123-def
       type: object
+    MonthlyCostAttributionMeta:
+      description: The object containing document metadata.
+      properties:
+        aggregates:
+          $ref: '#/components/schemas/CostAttributionAggregates'
+        pagination:
+          $ref: '#/components/schemas/MonthlyCostAttributionPagination'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CostAttributionAggregatesBody:
+      description: The object containing the aggregates.
+      properties:
+        agg_type:
+          description: The aggregate type.
+          example: sum
+          type: string
+        field:
+          description: The field.
+          example: infra_host_committed_cost
+          type: string
+        value:
+          description: The value for a given field.
+          format: double
+          type: number
+          example: 95.5
+      type: object
+    SortDirection:
+      default: desc
+      description: The direction to sort by.
+      enum:
+      - desc
+      - asc
+      type: string
+      x-enum-varnames:
+      - DESC
+      - ASC
     CostAttributionTagNames:
       additionalProperties:
         description: 'A list of values that are associated with each tag key.
@@ -270,30 +338,6 @@ components:
       type:
       - object
       - 'null'
-    MonthlyCostAttributionMeta:
-      description: The object containing document metadata.
-      properties:
-        aggregates:
-          $ref: '#/components/schemas/CostAttributionAggregates'
-        pagination:
-          $ref: '#/components/schemas/MonthlyCostAttributionPagination'
-      type: object
-    CostAttributionAggregates:
-      description: An array of available aggregates.
-      items:
-        $ref: '#/components/schemas/CostAttributionAggregatesBody'
-      type: array
-    MonthlyCostAttributionResponse:
-      description: Response containing the monthly cost attribution by tag(s).
-      properties:
-        data:
-          description: Response containing cost attribution.
-          items:
-            $ref: '#/components/schemas/MonthlyCostAttributionBody'
-          type: array
-        meta:
-          $ref: '#/components/schemas/MonthlyCostAttributionMeta'
-      type: object
     CostAttributionType:
       default: cost_by_tag
       description: Type of cost attribution data.
@@ -303,50 +347,6 @@ components:
       type: string
       x-enum-varnames:
       - COST_BY_TAG
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    MonthlyCostAttributionBody:
-      description: Cost data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonthlyCostAttributionAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/CostAttributionType'
-      type: object
-    CostAttributionAggregatesBody:
-      description: The object containing the aggregates.
-      properties:
-        agg_type:
-          description: The aggregate type.
-          example: sum
-          type: string
-        field:
-          description: The field.
-          example: infra_host_committed_cost
-          type: string
-        value:
-          description: The value for a given field.
-          format: double
-          type: number
-          example: 95.5
-      type: object
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.
