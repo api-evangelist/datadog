@@ -141,25 +141,27 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MetricEstimateType:
-      default: count_or_gauge
-      description: Estimate type based on the queried configuration. By default, `count_or_gauge` is returned. `distribution` is returned for distribution metrics without percentiles enabled. Lastly, `percentile` is returned if `filter[pct]=true` is queried with a distribution metric.
+    MetricEstimate:
+      description: Object for a metric cardinality estimate.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricEstimateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricEstimateResourceType'
+      type: object
+      x-merge-override:
+        required: false
+    MetricEstimateResourceType:
+      default: metric_cardinality_estimate
+      description: The metric estimate resource type.
       enum:
-      - count_or_gauge
-      - distribution
-      - percentile
-      example: distribution
+      - metric_cardinality_estimate
+      example: metric_cardinality_estimate
       type: string
       x-enum-varnames:
-      - COUNT_OR_GAUGE
-      - DISTRIBUTION
-      - PERCENTILE
-    MetricEstimateResponse:
-      description: Response object that includes metric cardinality estimates.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricEstimate'
-      type: object
+      - METRIC_CARDINALITY_ESTIMATE
     APIErrorResponse:
       description: API error response.
       properties:
@@ -175,31 +177,23 @@ components:
       required:
       - errors
       type: object
-    MetricEstimate:
-      description: Object for a metric cardinality estimate.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MetricEstimateAttributes'
-        id:
-          $ref: '#/components/schemas/MetricName'
-        type:
-          $ref: '#/components/schemas/MetricEstimateResourceType'
-      type: object
-      x-merge-override:
-        required: false
+    MetricEstimateType:
+      default: count_or_gauge
+      description: Estimate type based on the queried configuration. By default, `count_or_gauge` is returned. `distribution` is returned for distribution metrics without percentiles enabled. Lastly, `percentile` is returned if `filter[pct]=true` is queried with a distribution metric.
+      enum:
+      - count_or_gauge
+      - distribution
+      - percentile
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT_OR_GAUGE
+      - DISTRIBUTION
+      - PERCENTILE
     MetricName:
       description: The metric name for this resource.
       example: test.metric.latency
       type: string
-    MetricEstimateResourceType:
-      default: metric_cardinality_estimate
-      description: The metric estimate resource type.
-      enum:
-      - metric_cardinality_estimate
-      example: metric_cardinality_estimate
-      type: string
-      x-enum-varnames:
-      - METRIC_CARDINALITY_ESTIMATE
     MetricEstimateAttributes:
       description: Object containing the definition of a metric estimate attribute.
       properties:
@@ -218,6 +212,12 @@ components:
       type: object
       x-merge-override:
         required: false
+    MetricEstimateResponse:
+      description: Response object that includes metric cardinality estimates.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricEstimate'
+      type: object
   parameters:
     MetricName:
       description: The name of the metric.

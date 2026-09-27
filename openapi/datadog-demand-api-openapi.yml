@@ -155,6 +155,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    AwsOnDemandType:
+      default: aws_resource
+      description: The type of the on demand task. The value should always be `aws_resource`.
+      enum:
+      - aws_resource
+      example: aws_resource
+      type: string
+      x-enum-varnames:
+      - AWS_RESOURCE
     AwsOnDemandAttributes:
       description: Attributes for the AWS on demand task.
       properties:
@@ -181,15 +190,14 @@ components:
           example: QUEUED
           type: string
       type: object
-    AwsOnDemandType:
-      default: aws_resource
-      description: The type of the on demand task. The value should always be `aws_resource`.
-      enum:
-      - aws_resource
-      example: aws_resource
-      type: string
-      x-enum-varnames:
-      - AWS_RESOURCE
+    AwsOnDemandCreateRequest:
+      description: Request object that includes the on demand task to submit.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsOnDemandCreateData'
+      required:
+      - data
+      type: object
     AwsOnDemandData:
       description: Single AWS on demand task.
       properties:
@@ -201,32 +209,6 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/AwsOnDemandType'
-      type: object
-    AwsOnDemandCreateData:
-      description: Object for a single AWS on demand task.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsOnDemandCreateAttributes'
-        type:
-          $ref: '#/components/schemas/AwsOnDemandType'
-      required:
-      - type
-      - attributes
-      type: object
-    AwsOnDemandListResponse:
-      description: Response object that includes a list of AWS on demand tasks.
-      properties:
-        data:
-          description: A list of on demand tasks.
-          items:
-            $ref: '#/components/schemas/AwsOnDemandData'
-          type: array
-      type: object
-    AwsOnDemandResponse:
-      description: Response object that includes an AWS on demand task.
-      properties:
-        data:
-          $ref: '#/components/schemas/AwsOnDemandData'
       type: object
     APIErrorResponse:
       description: API error response.
@@ -243,13 +225,25 @@ components:
       required:
       - errors
       type: object
-    AwsOnDemandCreateRequest:
-      description: Request object that includes the on demand task to submit.
+    AwsOnDemandListResponse:
+      description: Response object that includes a list of AWS on demand tasks.
       properties:
         data:
-          $ref: '#/components/schemas/AwsOnDemandCreateData'
+          description: A list of on demand tasks.
+          items:
+            $ref: '#/components/schemas/AwsOnDemandData'
+          type: array
+      type: object
+    AwsOnDemandCreateData:
+      description: Object for a single AWS on demand task.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsOnDemandCreateAttributes'
+        type:
+          $ref: '#/components/schemas/AwsOnDemandType'
       required:
-      - data
+      - type
+      - attributes
       type: object
     AwsOnDemandCreateAttributes:
       description: Attributes for the AWS on demand task.
@@ -261,7 +255,25 @@ components:
       required:
       - arn
       type: object
+    AwsOnDemandResponse:
+      description: Response object that includes an AWS on demand task.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsOnDemandData'
+      type: object
   responses:
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
     BadRequestResponse:
       content:
         application/json:
@@ -274,18 +286,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
   parameters:
     OnDemandTaskId:
       description: The UUID of the task.

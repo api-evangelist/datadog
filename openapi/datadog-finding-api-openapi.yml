@@ -103,78 +103,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    FindingMute:
-      additionalProperties: false
-      description: Information about the mute status of this finding.
-      properties:
-        description:
-          description: Additional information about the reason why this finding is muted or unmuted.
-          example: To be resolved later
-          type: string
-        expiration_date:
-          description: The expiration date of the mute or unmute action (Unix ms).
-          example: 1778721573794
-          format: int64
-          type: integer
-        muted:
-          description: Whether this finding is muted or unmuted.
-          example: true
-          type: boolean
-        reason:
-          $ref: '#/components/schemas/FindingMuteReason'
-        start_date:
-          description: The start of the mute period.
-          example: 1678721573794
-          format: int64
-          type: integer
-        uuid:
-          description: The ID of the user who muted or unmuted this finding.
-          example: e51c9744-d158-11ec-ad23-da7ad0900002
-          type: string
-      type: object
-    FindingRule:
-      additionalProperties: false
-      description: The rule that triggered this finding.
-      properties:
-        id:
-          description: The ID of the rule that triggered this finding.
-          example: dv2-jzf-41i
-          type: string
-        name:
-          description: The name of the rule that triggered this finding.
-          example: Soft delete is enabled for Azure Storage
-          type: string
-      type: object
-    FindingEvaluation:
-      description: The evaluation of the finding.
+    DetailedFindingType:
+      default: detailed_finding
+      description: The JSON:API type for findings that have the message and resource configuration.
       enum:
-      - pass
-      - fail
-      example: pass
+      - detailed_finding
+      example: detailed_finding
       type: string
       x-enum-varnames:
-      - PASS
-      - FAIL
-    FindingMuteReason:
-      description: The reason why this finding is muted or unmuted.
-      enum:
-      - PENDING_FIX
-      - FALSE_POSITIVE
-      - ACCEPTED_RISK
-      - NO_PENDING_FIX
-      - HUMAN_ERROR
-      - NO_LONGER_ACCEPTED_RISK
-      - OTHER
-      example: ACCEPTED_RISK
-      type: string
-      x-enum-varnames:
-      - PENDING_FIX
-      - FALSE_POSITIVE
-      - ACCEPTED_RISK
-      - NO_PENDING_FIX
-      - HUMAN_ERROR
-      - NO_LONGER_ACCEPTED_RISK
-      - OTHER
+      - DETAILED_FINDING
     JSONAPIErrorItem:
       description: API error response body
       properties:
@@ -197,6 +134,23 @@ components:
           example: Bad Request
           type: string
       type: object
+    FindingEvaluationChangedAt:
+      description: The date on which the evaluation for this finding changed (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
     FindingStatus:
       description: The status of the finding.
       enum:
@@ -213,65 +167,6 @@ components:
       - MEDIUM
       - LOW
       - INFO
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    FindingID:
-      description: The unique ID for this finding.
-      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
-      type: string
-    DetailedFinding:
-      description: A single finding with with message and resource configuration.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DetailedFindingAttributes'
-        id:
-          $ref: '#/components/schemas/FindingID'
-        type:
-          $ref: '#/components/schemas/DetailedFindingType'
-      type: object
-    FindingResourceDiscoveryDate:
-      description: The date on which the resource was discovered (Unix ms).
-      example: 1678721573794
-      format: int64
-      minimum: 1
-      type: integer
-    GetFindingResponse:
-      description: The expected response schema when getting a finding.
-      properties:
-        data:
-          $ref: '#/components/schemas/DetailedFinding'
-      required:
-      - data
-      type: object
-    FindingResourceType:
-      description: The resource type of this finding.
-      example: azure_storage_account
-      type: string
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
-      properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
     FindingTags:
       description: The tags associated with this finding.
       example:
@@ -320,50 +215,155 @@ components:
         tags:
           $ref: '#/components/schemas/FindingTags'
       type: object
-    FindingResource:
-      description: The resource name of this finding.
-      example: my_resource_name
+    FindingRule:
+      additionalProperties: false
+      description: The rule that triggered this finding.
+      properties:
+        id:
+          description: The ID of the rule that triggered this finding.
+          example: dv2-jzf-41i
+          type: string
+        name:
+          description: The name of the rule that triggered this finding.
+          example: Soft delete is enabled for Azure Storage
+          type: string
+      type: object
+    FindingResourceType:
+      description: The resource type of this finding.
+      example: azure_storage_account
       type: string
-    FindingEvaluationChangedAt:
-      description: The date on which the evaluation for this finding changed (Unix ms).
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    FindingResourceDiscoveryDate:
+      description: The date on which the resource was discovered (Unix ms).
       example: 1678721573794
       format: int64
       minimum: 1
       type: integer
-    DetailedFindingType:
-      default: detailed_finding
-      description: The JSON:API type for findings that have the message and resource configuration.
+    FindingMute:
+      additionalProperties: false
+      description: Information about the mute status of this finding.
+      properties:
+        description:
+          description: Additional information about the reason why this finding is muted or unmuted.
+          example: To be resolved later
+          type: string
+        expiration_date:
+          description: The expiration date of the mute or unmute action (Unix ms).
+          example: 1778721573794
+          format: int64
+          type: integer
+        muted:
+          description: Whether this finding is muted or unmuted.
+          example: true
+          type: boolean
+        reason:
+          $ref: '#/components/schemas/FindingMuteReason'
+        start_date:
+          description: The start of the mute period.
+          example: 1678721573794
+          format: int64
+          type: integer
+        uuid:
+          description: The ID of the user who muted or unmuted this finding.
+          example: e51c9744-d158-11ec-ad23-da7ad0900002
+          type: string
+      type: object
+    GetFindingResponse:
+      description: The expected response schema when getting a finding.
+      properties:
+        data:
+          $ref: '#/components/schemas/DetailedFinding'
+      required:
+      - data
+      type: object
+    DetailedFinding:
+      description: A single finding with with message and resource configuration.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DetailedFindingAttributes'
+        id:
+          $ref: '#/components/schemas/FindingID'
+        type:
+          $ref: '#/components/schemas/DetailedFindingType'
+      type: object
+    FindingResource:
+      description: The resource name of this finding.
+      example: my_resource_name
+      type: string
+    FindingID:
+      description: The unique ID for this finding.
+      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
+      type: string
+    FindingMuteReason:
+      description: The reason why this finding is muted or unmuted.
       enum:
-      - detailed_finding
-      example: detailed_finding
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
+      example: ACCEPTED_RISK
       type: string
       x-enum-varnames:
-      - DETAILED_FINDING
+      - PENDING_FIX
+      - FALSE_POSITIVE
+      - ACCEPTED_RISK
+      - NO_PENDING_FIX
+      - HUMAN_ERROR
+      - NO_LONGER_ACCEPTED_RISK
+      - OTHER
+    FindingEvaluation:
+      description: The evaluation of the finding.
+      enum:
+      - pass
+      - fail
+      example: pass
+      type: string
+      x-enum-varnames:
+      - PASS
+      - FAIL
   responses:
-    FindingsBadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
     FindingsNotFoundResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Not Found: The requested finding cannot be found.'
-    FindingsForbiddenResponse:
+    FindingsBadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Forbidden: Access denied'
+      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
     FindingsTooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Too many requests: The rate limit set by the API has been exceeded.'
+    FindingsForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Forbidden: Access denied'
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

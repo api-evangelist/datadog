@@ -126,49 +126,60 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  parameters:
-    AwsAccountId:
-      description: The ID of an AWS account.
-      example: '123456789012'
-      in: path
-      name: account_id
-      required: true
-      schema:
-        type: string
+  responses:
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   schemas:
-    AwsScanOptionsUpdateData:
-      description: Object for the scan options of a single AWS account.
+    AwsScanOptionsCreateRequest:
+      description: Request object that includes the scan options to create.
       properties:
-        attributes:
-          $ref: '#/components/schemas/AwsScanOptionsUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/AwsAccountId'
-        type:
-          $ref: '#/components/schemas/AwsScanOptionsType'
+        data:
+          $ref: '#/components/schemas/AwsScanOptionsCreateData'
       required:
-      - id
-      - type
-      - attributes
+      - data
       type: object
-    AwsScanOptionsUpdateAttributes:
-      description: Attributes for the AWS scan options to update.
+    AwsScanOptionsType:
+      default: aws_scan_options
+      description: The type of the resource. The value should always be `aws_scan_options`.
+      enum:
+      - aws_scan_options
+      example: aws_scan_options
+      type: string
+      x-enum-varnames:
+      - AWS_SCAN_OPTIONS
+    AwsScanOptionsResponse:
+      description: Response object that includes the scan options of an AWS account.
       properties:
-        lambda:
-          description: Indicates if scanning of Lambda functions is enabled.
-          example: true
-          type: boolean
-        sensitive_data:
-          description: Indicates if scanning for sensitive data is enabled.
-          example: false
-          type: boolean
-        vuln_containers_os:
-          description: Indicates if scanning for vulnerabilities in containers is enabled.
-          example: true
-          type: boolean
-        vuln_host_os:
-          description: Indicates if scanning for vulnerabilities in hosts is enabled.
-          example: true
-          type: boolean
+        data:
+          $ref: '#/components/schemas/AwsScanOptionsData'
       type: object
     AwsScanOptionsAttributes:
       description: Attributes for the AWS scan options.
@@ -190,39 +201,26 @@ components:
           example: true
           type: boolean
       type: object
-    AwsScanOptionsResponse:
-      description: Response object that includes the scan options of an AWS account.
+    AwsScanOptionsUpdateAttributes:
+      description: Attributes for the AWS scan options to update.
       properties:
-        data:
-          $ref: '#/components/schemas/AwsScanOptionsData'
+        lambda:
+          description: Indicates if scanning of Lambda functions is enabled.
+          example: true
+          type: boolean
+        sensitive_data:
+          description: Indicates if scanning for sensitive data is enabled.
+          example: false
+          type: boolean
+        vuln_containers_os:
+          description: Indicates if scanning for vulnerabilities in containers is enabled.
+          example: true
+          type: boolean
+        vuln_host_os:
+          description: Indicates if scanning for vulnerabilities in hosts is enabled.
+          example: true
+          type: boolean
       type: object
-    AwsScanOptionsType:
-      default: aws_scan_options
-      description: The type of the resource. The value should always be `aws_scan_options`.
-      enum:
-      - aws_scan_options
-      example: aws_scan_options
-      type: string
-      x-enum-varnames:
-      - AWS_SCAN_OPTIONS
-    AwsScanOptionsCreateData:
-      description: Object for the scan options of a single AWS account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsScanOptionsCreateAttributes'
-        id:
-          $ref: '#/components/schemas/AwsAccountId'
-        type:
-          $ref: '#/components/schemas/AwsScanOptionsType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    AwsAccountId:
-      description: The ID of the AWS account.
-      example: '123456789012'
-      type: string
     APIErrorResponse:
       description: API error response.
       properties:
@@ -237,6 +235,20 @@ components:
           type: array
       required:
       - errors
+      type: object
+    AwsScanOptionsCreateData:
+      description: Object for the scan options of a single AWS account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsScanOptionsCreateAttributes'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        type:
+          $ref: '#/components/schemas/AwsScanOptionsType'
+      required:
+      - id
+      - type
+      - attributes
       type: object
     AwsScanOptionsUpdateRequest:
       description: Request object that includes the scan options to update.
@@ -271,13 +283,23 @@ components:
       - vuln_containers_os
       - vuln_host_os
       type: object
-    AwsScanOptionsCreateRequest:
-      description: Request object that includes the scan options to create.
+    AwsAccountId:
+      description: The ID of the AWS account.
+      example: '123456789012'
+      type: string
+    AwsScanOptionsUpdateData:
+      description: Object for the scan options of a single AWS account.
       properties:
-        data:
-          $ref: '#/components/schemas/AwsScanOptionsCreateData'
+        attributes:
+          $ref: '#/components/schemas/AwsScanOptionsUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        type:
+          $ref: '#/components/schemas/AwsScanOptionsType'
       required:
-      - data
+      - id
+      - type
+      - attributes
       type: object
     AwsScanOptionsData:
       description: Single AWS Scan Options entry.
@@ -291,37 +313,15 @@ components:
         type:
           $ref: '#/components/schemas/AwsScanOptionsType'
       type: object
-  responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
+  parameters:
+    AwsAccountId:
+      description: The ID of an AWS account.
+      example: '123456789012'
+      in: path
+      name: account_id
+      required: true
+      schema:
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

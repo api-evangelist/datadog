@@ -109,11 +109,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    CsmHostsAndContainersCoverageAnalysisAttributes:
-      description: CSM Hosts and Containers Coverage Analysis attributes.
+    CsmHostsAndContainersCoverageAnalysisResponse:
+      description: CSM Hosts and Containers Coverage Analysis response.
       properties:
-        cspm_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        data:
+          $ref: '#/components/schemas/CsmHostsAndContainersCoverageAnalysisData'
+      type: object
+    CsmServerlessCoverageAnalysisAttributes:
+      description: CSM Serverless Resources Coverage Analysis attributes.
+      properties:
         cws_coverage:
           $ref: '#/components/schemas/CsmCoverageAnalysis'
         org_id:
@@ -123,14 +127,6 @@ components:
           type: integer
         total_coverage:
           $ref: '#/components/schemas/CsmCoverageAnalysis'
-        vm_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-      type: object
-    CsmHostsAndContainersCoverageAnalysisResponse:
-      description: CSM Hosts and Containers Coverage Analysis response.
-      properties:
-        data:
-          $ref: '#/components/schemas/CsmHostsAndContainersCoverageAnalysisData'
       type: object
     CsmServerlessCoverageAnalysisData:
       description: CSM Serverless Resources Coverage Analysis data.
@@ -147,11 +143,37 @@ components:
           example: get_serverless_coverage_analysis_response_public_v0
           type: string
       type: object
-    CsmServerlessCoverageAnalysisResponse:
-      description: CSM Serverless Resources Coverage Analysis response.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        data:
-          $ref: '#/components/schemas/CsmServerlessCoverageAnalysisData'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CsmHostsAndContainersCoverageAnalysisAttributes:
+      description: CSM Hosts and Containers Coverage Analysis attributes.
+      properties:
+        cspm_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        cws_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        org_id:
+          description: The ID of your organization.
+          example: 123456
+          format: int64
+          type: integer
+        total_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        vm_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
       type: object
     CsmCoverageAnalysis:
       description: CSM Coverage Analysis.
@@ -177,18 +199,11 @@ components:
           format: int64
           type: integer
       type: object
-    CsmServerlessCoverageAnalysisAttributes:
-      description: CSM Serverless Resources Coverage Analysis attributes.
+    CsmServerlessCoverageAnalysisResponse:
+      description: CSM Serverless Resources Coverage Analysis response.
       properties:
-        cws_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-        org_id:
-          description: The ID of your organization.
-          example: 123456
-          format: int64
-          type: integer
-        total_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        data:
+          $ref: '#/components/schemas/CsmServerlessCoverageAnalysisData'
       type: object
     CsmHostsAndContainersCoverageAnalysisData:
       description: CSM Hosts and Containers Coverage Analysis data.
@@ -205,34 +220,19 @@ components:
           example: get_hosts_and_containers_coverage_analysis_response_public_v0
           type: string
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
   responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     NotAuthorizedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

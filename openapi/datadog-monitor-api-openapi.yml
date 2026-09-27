@@ -118,10 +118,189 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MonitorNotificationRuleId:
-      description: The ID of the monitor notification rule.
-      example: 00000000-0000-1234-0000-000000000000
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    MonitorNotificationRuleFilterTags:
+      additionalProperties: false
+      description: Filter monitors by tags. Monitors must match all tags.
+      properties:
+        tags:
+          description: A list of monitor tags.
+          example:
+          - team:product
+          - host:abc
+          items:
+            maxLength: 255
+            type: string
+          maxItems: 20
+          minItems: 1
+          type: array
+          uniqueItems: true
+      required:
+      - tags
+      type: object
+    MonitorNotificationRuleRelationshipsCreatedByData:
+      description: Data for the user who created the monitor notification rule.
+      properties:
+        id:
+          description: User ID of the monitor notification rule creator.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type:
+      - object
+      - 'null'
+    MonitorNotificationRuleResourceType:
+      default: monitor-notification-rule
+      description: Monitor notification rule resource type.
+      enum:
+      - monitor-notification-rule
+      example: monitor-notification-rule
       type: string
+      x-enum-varnames:
+      - MONITOR_NOTIFICATION_RULE
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    MonitorNotificationRuleRecipients:
+      description: A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'.
+      example:
+      - slack-test-channel
+      - jira-test
+      items:
+        description: individual recipient.
+        maxLength: 255
+        type: string
+      maxItems: 20
+      minItems: 1
+      type: array
+      uniqueItems: true
+    MonitorNotificationRuleData:
+      description: Monitor notification rule data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorNotificationRuleResponseAttributes'
+        id:
+          $ref: '#/components/schemas/MonitorNotificationRuleId'
+        relationships:
+          $ref: '#/components/schemas/MonitorNotificationRuleRelationships'
+        type:
+          $ref: '#/components/schemas/MonitorNotificationRuleResourceType'
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    MonitorNotificationRuleResponseAttributes:
+      additionalProperties: {}
+      description: Attributes of the monitor notification rule.
+      properties:
+        created:
+          description: Creation time of the monitor notification rule.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+        filter:
+          $ref: '#/components/schemas/MonitorNotificationRuleFilter'
+        modified:
+          description: Time the monitor notification rule was last modified.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+        name:
+          $ref: '#/components/schemas/MonitorNotificationRuleName'
+        recipients:
+          $ref: '#/components/schemas/MonitorNotificationRuleRecipients'
+      type: object
+    MonitorNotificationRuleFilter:
+      description: Filter used to associate the notification rule with monitors.
+      oneOf:
+      - $ref: '#/components/schemas/MonitorNotificationRuleFilterTags'
+    MonitorNotificationRuleUpdateRequestData:
+      description: Object to update a monitor notification rule.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorNotificationRuleAttributes'
+        id:
+          $ref: '#/components/schemas/MonitorNotificationRuleId'
+        type:
+          $ref: '#/components/schemas/MonitorNotificationRuleResourceType'
+      required:
+      - id
+      - attributes
+      type: object
     UsersType:
       default: users
       description: Users resource type.
@@ -142,71 +321,33 @@ components:
             $ref: '#/components/schemas/MonitorNotificationRuleResponseIncludedItem'
           type: array
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
-      required:
-      - data
-      type: object
-    MonitorNotificationRuleName:
-      description: The name of the monitor notification rule.
-      example: A notification rule name
-      maxLength: 1000
-      minLength: 1
+    MonitorNotificationRuleId:
+      description: The ID of the monitor notification rule.
+      example: 00000000-0000-1234-0000-000000000000
       type: string
-    MonitorNotificationRuleRelationshipsCreatedBy:
-      description: The user who created the monitor notification rule.
-      properties:
-        data:
-          $ref: '#/components/schemas/MonitorNotificationRuleRelationshipsCreatedByData'
-      type: object
-    MonitorNotificationRuleData:
-      description: Monitor notification rule data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonitorNotificationRuleResponseAttributes'
-        id:
-          $ref: '#/components/schemas/MonitorNotificationRuleId'
-        relationships:
-          $ref: '#/components/schemas/MonitorNotificationRuleRelationships'
-        type:
-          $ref: '#/components/schemas/MonitorNotificationRuleResourceType'
-      type: object
-    MonitorNotificationRuleResourceType:
-      default: monitor-notification-rule
-      description: Monitor notification rule resource type.
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
       enum:
-      - monitor-notification-rule
-      example: monitor-notification-rule
+      - orgs
+      example: orgs
       type: string
       x-enum-varnames:
-      - MONITOR_NOTIFICATION_RULE
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
+      - ORGS
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    MonitorNotificationRuleUpdateRequest:
+      description: Request for updating a monitor notification rule.
       properties:
         data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
+          $ref: '#/components/schemas/MonitorNotificationRuleUpdateRequestData'
       required:
       - data
       type: object
@@ -269,47 +410,6 @@ components:
           type: boolean
           example: true
       type: object
-    MonitorNotificationRuleRecipients:
-      description: A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'.
-      example:
-      - slack-test-channel
-      - jira-test
-      items:
-        description: individual recipient.
-        maxLength: 255
-        type: string
-      maxItems: 20
-      minItems: 1
-      type: array
-      uniqueItems: true
-    MonitorNotificationRuleFilterTags:
-      additionalProperties: false
-      description: Filter monitors by tags. Monitors must match all tags.
-      properties:
-        tags:
-          description: A list of monitor tags.
-          example:
-          - team:product
-          - host:abc
-          items:
-            maxLength: 255
-            type: string
-          maxItems: 20
-          minItems: 1
-          type: array
-          uniqueItems: true
-      required:
-      - tags
-      type: object
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
     MonitorNotificationRuleAttributes:
       additionalProperties: false
       description: Attributes of the monitor notification rule.
@@ -324,95 +424,39 @@ components:
       - name
       - recipients
       type: object
-    MonitorNotificationRuleResponseAttributes:
-      additionalProperties: {}
-      description: Attributes of the monitor notification rule.
+    RelationshipToRoles:
+      description: Relationship to roles.
       properties:
-        created:
-          description: Creation time of the monitor notification rule.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type: string
-        filter:
-          $ref: '#/components/schemas/MonitorNotificationRuleFilter'
-        modified:
-          description: Time the monitor notification rule was last modified.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type: string
-        name:
-          $ref: '#/components/schemas/MonitorNotificationRuleName'
-        recipients:
-          $ref: '#/components/schemas/MonitorNotificationRuleRecipients'
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    MonitorNotificationRuleRelationshipsCreatedBy:
+      description: The user who created the monitor notification rule.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorNotificationRuleRelationshipsCreatedByData'
       type: object
     MonitorNotificationRuleResponseIncludedItem:
       description: An object related to a monitor notification rule.
       oneOf:
       - $ref: '#/components/schemas/User'
-    MonitorNotificationRuleUpdateRequestData:
-      description: Object to update a monitor notification rule.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonitorNotificationRuleAttributes'
-        id:
-          $ref: '#/components/schemas/MonitorNotificationRuleId'
-        type:
-          $ref: '#/components/schemas/MonitorNotificationRuleResourceType'
-      required:
-      - id
-      - attributes
-      type: object
-    MonitorNotificationRuleUpdateRequest:
-      description: Request for updating a monitor notification rule.
-      properties:
-        data:
-          $ref: '#/components/schemas/MonitorNotificationRuleUpdateRequestData'
-      required:
-      - data
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
-    MonitorNotificationRuleFilter:
-      description: Filter used to associate the notification rule with monitors.
-      oneOf:
-      - $ref: '#/components/schemas/MonitorNotificationRuleFilterTags'
     RelationshipToOrganizationData:
       description: Relationship to organization object.
       properties:
@@ -426,74 +470,30 @@ components:
       - id
       - type
       type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
+    RelationshipToRoleData:
+      description: Relationship to role object.
       properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    RelationshipToRoles:
-      description: Relationship to roles.
-      properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
-          items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
-          type: array
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
       type: object
       x-merge-override:
         required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
+    MonitorNotificationRuleName:
+      description: The name of the monitor notification rule.
+      example: A notification rule name
+      maxLength: 1000
+      minLength: 1
       type: string
-      x-enum-varnames:
-      - ROLES
-    MonitorNotificationRuleRelationshipsCreatedByData:
-      description: Data for the user who created the monitor notification rule.
-      properties:
-        id:
-          description: User ID of the monitor notification rule creator.
-          example: 00000000-0000-1234-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type:
-      - object
-      - 'null'
     MonitorNotificationRuleRelationships:
       description: All relationships associated with monitor notification rule.
       properties:
         created_by:
           $ref: '#/components/schemas/MonitorNotificationRuleRelationshipsCreatedBy'
       type: object
-    User:
-      description: User object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
   responses:
     TooManyRequestsResponse:
       content:

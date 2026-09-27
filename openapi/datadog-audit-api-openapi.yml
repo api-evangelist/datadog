@@ -195,6 +195,50 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    AuditLogsEventsResponse:
+      description: Response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/AuditLogsEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/AuditLogsResponseLinks'
+        meta:
+          $ref: '#/components/schemas/AuditLogsResponseMetadata'
+      type: object
+    AuditLogsResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/audit/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    AuditLogsSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    AuditLogsSearchEventsRequest:
+      description: The request for a Audit Logs events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/AuditLogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/AuditLogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/AuditLogsQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/AuditLogsSort'
+      type: object
     AuditLogsEventAttributes:
       description: JSON object containing all event attributes and their associated values.
       properties:
@@ -231,85 +275,20 @@ components:
           format: date-time
           type: string
       type: object
-    AuditLogsEventType:
-      default: audit
-      description: Type of the event.
-      enum:
-      - audit
-      example: audit
-      type: string
-      x-enum-varnames:
-      - Audit
-    AuditLogsResponseStatus:
-      description: The status of the response.
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    AuditLogsResponsePage:
-      description: Paging attributes.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    AuditLogsSearchEventsRequest:
-      description: The request for a Audit Logs events list.
-      properties:
-        filter:
-          $ref: '#/components/schemas/AuditLogsQueryFilter'
-        options:
-          $ref: '#/components/schemas/AuditLogsQueryOptions'
-        page:
-          $ref: '#/components/schemas/AuditLogsQueryPageOptions'
-        sort:
-          $ref: '#/components/schemas/AuditLogsSort'
-      type: object
-    AuditLogsResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/audit/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    AuditLogsQueryFilter:
-      description: Search and filter query settings.
-      properties:
-        from:
-          default: now-15m
-          description: Minimum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
-          example: now-15m
-          type: string
-        query:
-          default: '*'
-          description: Search query following the Audit Logs search syntax.
-          example: '@type:session AND @session.type:user'
-          type: string
-        to:
-          default: now
-          description: Maximum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
-          example: now
-          type: string
-      type: object
-    AuditLogsEvent:
-      description: Object description of an Audit Logs event after it is processed and stored by Datadog.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AuditLogsEventAttributes'
-        id:
-          description: Unique ID of the event.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
-          type: string
-        type:
-          $ref: '#/components/schemas/AuditLogsEventType'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
       type: object
     AuditLogsResponseMetadata:
       description: The metadata associated with a request.
@@ -335,6 +314,16 @@ components:
             $ref: '#/components/schemas/AuditLogsWarning'
           type: array
       type: object
+    AuditLogsResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
     AuditLogsWarning:
       description: Warning message indicating something that went wrong with the query.
       properties:
@@ -349,6 +338,69 @@ components:
         title:
           description: Short human-readable summary of the warning.
           example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    AuditLogsEvent:
+      description: Object description of an Audit Logs event after it is processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AuditLogsEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/AuditLogsEventType'
+      type: object
+    AuditLogsEventType:
+      default: audit
+      description: Type of the event.
+      enum:
+      - audit
+      example: audit
+      type: string
+      x-enum-varnames:
+      - Audit
+    AuditLogsQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    AuditLogsResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    AuditLogsQueryFilter:
+      description: Search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: Minimum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: Search query following the Audit Logs search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: Maximum time for the requested events. Supports date, math, and regular timestamps (in milliseconds).
+          example: now
           type: string
       type: object
     AuditLogsQueryOptions:
@@ -367,58 +419,6 @@ components:
           example: GMT
           type: string
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    AuditLogsSort:
-      description: Sort parameters when querying events.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    AuditLogsQueryPageOptions:
-      description: Paging attributes for listing events.
-      properties:
-        cursor:
-          description: List following results with a cursor provided in the previous query.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-        limit:
-          default: 10
-          description: Maximum number of events in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
-      type: object
-    AuditLogsEventsResponse:
-      description: Response object with all events matching the request and pagination information.
-      properties:
-        data:
-          description: Array of events matching the request.
-          items:
-            $ref: '#/components/schemas/AuditLogsEvent'
-          type: array
-        links:
-          $ref: '#/components/schemas/AuditLogsResponseLinks'
-        meta:
-          $ref: '#/components/schemas/AuditLogsResponseMetadata'
-      type: object
   responses:
     BadRequestResponse:
       content:
@@ -426,18 +426,18 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     NotAuthorizedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

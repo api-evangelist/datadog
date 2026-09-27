@@ -294,51 +294,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    ScheduleDataType:
-      default: schedules
-      description: Schedules resource type.
-      enum:
-      - schedules
-      example: schedules
-      type: string
-      x-enum-varnames:
-      - SCHEDULES
-    EscalationPolicyStepAttributes:
-      description: Defines attributes for an escalation policy step, such as assignment strategy and escalation timeout.
-      properties:
-        assignment:
-          $ref: '#/components/schemas/EscalationPolicyStepAttributesAssignment'
-        escalate_after_seconds:
-          description: Specifies how many seconds to wait before escalating to the next step.
-          format: int64
-          type: integer
-          example: 42
-      type: object
-    RestrictionPolicy:
-      description: Restriction policy object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RestrictionPolicyAttributes'
-        id:
-          description: The identifier, always equivalent to the value specified in the `resource_id` path parameter.
-          example: dashboard:abc-def-ghi
-          type: string
-        type:
-          $ref: '#/components/schemas/RestrictionPolicyType'
-      required:
-      - type
-      - id
-      - attributes
-      type: object
-    EscalationTargets:
-      description: A list of escalation targets for a step
-      properties:
-        data:
-          description: The `EscalationTargets` `data`.
-          items:
-            $ref: '#/components/schemas/EscalationTarget'
-          type: array
-      type: object
     CloudWorkloadSecurityAgentPolicyUpdateAttributes:
       description: Update an existing Cloud Workload Security Agent policy
       properties:
@@ -367,140 +322,28 @@ components:
           example: my_agent_policy
           type: string
       type: object
-    EscalationPolicyUserType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    EscalationPolicyStepAttributesAssignment:
-      description: Specifies how this escalation step will assign targets (example `default` or `round-robin`).
-      enum:
-      - default
-      - round-robin
-      type: string
-      x-enum-varnames:
-      - DEFAULT
-      - ROUND_ROBIN
-    EscalationPolicyData:
-      description: Represents the data for a single escalation policy, including its attributes, ID, relationships, and resource type.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EscalationPolicyDataAttributes'
-        id:
-          description: Specifies the unique identifier of the escalation policy.
-          example: ab000000-0000-0000-0000-000000000000
-          type: string
-        relationships:
-          $ref: '#/components/schemas/EscalationPolicyDataRelationships'
-        type:
-          $ref: '#/components/schemas/EscalationPolicyDataType'
-      required:
-      - type
-      type: object
-    RestrictionPolicyResponse:
-      description: Response containing information about a single restriction policy.
+    RestrictionPolicyUpdateRequest:
+      description: Update request for a restriction policy.
       properties:
         data:
           $ref: '#/components/schemas/RestrictionPolicy'
       required:
       - data
       type: object
-    EscalationPolicyUpdateRequest:
-      description: Represents a request to update an existing escalation policy, including the updated policy data.
-      example:
-        data:
-          attributes:
-            name: Escalation Policy 1
-            resolve_page_on_policy_end: false
-            retries: 2
-            steps:
-            - assignment: default
-              escalate_after_seconds: 3600
-              id: 00000000-aba1-0000-0000-000000000000
-              targets:
-              - id: 00000000-aba1-0000-0000-000000000000
-                type: users
-              - id: 00000000-aba2-0000-0000-000000000000
-                type: schedules
-          id: a3000000-0000-0000-0000-000000000000
-          relationships:
-            teams:
-              data:
-              - id: 00000000-da3a-0000-0000-000000000000
-                type: teams
-          type: policies
+    EscalationPolicyUpdateRequestDataRelationships:
+      description: Represents relationships in an escalation policy update request, including references to teams.
+      properties:
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      type: object
+    CloudWorkloadSecurityAgentPolicyUpdateRequest:
+      description: Request object that includes the Agent policy with the attributes to update
       properties:
         data:
-          $ref: '#/components/schemas/EscalationPolicyUpdateRequestData'
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyUpdateData'
       required:
       - data
       type: object
-    EscalationPolicyUpdateRequestDataAttributesStepsItems:
-      description: Defines a single escalation step within an escalation policy update request. Contains assignment strategy, escalation timeout, an optional step ID, and a list of targets.
-      properties:
-        assignment:
-          $ref: '#/components/schemas/EscalationPolicyStepAttributesAssignment'
-        escalate_after_seconds:
-          description: Defines how many seconds to wait before escalating to the next step.
-          example: 3600
-          format: int64
-          type: integer
-        id:
-          description: Specifies the unique identifier of this step.
-          example: 00000000-aba1-0000-0000-000000000000
-          type: string
-        targets:
-          description: Specifies the collection of escalation targets for this step.
-          items:
-            $ref: '#/components/schemas/EscalationPolicyStepTarget'
-          type: array
-      required:
-      - targets
-      type: object
-    EscalationPolicyStepType:
-      default: steps
-      description: Indicates that the resource is of type `steps`.
-      enum:
-      - steps
-      example: steps
-      type: string
-      x-enum-varnames:
-      - STEPS
-    TeamTarget:
-      description: Represents a team target for an escalation policy step, including the team's ID and resource type.
-      properties:
-        id:
-          description: Specifies the unique identifier of the team resource.
-          example: 00000000-aba1-0000-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/TeamTargetType'
-      required:
-      - type
-      - id
-      type: object
-    UserTargetType:
-      default: users
-      description: Indicates that the resource is of type `users`.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    TeamReferenceType:
-      default: teams
-      description: Teams resource type.
-      enum:
-      - teams
-      example: teams
-      type: string
-      x-enum-varnames:
-      - TEAMS
     APIErrorResponse:
       description: API error response.
       properties:
@@ -516,61 +359,40 @@ components:
       required:
       - errors
       type: object
-    EscalationPolicyDataRelationshipsSteps:
-      description: Defines the relationship to a collection of steps within an escalation policy. Contains an array of step data references.
+    EscalationPolicyStepTarget:
+      description: Defines a single escalation target within a step for an escalation policy creation request. Contains `id` and `type`.
       properties:
-        data:
-          description: An array of references to the steps defined in this escalation policy.
-          items:
-            $ref: '#/components/schemas/EscalationPolicyDataRelationshipsStepsDataItems'
-          type: array
-      type: object
-    EscalationPolicyStepRelationships:
-      description: Represents the relationship of an escalation policy step to its targets.
-      properties:
-        targets:
-          $ref: '#/components/schemas/EscalationTargets'
-      type: object
-    RestrictionPolicyBinding:
-      description: Specifies which principals are associated with a relation.
-      properties:
-        principals:
-          description: 'An array of principals. A principal is a subject or group of subjects.
-
-            Each principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.
-
-            The org ID can be obtained through the api/v2/current_user API.
-
-            The user principal type accepts service account IDs.'
-          example:
-          - role:00000000-0000-1111-0000-000000000000
-          items:
-            description: 'Subject or group of subjects. Each principal is formatted as `type:id`.
-
-              Supported types: `role`, `team`, `user`, and `org`.
-
-              The org ID can be obtained through the api/v2/current_user API.
-
-              The user principal type accepts service account IDs.'
-            type: string
-          type: array
-        relation:
-          description: The role/level of access.
-          example: editor
+        id:
+          description: Specifies the unique identifier for this target.
+          example: 00000000-aba1-0000-0000-000000000000
           type: string
-      required:
-      - relation
-      - principals
+        type:
+          $ref: '#/components/schemas/EscalationPolicyStepTargetType'
       type: object
-    EscalationPolicyUpdateRequestDataType:
-      default: policies
-      description: Indicates that the resource is of type `policies`.
-      enum:
-      - policies
-      example: policies
-      type: string
-      x-enum-varnames:
-      - POLICIES
+    EscalationPolicyStepAttributes:
+      description: Defines attributes for an escalation policy step, such as assignment strategy and escalation timeout.
+      properties:
+        assignment:
+          $ref: '#/components/schemas/EscalationPolicyStepAttributesAssignment'
+        escalate_after_seconds:
+          description: Specifies how many seconds to wait before escalating to the next step.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    ScheduleTarget:
+      description: Represents a schedule target for an escalation policy step, including its ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the schedule resource.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/ScheduleTargetType'
+      required:
+      - type
+      - id
+      type: object
     EscalationPolicyUpdateRequestDataAttributes:
       description: Defines the attributes that can be updated for an escalation policy, such as description, name, resolution behavior, retries, and steps.
       properties:
@@ -596,166 +418,6 @@ components:
       - name
       - steps
       type: object
-    EscalationPolicyStepTarget:
-      description: Defines a single escalation target within a step for an escalation policy creation request. Contains `id` and `type`.
-      properties:
-        id:
-          description: Specifies the unique identifier for this target.
-          example: 00000000-aba1-0000-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/EscalationPolicyStepTargetType'
-      type: object
-    ScheduleDataRelationshipsLayers:
-      description: Associates layers with this schedule in a data structure.
-      properties:
-        data:
-          description: An array of layer references for this schedule.
-          items:
-            $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItems'
-          type: array
-      type: object
-    EscalationPolicyUpdateRequestData:
-      description: Represents the data for updating an existing escalation policy, including its ID, attributes, relationships, and resource type.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataAttributes'
-        id:
-          description: Specifies the unique identifier of the escalation policy being updated.
-          example: 00000000-aba1-0000-0000-000000000000
-          type: string
-        relationships:
-          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataRelationships'
-        type:
-          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataType'
-      required:
-      - type
-      - id
-      - attributes
-      type: object
-    RestrictionPolicyType:
-      default: restriction_policy
-      description: Restriction policy type.
-      enum:
-      - restriction_policy
-      example: restriction_policy
-      type: string
-      x-enum-varnames:
-      - RESTRICTION_POLICY
-    TeamReferenceAttributes:
-      description: Encapsulates the basic attributes of a Team reference, such as name, handle, and an optional avatar or description.
-      properties:
-        avatar:
-          description: URL or reference for the team's avatar (if available).
-          type: string
-          example: example_value
-        description:
-          description: A short text describing the team.
-          type: string
-          example: example_value
-        handle:
-          description: A unique handle/slug for the team.
-          type: string
-          example: example_value
-        name:
-          description: The full, human-readable name of the team.
-          type: string
-          example: Example Monitor
-      type: object
-    EscalationPolicyDataAttributes:
-      description: Defines the main attributes of an escalation policy, such as its name and behavior on policy end.
-      properties:
-        name:
-          description: Specifies the name of the escalation policy.
-          example: On-Call Escalation Policy
-          type: string
-        resolve_page_on_policy_end:
-          description: Indicates whether the page is automatically resolved when the policy ends.
-          type: boolean
-          example: true
-        retries:
-          description: Specifies how many times the escalation sequence is retried if there is no response.
-          format: int64
-          type: integer
-          example: 42
-      required:
-      - name
-      type: object
-    CloudWorkloadSecurityAgentPolicyUpdateData:
-      description: Object for a single Agent policy
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyID'
-        type:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyType'
-      required:
-      - attributes
-      - type
-      type: object
-    ScheduleDataRelationshipsLayersDataItems:
-      description: Relates a layer to this schedule, identified by `id` and `type` (must be `layers`).
-      properties:
-        id:
-          description: The unique identifier of the layer in this relationship.
-          example: 00000000-0000-0000-0000-000000000001
-          type: string
-        type:
-          $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItemsType'
-      required:
-      - type
-      - id
-      type: object
-    DataRelationshipsTeams:
-      description: Associates teams with this schedule in a data structure.
-      properties:
-        data:
-          description: An array of team references for this schedule.
-          items:
-            $ref: '#/components/schemas/DataRelationshipsTeamsDataItems'
-          type: array
-      type: object
-    EscalationPolicyDataRelationshipsStepsDataItemsType:
-      default: steps
-      description: Indicates that the resource is of type `steps`.
-      enum:
-      - steps
-      example: steps
-      type: string
-      x-enum-varnames:
-      - STEPS
-    EscalationPolicyUpdateRequestDataRelationships:
-      description: Represents relationships in an escalation policy update request, including references to teams.
-      properties:
-        teams:
-          $ref: '#/components/schemas/DataRelationshipsTeams'
-      type: object
-    TeamReference:
-      description: Provides a reference to a team, including ID, type, and basic attributes/relationships.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/TeamReferenceAttributes'
-        id:
-          description: The team's unique identifier.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/TeamReferenceType'
-      required:
-      - type
-      type: object
-    EscalationPolicyIncluded:
-      description: Represents included related resources when retrieving an escalation policy, such as teams, steps, or targets.
-      oneOf:
-      - $ref: '#/components/schemas/TeamReference'
-      - $ref: '#/components/schemas/EscalationPolicyStep'
-      - $ref: '#/components/schemas/EscalationPolicyUser'
-      - $ref: '#/components/schemas/ScheduleData'
-    CloudWorkloadSecurityAgentPolicyID:
-      description: The ID of the Agent policy
-      example: 6517fcc1-cec7-4394-a655-8d6e9d085255
-      type: string
     TeamTargetType:
       default: teams
       description: Indicates that the resource is of type `teams`.
@@ -765,74 +427,32 @@ components:
       type: string
       x-enum-varnames:
       - TEAMS
-    EscalationPolicyDataRelationships:
-      description: Represents the relationships for an escalation policy, including references to steps and teams.
-      properties:
-        steps:
-          $ref: '#/components/schemas/EscalationPolicyDataRelationshipsSteps'
-        teams:
-          $ref: '#/components/schemas/DataRelationshipsTeams'
-      required:
-      - steps
-      type: object
-    ScheduleData:
-      description: Represents the primary data object for a schedule, linking attributes and relationships.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ScheduleDataAttributes'
-        id:
-          description: The schedule's unique identifier.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        relationships:
-          $ref: '#/components/schemas/ScheduleDataRelationships'
-        type:
-          $ref: '#/components/schemas/ScheduleDataType'
-      required:
-      - type
-      type: object
-    CloudWorkloadSecurityAgentPolicyUpdateRequest:
-      description: Request object that includes the Agent policy with the attributes to update
+    EscalationPolicyUserType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    ScheduleDataRelationshipsLayersDataItemsType:
+      default: layers
+      description: Layers resource type.
+      enum:
+      - layers
+      example: layers
+      type: string
+      x-enum-varnames:
+      - LAYERS
+    RestrictionPolicyResponse:
+      description: Response containing information about a single restriction policy.
       properties:
         data:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyUpdateData'
+          $ref: '#/components/schemas/RestrictionPolicy'
       required:
       - data
       type: object
-    EscalationPolicyUser:
-      description: Represents a user object in the context of an escalation policy, including their `id`, type, and basic attributes.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EscalationPolicyUserAttributes'
-        id:
-          description: The unique user identifier.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/EscalationPolicyUserType'
-      required:
-      - type
-      type: object
-    UserAttributesStatus:
-      description: The user's status.
-      enum:
-      - active
-      - deactivated
-      - pending
-      type: string
-      x-enum-varnames:
-      - ACTIVE
-      - DEACTIVATED
-      - PENDING
-    ScheduleTargetType:
-      default: schedules
-      description: Indicates that the resource is of type `schedules`.
-      enum:
-      - schedules
-      example: schedules
-      type: string
-      x-enum-varnames:
-      - SCHEDULES
     EscalationPolicy:
       description: Represents a complete escalation policy response, including policy data and optionally included related resources.
       example:
@@ -889,6 +509,80 @@ components:
             $ref: '#/components/schemas/EscalationPolicyIncluded'
           type: array
       type: object
+    TeamReferenceAttributes:
+      description: Encapsulates the basic attributes of a Team reference, such as name, handle, and an optional avatar or description.
+      properties:
+        avatar:
+          description: URL or reference for the team's avatar (if available).
+          type: string
+          example: example_value
+        description:
+          description: A short text describing the team.
+          type: string
+          example: example_value
+        handle:
+          description: A unique handle/slug for the team.
+          type: string
+          example: example_value
+        name:
+          description: The full, human-readable name of the team.
+          type: string
+          example: Example Monitor
+      type: object
+    EscalationPolicyUpdateRequestData:
+      description: Represents the data for updating an existing escalation policy, including its ID, attributes, relationships, and resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataAttributes'
+        id:
+          description: Specifies the unique identifier of the escalation policy being updated.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataRelationships'
+        type:
+          $ref: '#/components/schemas/EscalationPolicyUpdateRequestDataType'
+      required:
+      - type
+      - id
+      - attributes
+      type: object
+    UserAttributesStatus:
+      description: The user's status.
+      enum:
+      - active
+      - deactivated
+      - pending
+      type: string
+      x-enum-varnames:
+      - ACTIVE
+      - DEACTIVATED
+      - PENDING
+    EscalationPolicyStep:
+      description: Represents a single step in an escalation policy, including its attributes, relationships, and resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EscalationPolicyStepAttributes'
+        id:
+          description: Specifies the unique identifier of this escalation policy step.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/EscalationPolicyStepRelationships'
+        type:
+          $ref: '#/components/schemas/EscalationPolicyStepType'
+      required:
+      - type
+      type: object
+    TeamReferenceType:
+      default: teams
+      description: Teams resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
     DataRelationshipsTeamsDataItems:
       description: Relates a team to this schedule, identified by `id` and `type` (must be `teams`).
       properties:
@@ -902,12 +596,6 @@ components:
       - type
       - id
       type: object
-    CloudWorkloadSecurityAgentPolicyResponse:
-      description: Response object that includes an Agent policy
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyData'
-      type: object
     EscalationPolicyDataType:
       default: policies
       description: Indicates that the resource is of type `policies`.
@@ -917,71 +605,177 @@ components:
       type: string
       x-enum-varnames:
       - POLICIES
-    RestrictionPolicyAttributes:
-      description: Restriction policy attributes.
-      example:
-        bindings: []
+    ScheduleDataType:
+      default: schedules
+      description: Schedules resource type.
+      enum:
+      - schedules
+      example: schedules
+      type: string
+      x-enum-varnames:
+      - SCHEDULES
+    CloudWorkloadSecurityAgentPolicyUpdaterAttributes:
+      description: The attributes of the user who last updated the policy
       properties:
-        bindings:
-          description: An array of bindings.
+        handle:
+          description: The handle of the user
+          example: datadog.user@example.com
+          type: string
+        name:
+          description: The name of the user
+          example: Datadog User
+          type:
+          - string
+          - 'null'
+      type: object
+    EscalationPolicyDataRelationships:
+      description: Represents the relationships for an escalation policy, including references to steps and teams.
+      properties:
+        steps:
+          $ref: '#/components/schemas/EscalationPolicyDataRelationshipsSteps'
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      required:
+      - steps
+      type: object
+    ScheduleDataAttributes:
+      description: Provides core properties of a schedule object such as its name and time zone.
+      properties:
+        name:
+          description: A short name for the schedule.
+          example: Primary On-Call
+          type: string
+        time_zone:
+          description: The time zone in which this schedule operates.
+          example: America/New_York
+          type: string
+      type: object
+    ScheduleDataRelationshipsLayers:
+      description: Associates layers with this schedule in a data structure.
+      properties:
+        data:
+          description: An array of layer references for this schedule.
           items:
-            $ref: '#/components/schemas/RestrictionPolicyBinding'
+            $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItems'
+          type: array
+      type: object
+    EscalationPolicyStepType:
+      default: steps
+      description: Indicates that the resource is of type `steps`.
+      enum:
+      - steps
+      example: steps
+      type: string
+      x-enum-varnames:
+      - STEPS
+    ScheduleDataRelationshipsLayersDataItems:
+      description: Relates a layer to this schedule, identified by `id` and `type` (must be `layers`).
+      properties:
+        id:
+          description: The unique identifier of the layer in this relationship.
+          example: 00000000-0000-0000-0000-000000000001
+          type: string
+        type:
+          $ref: '#/components/schemas/ScheduleDataRelationshipsLayersDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    RestrictionPolicyBinding:
+      description: Specifies which principals are associated with a relation.
+      properties:
+        principals:
+          description: 'An array of principals. A principal is a subject or group of subjects.
+
+            Each principal is formatted as `type:id`. Supported types: `role`, `team`, `user`, and `org`.
+
+            The org ID can be obtained through the api/v2/current_user API.
+
+            The user principal type accepts service account IDs.'
+          example:
+          - role:00000000-0000-1111-0000-000000000000
+          items:
+            description: 'Subject or group of subjects. Each principal is formatted as `type:id`.
+
+              Supported types: `role`, `team`, `user`, and `org`.
+
+              The org ID can be obtained through the api/v2/current_user API.
+
+              The user principal type accepts service account IDs.'
+            type: string
+          type: array
+        relation:
+          description: The role/level of access.
+          example: editor
+          type: string
+      required:
+      - relation
+      - principals
+      type: object
+    EscalationTarget:
+      description: Represents an escalation target, which can be a team, user, or schedule.
+      oneOf:
+      - $ref: '#/components/schemas/TeamTarget'
+      - $ref: '#/components/schemas/UserTarget'
+      - $ref: '#/components/schemas/ScheduleTarget'
+    EscalationPolicyUpdateRequestDataAttributesStepsItems:
+      description: Defines a single escalation step within an escalation policy update request. Contains assignment strategy, escalation timeout, an optional step ID, and a list of targets.
+      properties:
+        assignment:
+          $ref: '#/components/schemas/EscalationPolicyStepAttributesAssignment'
+        escalate_after_seconds:
+          description: Defines how many seconds to wait before escalating to the next step.
+          example: 3600
+          format: int64
+          type: integer
+        id:
+          description: Specifies the unique identifier of this step.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+        targets:
+          description: Specifies the collection of escalation targets for this step.
+          items:
+            $ref: '#/components/schemas/EscalationPolicyStepTarget'
           type: array
       required:
-      - bindings
+      - targets
       type: object
-    EscalationPolicyStepTargetType:
-      description: Specifies the type of escalation target (example `users`, `schedules`, or `teams`).
+    EscalationPolicyStepRelationships:
+      description: Represents the relationship of an escalation policy step to its targets.
+      properties:
+        targets:
+          $ref: '#/components/schemas/EscalationTargets'
+      type: object
+    CloudWorkloadSecurityAgentPolicyData:
+      description: Object for a single Agent policy
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyAttributes'
+        id:
+          description: The ID of the Agent policy
+          example: 6517fcc1-cec7-4394-a655-8d6e9d085255
+          type: string
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyType'
+      type: object
+    EscalationPolicyUpdateRequestDataType:
+      default: policies
+      description: Indicates that the resource is of type `policies`.
+      enum:
+      - policies
+      example: policies
+      type: string
+      x-enum-varnames:
+      - POLICIES
+    UserTargetType:
+      default: users
+      description: Indicates that the resource is of type `users`.
       enum:
       - users
-      - schedules
-      - teams
       example: users
       type: string
       x-enum-varnames:
       - USERS
-      - SCHEDULES
-      - TEAMS
-    ScheduleDataRelationships:
-      description: Groups the relationships for a schedule object, referencing layers and teams.
-      properties:
-        layers:
-          $ref: '#/components/schemas/ScheduleDataRelationshipsLayers'
-        teams:
-          $ref: '#/components/schemas/DataRelationshipsTeams'
-      type: object
-    CloudWorkloadSecurityAgentPolicyType:
-      default: policy
-      description: The type of the resource, must always be `policy`
-      enum:
-      - policy
-      example: policy
-      type: string
-      x-enum-varnames:
-      - POLICY
-    ScheduleDataRelationshipsLayersDataItemsType:
-      default: layers
-      description: Layers resource type.
-      enum:
-      - layers
-      example: layers
-      type: string
-      x-enum-varnames:
-      - LAYERS
-    EscalationPolicyUserAttributes:
-      description: Provides basic user information for an escalation policy, including a name and email address.
-      properties:
-        email:
-          description: The user's email address.
-          example: jane.doe@example.com
-          type: string
-        name:
-          description: The user's name.
-          example: Jane Doe
-          type: string
-        status:
-          $ref: '#/components/schemas/UserAttributesStatus'
-      type: object
     CloudWorkloadSecurityAgentPolicyAttributes:
       description: A Cloud Workload Security Agent policy returned by the API
       properties:
@@ -1059,27 +853,155 @@ components:
         updater:
           $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyUpdaterAttributes'
       type: object
-    ScheduleTarget:
-      description: Represents a schedule target for an escalation policy step, including its ID and resource type.
+    RestrictionPolicyAttributes:
+      description: Restriction policy attributes.
+      example:
+        bindings: []
       properties:
-        id:
-          description: Specifies the unique identifier of the schedule resource.
-          example: 00000000-aba1-0000-0000-000000000000
+        bindings:
+          description: An array of bindings.
+          items:
+            $ref: '#/components/schemas/RestrictionPolicyBinding'
+          type: array
+      required:
+      - bindings
+      type: object
+    EscalationPolicyDataAttributes:
+      description: Defines the main attributes of an escalation policy, such as its name and behavior on policy end.
+      properties:
+        name:
+          description: Specifies the name of the escalation policy.
+          example: On-Call Escalation Policy
           type: string
+        resolve_page_on_policy_end:
+          description: Indicates whether the page is automatically resolved when the policy ends.
+          type: boolean
+          example: true
+        retries:
+          description: Specifies how many times the escalation sequence is retried if there is no response.
+          format: int64
+          type: integer
+          example: 42
+      required:
+      - name
+      type: object
+    ScheduleData:
+      description: Represents the primary data object for a schedule, linking attributes and relationships.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ScheduleDataAttributes'
+        id:
+          description: The schedule's unique identifier.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        relationships:
+          $ref: '#/components/schemas/ScheduleDataRelationships'
         type:
-          $ref: '#/components/schemas/ScheduleTargetType'
+          $ref: '#/components/schemas/ScheduleDataType'
       required:
       - type
-      - id
       type: object
-    RestrictionPolicyUpdateRequest:
-      description: Update request for a restriction policy.
+    CloudWorkloadSecurityAgentPolicyUpdateData:
+      description: Object for a single Agent policy
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyID'
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyType'
+      required:
+      - attributes
+      - type
+      type: object
+    EscalationPolicyIncluded:
+      description: Represents included related resources when retrieving an escalation policy, such as teams, steps, or targets.
+      oneOf:
+      - $ref: '#/components/schemas/TeamReference'
+      - $ref: '#/components/schemas/EscalationPolicyStep'
+      - $ref: '#/components/schemas/EscalationPolicyUser'
+      - $ref: '#/components/schemas/ScheduleData'
+    EscalationPolicyDataRelationshipsStepsDataItemsType:
+      default: steps
+      description: Indicates that the resource is of type `steps`.
+      enum:
+      - steps
+      example: steps
+      type: string
+      x-enum-varnames:
+      - STEPS
+    EscalationPolicyStepAttributesAssignment:
+      description: Specifies how this escalation step will assign targets (example `default` or `round-robin`).
+      enum:
+      - default
+      - round-robin
+      type: string
+      x-enum-varnames:
+      - DEFAULT
+      - ROUND_ROBIN
+    DataRelationshipsTeamsDataItemsType:
+      default: teams
+      description: Teams resource type.
+      enum:
+      - teams
+      example: teams
+      type: string
+      x-enum-varnames:
+      - TEAMS
+    CloudWorkloadSecurityAgentPolicyResponse:
+      description: Response object that includes an Agent policy
       properties:
         data:
-          $ref: '#/components/schemas/RestrictionPolicy'
-      required:
-      - data
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyData'
       type: object
+    EscalationPolicyUser:
+      description: Represents a user object in the context of an escalation policy, including their `id`, type, and basic attributes.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EscalationPolicyUserAttributes'
+        id:
+          description: The unique user identifier.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/EscalationPolicyUserType'
+      required:
+      - type
+      type: object
+    DataRelationshipsTeams:
+      description: Associates teams with this schedule in a data structure.
+      properties:
+        data:
+          description: An array of team references for this schedule.
+          items:
+            $ref: '#/components/schemas/DataRelationshipsTeamsDataItems'
+          type: array
+      type: object
+    EscalationPolicyStepTargetType:
+      description: Specifies the type of escalation target (example `users`, `schedules`, or `teams`).
+      enum:
+      - users
+      - schedules
+      - teams
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+      - SCHEDULES
+      - TEAMS
+    ScheduleTargetType:
+      default: schedules
+      description: Indicates that the resource is of type `schedules`.
+      enum:
+      - schedules
+      example: schedules
+      type: string
+      x-enum-varnames:
+      - SCHEDULES
+    CloudWorkloadSecurityAgentPolicyID:
+      description: The ID of the Agent policy
+      example: 6517fcc1-cec7-4394-a655-8d6e9d085255
+      type: string
     UserTarget:
       description: Represents a user target for an escalation policy step, including the user's ID and resource type.
       properties:
@@ -1093,15 +1015,137 @@ components:
       - type
       - id
       type: object
-    DataRelationshipsTeamsDataItemsType:
-      default: teams
-      description: Teams resource type.
+    EscalationPolicyUpdateRequest:
+      description: Represents a request to update an existing escalation policy, including the updated policy data.
+      example:
+        data:
+          attributes:
+            name: Escalation Policy 1
+            resolve_page_on_policy_end: false
+            retries: 2
+            steps:
+            - assignment: default
+              escalate_after_seconds: 3600
+              id: 00000000-aba1-0000-0000-000000000000
+              targets:
+              - id: 00000000-aba1-0000-0000-000000000000
+                type: users
+              - id: 00000000-aba2-0000-0000-000000000000
+                type: schedules
+          id: a3000000-0000-0000-0000-000000000000
+          relationships:
+            teams:
+              data:
+              - id: 00000000-da3a-0000-0000-000000000000
+                type: teams
+          type: policies
+      properties:
+        data:
+          $ref: '#/components/schemas/EscalationPolicyUpdateRequestData'
+      required:
+      - data
+      type: object
+    EscalationTargets:
+      description: A list of escalation targets for a step
+      properties:
+        data:
+          description: The `EscalationTargets` `data`.
+          items:
+            $ref: '#/components/schemas/EscalationTarget'
+          type: array
+      type: object
+    RestrictionPolicyType:
+      default: restriction_policy
+      description: Restriction policy type.
       enum:
-      - teams
-      example: teams
+      - restriction_policy
+      example: restriction_policy
       type: string
       x-enum-varnames:
-      - TEAMS
+      - RESTRICTION_POLICY
+    RestrictionPolicy:
+      description: Restriction policy object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RestrictionPolicyAttributes'
+        id:
+          description: The identifier, always equivalent to the value specified in the `resource_id` path parameter.
+          example: dashboard:abc-def-ghi
+          type: string
+        type:
+          $ref: '#/components/schemas/RestrictionPolicyType'
+      required:
+      - type
+      - id
+      - attributes
+      type: object
+    EscalationPolicyUserAttributes:
+      description: Provides basic user information for an escalation policy, including a name and email address.
+      properties:
+        email:
+          description: The user's email address.
+          example: jane.doe@example.com
+          type: string
+        name:
+          description: The user's name.
+          example: Jane Doe
+          type: string
+        status:
+          $ref: '#/components/schemas/UserAttributesStatus'
+      type: object
+    TeamTarget:
+      description: Represents a team target for an escalation policy step, including the team's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the team resource.
+          example: 00000000-aba1-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamTargetType'
+      required:
+      - type
+      - id
+      type: object
+    CloudWorkloadSecurityAgentPolicyType:
+      default: policy
+      description: The type of the resource, must always be `policy`
+      enum:
+      - policy
+      example: policy
+      type: string
+      x-enum-varnames:
+      - POLICY
+    EscalationPolicyDataRelationshipsSteps:
+      description: Defines the relationship to a collection of steps within an escalation policy. Contains an array of step data references.
+      properties:
+        data:
+          description: An array of references to the steps defined in this escalation policy.
+          items:
+            $ref: '#/components/schemas/EscalationPolicyDataRelationshipsStepsDataItems'
+          type: array
+      type: object
+    TeamReference:
+      description: Provides a reference to a team, including ID, type, and basic attributes/relationships.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamReferenceAttributes'
+        id:
+          description: The team's unique identifier.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/TeamReferenceType'
+      required:
+      - type
+      type: object
+    ScheduleDataRelationships:
+      description: Groups the relationships for a schedule object, referencing layers and teams.
+      properties:
+        layers:
+          $ref: '#/components/schemas/ScheduleDataRelationshipsLayers'
+        teams:
+          $ref: '#/components/schemas/DataRelationshipsTeams'
+      type: object
     EscalationPolicyDataRelationshipsStepsDataItems:
       description: Defines a relationship to a single step within an escalation policy. Contains the step's `id` and `type`.
       properties:
@@ -1115,79 +1159,47 @@ components:
       - type
       - id
       type: object
-    CloudWorkloadSecurityAgentPolicyUpdaterAttributes:
-      description: The attributes of the user who last updated the policy
-      properties:
-        handle:
-          description: The handle of the user
-          example: datadog.user@example.com
-          type: string
-        name:
-          description: The name of the user
-          example: Datadog User
-          type:
-          - string
-          - 'null'
-      type: object
-    EscalationPolicyStep:
-      description: Represents a single step in an escalation policy, including its attributes, relationships, and resource type.
+    EscalationPolicyData:
+      description: Represents the data for a single escalation policy, including its attributes, ID, relationships, and resource type.
       properties:
         attributes:
-          $ref: '#/components/schemas/EscalationPolicyStepAttributes'
+          $ref: '#/components/schemas/EscalationPolicyDataAttributes'
         id:
-          description: Specifies the unique identifier of this escalation policy step.
+          description: Specifies the unique identifier of the escalation policy.
+          example: ab000000-0000-0000-0000-000000000000
           type: string
-          example: abc-123-def
         relationships:
-          $ref: '#/components/schemas/EscalationPolicyStepRelationships'
+          $ref: '#/components/schemas/EscalationPolicyDataRelationships'
         type:
-          $ref: '#/components/schemas/EscalationPolicyStepType'
+          $ref: '#/components/schemas/EscalationPolicyDataType'
       required:
       - type
       type: object
-    ScheduleDataAttributes:
-      description: Provides core properties of a schedule object such as its name and time zone.
-      properties:
-        name:
-          description: A short name for the schedule.
-          example: Primary On-Call
-          type: string
-        time_zone:
-          description: The time zone in which this schedule operates.
-          example: America/New_York
-          type: string
-      type: object
-    CloudWorkloadSecurityAgentPolicyData:
-      description: Object for a single Agent policy
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyAttributes'
-        id:
-          description: The ID of the Agent policy
-          example: 6517fcc1-cec7-4394-a655-8d6e9d085255
-          type: string
-        type:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentPolicyType'
-      type: object
-    EscalationTarget:
-      description: Represents an escalation target, which can be a team, user, or schedule.
-      oneOf:
-      - $ref: '#/components/schemas/TeamTarget'
-      - $ref: '#/components/schemas/UserTarget'
-      - $ref: '#/components/schemas/ScheduleTarget'
   responses:
-    ConcurrentModificationResponse:
+    NotAuthorizedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
-      description: Concurrent Modification
+      description: Not Authorized
     ForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
     NotFoundResponse:
       content:
         application/json:
@@ -1200,24 +1212,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Unauthorized
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
   parameters:
     CloudWorkloadSecurityPathAgentPolicyID:
       description: The ID of the Agent policy

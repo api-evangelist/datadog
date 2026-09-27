@@ -149,108 +149,13 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    IncidentAttachmentPostmortemAttributes:
-      description: The attributes object for a postmortem attachment.
-      properties:
-        attachment:
-          $ref: '#/components/schemas/IncidentAttachmentsPostmortemAttributesAttachmentObject'
-        attachment_type:
-          $ref: '#/components/schemas/IncidentAttachmentPostmortemAttachmentType'
-      required:
-      - attachment_type
-      - attachment
-      type: object
-    IncidentAttachmentUpdateResponse:
-      description: The response object containing the created or updated incident attachments.
+    RelationshipToOrganization:
+      description: Relationship to an organization.
       properties:
         data:
-          description: 'An array of incident attachments. Only the attachments that were created or updated by the request are
-
-            returned.'
-          example:
-          - attributes:
-              attachment:
-                documentUrl: ''
-                title: Postmortem IR-123
-              attachment_type: postmortem
-            id: 00000000-abcd-0002-0000-000000000000
-            relationships:
-              last_modified_by_user:
-                data:
-                  id: 00000000-0000-0000-cccc-000000000000
-                  type: users
-            type: incident_attachments
-          items:
-            $ref: '#/components/schemas/IncidentAttachmentData'
-          type: array
-        included:
-          description: Included related resources that the user requested.
-          items:
-            $ref: '#/components/schemas/IncidentAttachmentsResponseIncludedItem'
-          type: array
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
       required:
       - data
-      type: object
-    IncidentAttachmentsResponse:
-      description: The response object containing an incident's attachments.
-      properties:
-        data:
-          description: An array of incident attachments.
-          example:
-          - attributes:
-              attachment:
-                documentUrl: ''
-                title: Postmortem IR-123
-              attachment_type: postmortem
-            id: 00000000-abcd-0002-0000-000000000000
-            relationships:
-              last_modified_by_user:
-                data:
-                  id: 00000000-0000-0000-cccc-000000000000
-                  type: users
-            type: incident_attachments
-          items:
-            $ref: '#/components/schemas/IncidentAttachmentData'
-          type: array
-        included:
-          description: Included related resources that the user requested.
-          items:
-            $ref: '#/components/schemas/IncidentAttachmentsResponseIncludedItem'
-          type: array
-      required:
-      - data
-      type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    IncidentAttachmentPostmortemAttachmentType:
-      default: postmortem
-      description: The type of postmortem attachment attributes.
-      enum:
-      - postmortem
-      example: postmortem
-      type: string
-      x-enum-varnames:
-      - POSTMORTEM
-    IncidentAttachmentUpdateData:
-      description: A single incident attachment.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/IncidentAttachmentUpdateAttributes'
-        id:
-          description: A unique identifier that represents the incident attachment.
-          example: 00000000-abcd-0001-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/IncidentAttachmentType'
-      required:
-      - type
       type: object
     APIErrorResponse:
       description: API error response.
@@ -267,11 +172,86 @@ components:
       required:
       - errors
       type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    IncidentAttachmentType:
+      default: incident_attachments
+      description: The incident attachment resource type.
+      enum:
+      - incident_attachments
+      example: incident_attachments
+      type: string
+      x-enum-varnames:
+      - INCIDENT_ATTACHMENTS
+    IncidentAttachmentAttachmentType:
+      description: The type of the incident attachment attributes.
+      enum:
+      - link
+      - postmortem
+      example: link
+      type: string
+      x-enum-varnames:
+      - LINK
+      - POSTMORTEM
+    IncidentAttachmentUpdateRequest:
+      description: The update request for an incident's attachments.
       properties:
         data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
+          description: 'An array of incident attachments. An attachment object without an "id" key indicates that you want to
+
+            create that attachment. An attachment object without an "attributes" key indicates that you want to
+
+            delete that attachment. An attachment object with both the "id" key and a populated "attributes" object
+
+            indicates that you want to update that attachment.'
+          example:
+          - attributes:
+              attachment:
+                documentUrl: https://app.datadoghq.com/notebook/123
+                title: Postmortem IR-123
+              attachment_type: postmortem
+            id: 00000000-abcd-0002-0000-000000000000
+            type: incident_attachments
+          - attributes:
+              attachment:
+                documentUrl: https://www.example.com/webstore-failure-runbook
+                title: Runbook for webstore service failures
+              attachment_type: link
+            type: incident_attachments
+          - id: 00000000-abcd-0003-0000-000000000000
+            type: incident_attachments
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentUpdateData'
+          type: array
       required:
       - data
       type: object
@@ -307,44 +287,79 @@ components:
       - id
       - relationships
       type: object
-    IncidentAttachmentUpdateRequest:
-      description: The update request for an incident's attachments.
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    IncidentAttachmentUpdateData:
+      description: A single incident attachment.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentAttachmentUpdateAttributes'
+        id:
+          description: A unique identifier that represents the incident attachment.
+          example: 00000000-abcd-0001-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentAttachmentType'
+      required:
+      - type
+      type: object
+    RelationshipToUsers:
+      description: Relationship to users.
       properties:
         data:
-          description: 'An array of incident attachments. An attachment object without an "id" key indicates that you want to
-
-            create that attachment. An attachment object without an "attributes" key indicates that you want to
-
-            delete that attachment. An attachment object with both the "id" key and a populated "attributes" object
-
-            indicates that you want to update that attachment.'
-          example:
-          - attributes:
-              attachment:
-                documentUrl: https://app.datadoghq.com/notebook/123
-                title: Postmortem IR-123
-              attachment_type: postmortem
-            id: 00000000-abcd-0002-0000-000000000000
-            type: incident_attachments
-          - attributes:
-              attachment:
-                documentUrl: https://www.example.com/webstore-failure-runbook
-                title: Runbook for webstore service failures
-              attachment_type: link
-            type: incident_attachments
-          - id: 00000000-abcd-0003-0000-000000000000
-            type: incident_attachments
+          description: Relationships to user objects.
+          example: []
           items:
-            $ref: '#/components/schemas/IncidentAttachmentUpdateData'
+            $ref: '#/components/schemas/RelationshipToUserData'
           type: array
       required:
       - data
       type: object
-    IncidentAttachmentAttributes:
-      description: The attributes object for an attachment.
-      oneOf:
-      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
-      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    IncidentAttachmentPostmortemAttachmentType:
+      default: postmortem
+      description: The type of postmortem attachment attributes.
+      enum:
+      - postmortem
+      example: postmortem
+      type: string
+      x-enum-varnames:
+      - POSTMORTEM
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    IncidentAttachmentLinkAttributesAttachmentObject:
+      description: The link attachment.
+      properties:
+        documentUrl:
+          description: The URL of this link attachment.
+          example: https://www.example.com/webstore-failure-runbook
+          type: string
+        title:
+          description: The title of this link attachment.
+          example: Runbook for webstore service failures
+          type: string
+      required:
+      - documentUrl
+      - title
+      type: object
     RelationshipToUser:
       description: Relationship to user.
       properties:
@@ -353,16 +368,6 @@ components:
       required:
       - data
       type: object
-    IncidentAttachmentAttachmentType:
-      description: The type of the incident attachment attributes.
-      enum:
-      - link
-      - postmortem
-      example: link
-      type: string
-      x-enum-varnames:
-      - LINK
-      - POSTMORTEM
     IncidentAttachmentsPostmortemAttributesAttachmentObject:
       description: The postmortem attachment.
       properties:
@@ -378,35 +383,37 @@ components:
       - documentUrl
       - title
       type: object
-    IncidentAttachmentLinkAttributes:
-      description: The attributes object for a link attachment.
+    IncidentAttachmentRelationships:
+      description: The incident attachment's relationships.
       properties:
-        attachment:
-          $ref: '#/components/schemas/IncidentAttachmentLinkAttributesAttachmentObject'
-        attachment_type:
-          $ref: '#/components/schemas/IncidentAttachmentLinkAttachmentType'
-        modified:
-          description: Timestamp when the incident attachment link was last modified.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-      required:
-      - attachment_type
-      - attachment
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
       type: object
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
-      properties:
-        data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
-      required:
-      - data
-      type: object
+    IncidentAttachmentRelatedObject:
+      description: The object related to an incident attachment.
+      enum:
+      - users
+      type: string
+      x-enum-varnames:
+      - USERS
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
     UserAttributes:
       description: Attributes of user object returned by the API.
       properties:
@@ -466,46 +473,86 @@ components:
           type: boolean
           example: true
       type: object
-    IncidentAttachmentRelatedObject:
-      description: The object related to an incident attachment.
-      enum:
-      - users
-      type: string
-      x-enum-varnames:
-      - USERS
-    IncidentAttachmentLinkAttributesAttachmentObject:
-      description: The link attachment.
+    IncidentAttachmentsResponseIncludedItem:
+      description: An object related to an attachment that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    IncidentAttachmentUpdateAttributes:
+      description: Incident attachment attributes.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
+      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    IncidentAttachmentLinkAttributes:
+      description: The attributes object for a link attachment.
       properties:
-        documentUrl:
-          description: The URL of this link attachment.
-          example: https://www.example.com/webstore-failure-runbook
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentLinkAttachmentType'
+        modified:
+          description: Timestamp when the incident attachment link was last modified.
+          format: date-time
+          readOnly: true
           type: string
-        title:
-          description: The title of this link attachment.
-          example: Runbook for webstore service failures
-          type: string
+          example: example_value
       required:
-      - documentUrl
-      - title
+      - attachment_type
+      - attachment
       type: object
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
-    IncidentAttachmentType:
-      default: incident_attachments
-      description: The incident attachment resource type.
-      enum:
-      - incident_attachments
-      example: incident_attachments
-      type: string
-      x-enum-varnames:
-      - INCIDENT_ATTACHMENTS
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    IncidentAttachmentUpdateResponse:
+      description: The response object containing the created or updated incident attachments.
+      properties:
+        data:
+          description: 'An array of incident attachments. Only the attachments that were created or updated by the request are
+
+            returned.'
+          example:
+          - attributes:
+              attachment:
+                documentUrl: ''
+                title: Postmortem IR-123
+              attachment_type: postmortem
+            id: 00000000-abcd-0002-0000-000000000000
+            relationships:
+              last_modified_by_user:
+                data:
+                  id: 00000000-0000-0000-cccc-000000000000
+                  type: users
+            type: incident_attachments
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentData'
+          type: array
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentsResponseIncludedItem'
+          type: array
+      required:
+      - data
+      type: object
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
     IncidentAttachmentLinkAttachmentType:
       default: link
       description: The type of link attachment attributes.
@@ -515,60 +562,6 @@ components:
       type: string
       x-enum-varnames:
       - LINK
-    IncidentAttachmentsResponseIncludedItem:
-      description: An object related to an attachment that is included in the response.
-      oneOf:
-      - $ref: '#/components/schemas/User'
-    IncidentAttachmentRelationships:
-      description: The incident attachment's relationships.
-      properties:
-        last_modified_by_user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    IncidentAttachmentUpdateAttributes:
-      description: Incident attachment attributes.
-      oneOf:
-      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
-      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
     RelationshipToOrganizationData:
       description: Relationship to organization object.
       properties:
@@ -582,64 +575,64 @@ components:
       - id
       - type
       type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
+    RelationshipToRoleData:
+      description: Relationship to role object.
       properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
       type: object
       x-merge-override:
-        properties: false
-    RelationshipToRoles:
-      description: Relationship to roles.
+        required: false
+    IncidentAttachmentAttributes:
+      description: The attributes object for an attachment.
+      oneOf:
+      - $ref: '#/components/schemas/IncidentAttachmentPostmortemAttributes'
+      - $ref: '#/components/schemas/IncidentAttachmentLinkAttributes'
+    IncidentAttachmentPostmortemAttributes:
+      description: The attributes object for a postmortem attachment.
+      properties:
+        attachment:
+          $ref: '#/components/schemas/IncidentAttachmentsPostmortemAttributesAttachmentObject'
+        attachment_type:
+          $ref: '#/components/schemas/IncidentAttachmentPostmortemAttachmentType'
+      required:
+      - attachment_type
+      - attachment
+      type: object
+    IncidentAttachmentsResponse:
+      description: The response object containing an incident's attachments.
       properties:
         data:
-          description: An array containing type and the unique identifier of a role.
+          description: An array of incident attachments.
+          example:
+          - attributes:
+              attachment:
+                documentUrl: ''
+                title: Postmortem IR-123
+              attachment_type: postmortem
+            id: 00000000-abcd-0002-0000-000000000000
+            relationships:
+              last_modified_by_user:
+                data:
+                  id: 00000000-0000-0000-cccc-000000000000
+                  type: users
+            type: incident_attachments
           items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
+            $ref: '#/components/schemas/IncidentAttachmentData'
           type: array
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentAttachmentsResponseIncludedItem'
+          type: array
+      required:
+      - data
       type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    User:
-      description: User object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
   parameters:
-    IncidentIDPathParameter:
-      description: The UUID of the incident.
-      in: path
-      name: incident_id
-      required: true
-      schema:
-        type: string
     IncidentAttachmentIncludeQueryParameter:
       description: Specifies which types of related objects are included in the response.
       explode: false
@@ -660,6 +653,13 @@ components:
         items:
           $ref: '#/components/schemas/IncidentAttachmentAttachmentType'
         type: array
+    IncidentIDPathParameter:
+      description: The UUID of the incident.
+      in: path
+      name: incident_id
+      required: true
+      schema:
+        type: string
   responses:
     ForbiddenResponse:
       content:
@@ -667,6 +667,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
     NotFoundResponse:
       content:
         application/json:
@@ -679,12 +685,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Unauthorized
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
     TooManyRequestsResponse:
       content:
         application/json:

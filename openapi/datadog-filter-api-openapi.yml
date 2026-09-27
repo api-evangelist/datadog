@@ -403,6 +403,103 @@ components:
         sample_rate:
           $ref: '#/components/schemas/RumRetentionFilterSampleRate'
       type: object
+    SecurityFilterMeta:
+      description: Optional metadata associated to the response.
+      properties:
+        warning:
+          description: A warning message.
+          example: All the security filters are disabled. As a result, no logs are being analyzed.
+          type: string
+      type: object
+    RetentionFilterUpdateRequest:
+      description: The body of the retention filter to be updated.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilterUpdateData'
+      required:
+      - data
+      type: object
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
+      type: string
+      x-enum-varnames:
+      - RETENTION_FILTERS
+    ApplicationSecurityWafExclusionFilterMetadata:
+      description: Extra information about the exclusion filter.
+      properties:
+        added_at:
+          description: The creation date of the exclusion filter.
+          format: date-time
+          type: string
+          example: example_value
+        added_by:
+          description: The handle of the user who created the exclusion filter.
+          type: string
+          example: example_value
+        added_by_name:
+          description: The name of the user who created the exclusion filter.
+          type: string
+          example: Example Monitor
+        modified_at:
+          description: The last modification date of the exclusion filter.
+          format: date-time
+          type: string
+          example: example_value
+        modified_by:
+          description: The handle of the user who last modified the exclusion filter.
+          type: string
+          example: example_value
+        modified_by_name:
+          description: The name of the user who last modified the exclusion filter.
+          type: string
+          example: Example Monitor
+      readOnly: true
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RumRetentionFilterEnabled:
+      description: Whether the retention filter is enabled.
+      example: true
+      type: boolean
+    SpansFilter:
+      description: The spans filter used to index spans.
+      properties:
+        query:
+          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    SpansFilterCreate:
+      description: The spans filter. Spans matching this filter will be indexed and stored.
+      properties:
+        query:
+          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      required:
+      - query
+      type: object
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
     ApplicationSecurityWafExclusionFilterRulesTargetTags:
       additionalProperties:
         type: string
@@ -417,22 +514,246 @@ components:
           example: lfi
           type: string
       type: object
-    RetentionFilterUpdateData:
-      description: The body of the retention filter to be updated.
+    SecurityFilterAttributes:
+      description: The object describing a security filter.
+      properties:
+        exclusion_filters:
+          description: The list of exclusion filters applied in this security filter.
+          items:
+            $ref: '#/components/schemas/SecurityFilterExclusionFilterResponse'
+          type: array
+        filtered_data_type:
+          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
+        is_builtin:
+          description: Whether the security filter is the built-in filter.
+          example: false
+          type: boolean
+        is_enabled:
+          description: Whether the security filter is enabled.
+          example: false
+          type: boolean
+        name:
+          description: The security filter name.
+          example: Custom security filter
+          type: string
+        query:
+          description: The security filter query. Logs accepted by this query will be accepted by this filter.
+          example: service:api
+          type: string
+        version:
+          description: The version of the security filter.
+          example: 1
+          format: int32
+          maximum: 2147483647
+          type: integer
+      type: object
+    RumRetentionFilterEventType:
+      description: The type of RUM events to filter on.
+      enum:
+      - session
+      - view
+      - action
+      - error
+      - resource
+      - long_task
+      - vital
+      example: session
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - VIEW
+      - ACTION
+      - ERROR
+      - RESOURCE
+      - LONG_TASK
+      - VITAL
+    RetentionFilterAll:
+      description: The definition of the retention filter.
       properties:
         attributes:
-          $ref: '#/components/schemas/RetentionFilterUpdateAttributes'
+          $ref: '#/components/schemas/RetentionFilterAllAttributes'
         id:
           description: The ID of the retention filter.
-          example: retention-filter-id
+          example: 7RBOb7dLSYWI01yc3pIH8w
           type: string
         type:
           $ref: '#/components/schemas/ApmRetentionFilterType'
       required:
       - id
-      - attributes
       - type
+      - attributes
       type: object
+    ApplicationSecurityWafExclusionFilterID:
+      description: The identifier of the WAF exclusion filter.
+      example: 3dd-0uc-h1s
+      readOnly: true
+      type: string
+    SecurityFilterUpdateRequest:
+      description: The new security filter body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilterUpdateData'
+      required:
+      - data
+      type: object
+    SecurityFilter:
+      description: The security filter's properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterAttributes'
+        id:
+          $ref: '#/components/schemas/SecurityFilterID'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      type: object
+    ApplicationSecurityWafExclusionFilterAttributes:
+      description: Attributes describing a WAF exclusion filter.
+      properties:
+        description:
+          description: A description for the exclusion filter.
+          example: Exclude false positives on a path
+          type: string
+        enabled:
+          description: Indicates whether the exclusion filter is enabled.
+          example: true
+          type: boolean
+        event_query:
+          description: The event query matched by the legacy exclusion filter. Cannot be created nor updated.
+          type: string
+          example: avg:system.cpu.user{*}
+        ip_list:
+          description: The client IP addresses matched by the exclusion filter (CIDR notation is supported).
+          items:
+            example: 198.51.100.72
+            type: string
+          type: array
+        metadata:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterMetadata'
+        on_match:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterOnMatch'
+        parameters:
+          description: A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.
+          items:
+            example: list.search.query
+            type: string
+          type: array
+        path_glob:
+          description: The HTTP path glob expression matched by the exclusion filter.
+          example: /accounts/*
+          type: string
+        rules_target:
+          description: The WAF rules targeted by the exclusion filter.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTarget'
+          type: array
+        scope:
+          description: The services where the exclusion filter is deployed.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterScope'
+          type: array
+        search_query:
+          description: Generated event search query for traces matching the exclusion filter.
+          readOnly: true
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
+    RumRetentionFilterUpdateAttributes:
+      description: The object describing attributes of a RUM retention filter to update.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/RumRetentionFilterEnabled'
+        event_type:
+          $ref: '#/components/schemas/RumRetentionFilterEventType'
+        name:
+          $ref: '#/components/schemas/RunRetentionFilterName'
+        query:
+          $ref: '#/components/schemas/RumRetentionFilterQuery'
+        sample_rate:
+          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
+      type: object
+    RetentionFilterResponse:
+      description: The retention filters definition.
+      properties:
+        data:
+          $ref: '#/components/schemas/RetentionFilterAll'
+      type: object
+    ApplicationSecurityWafExclusionFilterUpdateRequest:
+      description: Request object for updating a single WAF exclusion filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateData'
+      required:
+      - data
+      type: object
+    ApplicationSecurityWafExclusionFilterResource:
+      description: A JSON:API resource for an WAF exclusion filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterAttributes'
+        id:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterID'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
+      type: object
+    SecurityFilterExclusionFilter:
+      description: Exclusion filter for the security filter.
+      example:
+        name: Exclude staging
+        query: source:staging
+      properties:
+        name:
+          description: Exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: Exclusion filter query. Logs that match this query are excluded from the security filter.
+          example: source:staging
+          type: string
+      required:
+      - name
+      - query
+      type: object
+    ApplicationSecurityWafExclusionFilterRulesTarget:
+      description: Target WAF rules based either on an identifier or tags.
+      properties:
+        rule_id:
+          description: Target a single WAF rule based on its identifier.
+          example: dog-913-009
+          type: string
+        tags:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTargetTags'
+      type: object
+    SecurityFilterResponse:
+      description: Response object which includes a single security filter.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityFilter'
+        meta:
+          $ref: '#/components/schemas/SecurityFilterMeta'
+      type: object
+    SecurityFilterFilteredDataType:
+      description: The filtered data type.
+      enum:
+      - logs
+      example: logs
+      type: string
+      x-enum-varnames:
+      - LOGS
+    RumRetentionFilterResponse:
+      description: The RUM retention filter object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumRetentionFilterData'
+      type: object
+    ApmRetentionFilterType:
+      default: apm_retention_filter
+      description: The type of the resource.
+      enum:
+      - apm_retention_filter
+      example: apm_retention_filter
+      type: string
+      x-enum-varnames:
+      - apm_retention_filter
     RetentionFilterAllAttributes:
       description: The attributes of the retention filter.
       properties:
@@ -490,130 +811,6 @@ components:
           format: double
           type: number
       type: object
-    ApplicationSecurityWafExclusionFilterMetadata:
-      description: Extra information about the exclusion filter.
-      properties:
-        added_at:
-          description: The creation date of the exclusion filter.
-          format: date-time
-          type: string
-          example: example_value
-        added_by:
-          description: The handle of the user who created the exclusion filter.
-          type: string
-          example: example_value
-        added_by_name:
-          description: The name of the user who created the exclusion filter.
-          type: string
-          example: Example Monitor
-        modified_at:
-          description: The last modification date of the exclusion filter.
-          format: date-time
-          type: string
-          example: example_value
-        modified_by:
-          description: The handle of the user who last modified the exclusion filter.
-          type: string
-          example: example_value
-        modified_by_name:
-          description: The name of the user who last modified the exclusion filter.
-          type: string
-          example: Example Monitor
-      readOnly: true
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    RumRetentionFilterUpdateData:
-      description: The new RUM retention filter properties to update.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RumRetentionFilterUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/RumRetentionFilterID'
-        type:
-          $ref: '#/components/schemas/RumRetentionFilterType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    SpansFilter:
-      description: The spans filter used to index spans.
-      properties:
-        query:
-          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
-          example: '@http.status_code:200 service:my-service'
-          type: string
-      type: object
-    SpansFilterCreate:
-      description: The spans filter. Spans matching this filter will be indexed and stored.
-      properties:
-        query:
-          description: The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).
-          example: '@http.status_code:200 service:my-service'
-          type: string
-      required:
-      - query
-      type: object
-    ApplicationSecurityWafExclusionFilterResource:
-      description: A JSON:API resource for an WAF exclusion filter.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterAttributes'
-        id:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterID'
-        type:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
-      type: object
-    RunRetentionFilterName:
-      description: The name of a RUM retention filter.
-      example: Retention filter for session
-      type: string
-    SecurityFilter:
-      description: The security filter's properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SecurityFilterAttributes'
-        id:
-          $ref: '#/components/schemas/SecurityFilterID'
-        type:
-          $ref: '#/components/schemas/SecurityFilterType'
-      type: object
-    RumRetentionFilterUpdateAttributes:
-      description: The object describing attributes of a RUM retention filter to update.
-      properties:
-        enabled:
-          $ref: '#/components/schemas/RumRetentionFilterEnabled'
-        event_type:
-          $ref: '#/components/schemas/RumRetentionFilterEventType'
-        name:
-          $ref: '#/components/schemas/RunRetentionFilterName'
-        query:
-          $ref: '#/components/schemas/RumRetentionFilterQuery'
-        sample_rate:
-          $ref: '#/components/schemas/RumRetentionFilterSampleRate'
-      type: object
-    SecurityFilterUpdateRequest:
-      description: The new security filter body.
-      properties:
-        data:
-          $ref: '#/components/schemas/SecurityFilterUpdateData'
-      required:
-      - data
-      type: object
     RumRetentionFilterSampleRate:
       description: The sample rate for a RUM retention filter, between 0 and 100.
       example: 25
@@ -621,137 +818,6 @@ components:
       maximum: 100
       minimum: 0
       type: integer
-    SecurityFilterFilteredDataType:
-      description: The filtered data type.
-      enum:
-      - logs
-      example: logs
-      type: string
-      x-enum-varnames:
-      - LOGS
-    ApplicationSecurityWafExclusionFilterAttributes:
-      description: Attributes describing a WAF exclusion filter.
-      properties:
-        description:
-          description: A description for the exclusion filter.
-          example: Exclude false positives on a path
-          type: string
-        enabled:
-          description: Indicates whether the exclusion filter is enabled.
-          example: true
-          type: boolean
-        event_query:
-          description: The event query matched by the legacy exclusion filter. Cannot be created nor updated.
-          type: string
-          example: avg:system.cpu.user{*}
-        ip_list:
-          description: The client IP addresses matched by the exclusion filter (CIDR notation is supported).
-          items:
-            example: 198.51.100.72
-            type: string
-          type: array
-        metadata:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterMetadata'
-        on_match:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterOnMatch'
-        parameters:
-          description: A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.
-          items:
-            example: list.search.query
-            type: string
-          type: array
-        path_glob:
-          description: The HTTP path glob expression matched by the exclusion filter.
-          example: /accounts/*
-          type: string
-        rules_target:
-          description: The WAF rules targeted by the exclusion filter.
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTarget'
-          type: array
-        scope:
-          description: The services where the exclusion filter is deployed.
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterScope'
-          type: array
-        search_query:
-          description: Generated event search query for traces matching the exclusion filter.
-          readOnly: true
-          type: string
-          example: avg:system.cpu.user{*}
-      type: object
-    RumRetentionFilterUpdateRequest:
-      description: The RUM retention filter body to update.
-      properties:
-        data:
-          $ref: '#/components/schemas/RumRetentionFilterUpdateData'
-      required:
-      - data
-      type: object
-    ApplicationSecurityWafExclusionFilterScope:
-      description: Deploy on services based on their environment and/or service name.
-      properties:
-        env:
-          description: Deploy on this environment.
-          example: www
-          type: string
-        service:
-          description: Deploy on this service.
-          example: prod
-          type: string
-      type: object
-    ApplicationSecurityWafExclusionFilterID:
-      description: The identifier of the WAF exclusion filter.
-      example: 3dd-0uc-h1s
-      readOnly: true
-      type: string
-    SecurityFilterExclusionFilter:
-      description: Exclusion filter for the security filter.
-      example:
-        name: Exclude staging
-        query: source:staging
-      properties:
-        name:
-          description: Exclusion filter name.
-          example: Exclude staging
-          type: string
-        query:
-          description: Exclusion filter query. Logs that match this query are excluded from the security filter.
-          example: source:staging
-          type: string
-      required:
-      - name
-      - query
-      type: object
-    SecurityFilterResponse:
-      description: Response object which includes a single security filter.
-      properties:
-        data:
-          $ref: '#/components/schemas/SecurityFilter'
-        meta:
-          $ref: '#/components/schemas/SecurityFilterMeta'
-      type: object
-    SecurityFilterExclusionFilterResponse:
-      description: A single exclusion filter.
-      properties:
-        name:
-          description: The exclusion filter name.
-          example: Exclude staging
-          type: string
-        query:
-          description: The exclusion filter query.
-          example: source:staging
-          type: string
-      type: object
-    SecurityFilterType:
-      default: security_filters
-      description: The type of the resource. The value should always be `security_filters`.
-      enum:
-      - security_filters
-      example: security_filters
-      type: string
-      x-enum-varnames:
-      - SECURITY_FILTERS
     SecurityFilterUpdateAttributes:
       description: The security filters properties to be updated.
       properties:
@@ -782,86 +848,62 @@ components:
           maximum: 2147483647
           type: integer
       type: object
-    RumRetentionFilterType:
-      default: retention_filters
-      description: The type of the resource. The value should always be retention_filters.
-      enum:
-      - retention_filters
-      example: retention_filters
-      type: string
-      x-enum-varnames:
-      - RETENTION_FILTERS
-    ApplicationSecurityWafExclusionFilterUpdateData:
-      description: Object for updating a single WAF exclusion filter.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
-      required:
-      - attributes
-      - type
-      type: object
-    ApplicationSecurityWafExclusionFilterType:
-      default: exclusion_filter
-      description: Type of the resource. The value should always be `exclusion_filter`.
-      enum:
-      - exclusion_filter
-      example: exclusion_filter
-      type: string
-      x-enum-varnames:
-      - EXCLUSION_FILTER
-    RumRetentionFilterEventType:
-      description: The type of RUM events to filter on.
-      enum:
-      - session
-      - view
-      - action
-      - error
-      - resource
-      - long_task
-      - vital
-      example: session
-      type: string
-      x-enum-varnames:
-      - SESSION
-      - VIEW
-      - ACTION
-      - ERROR
-      - RESOURCE
-      - LONG_TASK
-      - VITAL
-    SecurityFilterUpdateData:
-      description: The new security filter properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SecurityFilterUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/SecurityFilterType'
-      required:
-      - type
-      - attributes
-      type: object
-    ApplicationSecurityWafExclusionFilterOnMatch:
-      description: The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked.
-      enum:
-      - monitor
-      type: string
-      x-enum-varnames:
-      - MONITOR
-    ApplicationSecurityWafExclusionFilterUpdateRequest:
-      description: Request object for updating a single WAF exclusion filter.
+    RumRetentionFilterUpdateRequest:
+      description: The RUM retention filter body to update.
       properties:
         data:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateData'
+          $ref: '#/components/schemas/RumRetentionFilterUpdateData'
       required:
       - data
       type: object
-    RetentionFilterResponse:
-      description: The retention filters definition.
+    RumRetentionFilterUpdateData:
+      description: The new RUM retention filter properties to update.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RetentionFilterAllType:
+      default: spans-sampling-processor
+      description: The type of retention filter.
+      enum:
+      - spans-sampling-processor
+      - spans-errors-sampling-processor
+      - spans-appsec-sampling-processor
+      example: spans-sampling-processor
+      type: string
+      x-enum-varnames:
+      - SPANS_SAMPLING_PROCESSOR
+      - SPANS_ERRORS_SAMPLING_PROCESSOR
+      - SPANS_APPSEC_SAMPLING_PROCESSOR
+    RumRetentionFilterQuery:
+      description: The query string for a RUM retention filter.
+      example: '@session.has_replay:true'
+      type: string
+    ApplicationSecurityWafExclusionFilterScope:
+      description: Deploy on services based on their environment and/or service name.
+      properties:
+        env:
+          description: Deploy on this environment.
+          example: www
+          type: string
+        service:
+          description: Deploy on this service.
+          example: prod
+          type: string
+      type: object
+    ApplicationSecurityWafExclusionFilterResponse:
+      description: Response object for a single WAF exclusion filter.
       properties:
         data:
-          $ref: '#/components/schemas/RetentionFilterAll'
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResource'
       type: object
     ApplicationSecurityWafExclusionFilterUpdateAttributes:
       description: Attributes for updating a WAF exclusion filter.
@@ -906,101 +948,10 @@ components:
       - description
       - enabled
       type: object
-    RetentionFilterAllType:
-      default: spans-sampling-processor
-      description: The type of retention filter.
-      enum:
-      - spans-sampling-processor
-      - spans-errors-sampling-processor
-      - spans-appsec-sampling-processor
-      example: spans-sampling-processor
-      type: string
-      x-enum-varnames:
-      - SPANS_SAMPLING_PROCESSOR
-      - SPANS_ERRORS_SAMPLING_PROCESSOR
-      - SPANS_APPSEC_SAMPLING_PROCESSOR
-    ApmRetentionFilterType:
-      default: apm_retention_filter
-      description: The type of the resource.
-      enum:
-      - apm_retention_filter
-      example: apm_retention_filter
-      type: string
-      x-enum-varnames:
-      - apm_retention_filter
-    RumRetentionFilterQuery:
-      description: The query string for a RUM retention filter.
-      example: '@session.has_replay:true'
-      type: string
-    SecurityFilterMeta:
-      description: Optional metadata associated to the response.
-      properties:
-        warning:
-          description: A warning message.
-          example: All the security filters are disabled. As a result, no logs are being analyzed.
-          type: string
-      type: object
-    RumRetentionFilterID:
-      description: ID of retention filter in UUID.
-      example: 051601eb-54a0-abc0-03f9-cc02efa18892
-      type: string
-    RumRetentionFilterData:
-      description: The RUM retention filter.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RumRetentionFilterAttributes'
-        id:
-          $ref: '#/components/schemas/RumRetentionFilterID'
-        type:
-          $ref: '#/components/schemas/RumRetentionFilterType'
-      type: object
-    ApplicationSecurityWafExclusionFilterRulesTarget:
-      description: Target WAF rules based either on an identifier or tags.
-      properties:
-        rule_id:
-          description: Target a single WAF rule based on its identifier.
-          example: dog-913-009
-          type: string
-        tags:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterRulesTargetTags'
-      type: object
     SecurityFilterID:
       description: The ID of the security filter.
       example: 3dd-0uc-h1s
       type: string
-    SecurityFilterAttributes:
-      description: The object describing a security filter.
-      properties:
-        exclusion_filters:
-          description: The list of exclusion filters applied in this security filter.
-          items:
-            $ref: '#/components/schemas/SecurityFilterExclusionFilterResponse'
-          type: array
-        filtered_data_type:
-          $ref: '#/components/schemas/SecurityFilterFilteredDataType'
-        is_builtin:
-          description: Whether the security filter is the built-in filter.
-          example: false
-          type: boolean
-        is_enabled:
-          description: Whether the security filter is enabled.
-          example: false
-          type: boolean
-        name:
-          description: The security filter name.
-          example: Custom security filter
-          type: string
-        query:
-          description: The security filter query. Logs accepted by this query will be accepted by this filter.
-          example: service:api
-          type: string
-        version:
-          description: The version of the security filter.
-          example: 1
-          format: int32
-          maximum: 2147483647
-          type: integer
-      type: object
     RetentionFilterUpdateAttributes:
       description: The object describing the configuration of the retention filter to create/update.
       properties:
@@ -1037,90 +988,131 @@ components:
       - filter_type
       - rate
       type: object
-    RumRetentionFilterEnabled:
-      description: Whether the retention filter is enabled.
-      example: true
-      type: boolean
-    RetentionFilterUpdateRequest:
+    SecurityFilterExclusionFilterResponse:
+      description: A single exclusion filter.
+      properties:
+        name:
+          description: The exclusion filter name.
+          example: Exclude staging
+          type: string
+        query:
+          description: The exclusion filter query.
+          example: source:staging
+          type: string
+      type: object
+    ApplicationSecurityWafExclusionFilterType:
+      default: exclusion_filter
+      description: Type of the resource. The value should always be `exclusion_filter`.
+      enum:
+      - exclusion_filter
+      example: exclusion_filter
+      type: string
+      x-enum-varnames:
+      - EXCLUSION_FILTER
+    RetentionFilterUpdateData:
       description: The body of the retention filter to be updated.
       properties:
-        data:
-          $ref: '#/components/schemas/RetentionFilterUpdateData'
-      required:
-      - data
-      type: object
-    ApplicationSecurityWafExclusionFilterResponse:
-      description: Response object for a single WAF exclusion filter.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterResource'
-      type: object
-    RetentionFilterAll:
-      description: The definition of the retention filter.
-      properties:
         attributes:
-          $ref: '#/components/schemas/RetentionFilterAllAttributes'
+          $ref: '#/components/schemas/RetentionFilterUpdateAttributes'
         id:
           description: The ID of the retention filter.
-          example: 7RBOb7dLSYWI01yc3pIH8w
+          example: retention-filter-id
           type: string
         type:
           $ref: '#/components/schemas/ApmRetentionFilterType'
       required:
       - id
+      - attributes
+      - type
+      type: object
+    ApplicationSecurityWafExclusionFilterOnMatch:
+      description: The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked.
+      enum:
+      - monitor
+      type: string
+      x-enum-varnames:
+      - MONITOR
+    ApplicationSecurityWafExclusionFilterUpdateData:
+      description: Object for updating a single WAF exclusion filter.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafExclusionFilterType'
+      required:
+      - attributes
+      - type
+      type: object
+    RunRetentionFilterName:
+      description: The name of a RUM retention filter.
+      example: Retention filter for session
+      type: string
+    SecurityFilterUpdateData:
+      description: The new security filter properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityFilterUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SecurityFilterType'
+      required:
       - type
       - attributes
       type: object
-    RumRetentionFilterResponse:
-      description: The RUM retention filter object.
+    SecurityFilterType:
+      default: security_filters
+      description: The type of the resource. The value should always be `security_filters`.
+      enum:
+      - security_filters
+      example: security_filters
+      type: string
+      x-enum-varnames:
+      - SECURITY_FILTERS
+    RumRetentionFilterData:
+      description: The RUM retention filter.
       properties:
-        data:
-          $ref: '#/components/schemas/RumRetentionFilterData'
+        attributes:
+          $ref: '#/components/schemas/RumRetentionFilterAttributes'
+        id:
+          $ref: '#/components/schemas/RumRetentionFilterID'
+        type:
+          $ref: '#/components/schemas/RumRetentionFilterType'
       type: object
   responses:
-    ConcurrentModificationResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Concurrent Modification
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     NotAuthorizedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Authorized
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   parameters:
     RetentionFilterIdParam:
       description: The ID of the retention filter.
       in: path
       name: filter_id
-      required: true
-      schema:
-        type: string
-    ApplicationSecurityWafExclusionFilterID:
-      description: The identifier of the WAF exclusion filter.
-      example: 3b5-v82-ns6
-      in: path
-      name: exclusion_filter_id
       required: true
       schema:
         type: string
@@ -1135,6 +1127,14 @@ components:
       description: RUM application ID.
       in: path
       name: app_id
+      required: true
+      schema:
+        type: string
+    ApplicationSecurityWafExclusionFilterID:
+      description: The identifier of the WAF exclusion filter.
+      example: 3b5-v82-ns6
+      in: path
+      name: exclusion_filter_id
       required: true
       schema:
         type: string

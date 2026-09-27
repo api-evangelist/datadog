@@ -517,46 +517,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MonitorConfigPolicyEditData:
-      description: A monitor configuration policy data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonitorConfigPolicyAttributeEditRequest'
-        id:
-          description: ID of this monitor configuration policy.
-          example: 00000000-0000-1234-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    MonitorConfigPolicyResourceType:
-      default: monitor-config-policy
-      description: Monitor configuration policy resource type.
-      enum:
-      - monitor-config-policy
-      example: monitor-config-policy
-      type: string
-      x-enum-varnames:
-      - MONITOR_CONFIG_POLICY
-    MetricTagConfigurationMetricTypes:
-      default: gauge
-      description: The metric's type.
-      enum:
-      - gauge
-      - count
-      - rate
-      - distribution
-      example: count
-      type: string
-      x-enum-varnames:
-      - GAUGE
-      - COUNT
-      - RATE
-      - DISTRIBUTION
     MetricTagConfiguration:
       description: Object for a single metric tag configuration.
       example:
@@ -580,37 +540,11 @@ components:
         type:
           $ref: '#/components/schemas/MetricTagConfigurationType'
       type: object
-    MonitorConfigPolicyCreateData:
-      description: A monitor configuration policy data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonitorConfigPolicyAttributeCreateRequest'
-        type:
-          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
-      required:
-      - type
-      - attributes
-      type: object
-    MetricCustomSpaceAggregation:
-      description: A space aggregation for use in query.
-      enum:
-      - avg
-      - max
-      - min
-      - sum
-      example: sum
-      type: string
-      x-enum-varnames:
-      - AVG
-      - MAX
-      - MIN
-      - SUM
-    MetricTagConfigurationResponse:
-      description: Response object which includes a single metric's tag configuration.
+    MonitorConfigPolicyResponse:
+      description: Response for retrieving a monitor configuration policy.
       properties:
         data:
-          $ref: '#/components/schemas/MetricTagConfiguration'
-      readOnly: true
+          $ref: '#/components/schemas/MonitorConfigPolicyResponseData'
       type: object
     APIErrorResponse:
       description: API error response.
@@ -627,31 +561,6 @@ components:
       required:
       - errors
       type: object
-    MetricTagConfigurationUpdateData:
-      description: Object for a single tag configuration to be edited.
-      example:
-        attributes:
-          group_by:
-          - app
-          - datacenter
-          include_percentiles: false
-        id: http.endpoint.request
-        type: manage_tags
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MetricTagConfigurationUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/MetricName'
-        type:
-          $ref: '#/components/schemas/MetricTagConfigurationType'
-      required:
-      - id
-      - type
-      type: object
-    MonitorConfigPolicyPolicyCreateRequest:
-      description: Configuration for the policy.
-      oneOf:
-      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicyCreateRequest'
     MonitorConfigPolicyResponseData:
       description: A monitor configuration policy data.
       properties:
@@ -664,92 +573,40 @@ components:
         type:
           $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
       type: object
-    MonitorConfigPolicyType:
-      default: tag
-      description: The monitor configuration policy type.
+    MetricCustomTimeAggregation:
+      description: A time aggregation for use in query.
       enum:
-      - tag
-      example: tag
+      - avg
+      - count
+      - max
+      - min
+      - sum
+      example: sum
       type: string
       x-enum-varnames:
-      - TAG
-    MetricTagConfigurationUpdateRequest:
-      description: Request object that includes the metric that you would like to edit the tag configuration on.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricTagConfigurationUpdateData'
-      required:
-      - data
-      type: object
-    MonitorConfigPolicyAttributeResponse:
-      description: Policy and policy type for a monitor configuration policy.
-      properties:
-        policy:
-          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
-        policy_type:
-          $ref: '#/components/schemas/MonitorConfigPolicyType'
-      type: object
-    MetricName:
-      description: The metric name for this resource.
-      example: test.metric.latency
-      type: string
-    MetricTagConfigurationType:
-      default: manage_tags
-      description: The metric tag configuration resource type.
-      enum:
-      - manage_tags
-      example: manage_tags
-      type: string
-      x-enum-varnames:
-      - MANAGE_TAGS
-    MonitorConfigPolicyEditRequest:
-      description: Request for editing a monitor configuration policy.
-      properties:
-        data:
-          $ref: '#/components/schemas/MonitorConfigPolicyEditData'
-      required:
-      - data
-      type: object
-    MetricCustomAggregations:
-      description: Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits.
+      - AVG
+      - COUNT
+      - MAX
+      - MIN
+      - SUM
+    MetricCustomAggregation:
+      description: A time and space aggregation combination for use in query.
       example:
-      - space: sum
+        space: sum
         time: sum
-      - space: sum
-        time: count
-      items:
-        $ref: '#/components/schemas/MetricCustomAggregation'
-      type: array
-    MetricTagConfigurationUpdateAttributes:
-      description: Object containing the definition of a metric tag configuration to be updated.
       properties:
-        aggregations:
-          $ref: '#/components/schemas/MetricCustomAggregations'
-        exclude_tags_mode:
-          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
-
-            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
-
-            Defaults to false. Requires `tags` property.'
-          type: boolean
-          example: true
-        include_percentiles:
-          description: 'Toggle to include/exclude percentiles for a distribution metric.
-
-            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
-          example: true
-          type: boolean
-        tags:
-          default: []
-          description: A list of tag keys that will be queryable for your metric.
-          example:
-          - app
-          - datacenter
-          items:
-            description: Tag keys to group by.
-            type: string
-          type: array
+        space:
+          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
+        time:
+          $ref: '#/components/schemas/MetricCustomTimeAggregation'
+      required:
+      - time
+      - space
       type: object
+    MonitorConfigPolicyPolicyCreateRequest:
+      description: Configuration for the policy.
+      oneOf:
+      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicyCreateRequest'
     MonitorConfigPolicyTagPolicy:
       description: Tag attributes of a monitor configuration policy.
       properties:
@@ -772,6 +629,69 @@ components:
             type: string
           type: array
       type: object
+    MonitorConfigPolicyEditData:
+      description: A monitor configuration policy data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorConfigPolicyAttributeEditRequest'
+        id:
+          description: ID of this monitor configuration policy.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    MetricTagConfigurationType:
+      default: manage_tags
+      description: The metric tag configuration resource type.
+      enum:
+      - manage_tags
+      example: manage_tags
+      type: string
+      x-enum-varnames:
+      - MANAGE_TAGS
+    MonitorConfigPolicyAttributeResponse:
+      description: Policy and policy type for a monitor configuration policy.
+      properties:
+        policy:
+          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
+        policy_type:
+          $ref: '#/components/schemas/MonitorConfigPolicyType'
+      type: object
+    MetricTagConfigurationUpdateData:
+      description: Object for a single tag configuration to be edited.
+      example:
+        attributes:
+          group_by:
+          - app
+          - datacenter
+          include_percentiles: false
+        id: http.endpoint.request
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      required:
+      - id
+      - type
+      type: object
+    MonitorConfigPolicyType:
+      default: tag
+      description: The monitor configuration policy type.
+      enum:
+      - tag
+      example: tag
+      type: string
+      x-enum-varnames:
+      - TAG
     MonitorConfigPolicyAttributeCreateRequest:
       description: Policy and policy type for a monitor configuration policy.
       properties:
@@ -782,6 +702,89 @@ components:
       required:
       - policy_type
       - policy
+      type: object
+    MetricTagConfigurationCreateRequest:
+      description: Request object that includes the metric that you would like to configure tags for.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfigurationCreateData'
+      required:
+      - data
+      type: object
+    MetricCustomAggregations:
+      description: Deprecated. You no longer need to configure specific time and space aggregations for Metrics Without Limits.
+      example:
+      - space: sum
+        time: sum
+      - space: sum
+        time: count
+      items:
+        $ref: '#/components/schemas/MetricCustomAggregation'
+      type: array
+    MonitorConfigPolicyCreateRequest:
+      description: Request for creating a monitor configuration policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorConfigPolicyCreateData'
+      required:
+      - data
+      type: object
+    MetricTagConfigurationCreateData:
+      description: Object for a single metric to be configure tags on.
+      example:
+        attributes:
+          include_percentiles: false
+          metric_type: distribution
+          tags:
+          - app
+          - datacenter
+        id: http.endpoint.request
+        type: manage_tags
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MetricTagConfigurationCreateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricName'
+        type:
+          $ref: '#/components/schemas/MetricTagConfigurationType'
+      required:
+      - id
+      - type
+      type: object
+    MetricTagConfigurationCreateAttributes:
+      description: Object containing the definition of a metric tag configuration to be created.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include/exclude percentiles for a distribution metric.
+
+            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
+          example: true
+          type: boolean
+        metric_type:
+          $ref: '#/components/schemas/MetricTagConfigurationMetricTypes'
+        tags:
+          default: []
+          description: A list of tag keys that will be queryable for your metric.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
+      required:
+      - tags
+      - metric_type
       type: object
     MetricTagConfigurationAttributes:
       description: Object containing the definition of a metric tag configuration attributes.
@@ -824,97 +827,10 @@ components:
             type: string
           type: array
       type: object
-    MetricTagConfigurationCreateAttributes:
-      description: Object containing the definition of a metric tag configuration to be created.
-      properties:
-        aggregations:
-          $ref: '#/components/schemas/MetricCustomAggregations'
-        exclude_tags_mode:
-          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
-
-            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
-
-            Defaults to false. Requires `tags` property.'
-          type: boolean
-          example: true
-        include_percentiles:
-          description: 'Toggle to include/exclude percentiles for a distribution metric.
-
-            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
-          example: true
-          type: boolean
-        metric_type:
-          $ref: '#/components/schemas/MetricTagConfigurationMetricTypes'
-        tags:
-          default: []
-          description: A list of tag keys that will be queryable for your metric.
-          example:
-          - app
-          - datacenter
-          items:
-            description: Tag keys to group by.
-            type: string
-          type: array
-      required:
-      - tags
-      - metric_type
-      type: object
-    MetricTagConfigurationCreateRequest:
-      description: Request object that includes the metric that you would like to configure tags for.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricTagConfigurationCreateData'
-      required:
-      - data
-      type: object
-    MonitorConfigPolicyResponse:
-      description: Response for retrieving a monitor configuration policy.
-      properties:
-        data:
-          $ref: '#/components/schemas/MonitorConfigPolicyResponseData'
-      type: object
-    MonitorConfigPolicyPolicy:
-      description: Configuration for the policy.
-      oneOf:
-      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicy'
-    MonitorConfigPolicyAttributeEditRequest:
-      description: Policy and policy type for a monitor configuration policy.
-      properties:
-        policy:
-          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
-        policy_type:
-          $ref: '#/components/schemas/MonitorConfigPolicyType'
-      required:
-      - policy_type
-      - policy
-      type: object
-    MonitorConfigPolicyCreateRequest:
-      description: Request for creating a monitor configuration policy.
-      properties:
-        data:
-          $ref: '#/components/schemas/MonitorConfigPolicyCreateData'
-      required:
-      - data
-      type: object
-    MetricCustomAggregation:
-      description: A time and space aggregation combination for use in query.
-      example:
-        space: sum
-        time: sum
-      properties:
-        space:
-          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
-        time:
-          $ref: '#/components/schemas/MetricCustomTimeAggregation'
-      required:
-      - time
-      - space
-      type: object
-    MetricCustomTimeAggregation:
-      description: A time aggregation for use in query.
+    MetricCustomSpaceAggregation:
+      description: A space aggregation for use in query.
       enum:
       - avg
-      - count
       - max
       - min
       - sum
@@ -922,10 +838,36 @@ components:
       type: string
       x-enum-varnames:
       - AVG
-      - COUNT
       - MAX
       - MIN
       - SUM
+    MonitorConfigPolicyCreateData:
+      description: A monitor configuration policy data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonitorConfigPolicyAttributeCreateRequest'
+        type:
+          $ref: '#/components/schemas/MonitorConfigPolicyResourceType'
+      required:
+      - type
+      - attributes
+      type: object
+    MonitorConfigPolicyResourceType:
+      default: monitor-config-policy
+      description: Monitor configuration policy resource type.
+      enum:
+      - monitor-config-policy
+      example: monitor-config-policy
+      type: string
+      x-enum-varnames:
+      - MONITOR_CONFIG_POLICY
+    MetricTagConfigurationResponse:
+      description: Response object which includes a single metric's tag configuration.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfiguration'
+      readOnly: true
+      type: object
     MonitorConfigPolicyTagPolicyCreateRequest:
       description: Tag attributes of a monitor configuration policy.
       properties:
@@ -952,27 +894,85 @@ components:
       - tag_key_required
       - valid_tag_values
       type: object
-    MetricTagConfigurationCreateData:
-      description: Object for a single metric to be configure tags on.
-      example:
-        attributes:
-          include_percentiles: false
-          metric_type: distribution
-          tags:
+    MonitorConfigPolicyPolicy:
+      description: Configuration for the policy.
+      oneOf:
+      - $ref: '#/components/schemas/MonitorConfigPolicyTagPolicy'
+    MonitorConfigPolicyAttributeEditRequest:
+      description: Policy and policy type for a monitor configuration policy.
+      properties:
+        policy:
+          $ref: '#/components/schemas/MonitorConfigPolicyPolicy'
+        policy_type:
+          $ref: '#/components/schemas/MonitorConfigPolicyType'
+      required:
+      - policy_type
+      - policy
+      type: object
+    MetricName:
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    MetricTagConfigurationUpdateRequest:
+      description: Request object that includes the metric that you would like to edit the tag configuration on.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricTagConfigurationUpdateData'
+      required:
+      - data
+      type: object
+    MetricTagConfigurationMetricTypes:
+      default: gauge
+      description: The metric's type.
+      enum:
+      - gauge
+      - count
+      - rate
+      - distribution
+      example: count
+      type: string
+      x-enum-varnames:
+      - GAUGE
+      - COUNT
+      - RATE
+      - DISTRIBUTION
+    MonitorConfigPolicyEditRequest:
+      description: Request for editing a monitor configuration policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/MonitorConfigPolicyEditData'
+      required:
+      - data
+      type: object
+    MetricTagConfigurationUpdateAttributes:
+      description: Object containing the definition of a metric tag configuration to be updated.
+      properties:
+        aggregations:
+          $ref: '#/components/schemas/MetricCustomAggregations'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.
+
+            Defaults to false. Requires `tags` property.'
+          type: boolean
+          example: true
+        include_percentiles:
+          description: 'Toggle to include/exclude percentiles for a distribution metric.
+
+            Defaults to false. Can only be applied to metrics that have a `metric_type` of `distribution`.'
+          example: true
+          type: boolean
+        tags:
+          default: []
+          description: A list of tag keys that will be queryable for your metric.
+          example:
           - app
           - datacenter
-        id: http.endpoint.request
-        type: manage_tags
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MetricTagConfigurationCreateAttributes'
-        id:
-          $ref: '#/components/schemas/MetricName'
-        type:
-          $ref: '#/components/schemas/MetricTagConfigurationType'
-      required:
-      - id
-      - type
+          items:
+            description: Tag keys to group by.
+            type: string
+          type: array
       type: object
   parameters:
     MetricName:

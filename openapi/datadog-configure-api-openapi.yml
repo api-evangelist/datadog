@@ -123,37 +123,36 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MetricBulkTagConfigEmailList:
-      description: A list of account emails to notify when the configuration is applied.
-      example:
-      - sue@example.com
-      - bob@example.com
-      items:
-        description: An email address.
-        type: string
-      type: array
-    MetricBulkTagConfigCreate:
-      description: Request object to bulk configure tags for metrics matching the given prefix.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MetricBulkTagConfigCreateAttributes'
-        id:
-          $ref: '#/components/schemas/MetricBulkTagConfigNamePrefix'
-        type:
-          $ref: '#/components/schemas/MetricBulkConfigureTagsType'
-      required:
-      - id
-      - type
-      type: object
-    MetricBulkConfigureTagsType:
-      default: metric_bulk_configure_tags
-      description: The metric bulk configure tags resource.
-      enum:
-      - metric_bulk_configure_tags
-      example: metric_bulk_configure_tags
+    MetricBulkTagConfigNamePrefix:
+      description: A text prefix to match against metric names.
+      example: kafka.lag
       type: string
-      x-enum-varnames:
-      - BULK_MANAGE_TAGS
+    MetricBulkTagConfigCreateRequest:
+      description: Wrapper object for a single bulk tag configuration request.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricBulkTagConfigCreate'
+      required:
+      - data
+      type: object
+    MetricBulkTagConfigStatusAttributes:
+      description: Optional attributes for the status of a bulk tag configuration request.
+      properties:
+        emails:
+          $ref: '#/components/schemas/MetricBulkTagConfigEmailList'
+        exclude_tags_mode:
+          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
+
+            When set to false, the configuration will include the configured tags and exclude any other submitted tags.'
+          type: boolean
+          example: true
+        status:
+          description: The status of the request.
+          example: Accepted
+          type: string
+        tags:
+          $ref: '#/components/schemas/MetricBulkTagConfigTagNameList'
+      type: object
     MetricBulkTagConfigCreateAttributes:
       description: Optional parameters for bulk creating metric tag configurations.
       properties:
@@ -207,23 +206,20 @@ components:
         pattern: ^[A-Za-z][A-Za-z0-9\.\-\_:\/]*$
         type: string
       type: array
-    MetricBulkTagConfigStatusAttributes:
-      description: Optional attributes for the status of a bulk tag configuration request.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        emails:
-          $ref: '#/components/schemas/MetricBulkTagConfigEmailList'
-        exclude_tags_mode:
-          description: 'When set to true, the configuration will exclude the configured tags and include any other submitted tags.
-
-            When set to false, the configuration will include the configured tags and exclude any other submitted tags.'
-          type: boolean
-          example: true
-        status:
-          description: The status of the request.
-          example: Accepted
-          type: string
-        tags:
-          $ref: '#/components/schemas/MetricBulkTagConfigTagNameList'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
       type: object
     MetricBulkTagConfigStatus:
       description: 'The status of a request to bulk configure metric tags.
@@ -240,39 +236,43 @@ components:
       - id
       - type
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    MetricBulkTagConfigNamePrefix:
-      description: A text prefix to match against metric names.
-      example: kafka.lag
-      type: string
+    MetricBulkTagConfigEmailList:
+      description: A list of account emails to notify when the configuration is applied.
+      example:
+      - sue@example.com
+      - bob@example.com
+      items:
+        description: An email address.
+        type: string
+      type: array
     MetricBulkTagConfigResponse:
       description: Wrapper for a single bulk tag configuration status response.
       properties:
         data:
           $ref: '#/components/schemas/MetricBulkTagConfigStatus'
       type: object
-    MetricBulkTagConfigCreateRequest:
-      description: Wrapper object for a single bulk tag configuration request.
+    MetricBulkTagConfigCreate:
+      description: Request object to bulk configure tags for metrics matching the given prefix.
       properties:
-        data:
-          $ref: '#/components/schemas/MetricBulkTagConfigCreate'
+        attributes:
+          $ref: '#/components/schemas/MetricBulkTagConfigCreateAttributes'
+        id:
+          $ref: '#/components/schemas/MetricBulkTagConfigNamePrefix'
+        type:
+          $ref: '#/components/schemas/MetricBulkConfigureTagsType'
       required:
-      - data
+      - id
+      - type
       type: object
+    MetricBulkConfigureTagsType:
+      default: metric_bulk_configure_tags
+      description: The metric bulk configure tags resource.
+      enum:
+      - metric_bulk_configure_tags
+      example: metric_bulk_configure_tags
+      type: string
+      x-enum-varnames:
+      - BULK_MANAGE_TAGS
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

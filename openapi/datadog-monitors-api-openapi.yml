@@ -312,150 +312,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MonitorGroupState:
-      type: object
-      description: The state of a single monitor group (a unique combination of tag values)
-      properties:
-        status:
-          type: string
-          description: The current alert status for this monitor group
-          enum:
-          - Alert
-          - Ignored
-          - No Data
-          - OK
-          - Skipped
-          - Unknown
-          - Warn
-          example: Alert
-        name:
-          type: string
-          description: The name of the monitor group, represented as a comma-separated list of tag:value pairs
-          example: Example Monitor
-        last_triggered_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time this group triggered an alert
-          example: 42
-        last_notified_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time a notification was sent for this group
-          example: 42
-        last_resolved_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time this group resolved from an alert state
-          example: 42
-    MonitorOptions:
-      type: object
-      description: Configuration options for a monitor controlling evaluation, notification, and recovery behavior
-      properties:
-        thresholds:
-          $ref: '#/components/schemas/MonitorThresholds'
-        notify_no_data:
-          type: boolean
-          description: Whether to send a notification when there is no data for the monitored metric
-          default: false
-          example: true
-        no_data_timeframe:
-          type: integer
-          description: The number of minutes after which the monitor reports no data (minimum 2x the evaluation timeframe)
-          example: 42
-        require_full_window:
-          type: boolean
-          description: Whether the monitor requires a full evaluation window of data before alerting
-          example: true
-        notify_audit:
-          type: boolean
-          description: Whether to send notifications to auditors when the monitor is changed
-          example: true
-        renotify_interval:
-          type: integer
-          description: The number of minutes between re-notifications while the monitor remains in an alert state (0 to disable)
-          example: 42
-        renotify_statuses:
-          type: array
-          description: Monitor status types that trigger re-notification messages
-          items:
-            type: string
-            enum:
-            - alert
-            - warn
-            - no data
-        escalation_message:
-          type: string
-          description: The message to include with re-notification alerts instead of the main message
-          example: CPU usage is high on {{host.name}}
-        timeout_h:
-          type: integer
-          description: The number of hours after which an automatically resolving alert times out
-          example: 42
-        evaluation_delay:
-          type: integer
-          description: The time in seconds to delay evaluation, used to ensure all data arrives before checking thresholds
-          example: 42
-        new_group_delay:
-          type: integer
-          description: The number of seconds to delay notification for new monitor groups to allow transient issues to resolve
-          example: 42
-        include_tags:
-          type: boolean
-          description: Whether to include group scope tags in notification subject and body
-          default: true
-          example: true
-        silenced:
-          type: object
-          description: Map of monitor scopes to Unix timestamps indicating when each scope's mute expires (0 for indefinite)
-          additionalProperties:
-            type: integer
-            nullable: true
-        aggregation:
-          type: object
-          description: Aggregation settings used for anomaly and outlier monitors
-          properties:
-            type:
-              type: string
-              description: The type of aggregation function applied to the metric
-            metric:
-              type: string
-              description: The metric name used in the aggregation
-            group_by:
-              type: string
-              description: The tag key to group the aggregation by
-    MonitorUpdateRequest:
-      type: object
-      description: Request body for updating an existing monitor configuration
-      properties:
-        type:
-          type: string
-          description: The type of the monitor (changing type may reset other settings)
-          example: metric alert
-        query:
-          type: string
-          description: The updated monitor query expression
-          example: avg:system.cpu.user{*}
-        name:
-          type: string
-          description: The updated descriptive name for the monitor
-          example: Example Monitor
-        message:
-          type: string
-          description: The updated notification message body
-          example: CPU usage is high on {{host.name}}
-        tags:
-          type: array
-          description: The updated list of tags to associate with the monitor
-          items:
-            type: string
-        options:
-          $ref: '#/components/schemas/MonitorOptions'
-        priority:
-          type: integer
-          description: The updated priority level (1 highest to 5 lowest)
-          minimum: 1
-          maximum: 5
-          example: 42
     MonitorState:
       type: object
       description: The current evaluation state of the monitor across all groups
@@ -465,27 +321,6 @@ components:
           description: Map of monitor group names to their current state information
           additionalProperties:
             $ref: '#/components/schemas/MonitorGroupState'
-    Creator:
-      type: object
-      description: Information about the user who created the monitor
-      properties:
-        id:
-          type: integer
-          description: The unique numeric ID of the creator user
-          example: 42
-        name:
-          type: string
-          description: The display name of the creator user
-          example: Example Monitor
-        email:
-          type: string
-          format: email
-          description: The email address of the creator user
-          example: user@example.com
-        handle:
-          type: string
-          description: The Datadog handle (username) of the creator user
-          example: example_value
     MonitorThresholds:
       type: object
       description: Alert threshold values for metric and service check monitors
@@ -520,15 +355,6 @@ components:
           format: double
           description: The threshold for service check monitors indicating an UNKNOWN state
           example: 95.5
-    DeletedMonitor:
-      type: object
-      description: Response returned after successfully deleting a monitor
-      properties:
-        deleted_monitor_id:
-          type: integer
-          format: int64
-          description: The ID of the monitor that was deleted
-          example: 42
     APIErrorResponse:
       type: object
       description: Standard API error response returned for failed requests
@@ -540,6 +366,69 @@ components:
           description: List of error messages describing the failure
           items:
             type: string
+    MonitorUpdateRequest:
+      type: object
+      description: Request body for updating an existing monitor configuration
+      properties:
+        type:
+          type: string
+          description: The type of the monitor (changing type may reset other settings)
+          example: metric alert
+        query:
+          type: string
+          description: The updated monitor query expression
+          example: avg:system.cpu.user{*}
+        name:
+          type: string
+          description: The updated descriptive name for the monitor
+          example: Example Monitor
+        message:
+          type: string
+          description: The updated notification message body
+          example: CPU usage is high on {{host.name}}
+        tags:
+          type: array
+          description: The updated list of tags to associate with the monitor
+          items:
+            type: string
+        options:
+          $ref: '#/components/schemas/MonitorOptions'
+        priority:
+          type: integer
+          description: The updated priority level (1 highest to 5 lowest)
+          minimum: 1
+          maximum: 5
+          example: 42
+    Creator:
+      type: object
+      description: Information about the user who created the monitor
+      properties:
+        id:
+          type: integer
+          description: The unique numeric ID of the creator user
+          example: 42
+        name:
+          type: string
+          description: The display name of the creator user
+          example: Example Monitor
+        email:
+          type: string
+          format: email
+          description: The email address of the creator user
+          example: user@example.com
+        handle:
+          type: string
+          description: The Datadog handle (username) of the creator user
+          example: example_value
+    DeletedMonitor:
+      type: object
+      description: Response returned after successfully deleting a monitor
+      properties:
+        deleted_monitor_id:
+          type: integer
+          format: int64
+          description: The ID of the monitor that was deleted
+          example: 42
     Monitor:
       type: object
       description: A Datadog monitor that watches a metric or check and alerts when thresholds are exceeded
@@ -627,6 +516,117 @@ components:
           description: List of role IDs whose members can edit this monitor; empty means all users can edit
           items:
             type: string
+    MonitorOptions:
+      type: object
+      description: Configuration options for a monitor controlling evaluation, notification, and recovery behavior
+      properties:
+        thresholds:
+          $ref: '#/components/schemas/MonitorThresholds'
+        notify_no_data:
+          type: boolean
+          description: Whether to send a notification when there is no data for the monitored metric
+          default: false
+          example: true
+        no_data_timeframe:
+          type: integer
+          description: The number of minutes after which the monitor reports no data (minimum 2x the evaluation timeframe)
+          example: 42
+        require_full_window:
+          type: boolean
+          description: Whether the monitor requires a full evaluation window of data before alerting
+          example: true
+        notify_audit:
+          type: boolean
+          description: Whether to send notifications to auditors when the monitor is changed
+          example: true
+        renotify_interval:
+          type: integer
+          description: The number of minutes between re-notifications while the monitor remains in an alert state (0 to disable)
+          example: 42
+        renotify_statuses:
+          type: array
+          description: Monitor status types that trigger re-notification messages
+          items:
+            type: string
+            enum:
+            - alert
+            - warn
+            - no data
+        escalation_message:
+          type: string
+          description: The message to include with re-notification alerts instead of the main message
+          example: CPU usage is high on {{host.name}}
+        timeout_h:
+          type: integer
+          description: The number of hours after which an automatically resolving alert times out
+          example: 42
+        evaluation_delay:
+          type: integer
+          description: The time in seconds to delay evaluation, used to ensure all data arrives before checking thresholds
+          example: 42
+        new_group_delay:
+          type: integer
+          description: The number of seconds to delay notification for new monitor groups to allow transient issues to resolve
+          example: 42
+        include_tags:
+          type: boolean
+          description: Whether to include group scope tags in notification subject and body
+          default: true
+          example: true
+        silenced:
+          type: object
+          description: Map of monitor scopes to Unix timestamps indicating when each scope's mute expires (0 for indefinite)
+          additionalProperties:
+            type: integer
+            nullable: true
+        aggregation:
+          type: object
+          description: Aggregation settings used for anomaly and outlier monitors
+          properties:
+            type:
+              type: string
+              description: The type of aggregation function applied to the metric
+            metric:
+              type: string
+              description: The metric name used in the aggregation
+            group_by:
+              type: string
+              description: The tag key to group the aggregation by
+    MonitorGroupState:
+      type: object
+      description: The state of a single monitor group (a unique combination of tag values)
+      properties:
+        status:
+          type: string
+          description: The current alert status for this monitor group
+          enum:
+          - Alert
+          - Ignored
+          - No Data
+          - OK
+          - Skipped
+          - Unknown
+          - Warn
+          example: Alert
+        name:
+          type: string
+          description: The name of the monitor group, represented as a comma-separated list of tag:value pairs
+          example: Example Monitor
+        last_triggered_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group triggered an alert
+          example: 42
+        last_notified_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time a notification was sent for this group
+          example: 42
+        last_resolved_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group resolved from an alert state
+          example: 42
   parameters:
     monitorIdParam:
       name: monitor_id

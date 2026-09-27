@@ -157,29 +157,179 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  parameters:
-    IncidentIDPathParameter:
-      description: The UUID of the incident.
-      in: path
-      name: incident_id
-      required: true
-      schema:
-        type: string
-    IncidentTodoIDPathParameter:
-      description: The UUID of the incident todo.
-      in: path
-      name: todo_id
-      required: true
-      schema:
-        type: string
-    IncidentTypeIDPathParameter:
-      description: The UUID of the incident type.
-      in: path
-      name: incident_type_id
-      required: true
-      schema:
-        type: string
   schemas:
+    IncidentTodoPatchRequest:
+      description: Patch request for an incident todo.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTodoPatchData'
+      required:
+      - data
+      type: object
+    IncidentTodoAnonymousAssigneeSource:
+      default: slack
+      description: The source of the anonymous assignee.
+      enum:
+      - slack
+      - microsoft_teams
+      example: slack
+      type: string
+      x-enum-varnames:
+      - SLACK
+      - MICROSOFT_TEAMS
+    IncidentTypePatchData:
+      description: Incident type data for a patch request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTypeUpdateAttributes'
+        id:
+          description: The incident type's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentTypeType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    IncidentTypeObject:
+      description: Incident type response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IncidentTypeAttributes'
+        id:
+          description: The incident type's ID.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/IncidentTypeType'
+      required:
+      - id
+      - type
+      type: object
+    IncidentTodoAttributes:
+      description: Incident todo's attributes.
+      properties:
+        assignees:
+          $ref: '#/components/schemas/IncidentTodoAssigneeArray'
+        completed:
+          description: Timestamp when the todo was completed.
+          example: '2023-03-06T22:00:00.000000+00:00'
+          type:
+          - string
+          - 'null'
+        content:
+          description: The follow-up task's content.
+          example: Restore lost data.
+          type: string
+        created:
+          description: Timestamp when the incident todo was created.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        due_date:
+          description: Timestamp when the todo should be completed by.
+          example: '2023-07-10T05:00:00.000000+00:00'
+          type:
+          - string
+          - 'null'
+        incident_id:
+          description: UUID of the incident this todo is connected to.
+          example: 00000000-aaaa-0000-0000-000000000000
+          type: string
+        modified:
+          description: Timestamp when the incident todo was last modified.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+      required:
+      - content
+      - assignees
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    IncidentTodoAssigneeHandle:
+      description: Assignee's @-handle.
+      example: '@test.user@test.com'
+      type: string
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    IncidentTypeType:
+      default: incident_types
+      description: Incident type resource type.
+      enum:
+      - incident_types
+      example: incident_types
+      type: string
+      x-enum-varnames:
+      - INCIDENT_TYPES
     IncidentTodoResponseData:
       description: Incident todo response data.
       properties:
@@ -197,58 +347,20 @@ components:
       - id
       - type
       type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    IncidentTodoAssigneeArray:
-      description: Array of todo assignees.
-      example:
-      - '@test.user@test.com'
-      items:
-        $ref: '#/components/schemas/IncidentTodoAssignee'
-      type: array
-    RelationshipToOrganization:
-      description: Relationship to an organization.
+    RelationshipToUsers:
+      description: Relationship to users.
       properties:
         data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
       required:
       - data
       type: object
-    IncidentTodoAnonymousAssigneeSource:
-      default: slack
-      description: The source of the anonymous assignee.
-      enum:
-      - slack
-      - microsoft_teams
-      example: slack
-      type: string
-      x-enum-varnames:
-      - SLACK
-      - MICROSOFT_TEAMS
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    IncidentTypeAttributes:
-      description: Incident type's attributes.
+    IncidentTypeUpdateAttributes:
+      description: Incident type's attributes for updates.
       properties:
         createdAt:
           description: Timestamp when the incident type was created.
@@ -263,11 +375,10 @@ components:
           type: string
         description:
           description: Text that describes the incident type.
-          example: Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data.
+          example: 'Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data. Note: This will notify the security team.'
           type: string
         is_default:
-          default: false
-          description: If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources.
+          description: When true, this incident type will be used as the default type when an incident type is not specified.
           example: false
           type: boolean
         lastModifiedBy:
@@ -290,32 +401,6 @@ components:
           example: IR
           readOnly: true
           type: string
-      required:
-      - name
-      type: object
-    RelationshipToUser:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserData'
-      required:
-      - data
-      type: object
-    IncidentTypePatchData:
-      description: Incident type data for a patch request.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/IncidentTypeUpdateAttributes'
-        id:
-          description: The incident type's ID.
-          example: 00000000-0000-0000-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/IncidentTypeType'
-      required:
-      - id
-      - type
-      - attributes
       type: object
     IncidentTodoAnonymousAssignee:
       description: Anonymous assignee entity.
@@ -340,6 +425,54 @@ components:
       - name
       - source
       type: object
+    IncidentTodoAssigneeArray:
+      description: Array of todo assignees.
+      example:
+      - '@test.user@test.com'
+      items:
+        $ref: '#/components/schemas/IncidentTodoAssignee'
+      type: array
+    IncidentTodoRelationships:
+      description: The incident's relationships from a response.
+      properties:
+        created_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+        last_modified_by_user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    IncidentTypeResponse:
+      description: Incident type response data.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTypeObject'
+      required:
+      - data
+      type: object
+    IncidentTypePatchRequest:
+      description: Patch request for an incident type.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTypePatchData'
+      required:
+      - data
+      type: object
     IncidentTodoPatchData:
       description: Incident todo data for a patch request.
       properties:
@@ -351,18 +484,24 @@ components:
       - type
       - attributes
       type: object
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
-      properties:
-        data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
-      required:
-      - data
-      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
     UserAttributes:
       description: Attributes of user object returned by the API.
       properties:
@@ -422,228 +561,14 @@ components:
           type: boolean
           example: true
       type: object
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
-    IncidentTypePatchRequest:
-      description: Patch request for an incident type.
-      properties:
-        data:
-          $ref: '#/components/schemas/IncidentTypePatchData'
-      required:
-      - data
-      type: object
-    IncidentTypeResponse:
-      description: Incident type response data.
-      properties:
-        data:
-          $ref: '#/components/schemas/IncidentTypeObject'
-      required:
-      - data
-      type: object
-    IncidentTypeObject:
-      description: Incident type response data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/IncidentTypeAttributes'
-        id:
-          description: The incident type's ID.
-          example: 00000000-0000-0000-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/IncidentTypeType'
-      required:
-      - id
-      - type
-      type: object
-    IncidentTypeType:
-      default: incident_types
-      description: Incident type resource type.
-      enum:
-      - incident_types
-      example: incident_types
-      type: string
-      x-enum-varnames:
-      - INCIDENT_TYPES
-    IncidentTodoPatchRequest:
-      description: Patch request for an incident todo.
-      properties:
-        data:
-          $ref: '#/components/schemas/IncidentTodoPatchData'
-      required:
-      - data
-      type: object
-    IncidentTodoResponseIncludedItem:
-      description: An object related to an incident todo that is included in the response.
-      oneOf:
-      - $ref: '#/components/schemas/User'
-    IncidentTodoRelationships:
-      description: The incident's relationships from a response.
-      properties:
-        created_by_user:
-          $ref: '#/components/schemas/RelationshipToUser'
-        last_modified_by_user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    IncidentTodoAssigneeHandle:
-      description: Assignee's @-handle.
-      example: '@test.user@test.com'
-      type: string
-    IncidentTodoResponse:
-      description: Response with an incident todo.
-      properties:
-        data:
-          $ref: '#/components/schemas/IncidentTodoResponseData'
-        included:
-          description: Included related resources that the user requested.
-          items:
-            $ref: '#/components/schemas/IncidentTodoResponseIncludedItem'
-          readOnly: true
-          type: array
-      required:
-      - data
-      type: object
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
-    IncidentTodoAttributes:
-      description: Incident todo's attributes.
-      properties:
-        assignees:
-          $ref: '#/components/schemas/IncidentTodoAssigneeArray'
-        completed:
-          description: Timestamp when the todo was completed.
-          example: '2023-03-06T22:00:00.000000+00:00'
-          type:
-          - string
-          - 'null'
-        content:
-          description: The follow-up task's content.
-          example: Restore lost data.
-          type: string
-        created:
-          description: Timestamp when the incident todo was created.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-        due_date:
-          description: Timestamp when the todo should be completed by.
-          example: '2023-07-10T05:00:00.000000+00:00'
-          type:
-          - string
-          - 'null'
-        incident_id:
-          description: UUID of the incident this todo is connected to.
-          example: 00000000-aaaa-0000-0000-000000000000
-          type: string
-        modified:
-          description: Timestamp when the incident todo was last modified.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-      required:
-      - content
-      - assignees
-      type: object
     IncidentTodoAssignee:
       description: A todo assignee.
       example: '@test.user@test.com'
       oneOf:
       - $ref: '#/components/schemas/IncidentTodoAssigneeHandle'
       - $ref: '#/components/schemas/IncidentTodoAnonymousAssignee'
-    RelationshipToOrganizationData:
-      description: Relationship to organization object.
-      properties:
-        id:
-          description: ID of the organization.
-          example: 00000000-0000-beef-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - id
-      - type
-      type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
-      properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    RelationshipToRoles:
-      description: Relationship to roles.
-      properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
-          items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
-          type: array
-      type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    IncidentTypeUpdateAttributes:
-      description: Incident type's attributes for updates.
+    IncidentTypeAttributes:
+      description: Incident type's attributes.
       properties:
         createdAt:
           description: Timestamp when the incident type was created.
@@ -658,10 +583,11 @@ components:
           type: string
         description:
           description: Text that describes the incident type.
-          example: 'Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data. Note: This will notify the security team.'
+          example: Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data.
           type: string
         is_default:
-          description: When true, this incident type will be used as the default type when an incident type is not specified.
+          default: false
+          description: If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources.
           example: false
           type: boolean
         lastModifiedBy:
@@ -684,23 +610,75 @@ components:
           example: IR
           readOnly: true
           type: string
+      required:
+      - name
       type: object
-    User:
-      description: User object returned by the API.
+    RelationshipToRoles:
+      description: Relationship to roles.
       properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
       type: object
       x-merge-override:
         required: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    IncidentTodoResponseIncludedItem:
+      description: An object related to an incident todo that is included in the response.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    IncidentTodoResponse:
+      description: Response with an incident todo.
+      properties:
+        data:
+          $ref: '#/components/schemas/IncidentTodoResponseData'
+        included:
+          description: Included related resources that the user requested.
+          items:
+            $ref: '#/components/schemas/IncidentTodoResponseIncludedItem'
+          readOnly: true
+          type: array
+      required:
+      - data
+      type: object
     IncidentTodoType:
       default: incident_todos
       description: Todo resource type.
@@ -710,6 +688,28 @@ components:
       type: string
       x-enum-varnames:
       - INCIDENT_TODOS
+  parameters:
+    IncidentTypeIDPathParameter:
+      description: The UUID of the incident type.
+      in: path
+      name: incident_type_id
+      required: true
+      schema:
+        type: string
+    IncidentIDPathParameter:
+      description: The UUID of the incident.
+      in: path
+      name: incident_id
+      required: true
+      schema:
+        type: string
+    IncidentTodoIDPathParameter:
+      description: The UUID of the incident todo.
+      in: path
+      name: todo_id
+      required: true
+      schema:
+        type: string
   responses:
     ForbiddenResponse:
       content:
@@ -717,6 +717,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
     NotFoundResponse:
       content:
         application/json:
@@ -729,12 +735,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Unauthorized
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
     TooManyRequestsResponse:
       content:
         application/json:

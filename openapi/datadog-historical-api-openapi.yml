@@ -156,66 +156,41 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  responses:
-    ConcurrentModificationResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Concurrent Modification
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
   schemas:
-    HistoricalJobDataType:
-      description: Type of payload.
+    SecurityMonitoringRuleDetectionMethod:
+      description: The detection method.
       enum:
-      - historicalDetectionsJob
-      type: string
-      x-enum-varnames:
-      - HISTORICALDETECTIONSJOB
-    SecurityMonitoringRuleQueryAggregation:
-      description: The aggregation type.
-      enum:
-      - count
-      - cardinality
-      - sum
-      - max
+      - threshold
       - new_value
-      - geo_data
-      - event_count
-      - none
+      - anomaly_detection
+      - impossible_travel
+      - hardcoded
+      - third_party
+      - anomaly_threshold
       type: string
       x-enum-varnames:
-      - COUNT
-      - CARDINALITY
-      - SUM
-      - MAX
+      - THRESHOLD
       - NEW_VALUE
-      - GEO_DATA
-      - EVENT_COUNT
-      - NONE
+      - ANOMALY_DETECTION
+      - IMPOSSIBLE_TRAVEL
+      - HARDCODED
+      - THIRD_PARTY
+      - ANOMALY_THRESHOLD
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
     JobDefinitionFromRule:
       description: Definition of a historical job based on a security monitoring rule.
       properties:
@@ -257,93 +232,65 @@ components:
       - index
       - caseIndex
       type: object
-    SecurityMonitoringRuleThirdPartyOptions:
-      description: Options on third party detection method.
+    SecurityMonitoringRuleCaseAction:
+      description: Action to perform when a signal is triggered. Only available for Application Security rule type.
       properties:
-        defaultNotifications:
-          description: Notification targets for the logs that do not correspond to any of the cases.
+        options:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptions'
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionType'
+      type: object
+    SecurityMonitoringThirdPartyRootQuery:
+      description: A query to be combined with the third party case query.
+      properties:
+        groupByFields:
+          description: Fields to group by.
           items:
-            description: Notification.
+            description: Field.
             type: string
           type: array
-        defaultStatus:
-          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
-        rootQueries:
-          description: Queries to be combined with third party case queries. Each of them can have different group by fields, to aggregate differently based on the type of alert.
-          items:
-            $ref: '#/components/schemas/SecurityMonitoringThirdPartyRootQuery'
-          type: array
-        signalTitleTemplate:
-          description: A template for the signal title; if omitted, the title is generated based on the case name.
+        query:
+          description: Query to run on logs.
+          example: source:cloudtrail
           type: string
-          example: Example Monitor
       type: object
-    HistoricalJobResponseAttributes:
-      description: Historical job attributes.
-      properties:
-        createdAt:
-          description: Time when the job was created.
-          type: string
-          example: example_value
-        createdByHandle:
-          description: The handle of the user who created the job.
-          type: string
-          example: example_value
-        createdByName:
-          description: The name of the user who created the job.
-          type: string
-          example: Example Monitor
-        createdFromRuleId:
-          description: ID of the rule used to create the job (if it is created from a rule).
-          type: string
-          example: abc-123-def
-        jobDefinition:
-          $ref: '#/components/schemas/JobDefinition'
-        jobName:
-          description: Job name.
-          type: string
-          example: Example Monitor
-        jobStatus:
-          description: Job status.
-          type: string
-          example: OK
-        modifiedAt:
-          description: Last modification time of the job.
-          type: string
-          example: example_value
-      type: object
-    SecurityMonitoringRuleMaxSignalDuration:
-      description: 'A signal will "close" regardless of the query being matched once the time exceeds the maximum duration.
-
-        This time is calculated from the first seen timestamp.'
+    SecurityMonitoringRuleNewValueOptionsForgetAfter:
+      description: The duration in days after which a learned value is forgotten.
       enum:
-      - 0
-      - 60
-      - 300
-      - 600
-      - 900
-      - 1800
-      - 3600
-      - 7200
-      - 10800
-      - 21600
-      - 43200
-      - 86400
+      - 1
+      - 2
+      - 7
+      - 14
+      - 21
+      - 28
       format: int32
       type: integer
       x-enum-varnames:
-      - ZERO_MINUTES
-      - ONE_MINUTE
-      - FIVE_MINUTES
-      - TEN_MINUTES
-      - FIFTEEN_MINUTES
-      - THIRTY_MINUTES
-      - ONE_HOUR
-      - TWO_HOURS
-      - THREE_HOURS
-      - SIX_HOURS
-      - TWELVE_HOURS
       - ONE_DAY
+      - TWO_DAYS
+      - ONE_WEEK
+      - TWO_WEEKS
+      - THREE_WEEKS
+      - FOUR_WEEKS
+    HistoricalJobResponseData:
+      description: Historical job response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/HistoricalJobResponseAttributes'
+        id:
+          description: ID of the job.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/HistoricalJobDataType'
+      type: object
+    HistoricalJobDataType:
+      description: Type of payload.
+      enum:
+      - historicalDetectionsJob
+      type: string
+      x-enum-varnames:
+      - HISTORICALDETECTIONSJOB
     SecurityMonitoringRuleCaseCreate:
       description: Case when signal is generated.
       properties:
@@ -373,61 +320,29 @@ components:
       required:
       - status
       type: object
-    SecurityMonitoringThirdPartyRootQuery:
-      description: A query to be combined with the third party case query.
+    SecurityMonitoringRuleNewValueOptions:
+      description: Options on new value detection method.
       properties:
-        groupByFields:
-          description: Fields to group by.
-          items:
-            description: Field.
-            type: string
-          type: array
-        query:
-          description: Query to run on logs.
-          example: source:cloudtrail
-          type: string
+        forgetAfter:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsForgetAfter'
+        learningDuration:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningDuration'
+        learningMethod:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningMethod'
+        learningThreshold:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningThreshold'
       type: object
-    SecurityMonitoringRuleNewValueOptionsLearningThreshold:
-      default: 0
-      description: A number of occurrences after which signals will be generated for values that weren't learned.
-      enum:
-      - 0
-      - 1
-      format: int32
-      type: integer
-      x-enum-varnames:
-      - ZERO_OCCURRENCES
-      - ONE_OCCURRENCE
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    RunHistoricalJobRequest:
+    RunHistoricalJobRequestAttributes:
       description: Run a historical job request.
       properties:
-        data:
-          $ref: '#/components/schemas/RunHistoricalJobRequestData'
-      type: object
-    HistoricalJobListMeta:
-      description: Metadata about the list of jobs.
-      properties:
-        totalCount:
-          description: Number of jobs in the list.
-          format: int32
-          maximum: 2147483647
-          type: integer
-          example: 42
+        fromRule:
+          $ref: '#/components/schemas/JobDefinitionFromRule'
+        id:
+          description: Request ID.
+          type: string
+          example: abc-123-def
+        jobDefinition:
+          $ref: '#/components/schemas/JobDefinition'
       type: object
     SecurityMonitoringReferenceTable:
       description: Reference tables used in the queries.
@@ -452,6 +367,46 @@ components:
           description: The name of the reference table.
           type: string
           example: Example Monitor
+      type: object
+    SecurityMonitoringRuleEvaluationWindow:
+      description: 'A time window is specified to match when at least one of the cases matches true. This is a sliding window
+
+        and evaluates in real time. For third party detection method, this field is not used.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    RunHistoricalJobRequestData:
+      description: Data for running a historical job request.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RunHistoricalJobRequestAttributes'
+        type:
+          $ref: '#/components/schemas/RunHistoricalJobRequestDataType'
       type: object
     JobDefinition:
       description: Definition of a historical job.
@@ -532,14 +487,259 @@ components:
       - queries
       - message
       type: object
-    RunHistoricalJobRequestData:
-      description: Data for running a historical job request.
+    JobCreateResponse:
+      description: Run a historical job response.
       properties:
-        attributes:
-          $ref: '#/components/schemas/RunHistoricalJobRequestAttributes'
-        type:
-          $ref: '#/components/schemas/RunHistoricalJobRequestDataType'
+        data:
+          $ref: '#/components/schemas/JobCreateResponseData'
       type: object
+    SecurityMonitoringRuleCaseActionOptionsUserBehaviorName:
+      description: Used with the case action of type 'user_behavior'. The value specified in this field is applied as a risk tag to all users affected by the rule.
+      type: string
+    SecurityMonitoringRuleImpossibleTravelOptions:
+      description: Options on impossible travel detection method.
+      properties:
+        baselineUserLocations:
+          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptionsBaselineUserLocations'
+      type: object
+    HistoricalJobOptions:
+      description: Job options.
+      properties:
+        detectionMethod:
+          $ref: '#/components/schemas/SecurityMonitoringRuleDetectionMethod'
+        evaluationWindow:
+          $ref: '#/components/schemas/SecurityMonitoringRuleEvaluationWindow'
+        impossibleTravelOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptions'
+        keepAlive:
+          $ref: '#/components/schemas/SecurityMonitoringRuleKeepAlive'
+        maxSignalDuration:
+          $ref: '#/components/schemas/SecurityMonitoringRuleMaxSignalDuration'
+        newValueOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptions'
+        thirdPartyRuleOptions:
+          $ref: '#/components/schemas/SecurityMonitoringRuleThirdPartyOptions'
+      type: object
+    JobCreateResponseData:
+      description: The definition of `JobCreateResponseData` object.
+      properties:
+        id:
+          description: ID of the created job.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/HistoricalJobDataType'
+      type: object
+    ListHistoricalJobsResponse:
+      description: List of historical jobs.
+      properties:
+        data:
+          description: Array containing the list of historical jobs.
+          items:
+            $ref: '#/components/schemas/HistoricalJobResponseData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/HistoricalJobListMeta'
+      type: object
+    SecurityMonitoringRuleNewValueOptionsLearningDuration:
+      default: 0
+      description: 'The duration in days during which values are learned, and after which signals will be generated for values that
+
+        weren''t learned. If set to 0, a signal will be generated for all new values after the first value is learned.'
+      enum:
+      - 0
+      - 1
+      - 7
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_DAYS
+      - ONE_DAY
+      - SEVEN_DAYS
+    CalculatedField:
+      description: Calculated field.
+      properties:
+        expression:
+          description: Expression.
+          example: '@request_end_timestamp - @request_start_timestamp'
+          type: string
+        name:
+          description: Field name.
+          example: response_time
+          type: string
+      required:
+      - name
+      - expression
+      type: object
+    SecurityMonitoringRuleCaseActionOptions:
+      additionalProperties: {}
+      description: Options for the rule action
+      properties:
+        duration:
+          description: Duration of the action in seconds. 0 indicates no expiration.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+        userBehaviorName:
+          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptionsUserBehaviorName'
+      type: object
+    SecurityMonitoringRuleMaxSignalDuration:
+      description: 'A signal will "close" regardless of the query being matched once the time exceeds the maximum duration.
+
+        This time is calculated from the first seen timestamp.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    RunHistoricalJobRequestDataType:
+      description: Type of data.
+      enum:
+      - historicalDetectionsJobCreate
+      type: string
+      x-enum-varnames:
+      - HISTORICALDETECTIONSJOBCREATE
+    SecurityMonitoringRuleThirdPartyOptions:
+      description: Options on third party detection method.
+      properties:
+        defaultNotifications:
+          description: Notification targets for the logs that do not correspond to any of the cases.
+          items:
+            description: Notification.
+            type: string
+          type: array
+        defaultStatus:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+        rootQueries:
+          description: Queries to be combined with third party case queries. Each of them can have different group by fields, to aggregate differently based on the type of alert.
+          items:
+            $ref: '#/components/schemas/SecurityMonitoringThirdPartyRootQuery'
+          type: array
+        signalTitleTemplate:
+          description: A template for the signal title; if omitted, the title is generated based on the case name.
+          type: string
+          example: Example Monitor
+      type: object
+    RunHistoricalJobRequest:
+      description: Run a historical job request.
+      properties:
+        data:
+          $ref: '#/components/schemas/RunHistoricalJobRequestData'
+      type: object
+    SecurityMonitoringRuleNewValueOptionsLearningMethod:
+      default: duration
+      description: The learning method used to determine when signals should be generated for values that weren't learned.
+      enum:
+      - duration
+      - threshold
+      type: string
+      x-enum-varnames:
+      - DURATION
+      - THRESHOLD
+    HistoricalJobListMeta:
+      description: Metadata about the list of jobs.
+      properties:
+        totalCount:
+          description: Number of jobs in the list.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+      type: object
+    SecurityMonitoringRuleKeepAlive:
+      description: 'Once a signal is generated, the signal will remain "open" if a case is matched at least once within
+
+        this keep alive window. For third party detection method, this field is not used.'
+      enum:
+      - 0
+      - 60
+      - 300
+      - 600
+      - 900
+      - 1800
+      - 3600
+      - 7200
+      - 10800
+      - 21600
+      - 43200
+      - 86400
+      format: int32
+      type: integer
+      x-enum-varnames:
+      - ZERO_MINUTES
+      - ONE_MINUTE
+      - FIVE_MINUTES
+      - TEN_MINUTES
+      - FIFTEEN_MINUTES
+      - THIRTY_MINUTES
+      - ONE_HOUR
+      - TWO_HOURS
+      - THREE_HOURS
+      - SIX_HOURS
+      - TWELVE_HOURS
+      - ONE_DAY
+    SecurityMonitoringThirdPartyRuleCaseCreate:
+      description: Case when a signal is generated by a third party rule.
+      properties:
+        name:
+          description: Name of the case.
+          type: string
+          example: Example Monitor
+        notifications:
+          description: Notification targets for each case.
+          items:
+            description: Notification.
+            type: string
+          type: array
+        query:
+          description: A query to map a third party event to this case.
+          type: string
+          example: avg:system.cpu.user{*}
+        status:
+          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
+      required:
+      - status
+      type: object
+    SecurityMonitoringRuleSeverity:
+      description: Severity of the Security Signal.
+      enum:
+      - info
+      - low
+      - medium
+      - high
+      - critical
+      example: critical
+      type: string
+      x-enum-varnames:
+      - INFO
+      - LOW
+      - MEDIUM
+      - HIGH
+      - CRITICAL
     HistoricalJobQuery:
       description: Query for selecting logs analyzed by the historical job.
       properties:
@@ -579,104 +779,78 @@ components:
           example: a > 3
           type: string
       type: object
-    SecurityMonitoringThirdPartyRuleCaseCreate:
-      description: Case when a signal is generated by a third party rule.
+    HistoricalJobResponseAttributes:
+      description: Historical job attributes.
       properties:
-        name:
-          description: Name of the case.
+        createdAt:
+          description: Time when the job was created.
+          type: string
+          example: example_value
+        createdByHandle:
+          description: The handle of the user who created the job.
+          type: string
+          example: example_value
+        createdByName:
+          description: The name of the user who created the job.
           type: string
           example: Example Monitor
-        notifications:
-          description: Notification targets for each case.
-          items:
-            description: Notification.
-            type: string
-          type: array
-        query:
-          description: A query to map a third party event to this case.
-          type: string
-          example: avg:system.cpu.user{*}
-        status:
-          $ref: '#/components/schemas/SecurityMonitoringRuleSeverity'
-      required:
-      - status
-      type: object
-    HistoricalJobResponseData:
-      description: Historical job response data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/HistoricalJobResponseAttributes'
-        id:
-          description: ID of the job.
+        createdFromRuleId:
+          description: ID of the rule used to create the job (if it is created from a rule).
           type: string
           example: abc-123-def
-        type:
-          $ref: '#/components/schemas/HistoricalJobDataType'
+        jobDefinition:
+          $ref: '#/components/schemas/JobDefinition'
+        jobName:
+          description: Job name.
+          type: string
+          example: Example Monitor
+        jobStatus:
+          description: Job status.
+          type: string
+          example: OK
+        modifiedAt:
+          description: Last modification time of the job.
+          type: string
+          example: example_value
       type: object
-    SecurityMonitoringRuleCaseActionType:
-      description: The action type.
-      enum:
-      - block_ip
-      - block_user
-      - user_behavior
-      type: string
-      x-enum-varnames:
-      - BLOCK_IP
-      - BLOCK_USER
-      - USER_BEHAVIOR
     SecurityMonitoringRuleImpossibleTravelOptionsBaselineUserLocations:
       description: 'If true, signals are suppressed for the first 24 hours. In that time, Datadog learns the user''s regular
 
         access locations. This can be helpful to reduce noise and infer VPN usage or credentialed API access.'
       example: true
       type: boolean
-    SecurityMonitoringRuleNewValueOptionsLearningDuration:
+    SecurityMonitoringRuleQueryAggregation:
+      description: The aggregation type.
+      enum:
+      - count
+      - cardinality
+      - sum
+      - max
+      - new_value
+      - geo_data
+      - event_count
+      - none
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - CARDINALITY
+      - SUM
+      - MAX
+      - NEW_VALUE
+      - GEO_DATA
+      - EVENT_COUNT
+      - NONE
+    SecurityMonitoringRuleNewValueOptionsLearningThreshold:
       default: 0
-      description: 'The duration in days during which values are learned, and after which signals will be generated for values that
-
-        weren''t learned. If set to 0, a signal will be generated for all new values after the first value is learned.'
+      description: A number of occurrences after which signals will be generated for values that weren't learned.
       enum:
       - 0
       - 1
-      - 7
       format: int32
       type: integer
       x-enum-varnames:
-      - ZERO_DAYS
-      - ONE_DAY
-      - SEVEN_DAYS
-    SecurityMonitoringRuleKeepAlive:
-      description: 'Once a signal is generated, the signal will remain "open" if a case is matched at least once within
-
-        this keep alive window. For third party detection method, this field is not used.'
-      enum:
-      - 0
-      - 60
-      - 300
-      - 600
-      - 900
-      - 1800
-      - 3600
-      - 7200
-      - 10800
-      - 21600
-      - 43200
-      - 86400
-      format: int32
-      type: integer
-      x-enum-varnames:
-      - ZERO_MINUTES
-      - ONE_MINUTE
-      - FIVE_MINUTES
-      - TEN_MINUTES
-      - FIFTEEN_MINUTES
-      - THIRTY_MINUTES
-      - ONE_HOUR
-      - TWO_HOURS
-      - THREE_HOURS
-      - SIX_HOURS
-      - TWELVE_HOURS
-      - ONE_DAY
+      - ZERO_OCCURRENCES
+      - ONE_OCCURRENCE
     SecurityMonitoringStandardDataSource:
       default: logs
       description: Source of events, either logs, audit trail, or Datadog events.
@@ -698,233 +872,49 @@ components:
       - SECURITY_RUNTIME
       - NETWORK
       - EVENTS
-    SecurityMonitoringRuleDetectionMethod:
-      description: The detection method.
+    SecurityMonitoringRuleCaseActionType:
+      description: The action type.
       enum:
-      - threshold
-      - new_value
-      - anomaly_detection
-      - impossible_travel
-      - hardcoded
-      - third_party
-      - anomaly_threshold
+      - block_ip
+      - block_user
+      - user_behavior
       type: string
       x-enum-varnames:
-      - THRESHOLD
-      - NEW_VALUE
-      - ANOMALY_DETECTION
-      - IMPOSSIBLE_TRAVEL
-      - HARDCODED
-      - THIRD_PARTY
-      - ANOMALY_THRESHOLD
-    SecurityMonitoringRuleSeverity:
-      description: Severity of the Security Signal.
-      enum:
-      - info
-      - low
-      - medium
-      - high
-      - critical
-      example: critical
-      type: string
-      x-enum-varnames:
-      - INFO
-      - LOW
-      - MEDIUM
-      - HIGH
-      - CRITICAL
-    JobCreateResponse:
-      description: Run a historical job response.
-      properties:
-        data:
-          $ref: '#/components/schemas/JobCreateResponseData'
-      type: object
-    SecurityMonitoringRuleCaseActionOptionsUserBehaviorName:
-      description: Used with the case action of type 'user_behavior'. The value specified in this field is applied as a risk tag to all users affected by the rule.
-      type: string
-    SecurityMonitoringRuleNewValueOptionsLearningMethod:
-      default: duration
-      description: The learning method used to determine when signals should be generated for values that weren't learned.
-      enum:
-      - duration
-      - threshold
-      type: string
-      x-enum-varnames:
-      - DURATION
-      - THRESHOLD
-    ListHistoricalJobsResponse:
-      description: List of historical jobs.
-      properties:
-        data:
-          description: Array containing the list of historical jobs.
-          items:
-            $ref: '#/components/schemas/HistoricalJobResponseData'
-          type: array
-        meta:
-          $ref: '#/components/schemas/HistoricalJobListMeta'
-      type: object
-    RunHistoricalJobRequestAttributes:
-      description: Run a historical job request.
-      properties:
-        fromRule:
-          $ref: '#/components/schemas/JobDefinitionFromRule'
-        id:
-          description: Request ID.
-          type: string
-          example: abc-123-def
-        jobDefinition:
-          $ref: '#/components/schemas/JobDefinition'
-      type: object
-    SecurityMonitoringRuleCaseAction:
-      description: Action to perform when a signal is triggered. Only available for Application Security rule type.
-      properties:
-        options:
-          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptions'
-        type:
-          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionType'
-      type: object
-    RunHistoricalJobRequestDataType:
-      description: Type of data.
-      enum:
-      - historicalDetectionsJobCreate
-      type: string
-      x-enum-varnames:
-      - HISTORICALDETECTIONSJOBCREATE
-    SecurityMonitoringRuleNewValueOptions:
-      description: Options on new value detection method.
-      properties:
-        forgetAfter:
-          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsForgetAfter'
-        learningDuration:
-          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningDuration'
-        learningMethod:
-          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningMethod'
-        learningThreshold:
-          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptionsLearningThreshold'
-      type: object
-    SecurityMonitoringRuleNewValueOptionsForgetAfter:
-      description: The duration in days after which a learned value is forgotten.
-      enum:
-      - 1
-      - 2
-      - 7
-      - 14
-      - 21
-      - 28
-      format: int32
-      type: integer
-      x-enum-varnames:
-      - ONE_DAY
-      - TWO_DAYS
-      - ONE_WEEK
-      - TWO_WEEKS
-      - THREE_WEEKS
-      - FOUR_WEEKS
-    SecurityMonitoringRuleCaseActionOptions:
-      additionalProperties: {}
-      description: Options for the rule action
-      properties:
-        duration:
-          description: Duration of the action in seconds. 0 indicates no expiration.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-        userBehaviorName:
-          $ref: '#/components/schemas/SecurityMonitoringRuleCaseActionOptionsUserBehaviorName'
-      type: object
-    JobCreateResponseData:
-      description: The definition of `JobCreateResponseData` object.
-      properties:
-        id:
-          description: ID of the created job.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/HistoricalJobDataType'
-      type: object
-    SecurityMonitoringRuleImpossibleTravelOptions:
-      description: Options on impossible travel detection method.
-      properties:
-        baselineUserLocations:
-          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptionsBaselineUserLocations'
-      type: object
-    SecurityMonitoringRuleEvaluationWindow:
-      description: 'A time window is specified to match when at least one of the cases matches true. This is a sliding window
-
-        and evaluates in real time. For third party detection method, this field is not used.'
-      enum:
-      - 0
-      - 60
-      - 300
-      - 600
-      - 900
-      - 1800
-      - 3600
-      - 7200
-      - 10800
-      - 21600
-      - 43200
-      - 86400
-      format: int32
-      type: integer
-      x-enum-varnames:
-      - ZERO_MINUTES
-      - ONE_MINUTE
-      - FIVE_MINUTES
-      - TEN_MINUTES
-      - FIFTEEN_MINUTES
-      - THIRTY_MINUTES
-      - ONE_HOUR
-      - TWO_HOURS
-      - THREE_HOURS
-      - SIX_HOURS
-      - TWELVE_HOURS
-      - ONE_DAY
-    CalculatedField:
-      description: Calculated field.
-      properties:
-        expression:
-          description: Expression.
-          example: '@request_end_timestamp - @request_start_timestamp'
-          type: string
-        name:
-          description: Field name.
-          example: response_time
-          type: string
-      required:
-      - name
-      - expression
-      type: object
-    HistoricalJobOptions:
-      description: Job options.
-      properties:
-        detectionMethod:
-          $ref: '#/components/schemas/SecurityMonitoringRuleDetectionMethod'
-        evaluationWindow:
-          $ref: '#/components/schemas/SecurityMonitoringRuleEvaluationWindow'
-        impossibleTravelOptions:
-          $ref: '#/components/schemas/SecurityMonitoringRuleImpossibleTravelOptions'
-        keepAlive:
-          $ref: '#/components/schemas/SecurityMonitoringRuleKeepAlive'
-        maxSignalDuration:
-          $ref: '#/components/schemas/SecurityMonitoringRuleMaxSignalDuration'
-        newValueOptions:
-          $ref: '#/components/schemas/SecurityMonitoringRuleNewValueOptions'
-        thirdPartyRuleOptions:
-          $ref: '#/components/schemas/SecurityMonitoringRuleThirdPartyOptions'
-      type: object
+      - BLOCK_IP
+      - BLOCK_USER
+      - USER_BEHAVIOR
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   parameters:
-    PageNumber:
-      description: Specific page number to return.
-      in: query
-      name: page[number]
-      required: false
-      schema:
-        default: 0
-        example: 0
-        format: int64
-        type: integer
     PageSize:
       description: Size for a given page. The maximum allowed value is 100.
       in: query
@@ -933,6 +923,16 @@ components:
       schema:
         default: 10
         example: 10
+        format: int64
+        type: integer
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
         format: int64
         type: integer
   securitySchemes:

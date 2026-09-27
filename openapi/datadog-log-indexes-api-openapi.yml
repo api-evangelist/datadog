@@ -84,6 +84,54 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    LogsExclusion:
+      type: object
+      description: An exclusion filter that drops matching logs from an index
+      required:
+      - name
+      - filter
+      properties:
+        name:
+          type: string
+          description: The name of the exclusion filter for identification
+          example: Example Monitor
+        is_enabled:
+          type: boolean
+          description: Whether this exclusion filter is currently active
+          example: true
+        filter:
+          type: object
+          description: The exclusion filter configuration
+          properties:
+            query:
+              type: string
+              description: Log search query for logs to exclude from the index
+            sample_rate:
+              type: number
+              format: double
+              minimum: 0
+              maximum: 1
+              description: The percentage (0 to 1) of logs matching the filter to exclude
+    LogsIndexesResponse:
+      type: object
+      description: Response containing the list of configured log indexes
+      properties:
+        indexes:
+          type: array
+          description: List of log index configurations for the organization
+          items:
+            $ref: '#/components/schemas/LogsIndex'
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
     LogsFilter:
       type: object
       description: A filter query that determines which logs are matched by an index or exclusion
@@ -125,54 +173,6 @@ components:
           type: boolean
           description: Whether the index has exceeded its daily limit and is currently rate limited
           example: true
-    LogsIndexesResponse:
-      type: object
-      description: Response containing the list of configured log indexes
-      properties:
-        indexes:
-          type: array
-          description: List of log index configurations for the organization
-          items:
-            $ref: '#/components/schemas/LogsIndex'
-    APIErrorResponse:
-      type: object
-      description: Standard API error response returned for failed requests
-      required:
-      - errors
-      properties:
-        errors:
-          type: array
-          description: List of error messages describing the failure
-          items:
-            type: string
-    LogsExclusion:
-      type: object
-      description: An exclusion filter that drops matching logs from an index
-      required:
-      - name
-      - filter
-      properties:
-        name:
-          type: string
-          description: The name of the exclusion filter for identification
-          example: Example Monitor
-        is_enabled:
-          type: boolean
-          description: Whether this exclusion filter is currently active
-          example: true
-        filter:
-          type: object
-          description: The exclusion filter configuration
-          properties:
-            query:
-              type: string
-              description: Log search query for logs to exclude from the index
-            sample_rate:
-              type: number
-              format: double
-              minimum: 0
-              maximum: 1
-              description: The percentage (0 to 1) of logs matching the filter to exclude
   parameters:
     indexNameParam:
       name: name

@@ -453,36 +453,44 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  responses:
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   schemas:
-    CloudWorkloadSecurityAgentRuleType:
-      default: agent_rule
-      description: The type of the resource, must always be `agent_rule`
-      enum:
-      - agent_rule
-      example: agent_rule
-      type: string
-      x-enum-varnames:
-      - AGENT_RULE
-    CloudWorkloadSecurityAgentRulesListResponse:
-      description: Response object that includes a list of Agent rule
-      properties:
-        data:
-          description: A list of Agent rules objects
-          items:
-            $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
-          type: array
-      type: object
-    CloudWorkloadSecurityAgentRuleCreateData:
-      description: Object for a single Agent rule
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateAttributes'
-        type:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
-      required:
-      - attributes
-      - type
-      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -498,6 +506,33 @@ components:
       required:
       - errors
       type: object
+    CloudWorkloadSecurityAgentRuleData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAttributes'
+        id:
+          description: The ID of the Agent rule
+          example: 3dd-0uc-h1s
+          type: string
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      type: object
+    CloudWorkloadSecurityAgentRuleKill:
+      description: Kill system call applied on the container matching the rule
+      properties:
+        signal:
+          description: Supported signals for the kill system call
+          type: string
+          example: example_value
+      type: object
+    CloudWorkloadSecurityAgentRuleActions:
+      description: The array of actions the rule can perform if triggered
+      items:
+        $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAction'
+      type:
+      - array
+      - 'null'
     CloudWorkloadSecurityAgentRuleAttributes:
       description: A Cloud Workload Security Agent rule returned by the API
       properties:
@@ -589,59 +624,6 @@ components:
           format: int64
           type: integer
       type: object
-    CloudWorkloadSecurityAgentRuleActionSet:
-      description: The set action applied on the scope matching the rule
-      properties:
-        append:
-          description: Whether the value should be appended to the field
-          type: boolean
-          example: true
-        field:
-          description: The field of the set action
-          type: string
-          example: example_value
-        name:
-          description: The name of the set action
-          type: string
-          example: Example Monitor
-        scope:
-          description: The scope of the set action
-          type: string
-          example: example_value
-        size:
-          description: The size of the set action
-          format: int64
-          type: integer
-          example: 42
-        ttl:
-          description: The time to live of the set action
-          format: int64
-          type: integer
-          example: 42
-        value:
-          description: The value of the set action
-          type: string
-          example: example_value
-      type: object
-    CloudWorkloadSecurityAgentRuleActions:
-      description: The array of actions the rule can perform if triggered
-      items:
-        $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAction'
-      type:
-      - array
-      - 'null'
-    CloudWorkloadSecurityAgentRuleKill:
-      description: Kill system call applied on the container matching the rule
-      properties:
-        signal:
-          description: Supported signals for the kill system call
-          type: string
-          example: example_value
-      type: object
-    CloudWorkloadSecurityAgentRuleID:
-      description: The ID of the Agent rule
-      example: 3dd-0uc-h1s
-      type: string
     CloudWorkloadSecurityAgentRuleActionMetadata:
       description: The metadata action applied on the scope matching the rule
       properties:
@@ -657,14 +639,6 @@ components:
           description: The short image of the metadata action
           type: string
           example: example_value
-      type: object
-    CloudWorkloadSecurityAgentRuleCreateRequest:
-      description: Request object that includes the Agent rule to create
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateData'
-      required:
-      - data
       type: object
     CloudWorkloadSecurityAgentRuleCreateAttributes:
       description: Create a new Cloud Workload Security Agent rule.
@@ -720,6 +694,10 @@ components:
       - name
       - expression
       type: object
+    CloudWorkloadSecurityAgentRuleID:
+      description: The ID of the Agent rule
+      example: 3dd-0uc-h1s
+      type: string
     CloudWorkloadSecurityAgentRuleUpdateAttributes:
       description: Update an existing Cloud Workload Security Agent rule
       properties:
@@ -762,59 +740,6 @@ components:
             type: string
           type: array
       type: object
-    CloudWorkloadSecurityAgentRuleUpdateRequest:
-      description: Request object that includes the Agent rule with the attributes to update
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateData'
-      required:
-      - data
-      type: object
-    CloudWorkloadSecurityAgentRuleUpdateData:
-      description: Object for a single Agent rule
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleID'
-        type:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
-      required:
-      - attributes
-      - type
-      type: object
-    CloudWorkloadSecurityAgentRuleCreatorAttributes:
-      description: The attributes of the user who created the Agent rule
-      properties:
-        handle:
-          description: The handle of the user
-          example: datadog.user@example.com
-          type: string
-        name:
-          description: The name of the user
-          example: Datadog User
-          type:
-          - string
-          - 'null'
-      type: object
-    CloudWorkloadSecurityAgentRuleData:
-      description: Object for a single Agent rule
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleAttributes'
-        id:
-          description: The ID of the Agent rule
-          example: 3dd-0uc-h1s
-          type: string
-        type:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
-      type: object
-    CloudWorkloadSecurityAgentRuleResponse:
-      description: Response object that includes an Agent rule
-      properties:
-        data:
-          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
-      type: object
     CloudWorkloadSecurityAgentRuleUpdaterAttributes:
       description: The attributes of the user who last updated the Agent rule
       properties:
@@ -843,43 +768,118 @@ components:
         set:
           $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleActionSet'
       type: object
-  responses:
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    ConcurrentModificationResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Concurrent Modification
+    CloudWorkloadSecurityAgentRuleUpdateRequest:
+      description: Request object that includes the Agent rule with the attributes to update
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateData'
+      required:
+      - data
+      type: object
+    CloudWorkloadSecurityAgentRulesListResponse:
+      description: Response object that includes a list of Agent rule
+      properties:
+        data:
+          description: A list of Agent rules objects
+          items:
+            $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
+          type: array
+      type: object
+    CloudWorkloadSecurityAgentRuleResponse:
+      description: Response object that includes an Agent rule
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleData'
+      type: object
+    CloudWorkloadSecurityAgentRuleCreatorAttributes:
+      description: The attributes of the user who created the Agent rule
+      properties:
+        handle:
+          description: The handle of the user
+          example: datadog.user@example.com
+          type: string
+        name:
+          description: The name of the user
+          example: Datadog User
+          type:
+          - string
+          - 'null'
+      type: object
+    CloudWorkloadSecurityAgentRuleCreateData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateAttributes'
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      required:
+      - attributes
+      - type
+      type: object
+    CloudWorkloadSecurityAgentRuleActionSet:
+      description: The set action applied on the scope matching the rule
+      properties:
+        append:
+          description: Whether the value should be appended to the field
+          type: boolean
+          example: true
+        field:
+          description: The field of the set action
+          type: string
+          example: example_value
+        name:
+          description: The name of the set action
+          type: string
+          example: Example Monitor
+        scope:
+          description: The scope of the set action
+          type: string
+          example: example_value
+        size:
+          description: The size of the set action
+          format: int64
+          type: integer
+          example: 42
+        ttl:
+          description: The time to live of the set action
+          format: int64
+          type: integer
+          example: 42
+        value:
+          description: The value of the set action
+          type: string
+          example: example_value
+      type: object
+    CloudWorkloadSecurityAgentRuleCreateRequest:
+      description: Request object that includes the Agent rule to create
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleCreateData'
+      required:
+      - data
+      type: object
+    CloudWorkloadSecurityAgentRuleType:
+      default: agent_rule
+      description: The type of the resource, must always be `agent_rule`
+      enum:
+      - agent_rule
+      example: agent_rule
+      type: string
+      x-enum-varnames:
+      - AGENT_RULE
+    CloudWorkloadSecurityAgentRuleUpdateData:
+      description: Object for a single Agent rule
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleID'
+        type:
+          $ref: '#/components/schemas/CloudWorkloadSecurityAgentRuleType'
+      required:
+      - attributes
+      - type
+      type: object
   parameters:
     CloudWorkloadSecurityQueryAgentPolicyID:
       description: The ID of the Agent policy

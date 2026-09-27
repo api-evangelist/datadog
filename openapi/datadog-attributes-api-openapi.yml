@@ -113,41 +113,38 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    RelationshipToUserTeamUser:
-      description: Relationship between team membership and user
+    UserTeamTeamType:
+      default: team
+      description: User team team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    RelationshipToUserTeamPermissionData:
+      description: Related user team permission data
+      properties:
+        id:
+          description: The ID of the user team permission
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganization:
+      description: Relationship to an organization.
       properties:
         data:
-          $ref: '#/components/schemas/RelationshipToUserTeamUserData'
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
       required:
       - data
       type: object
-    UserTeamRelationships:
-      description: Relationship between membership and a user
-      properties:
-        team:
-          $ref: '#/components/schemas/RelationshipToUserTeamTeam'
-        user:
-          $ref: '#/components/schemas/RelationshipToUserTeamUser'
-      type: object
-    UserTeamUpdate:
-      description: A user's relationship with a team
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserTeamAttributes'
-        type:
-          $ref: '#/components/schemas/UserTeamType'
-      required:
-      - type
-      type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
     APIErrorResponse:
       description: API error response.
       properties:
@@ -163,216 +160,69 @@ components:
       required:
       - errors
       type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
-      required:
-      - data
-      type: object
-    RelationshipToUserTeamUserData:
-      description: A user's relationship with a team
+    RelationshipToUserData:
+      description: Relationship to user object.
       properties:
         id:
-          description: The ID of the user associated with the team
-          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
           type: string
         type:
-          $ref: '#/components/schemas/UserTeamUserType'
+          $ref: '#/components/schemas/UsersType'
       required:
       - id
       - type
       type: object
       x-merge-override:
         required: false
-    UserTeamType:
-      default: team_memberships
-      description: Team membership type
-      enum:
-      - team_memberships
-      example: team_memberships
-      type: string
-      x-enum-varnames:
-      - TEAM_MEMBERSHIPS
-    UserTeamPermissionType:
-      default: user_team_permissions
-      description: User team permission type
-      enum:
-      - user_team_permissions
-      example: user_team_permissions
-      type: string
-      x-enum-varnames:
-      - USER_TEAM_PERMISSIONS
-    RelationshipToTeamLinks:
-      description: Relationship between a team and a team link
+    UserTeamIncluded:
+      description: Included resources related to the team membership
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/Team'
+    User:
+      description: User object returned by the API.
       properties:
-        data:
-          description: Related team links
-          items:
-            $ref: '#/components/schemas/RelationshipToTeamLinkData'
-          type: array
-        links:
-          $ref: '#/components/schemas/TeamRelationshipsLinks'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUserTeamPermission:
-      description: Relationship between a user team permission and a team
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
-        links:
-          $ref: '#/components/schemas/TeamRelationshipsLinks'
-      type: object
-      x-merge-override:
-        required: false
-    UserTeamUserType:
-      default: users
-      description: User team user type
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
-      properties:
-        data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
-      required:
-      - data
-      type: object
-    UserAttributes:
-      description: Attributes of user object returned by the API.
-      properties:
-        created_at:
-          description: Creation time of the user.
-          format: date-time
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
           type: string
-          example: example_value
-        disabled:
-          description: Whether the user is disabled.
-          type: boolean
-          example: true
-        email:
-          description: Email of the user.
-          type: string
-          example: user@example.com
-        handle:
-          description: Handle of the user.
-          type: string
-          example: example_value
-        icon:
-          description: URL of the user's icon.
-          type: string
-          example: example_value
-        mfa_enabled:
-          description: If user has MFA enabled.
-          readOnly: true
-          type: boolean
-          example: true
-        modified_at:
-          description: Time that the user was last modified.
-          format: date-time
-          type: string
-          example: example_value
-        name:
-          description: Name of the user.
-          type:
-          - string
-          - 'null'
-          example: Example Monitor
-        service_account:
-          description: Whether the user is a service account.
-          type: boolean
-          example: true
-        status:
-          description: Status of the user.
-          type: string
-          example: OK
-        title:
-          description: Title of the user.
-          type:
-          - string
-          - 'null'
-          example: Example Monitor
-        verified:
-          description: Whether the user is verified.
-          type: boolean
-          example: true
-      type: object
-    TeamRelationships:
-      description: Resources related to a team
-      properties:
-        team_links:
-          $ref: '#/components/schemas/RelationshipToTeamLinks'
-        user_team_permissions:
-          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
-      type: object
-    UserTeamAttributes:
-      description: Team membership attributes
-      properties:
-        provisioned_by:
-          description: 'The mechanism responsible for provisioning the team relationship.
-
-            Possible values: null for added by a user, "service_account" if added by a service account, and "saml_mapping" if provisioned via SAML mapping.'
-          readOnly: true
-          type:
-          - string
-          - 'null'
-          example: example_value
-        provisioned_by_id:
-          description: UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.
-          readOnly: true
-          type:
-          - string
-          - 'null'
           example: abc-123-def
-        role:
-          $ref: '#/components/schemas/UserTeamRole'
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
       type: object
-    TeamType:
-      default: team
-      description: Team type
-      enum:
-      - team
-      example: team
-      type: string
-      x-enum-varnames:
-      - TEAM
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
-      enum:
-      - orgs
-      example: orgs
-      type: string
-      x-enum-varnames:
-      - ORGS
-    TeamLinkType:
-      default: team_links
-      description: Team link type
-      enum:
-      - team_links
-      example: team_links
-      type: string
-      x-enum-varnames:
-      - TEAM_LINKS
-    UserTeamRole:
-      description: The user's role within the team
-      enum:
-      - admin
-      type:
-      - string
-      - 'null'
-      x-enum-varnames:
-      - ADMIN
+      x-merge-override:
+        required: false
+    RelationshipToUserTeamTeamData:
+      description: The team associated with the membership
+      properties:
+        id:
+          description: The ID of the team associated with the membership
+          example: d7e15d9d-d346-43da-81d8-3d9e71d9a5e9
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamTeamType'
+      required:
+      - id
+      - type
+      type: object
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
     TeamAttributes:
       description: Team attributes
       properties:
@@ -452,6 +302,135 @@ components:
       - handle
       - name
       type: object
+    TeamLinkType:
+      default: team_links
+      description: Team link type
+      enum:
+      - team_links
+      example: team_links
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+    RelationshipToUserTeamPermission:
+      description: Relationship between a user team permission and a team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    UserTeamUpdate:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - type
+      type: object
+    TeamRelationshipsLinks:
+      description: Links attributes.
+      properties:
+        related:
+          description: Related link.
+          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
+          type: string
+      type: object
+    RelationshipToUserTeamUserData:
+      description: A user's relationship with a team
+      properties:
+        id:
+          description: The ID of the user associated with the team
+          example: b8626d7e-cedd-11eb-abf5-da7ad0900001
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamUserType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UserTeamRelationships:
+      description: Relationship between membership and a user
+      properties:
+        team:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeam'
+        user:
+          $ref: '#/components/schemas/RelationshipToUserTeamUser'
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserTeam:
+      description: A user's relationship with a team
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserTeamAttributes'
+        id:
+          description: The ID of a user's relationship with a team
+          example: TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835
+          type: string
+        relationships:
+          $ref: '#/components/schemas/UserTeamRelationships'
+        type:
+          $ref: '#/components/schemas/UserTeamType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UserTeamResponse:
+      description: Team membership response
+      properties:
+        data:
+          $ref: '#/components/schemas/UserTeam'
+        included:
+          description: Resources related to the team memberships
+          items:
+            $ref: '#/components/schemas/UserTeamIncluded'
+          type: array
+      type: object
+    UserTeamPermissionType:
+      default: user_team_permissions
+      description: User team permission type
+      enum:
+      - user_team_permissions
+      example: user_team_permissions
+      type: string
+      x-enum-varnames:
+      - USER_TEAM_PERMISSIONS
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
     RelationshipToTeamLinkData:
       description: Relationship between a link and a team
       properties:
@@ -464,6 +443,183 @@ components:
       required:
       - id
       - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUserTeamTeam:
+      description: Relationship between team membership and team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamTeamData'
+      required:
+      - data
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    UserAttributes:
+      description: Attributes of user object returned by the API.
+      properties:
+        created_at:
+          description: Creation time of the user.
+          format: date-time
+          type: string
+          example: example_value
+        disabled:
+          description: Whether the user is disabled.
+          type: boolean
+          example: true
+        email:
+          description: Email of the user.
+          type: string
+          example: user@example.com
+        handle:
+          description: Handle of the user.
+          type: string
+          example: example_value
+        icon:
+          description: URL of the user's icon.
+          type: string
+          example: example_value
+        mfa_enabled:
+          description: If user has MFA enabled.
+          readOnly: true
+          type: boolean
+          example: true
+        modified_at:
+          description: Time that the user was last modified.
+          format: date-time
+          type: string
+          example: example_value
+        name:
+          description: Name of the user.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        service_account:
+          description: Whether the user is a service account.
+          type: boolean
+          example: true
+        status:
+          description: Status of the user.
+          type: string
+          example: OK
+        title:
+          description: Title of the user.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        verified:
+          description: Whether the user is verified.
+          type: boolean
+          example: true
+      type: object
+    UserTeamAttributes:
+      description: Team membership attributes
+      properties:
+        provisioned_by:
+          description: 'The mechanism responsible for provisioning the team relationship.
+
+            Possible values: null for added by a user, "service_account" if added by a service account, and "saml_mapping" if provisioned via SAML mapping.'
+          readOnly: true
+          type:
+          - string
+          - 'null'
+          example: example_value
+        provisioned_by_id:
+          description: UUID of the User or Service Account who provisioned this team membership, or null if provisioned via SAML mapping.
+          readOnly: true
+          type:
+          - string
+          - 'null'
+          example: abc-123-def
+        role:
+          $ref: '#/components/schemas/UserTeamRole'
+      type: object
+    UserTeamUserType:
+      default: users
+      description: User team user type
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserTeamRole:
+      description: The user's role within the team
+      enum:
+      - admin
+      type:
+      - string
+      - 'null'
+      x-enum-varnames:
+      - ADMIN
+    RelationshipToTeamLinks:
+      description: Relationship between a team and a team link
+      properties:
+        data:
+          description: Related team links
+          items:
+            $ref: '#/components/schemas/RelationshipToTeamLinkData'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
+      properties:
+        id:
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - id
+      - type
+      type: object
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
       type: object
       x-merge-override:
         required: false
@@ -487,152 +643,14 @@ components:
       type: object
       x-merge-override:
         required: false
-    UserTeamTeamType:
-      default: team
-      description: User team team type
-      enum:
-      - team
-      example: team
-      type: string
-      x-enum-varnames:
-      - TEAM
-    UserTeamResponse:
-      description: Team membership response
+    TeamRelationships:
+      description: Resources related to a team
       properties:
-        data:
-          $ref: '#/components/schemas/UserTeam'
-        included:
-          description: Resources related to the team memberships
-          items:
-            $ref: '#/components/schemas/UserTeamIncluded'
-          type: array
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+        user_team_permissions:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
       type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUserTeamTeam:
-      description: Relationship between team membership and team
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserTeamTeamData'
-      required:
-      - data
-      type: object
-    RelationshipToRoleData:
-      description: Relationship to role object.
-      properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
-    RelationshipToOrganizationData:
-      description: Relationship to organization object.
-      properties:
-        id:
-          description: ID of the organization.
-          example: 00000000-0000-beef-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - id
-      - type
-      type: object
-    UserTeam:
-      description: A user's relationship with a team
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserTeamAttributes'
-        id:
-          description: The ID of a user's relationship with a team
-          example: TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835
-          type: string
-        relationships:
-          $ref: '#/components/schemas/UserTeamRelationships'
-        type:
-          $ref: '#/components/schemas/UserTeamType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUserTeamTeamData:
-      description: The team associated with the membership
-      properties:
-        id:
-          description: The ID of the team associated with the membership
-          example: d7e15d9d-d346-43da-81d8-3d9e71d9a5e9
-          type: string
-        type:
-          $ref: '#/components/schemas/UserTeamTeamType'
-      required:
-      - id
-      - type
-      type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
-      properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    RelationshipToRoles:
-      description: Relationship to roles.
-      properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
-          items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
-          type: array
-      type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
     UserTeamUpdateRequest:
       description: Team membership request
       properties:
@@ -641,50 +659,32 @@ components:
       required:
       - data
       type: object
-    RelationshipToUserTeamPermissionData:
-      description: Related user team permission data
+    TeamType:
+      default: team
+      description: Team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+    UserTeamType:
+      default: team_memberships
+      description: Team membership type
+      enum:
+      - team_memberships
+      example: team_memberships
+      type: string
+      x-enum-varnames:
+      - TEAM_MEMBERSHIPS
+    RelationshipToUserTeamUser:
+      description: Relationship between team membership and user
       properties:
-        id:
-          description: The ID of the user team permission
-          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
-          type: string
-        type:
-          $ref: '#/components/schemas/UserTeamPermissionType'
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamUserData'
       required:
-      - id
-      - type
+      - data
       type: object
-      x-merge-override:
-        required: false
-    UserTeamIncluded:
-      description: Included resources related to the team membership
-      oneOf:
-      - $ref: '#/components/schemas/User'
-      - $ref: '#/components/schemas/Team'
-    TeamRelationshipsLinks:
-      description: Links attributes.
-      properties:
-        related:
-          description: Related link.
-          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
-          type: string
-      type: object
-    User:
-      description: User object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
   responses:
     ForbiddenResponse:
       content:

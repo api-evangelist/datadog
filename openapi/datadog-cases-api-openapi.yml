@@ -109,14 +109,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    ServiceNowTicketResult:
-      description: ServiceNow ticket information
-      properties:
-        sys_target_link:
-          description: Link to the Incident created on ServiceNow
-          type: string
-          example: example_value
-      type: object
     JiraIssueResult:
       description: Jira issue information
       properties:
@@ -136,36 +128,6 @@ components:
           description: Jira project key
           type: string
           example: example_value
-      type: object
-    CasesResponse:
-      description: Response with cases
-      properties:
-        data:
-          description: Cases response data
-          items:
-            $ref: '#/components/schemas/Case'
-          type: array
-        meta:
-          $ref: '#/components/schemas/CasesResponseMeta'
-      type: object
-    CasesResponseMetaPagination:
-      description: Pagination metadata
-      properties:
-        current:
-          description: Current page number
-          format: int64
-          type: integer
-          example: 42
-        size:
-          description: Number of cases in current page
-          format: int64
-          type: integer
-          example: 42
-        total:
-          description: Total number of pages
-          format: int64
-          type: integer
-          example: 42
       type: object
     APIErrorResponse:
       description: API error response.
@@ -193,170 +155,6 @@ components:
       type:
       - object
       - 'null'
-    JiraIssue:
-      description: Jira issue attached to case
-      properties:
-        result:
-          $ref: '#/components/schemas/JiraIssueResult'
-        status:
-          $ref: '#/components/schemas/Case3rdPartyTicketStatus'
-      readOnly: true
-      type:
-      - object
-      - 'null'
-    CaseSortableField:
-      description: Case field that can be sorted on
-      enum:
-      - created_at
-      - priority
-      - status
-      example: created_at
-      type: string
-      x-enum-varnames:
-      - CREATED_AT
-      - PRIORITY
-      - STATUS
-    NullableUserRelationship:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/NullableUserRelationshipData'
-      required:
-      - data
-      type:
-      - object
-      - 'null'
-    CasePriority:
-      default: NOT_DEFINED
-      description: Case priority
-      enum:
-      - NOT_DEFINED
-      - P1
-      - P2
-      - P3
-      - P4
-      - P5
-      example: NOT_DEFINED
-      type: string
-      x-enum-varnames:
-      - NOT_DEFINED
-      - P1
-      - P2
-      - P3
-      - P4
-      - P5
-    ProjectResourceType:
-      default: project
-      description: Project resource type
-      enum:
-      - project
-      example: project
-      type: string
-      x-enum-varnames:
-      - PROJECT
-    CasesResponseMeta:
-      description: Cases response metadata
-      properties:
-        page:
-          $ref: '#/components/schemas/CasesResponseMetaPagination'
-      type: object
-    NullableUserRelationshipData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UserResourceType'
-      required:
-      - id
-      - type
-      type:
-      - object
-      - 'null'
-    CaseResourceType:
-      default: case
-      description: Case resource type
-      enum:
-      - case
-      example: case
-      type: string
-      x-enum-varnames:
-      - CASE
-    Case:
-      description: A case
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CaseAttributes'
-        id:
-          description: Case's identifier
-          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
-          type: string
-        relationships:
-          $ref: '#/components/schemas/CaseRelationships'
-        type:
-          $ref: '#/components/schemas/CaseResourceType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    UserResourceType:
-      default: user
-      description: User resource type.
-      enum:
-      - user
-      example: user
-      type: string
-      x-enum-varnames:
-      - USER
-    CaseStatus:
-      description: Case status
-      enum:
-      - OPEN
-      - IN_PROGRESS
-      - CLOSED
-      example: OPEN
-      type: string
-      x-enum-varnames:
-      - OPEN
-      - IN_PROGRESS
-      - CLOSED
-    Case3rdPartyTicketStatus:
-      default: IN_PROGRESS
-      description: Case status
-      enum:
-      - IN_PROGRESS
-      - COMPLETED
-      - FAILED
-      example: COMPLETED
-      readOnly: true
-      type: string
-      x-enum-varnames:
-      - IN_PROGRESS
-      - COMPLETED
-      - FAILED
-    CaseType:
-      description: Case type
-      enum:
-      - STANDARD
-      example: STANDARD
-      type: string
-      x-enum-varnames:
-      - STANDARD
-    CaseRelationships:
-      description: Resources related to a case
-      properties:
-        assignee:
-          $ref: '#/components/schemas/NullableUserRelationship'
-        created_by:
-          $ref: '#/components/schemas/NullableUserRelationship'
-        modified_by:
-          $ref: '#/components/schemas/NullableUserRelationship'
-        project:
-          $ref: '#/components/schemas/ProjectRelationship'
-      type: object
     CaseAttributes:
       description: Case attributes
       properties:
@@ -413,6 +211,12 @@ components:
         type:
           $ref: '#/components/schemas/CaseType'
       type: object
+    CasesResponseMeta:
+      description: Cases response metadata
+      properties:
+        page:
+          $ref: '#/components/schemas/CasesResponseMetaPagination'
+      type: object
     ProjectRelationship:
       description: Relationship to project
       properties:
@@ -421,6 +225,157 @@ components:
       required:
       - data
       type: object
+    CasePriority:
+      default: NOT_DEFINED
+      description: Case priority
+      enum:
+      - NOT_DEFINED
+      - P1
+      - P2
+      - P3
+      - P4
+      - P5
+      example: NOT_DEFINED
+      type: string
+      x-enum-varnames:
+      - NOT_DEFINED
+      - P1
+      - P2
+      - P3
+      - P4
+      - P5
+    CaseRelationships:
+      description: Resources related to a case
+      properties:
+        assignee:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        created_by:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        modified_by:
+          $ref: '#/components/schemas/NullableUserRelationship'
+        project:
+          $ref: '#/components/schemas/ProjectRelationship'
+      type: object
+    CasesResponseMetaPagination:
+      description: Pagination metadata
+      properties:
+        current:
+          description: Current page number
+          format: int64
+          type: integer
+          example: 42
+        size:
+          description: Number of cases in current page
+          format: int64
+          type: integer
+          example: 42
+        total:
+          description: Total number of pages
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    NullableUserRelationshipData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UserResourceType'
+      required:
+      - id
+      - type
+      type:
+      - object
+      - 'null'
+    JiraIssue:
+      description: Jira issue attached to case
+      properties:
+        result:
+          $ref: '#/components/schemas/JiraIssueResult'
+        status:
+          $ref: '#/components/schemas/Case3rdPartyTicketStatus'
+      readOnly: true
+      type:
+      - object
+      - 'null'
+    CasesResponse:
+      description: Response with cases
+      properties:
+        data:
+          description: Cases response data
+          items:
+            $ref: '#/components/schemas/Case'
+          type: array
+        meta:
+          $ref: '#/components/schemas/CasesResponseMeta'
+      type: object
+    CaseStatus:
+      description: Case status
+      enum:
+      - OPEN
+      - IN_PROGRESS
+      - CLOSED
+      example: OPEN
+      type: string
+      x-enum-varnames:
+      - OPEN
+      - IN_PROGRESS
+      - CLOSED
+    CaseSortableField:
+      description: Case field that can be sorted on
+      enum:
+      - created_at
+      - priority
+      - status
+      example: created_at
+      type: string
+      x-enum-varnames:
+      - CREATED_AT
+      - PRIORITY
+      - STATUS
+    ProjectResourceType:
+      default: project
+      description: Project resource type
+      enum:
+      - project
+      example: project
+      type: string
+      x-enum-varnames:
+      - PROJECT
+    Case3rdPartyTicketStatus:
+      default: IN_PROGRESS
+      description: Case status
+      enum:
+      - IN_PROGRESS
+      - COMPLETED
+      - FAILED
+      example: COMPLETED
+      readOnly: true
+      type: string
+      x-enum-varnames:
+      - IN_PROGRESS
+      - COMPLETED
+      - FAILED
+    CaseResourceType:
+      default: case
+      description: Case resource type
+      enum:
+      - case
+      example: case
+      type: string
+      x-enum-varnames:
+      - CASE
+    CaseType:
+      description: Case type
+      enum:
+      - STANDARD
+      example: STANDARD
+      type: string
+      x-enum-varnames:
+      - STANDARD
     ProjectRelationshipData:
       description: Relationship to project object
       properties:
@@ -434,6 +389,51 @@ components:
       - id
       - type
       type: object
+    NullableUserRelationship:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/NullableUserRelationshipData'
+      required:
+      - data
+      type:
+      - object
+      - 'null'
+    ServiceNowTicketResult:
+      description: ServiceNow ticket information
+      properties:
+        sys_target_link:
+          description: Link to the Incident created on ServiceNow
+          type: string
+          example: example_value
+      type: object
+    Case:
+      description: A case
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CaseAttributes'
+        id:
+          description: Case's identifier
+          example: aeadc05e-98a8-11ec-ac2c-da7ad0900001
+          type: string
+        relationships:
+          $ref: '#/components/schemas/CaseRelationships'
+        type:
+          $ref: '#/components/schemas/CaseResourceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    UserResourceType:
+      default: user
+      description: User resource type.
+      enum:
+      - user
+      example: user
+      type: string
+      x-enum-varnames:
+      - USER
   responses:
     ForbiddenResponse:
       content:
@@ -441,24 +441,24 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    UnauthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Unauthorized
     BadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Unauthorized
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
     TooManyRequestsResponse:
       content:
         application/json:
@@ -466,14 +466,14 @@ components:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
   parameters:
-    PageNumber:
-      description: Specific page number to return.
+    PageSize:
+      description: Size for a given page. The maximum allowed value is 100.
       in: query
-      name: page[number]
+      name: page[size]
       required: false
       schema:
-        default: 0
-        example: 0
+        default: 10
+        example: 10
         format: int64
         type: integer
     CaseSortableFieldParameter:
@@ -483,14 +483,14 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/CaseSortableField'
-    PageSize:
-      description: Size for a given page. The maximum allowed value is 100.
+    PageNumber:
+      description: Specific page number to return.
       in: query
-      name: page[size]
+      name: page[number]
       required: false
       schema:
-        default: 10
-        example: 10
+        default: 0
+        example: 0
         format: int64
         type: integer
   securitySchemes:

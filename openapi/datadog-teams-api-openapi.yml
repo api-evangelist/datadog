@@ -122,20 +122,64 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  responses:
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   schemas:
+    TeamUpdate:
+      description: Team update request
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamUpdateAttributes'
+        relationships:
+          $ref: '#/components/schemas/TeamUpdateRelationships'
+        type:
+          $ref: '#/components/schemas/TeamType'
+      required:
+      - attributes
+      - type
+      type: object
+    RelationshipToUserTeamPermissionData:
+      description: Related user team permission data
+      properties:
+        id:
+          description: The ID of the user team permission
+          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
+          type: string
+        type:
+          $ref: '#/components/schemas/UserTeamPermissionType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    TeamResponse:
+      description: Response with a team
+      properties:
+        data:
+          $ref: '#/components/schemas/Team'
+      type: object
+    TeamUpdateRequest:
+      description: Team update request
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamUpdate'
+      required:
+      - data
+      type: object
     TeamUpdateAttributes:
       description: Team update attributes
       properties:
@@ -182,93 +226,6 @@ components:
       - handle
       - name
       type: object
-    TeamUpdateRequest:
-      description: Team update request
-      properties:
-        data:
-          $ref: '#/components/schemas/TeamUpdate'
-      required:
-      - data
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    UserTeamPermissionType:
-      default: user_team_permissions
-      description: User team permission type
-      enum:
-      - user_team_permissions
-      example: user_team_permissions
-      type: string
-      x-enum-varnames:
-      - USER_TEAM_PERMISSIONS
-    RelationshipToTeamLinks:
-      description: Relationship between a team and a team link
-      properties:
-        data:
-          description: Related team links
-          items:
-            $ref: '#/components/schemas/RelationshipToTeamLinkData'
-          type: array
-        links:
-          $ref: '#/components/schemas/TeamRelationshipsLinks'
-      type: object
-      x-merge-override:
-        required: false
-    RelationshipToUserTeamPermission:
-      description: Relationship between a user team permission and a team
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
-        links:
-          $ref: '#/components/schemas/TeamRelationshipsLinks'
-      type: object
-      x-merge-override:
-        required: false
-    TeamRelationships:
-      description: Resources related to a team
-      properties:
-        team_links:
-          $ref: '#/components/schemas/RelationshipToTeamLinks'
-        user_team_permissions:
-          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
-      type: object
-    TeamType:
-      default: team
-      description: Team type
-      enum:
-      - team
-      example: team
-      type: string
-      x-enum-varnames:
-      - TEAM
-    TeamResponse:
-      description: Response with a team
-      properties:
-        data:
-          $ref: '#/components/schemas/Team'
-      type: object
-    TeamLinkType:
-      default: team_links
-      description: Team link type
-      enum:
-      - team_links
-      example: team_links
-      type: string
-      x-enum-varnames:
-      - TEAM_LINKS
     TeamAttributes:
       description: Team attributes
       properties:
@@ -348,6 +305,48 @@ components:
       - handle
       - name
       type: object
+    TeamLinkType:
+      default: team_links
+      description: Team link type
+      enum:
+      - team_links
+      example: team_links
+      type: string
+      x-enum-varnames:
+      - TEAM_LINKS
+    RelationshipToUserTeamPermission:
+      description: Relationship between a user team permission and a team
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermissionData'
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    TeamRelationshipsLinks:
+      description: Links attributes.
+      properties:
+        related:
+          description: Related link.
+          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
+          type: string
+      type: object
+    TeamUpdateRelationships:
+      description: Team update relationships
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+      type: object
+    UserTeamPermissionType:
+      default: user_team_permissions
+      description: User team permission type
+      enum:
+      - user_team_permissions
+      example: user_team_permissions
+      type: string
+      x-enum-varnames:
+      - USER_TEAM_PERMISSIONS
     RelationshipToTeamLinkData:
       description: Relationship between a link and a team
       properties:
@@ -363,6 +362,27 @@ components:
       type: object
       x-merge-override:
         required: false
+    RelationshipToTeamLinks:
+      description: Relationship between a team and a team link
+      properties:
+        data:
+          description: Related team links
+          items:
+            $ref: '#/components/schemas/RelationshipToTeamLinkData'
+          type: array
+        links:
+          $ref: '#/components/schemas/TeamRelationshipsLinks'
+      type: object
+      x-merge-override:
+        required: false
+    TeamRelationships:
+      description: Resources related to a team
+      properties:
+        team_links:
+          $ref: '#/components/schemas/RelationshipToTeamLinks'
+        user_team_permissions:
+          $ref: '#/components/schemas/RelationshipToUserTeamPermission'
+      type: object
     Team:
       description: A team
       properties:
@@ -383,48 +403,28 @@ components:
       type: object
       x-merge-override:
         required: false
-    TeamUpdateRelationships:
-      description: Team update relationships
-      properties:
-        team_links:
-          $ref: '#/components/schemas/RelationshipToTeamLinks'
-      type: object
-    TeamUpdate:
-      description: Team update request
-      properties:
-        attributes:
-          $ref: '#/components/schemas/TeamUpdateAttributes'
-        relationships:
-          $ref: '#/components/schemas/TeamUpdateRelationships'
-        type:
-          $ref: '#/components/schemas/TeamType'
-      required:
-      - attributes
-      - type
-      type: object
-    RelationshipToUserTeamPermissionData:
-      description: Related user team permission data
-      properties:
-        id:
-          description: The ID of the user team permission
-          example: UserTeamPermissions-aeadc05e-98a8-11ec-ac2c-da7ad0900001-416595
-          type: string
-        type:
-          $ref: '#/components/schemas/UserTeamPermissionType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    TeamRelationshipsLinks:
-      description: Links attributes.
-      properties:
-        related:
-          description: Related link.
-          example: /api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links
-          type: string
-      type: object
+    TeamType:
+      default: team
+      description: Team type
+      enum:
+      - team
+      example: team
+      type: string
+      x-enum-varnames:
+      - TEAM
+  responses:
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

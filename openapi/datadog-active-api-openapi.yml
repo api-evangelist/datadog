@@ -224,6 +224,94 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    ActiveBillingDimensionsType:
+      default: billing_dimensions
+      description: Type of active billing dimensions data.
+      enum:
+      - billing_dimensions
+      type: string
+      x-enum-varnames:
+      - BILLING_DIMENSIONS
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    DowntimeMeta:
+      description: Pagination metadata returned by the API.
+      properties:
+        page:
+          $ref: '#/components/schemas/DowntimeMetaPage'
+      type: object
+    MetricSuggestedAggregations:
+      description: List of aggregation combinations that have been actively queried.
+      example:
+      - space: sum
+        time: sum
+      - space: sum
+        time: count
+      items:
+        $ref: '#/components/schemas/MetricCustomAggregation'
+      type: array
+    MetricCustomTimeAggregation:
+      description: A time aggregation for use in query.
+      enum:
+      - avg
+      - count
+      - max
+      - min
+      - sum
+      example: sum
+      type: string
+      x-enum-varnames:
+      - AVG
+      - COUNT
+      - MAX
+      - MIN
+      - SUM
+    MetricCustomAggregation:
+      description: A time and space aggregation combination for use in query.
+      example:
+        space: sum
+        time: sum
+      properties:
+        space:
+          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
+        time:
+          $ref: '#/components/schemas/MetricCustomTimeAggregation'
+      required:
+      - time
+      - space
+      type: object
+    ActiveBillingDimensionsBody:
+      description: Active billing dimensions data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ActiveBillingDimensionsAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ActiveBillingDimensionsType'
+      type: object
+    MetricSuggestedTagsAndAggregationsResponse:
+      description: Response object that includes a single metric's actively queried tags and aggregations.
+      properties:
+        data:
+          $ref: '#/components/schemas/MetricSuggestedTagsAndAggregations'
+      readOnly: true
+      type: object
     MonitorDowntimeMatchResponseAttributes:
       description: Downtime match details.
       properties:
@@ -252,88 +340,10 @@ components:
           format: date-time
           type: string
       type: object
-    MetricCustomSpaceAggregation:
-      description: A space aggregation for use in query.
-      enum:
-      - avg
-      - max
-      - min
-      - sum
-      example: sum
-      type: string
-      x-enum-varnames:
-      - AVG
-      - MAX
-      - MIN
-      - SUM
-    MetricSuggestedTagsAndAggregationsResponse:
-      description: Response object that includes a single metric's actively queried tags and aggregations.
-      properties:
-        data:
-          $ref: '#/components/schemas/MetricSuggestedTagsAndAggregations'
-      readOnly: true
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    ActiveBillingDimensionsType:
-      default: billing_dimensions
-      description: Type of active billing dimensions data.
-      enum:
-      - billing_dimensions
-      type: string
-      x-enum-varnames:
-      - BILLING_DIMENSIONS
-    MetricSuggestedAggregations:
-      description: List of aggregation combinations that have been actively queried.
-      example:
-      - space: sum
-        time: sum
-      - space: sum
-        time: count
-      items:
-        $ref: '#/components/schemas/MetricCustomAggregation'
-      type: array
-    MetricActiveConfigurationType:
-      default: actively_queried_configurations
-      description: The metric actively queried configuration resource type.
-      enum:
-      - actively_queried_configurations
-      example: actively_queried_configurations
-      type: string
-      x-enum-varnames:
-      - ACTIVELY_QUERIED_CONFIGURATIONS
     DowntimeScope:
       description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
       example: env:(staging OR prod) AND datacenter:us-east-1
       type: string
-    MetricName:
-      description: The metric name for this resource.
-      example: test.metric.latency
-      type: string
-    MonitorDowntimeMatchResponse:
-      description: Response for retrieving all downtime matches for a monitor.
-      properties:
-        data:
-          description: An array of downtime matches.
-          items:
-            $ref: '#/components/schemas/MonitorDowntimeMatchResponseData'
-          type: array
-        meta:
-          $ref: '#/components/schemas/DowntimeMeta'
-      type: object
     MonitorDowntimeMatchResponseData:
       description: A downtime match.
       properties:
@@ -347,43 +357,6 @@ components:
           - 'null'
         type:
           $ref: '#/components/schemas/MonitorDowntimeMatchResourceType'
-      type: object
-    DowntimeMeta:
-      description: Pagination metadata returned by the API.
-      properties:
-        page:
-          $ref: '#/components/schemas/DowntimeMetaPage'
-      type: object
-    MetricSuggestedTagsAttributes:
-      description: Object containing the definition of a metric's actively queried tags and aggregations.
-      properties:
-        active_aggregations:
-          $ref: '#/components/schemas/MetricSuggestedAggregations'
-        active_tags:
-          description: List of tag keys that have been actively queried.
-          example:
-          - app
-          - datacenter
-          items:
-            description: Actively queried tag keys.
-            type: string
-          type: array
-      type: object
-    ActiveBillingDimensionsAttributes:
-      description: List of active billing dimensions.
-      properties:
-        month:
-          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]`.'
-          format: date-time
-          type: string
-          example: example_value
-        values:
-          description: 'List of active billing dimensions. Example: `[infra_host, apm_host, serverless_infra]`.'
-          items:
-            description: A given billing dimension in a list.
-            example: infra_host
-            type: string
-          type: array
       type: object
     DowntimeMetaPage:
       description: Object containing the total filtered count.
@@ -403,37 +376,34 @@ components:
       type: string
       x-enum-varnames:
       - DOWNTIME_MATCH
-    MetricCustomAggregation:
-      description: A time and space aggregation combination for use in query.
-      example:
-        space: sum
-        time: sum
+    MetricSuggestedTagsAttributes:
+      description: Object containing the definition of a metric's actively queried tags and aggregations.
       properties:
-        space:
-          $ref: '#/components/schemas/MetricCustomSpaceAggregation'
-        time:
-          $ref: '#/components/schemas/MetricCustomTimeAggregation'
-      required:
-      - time
-      - space
+        active_aggregations:
+          $ref: '#/components/schemas/MetricSuggestedAggregations'
+        active_tags:
+          description: List of tag keys that have been actively queried.
+          example:
+          - app
+          - datacenter
+          items:
+            description: Actively queried tag keys.
+            type: string
+          type: array
       type: object
-    ActiveBillingDimensionsBody:
-      description: Active billing dimensions data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ActiveBillingDimensionsAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ActiveBillingDimensionsType'
-      type: object
-    MetricCustomTimeAggregation:
-      description: A time aggregation for use in query.
+    MetricActiveConfigurationType:
+      default: actively_queried_configurations
+      description: The metric actively queried configuration resource type.
+      enum:
+      - actively_queried_configurations
+      example: actively_queried_configurations
+      type: string
+      x-enum-varnames:
+      - ACTIVELY_QUERIED_CONFIGURATIONS
+    MetricCustomSpaceAggregation:
+      description: A space aggregation for use in query.
       enum:
       - avg
-      - count
       - max
       - min
       - sum
@@ -441,16 +411,9 @@ components:
       type: string
       x-enum-varnames:
       - AVG
-      - COUNT
       - MAX
       - MIN
       - SUM
-    ActiveBillingDimensionsResponse:
-      description: Active billing dimensions response.
-      properties:
-        data:
-          $ref: '#/components/schemas/ActiveBillingDimensionsBody'
-      type: object
     MetricSuggestedTagsAndAggregations:
       description: Object for a single metric's actively queried tags and aggregations.
       properties:
@@ -461,15 +424,44 @@ components:
         type:
           $ref: '#/components/schemas/MetricActiveConfigurationType'
       type: object
-  parameters:
+    ActiveBillingDimensionsResponse:
+      description: Active billing dimensions response.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActiveBillingDimensionsBody'
+      type: object
+    MonitorDowntimeMatchResponse:
+      description: Response for retrieving all downtime matches for a monitor.
+      properties:
+        data:
+          description: An array of downtime matches.
+          items:
+            $ref: '#/components/schemas/MonitorDowntimeMatchResponseData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/DowntimeMeta'
+      type: object
     MetricName:
-      description: The name of the metric.
-      example: dist.http.endpoint.request
-      in: path
-      name: metric_name
-      required: true
-      schema:
-        type: string
+      description: The metric name for this resource.
+      example: test.metric.latency
+      type: string
+    ActiveBillingDimensionsAttributes:
+      description: List of active billing dimensions.
+      properties:
+        month:
+          description: 'Datetime in ISO-8601 format, UTC, precise to hour: `[YYYY-MM-DDThh]`.'
+          format: date-time
+          type: string
+          example: example_value
+        values:
+          description: 'List of active billing dimensions. Example: `[infra_host, apm_host, serverless_infra]`.'
+          items:
+            description: A given billing dimension in a list.
+            example: infra_host
+            type: string
+          type: array
+      type: object
+  parameters:
     PageOffset:
       description: Specific offset to use as the beginning of the returned page.
       in: query
@@ -480,6 +472,14 @@ components:
         example: 0
         format: int64
         type: integer
+    MetricName:
+      description: The name of the metric.
+      example: dist.http.endpoint.request
+      in: path
+      name: metric_name
+      required: true
+      schema:
+        type: string
   responses:
     TooManyRequestsResponse:
       content:

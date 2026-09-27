@@ -174,16 +174,37 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  parameters:
+    RestrictionQueryID:
+      description: The ID of the restriction query.
+      in: path
+      name: restriction_query_id
+      required: true
+      schema:
+        type: string
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
   schemas:
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
-      enum:
-      - permissions
-      example: permissions
-      type: string
-      x-enum-varnames:
-      - PERMISSIONS
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
     RelationshipToRoleData:
       description: Relationship to role object.
       properties:
@@ -196,6 +217,59 @@ components:
       type: object
       x-merge-override:
         required: false
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
+    PermissionsResponse:
+      description: Payload with API-returned permissions.
+      properties:
+        data:
+          description: Array of permissions.
+          items:
+            $ref: '#/components/schemas/Permission'
+          type: array
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
     PermissionAttributes:
       description: Attributes of a permission.
       properties:
@@ -229,73 +303,6 @@ components:
           type: boolean
           example: true
       type: object
-    Permission:
-      description: Permission object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PermissionAttributes'
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      required:
-      - type
-      type: object
-    PermissionsResponse:
-      description: Payload with API-returned permissions.
-      properties:
-        data:
-          description: Array of permissions.
-          items:
-            $ref: '#/components/schemas/Permission'
-          type: array
-      type: object
-    RelationshipToRole:
-      description: Relationship to role.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToRoleData'
-      type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
     RelationshipToPermission:
       description: Relationship to a permissions object.
       properties:
@@ -304,21 +311,14 @@ components:
       type: object
       x-merge-override:
         required: false
-  parameters:
-    RoleID:
-      description: The unique identifier of the role.
-      in: path
-      name: role_id
-      required: true
-      schema:
-        type: string
-    RestrictionQueryID:
-      description: The ID of the restriction query.
-      in: path
-      name: restriction_query_id
-      required: true
-      schema:
-        type: string
+    RelationshipToRole:
+      description: Relationship to role.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToRoleData'
+      type: object
+      x-merge-override:
+        required: false
   responses:
     TooManyRequestsResponse:
       content:

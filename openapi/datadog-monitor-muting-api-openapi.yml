@@ -117,41 +117,60 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    MonitorGroupState:
+    MonitorState:
       type: object
-      description: The state of a single monitor group (a unique combination of tag values)
+      description: The current evaluation state of the monitor across all groups
       properties:
-        status:
-          type: string
-          description: The current alert status for this monitor group
-          enum:
-          - Alert
-          - Ignored
-          - No Data
-          - OK
-          - Skipped
-          - Unknown
-          - Warn
-          example: Alert
-        name:
-          type: string
-          description: The name of the monitor group, represented as a comma-separated list of tag:value pairs
-          example: Example Monitor
-        last_triggered_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time this group triggered an alert
-          example: 42
-        last_notified_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time a notification was sent for this group
-          example: 42
-        last_resolved_ts:
-          type: integer
-          format: int64
-          description: Unix timestamp in seconds of the last time this group resolved from an alert state
-          example: 42
+        groups:
+          type: object
+          description: Map of monitor group names to their current state information
+          additionalProperties:
+            $ref: '#/components/schemas/MonitorGroupState'
+    MonitorThresholds:
+      type: object
+      description: Alert threshold values for metric and service check monitors
+      properties:
+        critical:
+          type: number
+          format: double
+          description: The threshold value that triggers a CRITICAL alert notification
+          example: 95.5
+        critical_recovery:
+          type: number
+          format: double
+          description: The threshold value at which a CRITICAL alert recovers to OK state
+          example: 95.5
+        warning:
+          type: number
+          format: double
+          description: The threshold value that triggers a WARNING alert notification
+          example: 95.5
+        warning_recovery:
+          type: number
+          format: double
+          description: The threshold value at which a WARNING alert recovers to OK state
+          example: 95.5
+        ok:
+          type: number
+          format: double
+          description: The threshold for service check monitors indicating an OK state (used with service check monitors)
+          example: 95.5
+        unknown:
+          type: number
+          format: double
+          description: The threshold for service check monitors indicating an UNKNOWN state
+          example: 95.5
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
     MonitorMuteSettings:
       type: object
       description: Settings for muting a monitor including scope and expiration
@@ -165,6 +184,39 @@ components:
           format: int64
           description: Unix timestamp in seconds when the mute expires; omit for indefinite mute
           example: 42
+    Creator:
+      type: object
+      description: Information about the user who created the monitor
+      properties:
+        id:
+          type: integer
+          description: The unique numeric ID of the creator user
+          example: 42
+        name:
+          type: string
+          description: The display name of the creator user
+          example: Example Monitor
+        email:
+          type: string
+          format: email
+          description: The email address of the creator user
+          example: user@example.com
+        handle:
+          type: string
+          description: The Datadog handle (username) of the creator user
+          example: example_value
+    MonitorUnmuteSettings:
+      type: object
+      description: Settings for unmuting a monitor including optional scope
+      properties:
+        scope:
+          type: string
+          description: The scope expression specifying which monitor groups to unmute; omit to unmute all groups
+          example: example_value
+        all_scopes:
+          type: boolean
+          description: When true, unmutes all scopes including those previously muted with different scope expressions
+          example: true
     MonitorOptions:
       type: object
       description: Configuration options for a monitor controlling evaluation, notification, and recovery behavior
@@ -241,93 +293,6 @@ components:
             group_by:
               type: string
               description: The tag key to group the aggregation by
-    MonitorState:
-      type: object
-      description: The current evaluation state of the monitor across all groups
-      properties:
-        groups:
-          type: object
-          description: Map of monitor group names to their current state information
-          additionalProperties:
-            $ref: '#/components/schemas/MonitorGroupState'
-    Creator:
-      type: object
-      description: Information about the user who created the monitor
-      properties:
-        id:
-          type: integer
-          description: The unique numeric ID of the creator user
-          example: 42
-        name:
-          type: string
-          description: The display name of the creator user
-          example: Example Monitor
-        email:
-          type: string
-          format: email
-          description: The email address of the creator user
-          example: user@example.com
-        handle:
-          type: string
-          description: The Datadog handle (username) of the creator user
-          example: example_value
-    MonitorThresholds:
-      type: object
-      description: Alert threshold values for metric and service check monitors
-      properties:
-        critical:
-          type: number
-          format: double
-          description: The threshold value that triggers a CRITICAL alert notification
-          example: 95.5
-        critical_recovery:
-          type: number
-          format: double
-          description: The threshold value at which a CRITICAL alert recovers to OK state
-          example: 95.5
-        warning:
-          type: number
-          format: double
-          description: The threshold value that triggers a WARNING alert notification
-          example: 95.5
-        warning_recovery:
-          type: number
-          format: double
-          description: The threshold value at which a WARNING alert recovers to OK state
-          example: 95.5
-        ok:
-          type: number
-          format: double
-          description: The threshold for service check monitors indicating an OK state (used with service check monitors)
-          example: 95.5
-        unknown:
-          type: number
-          format: double
-          description: The threshold for service check monitors indicating an UNKNOWN state
-          example: 95.5
-    MonitorUnmuteSettings:
-      type: object
-      description: Settings for unmuting a monitor including optional scope
-      properties:
-        scope:
-          type: string
-          description: The scope expression specifying which monitor groups to unmute; omit to unmute all groups
-          example: example_value
-        all_scopes:
-          type: boolean
-          description: When true, unmutes all scopes including those previously muted with different scope expressions
-          example: true
-    APIErrorResponse:
-      type: object
-      description: Standard API error response returned for failed requests
-      required:
-      - errors
-      properties:
-        errors:
-          type: array
-          description: List of error messages describing the failure
-          items:
-            type: string
     Monitor:
       type: object
       description: A Datadog monitor that watches a metric or check and alerts when thresholds are exceeded
@@ -415,6 +380,41 @@ components:
           description: List of role IDs whose members can edit this monitor; empty means all users can edit
           items:
             type: string
+    MonitorGroupState:
+      type: object
+      description: The state of a single monitor group (a unique combination of tag values)
+      properties:
+        status:
+          type: string
+          description: The current alert status for this monitor group
+          enum:
+          - Alert
+          - Ignored
+          - No Data
+          - OK
+          - Skipped
+          - Unknown
+          - Warn
+          example: Alert
+        name:
+          type: string
+          description: The name of the monitor group, represented as a comma-separated list of tag:value pairs
+          example: Example Monitor
+        last_triggered_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group triggered an alert
+          example: 42
+        last_notified_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time a notification was sent for this group
+          example: 42
+        last_resolved_ts:
+          type: integer
+          format: int64
+          description: Unix timestamp in seconds of the last time this group resolved from an alert state
+          example: 42
   parameters:
     monitorIdParam:
       name: monitor_id

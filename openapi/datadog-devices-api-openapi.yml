@@ -255,16 +255,98 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    ListDevicesResponse:
-      description: List devices response.
+    DevicesListData:
+      description: The devices list data
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DeviceAttributes'
+        id:
+          description: The device ID
+          example: example:1.2.3.4
+          type: string
+        type:
+          description: The type of the resource. The value should always be device.
+          type: string
+          example: metric alert
+      type: object
+    ListTagsResponseDataAttributes:
+      description: The definition of ListTagsResponseDataAttributes object.
+      properties:
+        tags:
+          description: The list of tags
+          example:
+          - tag:test
+          - tag:testbis
+          items:
+            type: string
+          type: array
+      type: object
+    DeviceAttributesInterfaceStatuses:
+      description: Count of the device interfaces by status
+      example:
+        down: 1
+        'off': 2
+        up: 12
+        warning: 5
+      properties:
+        down:
+          description: The number of interfaces that are down
+          format: int64
+          type: integer
+          example: 42
+        'off':
+          description: The number of interfaces that are off
+          format: int64
+          type: integer
+          example: 42
+        up:
+          description: The number of interfaces that are up
+          format: int64
+          type: integer
+          example: 42
+        warning:
+          description: The number of interfaces that are in a warning state
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    GetInterfacesResponse:
+      description: The `GetInterfaces` operation's response.
       properties:
         data:
-          description: The list devices response data.
+          description: Get Interfaces response
           items:
-            $ref: '#/components/schemas/DevicesListData'
+            $ref: '#/components/schemas/GetInterfacesData'
           type: array
-        meta:
-          $ref: '#/components/schemas/ListDevicesResponseMetadata'
+      type: object
+    GetInterfacesData:
+      description: The interfaces list data
+      properties:
+        attributes:
+          $ref: '#/components/schemas/InterfaceAttributes'
+        id:
+          description: The interface ID
+          example: example:1.2.3.4:99
+          type: string
+        type:
+          description: The type of the resource. The value should always be interface.
+          type: string
+          example: metric alert
       type: object
     InterfaceAttributes:
       description: The interface attributes
@@ -300,53 +382,6 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/InterfaceAttributesStatus'
-      type: object
-    ListDevicesResponseMetadata:
-      description: Object describing meta attributes of response.
-      properties:
-        page:
-          $ref: '#/components/schemas/ListDevicesResponseMetadataPage'
-      type: object
-    ListTagsResponseData:
-      description: The list tags response data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ListTagsResponseDataAttributes'
-        id:
-          description: The device ID
-          example: example:1.2.3.4
-          type: string
-        type:
-          description: The type of the resource. The value should always be tags.
-          type: string
-          example: metric alert
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    ListTagsResponseDataAttributes:
-      description: The definition of ListTagsResponseDataAttributes object.
-      properties:
-        tags:
-          description: The list of tags
-          example:
-          - tag:test
-          - tag:testbis
-          items:
-            type: string
-          type: array
       type: object
     DeviceAttributes:
       description: The device attributes
@@ -434,49 +469,29 @@ components:
           example: 1.2.3
           type: string
       type: object
-    GetDeviceResponse:
-      description: The `GetDevice` operation's response.
-      properties:
-        data:
-          $ref: '#/components/schemas/GetDeviceData'
-      type: object
-    GetInterfacesData:
-      description: The interfaces list data
+    GetDeviceData:
+      description: Get device response data.
       properties:
         attributes:
-          $ref: '#/components/schemas/InterfaceAttributes'
+          $ref: '#/components/schemas/GetDeviceAttributes'
         id:
-          description: The interface ID
-          example: example:1.2.3.4:99
+          description: The device ID
+          example: example:1.2.3.4
           type: string
         type:
-          description: The type of the resource. The value should always be interface.
+          description: The type of the resource. The value should always be device.
           type: string
           example: metric alert
       type: object
-    GetInterfacesResponse:
-      description: The `GetInterfaces` operation's response.
+    ListDevicesResponseMetadataPage:
+      description: Pagination object.
       properties:
-        data:
-          description: Get Interfaces response
-          items:
-            $ref: '#/components/schemas/GetInterfacesData'
-          type: array
+        total_filtered_count:
+          description: Total count of devices matched by the filter.
+          example: 1
+          format: int64
+          type: integer
       type: object
-    InterfaceAttributesStatus:
-      description: The interface status
-      enum:
-      - up
-      - down
-      - warning
-      - 'off'
-      example: up
-      type: string
-      x-enum-varnames:
-      - UP
-      - DOWN
-      - WARNING
-      - 'OFF'
     GetDeviceAttributes:
       description: The device attributes
       properties:
@@ -561,77 +576,62 @@ components:
           example: 1.2.3
           type: string
       type: object
+    GetDeviceResponse:
+      description: The `GetDevice` operation's response.
+      properties:
+        data:
+          $ref: '#/components/schemas/GetDeviceData'
+      type: object
+    InterfaceAttributesStatus:
+      description: The interface status
+      enum:
+      - up
+      - down
+      - warning
+      - 'off'
+      example: up
+      type: string
+      x-enum-varnames:
+      - UP
+      - DOWN
+      - WARNING
+      - 'OFF'
+    ListDevicesResponseMetadata:
+      description: Object describing meta attributes of response.
+      properties:
+        page:
+          $ref: '#/components/schemas/ListDevicesResponseMetadataPage'
+      type: object
     ListTagsResponse:
       description: List tags response.
       properties:
         data:
           $ref: '#/components/schemas/ListTagsResponseData'
       type: object
-    ListDevicesResponseMetadataPage:
-      description: Pagination object.
-      properties:
-        total_filtered_count:
-          description: Total count of devices matched by the filter.
-          example: 1
-          format: int64
-          type: integer
-      type: object
-    DevicesListData:
-      description: The devices list data
+    ListTagsResponseData:
+      description: The list tags response data.
       properties:
         attributes:
-          $ref: '#/components/schemas/DeviceAttributes'
+          $ref: '#/components/schemas/ListTagsResponseDataAttributes'
         id:
           description: The device ID
           example: example:1.2.3.4
           type: string
         type:
-          description: The type of the resource. The value should always be device.
+          description: The type of the resource. The value should always be tags.
           type: string
           example: metric alert
       type: object
-    GetDeviceData:
-      description: Get device response data.
+    ListDevicesResponse:
+      description: List devices response.
       properties:
-        attributes:
-          $ref: '#/components/schemas/GetDeviceAttributes'
-        id:
-          description: The device ID
-          example: example:1.2.3.4
-          type: string
-        type:
-          description: The type of the resource. The value should always be device.
-          type: string
-          example: metric alert
-      type: object
-    DeviceAttributesInterfaceStatuses:
-      description: Count of the device interfaces by status
-      example:
-        down: 1
-        'off': 2
-        up: 12
-        warning: 5
-      properties:
-        down:
-          description: The number of interfaces that are down
-          format: int64
-          type: integer
-          example: 42
-        'off':
-          description: The number of interfaces that are off
-          format: int64
-          type: integer
-          example: 42
-        up:
-          description: The number of interfaces that are up
-          format: int64
-          type: integer
-          example: 42
-        warning:
-          description: The number of interfaces that are in a warning state
-          format: int64
-          type: integer
-          example: 42
+        data:
+          description: The list devices response data.
+          items:
+            $ref: '#/components/schemas/DevicesListData'
+          type: array
+        meta:
+          $ref: '#/components/schemas/ListDevicesResponseMetadata'
       type: object
   responses:
     ForbiddenResponse:
@@ -640,18 +640,18 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
     BadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
     TooManyRequestsResponse:
       content:
         application/json:
@@ -659,16 +659,6 @@ components:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
   parameters:
-    PageNumber:
-      description: Specific page number to return.
-      in: query
-      name: page[number]
-      required: false
-      schema:
-        default: 0
-        example: 0
-        format: int64
-        type: integer
     PageSize:
       description: Size for a given page. The maximum allowed value is 100.
       in: query
@@ -677,6 +667,16 @@ components:
       schema:
         default: 10
         example: 10
+        format: int64
+        type: integer
+    PageNumber:
+      description: Specific page number to return.
+      in: query
+      name: page[number]
+      required: false
+      schema:
+        default: 0
+        example: 0
         format: int64
         type: integer
   securitySchemes:

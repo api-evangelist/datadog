@@ -107,6 +107,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
     RelationshipToUser:
       description: Relationship to user.
       properties:
@@ -115,6 +124,27 @@ components:
       required:
       - data
       type: object
+    UserInvitationsRequest:
+      description: Object to invite users to join the organization.
+      properties:
+        data:
+          description: List of user invitations.
+          example: []
+          items:
+            $ref: '#/components/schemas/UserInvitationData'
+          type: array
+      required:
+      - data
+      type: object
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
+      enum:
+      - user_invitations
+      example: user_invitations
+      type: string
+      x-enum-varnames:
+      - USER_INVITATIONS
     UserInvitationDataAttributes:
       description: Attributes of a user invitation.
       properties:
@@ -137,32 +167,6 @@ components:
           type: string
           example: abc-123-def
       type: object
-    UserInvitationsType:
-      default: user_invitations
-      description: User invitations type.
-      enum:
-      - user_invitations
-      example: user_invitations
-      type: string
-      x-enum-varnames:
-      - USER_INVITATIONS
-    UserInvitationRelationships:
-      description: Relationships data for user invitation.
-      properties:
-        user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      required:
-      - user
-      type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
     APIErrorResponse:
       description: API error response.
       properties:
@@ -178,17 +182,14 @@ components:
       required:
       - errors
       type: object
-    UserInvitationsRequest:
-      description: Object to invite users to join the organization.
+    UserInvitationsResponse:
+      description: User invitations as returned by the API.
       properties:
         data:
-          description: List of user invitations.
-          example: []
+          description: Array of user invitations.
           items:
-            $ref: '#/components/schemas/UserInvitationData'
+            $ref: '#/components/schemas/UserInvitationResponseData'
           type: array
-      required:
-      - data
       type: object
     RelationshipToUserData:
       description: Relationship to user object.
@@ -202,6 +203,19 @@ components:
       required:
       - id
       - type
+      type: object
+      x-merge-override:
+        required: false
+    UserInvitationData:
+      description: Object to create a user invitation.
+      properties:
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      required:
+      - type
+      - relationships
       type: object
       x-merge-override:
         required: false
@@ -221,28 +235,14 @@ components:
       type: object
       x-merge-override:
         required: false
-    UserInvitationsResponse:
-      description: User invitations as returned by the API.
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
       properties:
-        data:
-          description: Array of user invitations.
-          items:
-            $ref: '#/components/schemas/UserInvitationResponseData'
-          type: array
-      type: object
-    UserInvitationData:
-      description: Object to create a user invitation.
-      properties:
-        relationships:
-          $ref: '#/components/schemas/UserInvitationRelationships'
-        type:
-          $ref: '#/components/schemas/UserInvitationsType'
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
       required:
-      - type
-      - relationships
+      - user
       type: object
-      x-merge-override:
-        required: false
   responses:
     TooManyRequestsResponse:
       content:

@@ -105,20 +105,23 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    IPAllowlistEntryData:
-      description: Data of the IP allowlist entry object.
+    IPAllowlistUpdateRequest:
+      description: Update the IP allowlist.
       properties:
-        attributes:
-          $ref: '#/components/schemas/IPAllowlistEntryAttributes'
-        id:
-          description: The unique identifier of the IP allowlist entry.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/IPAllowlistEntryType'
+        data:
+          $ref: '#/components/schemas/IPAllowlistData'
       required:
-      - type
+      - data
       type: object
+    IPAllowlistEntryType:
+      default: ip_allowlist_entry
+      description: IP allowlist Entry type.
+      enum:
+      - ip_allowlist_entry
+      example: ip_allowlist_entry
+      type: string
+      x-enum-varnames:
+      - IP_ALLOWLIST_ENTRY
     IPAllowlistData:
       description: IP allowlist data.
       properties:
@@ -133,13 +136,47 @@ components:
       required:
       - type
       type: object
-    IPAllowlistEntry:
-      description: IP allowlist entry object.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        data:
-          $ref: '#/components/schemas/IPAllowlistEntryData'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
       required:
-      - data
+      - errors
+      type: object
+    IPAllowlistEntryData:
+      description: Data of the IP allowlist entry object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/IPAllowlistEntryAttributes'
+        id:
+          description: The unique identifier of the IP allowlist entry.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/IPAllowlistEntryType'
+      required:
+      - type
+      type: object
+    IPAllowlistAttributes:
+      description: Attributes of the IP allowlist.
+      properties:
+        enabled:
+          description: Whether the IP allowlist logic is enabled or not.
+          type: boolean
+          example: true
+        entries:
+          description: Array of entries in the IP allowlist.
+          items:
+            $ref: '#/components/schemas/IPAllowlistEntry'
+          type: array
       type: object
     IPAllowlistResponse:
       description: Response containing information about the IP allowlist.
@@ -147,6 +184,15 @@ components:
         data:
           $ref: '#/components/schemas/IPAllowlistData'
       type: object
+    IPAllowlistType:
+      default: ip_allowlist
+      description: IP allowlist type.
+      enum:
+      - ip_allowlist
+      example: ip_allowlist
+      type: string
+      x-enum-varnames:
+      - IP_ALLOWLIST
     IPAllowlistEntryAttributes:
       description: Attributes of the IP allowlist entry.
       properties:
@@ -171,85 +217,39 @@ components:
           type: string
           example: example_value
       type: object
-    IPAllowlistEntryType:
-      default: ip_allowlist_entry
-      description: IP allowlist Entry type.
-      enum:
-      - ip_allowlist_entry
-      example: ip_allowlist_entry
-      type: string
-      x-enum-varnames:
-      - IP_ALLOWLIST_ENTRY
-    IPAllowlistUpdateRequest:
-      description: Update the IP allowlist.
+    IPAllowlistEntry:
+      description: IP allowlist entry object.
       properties:
         data:
-          $ref: '#/components/schemas/IPAllowlistData'
+          $ref: '#/components/schemas/IPAllowlistEntryData'
       required:
       - data
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    IPAllowlistAttributes:
-      description: Attributes of the IP allowlist.
-      properties:
-        enabled:
-          description: Whether the IP allowlist logic is enabled or not.
-          type: boolean
-          example: true
-        entries:
-          description: Array of entries in the IP allowlist.
-          items:
-            $ref: '#/components/schemas/IPAllowlistEntry'
-          type: array
-      type: object
-    IPAllowlistType:
-      default: ip_allowlist
-      description: IP allowlist type.
-      enum:
-      - ip_allowlist
-      example: ip_allowlist
-      type: string
-      x-enum-varnames:
-      - IP_ALLOWLIST
   responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     NotFoundResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

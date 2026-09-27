@@ -102,141 +102,111 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    EntityV3MetadataLinksItems:
-      additionalProperties: false
-      description: The definition of Entity V3 Metadata Links Items object.
+    RelationshipItem:
+      description: Relationship entry.
       properties:
-        name:
-          description: Link name.
-          example: mylink
-          type: string
-        provider:
-          description: Link provider.
-          type: string
-          example: abc-123-def
-        type:
-          default: other
-          description: Link type.
-          example: link
-          type: string
-        url:
-          description: Link URL.
-          example: https://mylink
-          type: string
-      required:
-      - name
-      - type
-      - url
-      type: object
-    EntityResponseIncludedIncident:
-      description: Included incident.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedIncidentAttributes'
         id:
-          description: Incident ID.
+          description: Associated data ID.
           type: string
           example: abc-123-def
         type:
-          $ref: '#/components/schemas/EntityResponseIncludedIncidentType'
-      type: object
-    EntityToRawSchema:
-      description: Entity to raw schema relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipItem'
-      type: object
-    EntityV3APISpecInterfaceFileRef:
-      additionalProperties: false
-      description: The definition of `EntityV3APISpecInterfaceFileRef` object.
-      properties:
-        fileRef:
-          description: The reference to the API definition file.
+          description: Relationship type.
           type: string
-          example: example_value
+          example: metric alert
       type: object
-    EntityV3QueueSpec:
+    EntityV3APISpec:
       additionalProperties: false
-      description: The definition of Entity V3 Queue Spec object.
+      description: The definition of Entity V3 API Spec object.
       properties:
-        componentOf:
-          description: A list of components the queue is a part of
+        implementedBy:
+          description: Services which implemented the API.
           items:
             type: string
           type: array
+        interface:
+          $ref: '#/components/schemas/EntityV3APISpecInterface'
         lifecycle:
-          description: The lifecycle state of the queue.
+          description: The lifecycle state of the component.
           minLength: 1
           type: string
           example: example_value
         tier:
-          description: The importance of the queue.
+          description: The importance of the component.
           minLength: 1
           type: string
           example: example_value
         type:
-          description: The type of queue.
+          description: The type of API.
           type: string
           example: metric alert
       type: object
-    EntityResponseIncludedSchemaAttributes:
-      description: Included schema.
-      properties:
-        schema:
-          $ref: '#/components/schemas/EntityV3'
-      type: object
-    EntityV3APIDatadog:
+    EntityV3DatadogIntegrationOpsgenie:
       additionalProperties: false
-      description: Datadog product integrations for the API entity.
+      description: An Opsgenie integration schema.
       properties:
-        codeLocations:
-          $ref: '#/components/schemas/EntityV3DatadogCodeLocations'
-        events:
-          $ref: '#/components/schemas/EntityV3DatadogEvents'
-        logs:
-          $ref: '#/components/schemas/EntityV3DatadogLogs'
-        performanceData:
-          $ref: '#/components/schemas/EntityV3DatadogPerformance'
-        pipelines:
-          $ref: '#/components/schemas/EntityV3DatadogPipelines'
-      type: object
-    EntityV3MetadataAdditionalOwnersItems:
-      description: The definition of Entity V3 Metadata Additional Owners Items object.
-      properties:
-        name:
-          description: Team name.
-          example: ''
+        region:
+          description: The region for the Opsgenie integration.
+          minLength: 1
           type: string
-        type:
-          description: Team type.
+          example: example_value
+        serviceURL:
+          description: The service URL for the Opsgenie integration.
+          example: https://www.opsgenie.com/service/shopping-cart
+          minLength: 1
           type: string
-          example: metric alert
       required:
-      - name
+      - serviceURL
       type: object
-    EntityV3ServiceKind:
-      description: The definition of Entity V3 Service Kind object.
-      enum:
-      - service
-      example: service
-      type: string
-      x-enum-varnames:
-      - SERVICE
-    EntityResponseIncludedRelatedEntityType:
-      description: Related entity.
-      enum:
-      - relatedEntity
-      type: string
-      x-enum-varnames:
-      - RELATED_ENTITY
-    EntityV3API:
+    EntityV3APISpecInterface:
       additionalProperties: false
-      description: Schema for API entities.
+      description: The API definition.
+      oneOf:
+      - $ref: '#/components/schemas/EntityV3APISpecInterfaceFileRef'
+      - $ref: '#/components/schemas/EntityV3APISpecInterfaceDefinition'
+    EntityV3DatadogIntegrationPagerduty:
+      additionalProperties: false
+      description: A PagerDuty integration schema.
+      properties:
+        serviceURL:
+          description: The service URL for the PagerDuty integration.
+          example: https://www.pagerduty.com/service-directory/Pshopping-cart
+          minLength: 1
+          type: string
+      required:
+      - serviceURL
+      type: object
+    EntityResponseIncludedRawSchema:
+      description: Included raw schema.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EntityResponseIncludedRawSchemaAttributes'
+        id:
+          description: Raw schema ID.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/EntityResponseIncludedRawSchemaType'
+      type: object
+    ListEntityCatalogResponse:
+      description: List entity response.
+      properties:
+        data:
+          $ref: '#/components/schemas/EntityResponseData'
+        included:
+          $ref: '#/components/schemas/ListEntityCatalogResponseIncluded'
+        links:
+          $ref: '#/components/schemas/ListEntityCatalogResponseLinks'
+        meta:
+          $ref: '#/components/schemas/EntityResponseMeta'
+      type: object
+    EntityV3System:
+      additionalProperties: false
+      description: Schema for system entities.
       properties:
         apiVersion:
           $ref: '#/components/schemas/EntityV3APIVersion'
         datadog:
-          $ref: '#/components/schemas/EntityV3APIDatadog'
+          $ref: '#/components/schemas/EntityV3SystemDatadog'
         extensions:
           additionalProperties: {}
           description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
@@ -245,26 +215,107 @@ components:
         integrations:
           $ref: '#/components/schemas/EntityV3Integrations'
         kind:
-          $ref: '#/components/schemas/EntityV3APIKind'
+          $ref: '#/components/schemas/EntityV3SystemKind'
         metadata:
           $ref: '#/components/schemas/EntityV3Metadata'
         spec:
-          $ref: '#/components/schemas/EntityV3APISpec'
+          $ref: '#/components/schemas/EntityV3SystemSpec'
       required:
       - apiVersion
       - kind
       - metadata
       type: object
-    EntityV3DatadogPipelines:
+    EntityV3DatastoreSpec:
       additionalProperties: false
-      description: CI Pipelines association.
+      description: The definition of Entity V3 Datastore Spec object.
       properties:
-        fingerprints:
-          description: A list of CI Fingerprints that associate CI Pipelines with the entity.
+        componentOf:
+          description: A list of components the datastore is a part of
           items:
             type: string
           type: array
+        lifecycle:
+          description: The lifecycle state of the datastore.
+          minLength: 1
+          type: string
+          example: example_value
+        tier:
+          description: The importance of the datastore.
+          minLength: 1
+          type: string
+          example: example_value
+        type:
+          description: The type of datastore.
+          type: string
+          example: metric alert
       type: object
+    EntityToRawSchema:
+      description: Entity to raw schema relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipItem'
+      type: object
+    EntityResponseIncludedRawSchemaType:
+      description: Raw schema type.
+      enum:
+      - rawSchema
+      type: string
+      x-enum-varnames:
+      - RAW_SCHEMA
+    EntityResponseIncludedSchema:
+      description: Included detail entity schema.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EntityResponseIncludedSchemaAttributes'
+        id:
+          description: Entity ID.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/EntityResponseIncludedSchemaType'
+      type: object
+    EntityResponseMeta:
+      description: Entity metadata.
+      properties:
+        count:
+          description: Total entities count.
+          format: int64
+          type: integer
+          example: 42
+        includeCount:
+          description: Total included data count.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    EntityResponseIncludedRelatedEntityAttributes:
+      description: Related entity attributes.
+      properties:
+        kind:
+          description: Entity kind.
+          type: string
+          example: example_value
+        name:
+          description: Entity name.
+          type: string
+          example: Example Monitor
+        namespace:
+          description: Entity namespace.
+          type: string
+          example: Example Monitor
+        type:
+          description: Entity relation type to the associated entity.
+          type: string
+          example: metric alert
+      type: object
+    EntityV3APIVersion:
+      description: The schema version of entity type. The field is known as schema-version in the previous version.
+      enum:
+      - v3
+      example: v3
+      type: string
+      x-enum-varnames:
+      - V3
     EntityV3:
       description: Entity schema v3.
       oneOf:
@@ -273,35 +324,17 @@ components:
       - $ref: '#/components/schemas/EntityV3Queue'
       - $ref: '#/components/schemas/EntityV3System'
       - $ref: '#/components/schemas/EntityV3API'
-    EntityResponseIncludedRelatedEntity:
-      description: Included related entity.
+    EntityToOncalls:
+      description: Entity to oncalls relationship.
       properties:
-        attributes:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityAttributes'
-        id:
-          description: Entity UUID.
-          type: string
-          example: abc-123-def
-        meta:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityMeta'
-        type:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityType'
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
       type: object
-    IncludeType:
-      description: Supported include types.
-      enum:
-      - schema
-      - raw_schema
-      - oncall
-      - incident
-      - relation
-      type: string
-      x-enum-varnames:
-      - SCHEMA
-      - RAW_SCHEMA
-      - ONCALL
-      - INCIDENT
-      - RELATION
+    EntityResponseIncludedRelatedOncallEscalations:
+      description: Oncall escalations.
+      items:
+        $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallEscalationItem'
+      type: array
     RelationType:
       description: Supported relation types.
       enum:
@@ -327,18 +360,97 @@ components:
       - RELATIONTYPEOTHEROWNEDBY
       - RELATIONTYPEIMPLEMENTEDBY
       - RELATIONTYPEIMPLEMENTS
-    EntityV3DatadogIntegrationPagerduty:
+    EntityV3DatastoreDatadog:
       additionalProperties: false
-      description: A PagerDuty integration schema.
+      description: Datadog product integrations for the datastore entity.
       properties:
-        serviceURL:
-          description: The service URL for the PagerDuty integration.
-          example: https://www.pagerduty.com/service-directory/Pshopping-cart
-          minLength: 1
-          type: string
-      required:
-      - serviceURL
+        events:
+          $ref: '#/components/schemas/EntityV3DatadogEvents'
+        logs:
+          $ref: '#/components/schemas/EntityV3DatadogLogs'
+        performanceData:
+          $ref: '#/components/schemas/EntityV3DatadogPerformance'
       type: object
+      x-ignore-duplicate-object: true
+    EntityRelationships:
+      description: Entity relationships.
+      properties:
+        incidents:
+          $ref: '#/components/schemas/EntityToIncidents'
+        oncall:
+          $ref: '#/components/schemas/EntityToOncalls'
+        rawSchema:
+          $ref: '#/components/schemas/EntityToRawSchema'
+        relatedEntities:
+          $ref: '#/components/schemas/EntityToRelatedEntities'
+        schema:
+          $ref: '#/components/schemas/EntityToSchema'
+      type: object
+    EntityV3DatadogPerformance:
+      additionalProperties: false
+      description: Performance stats association.
+      properties:
+        tags:
+          description: A list of APM entity tags that associates the APM Stats data with the entity.
+          items:
+            type: string
+          type: array
+      type: object
+    EntityV3Datastore:
+      additionalProperties: false
+      description: Schema for datastore entities.
+      properties:
+        apiVersion:
+          $ref: '#/components/schemas/EntityV3APIVersion'
+        datadog:
+          $ref: '#/components/schemas/EntityV3DatastoreDatadog'
+        extensions:
+          additionalProperties: {}
+          description: Custom extensions. This is the free-formed field to send client side metadata. No Datadog features are affected by this field.
+          type: object
+          x-ignore-duplicate-object: true
+        integrations:
+          $ref: '#/components/schemas/EntityV3Integrations'
+        kind:
+          $ref: '#/components/schemas/EntityV3DatastoreKind'
+        metadata:
+          $ref: '#/components/schemas/EntityV3Metadata'
+        spec:
+          $ref: '#/components/schemas/EntityV3DatastoreSpec'
+      required:
+      - apiVersion
+      - kind
+      - metadata
+      type: object
+    EntityResponseIncludedRelatedEntity:
+      description: Included related entity.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityAttributes'
+        id:
+          description: Entity UUID.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityMeta'
+        type:
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedEntityType'
+      type: object
+    ListEntityCatalogResponseIncludedItem:
+      description: List entity response included item.
+      oneOf:
+      - $ref: '#/components/schemas/EntityResponseIncludedSchema'
+      - $ref: '#/components/schemas/EntityResponseIncludedRawSchema'
+      - $ref: '#/components/schemas/EntityResponseIncludedRelatedEntity'
+      - $ref: '#/components/schemas/EntityResponseIncludedOncall'
+      - $ref: '#/components/schemas/EntityResponseIncludedIncident'
+    EntityResponseIncludedIncidentType:
+      description: Incident description.
+      enum:
+      - incident
+      type: string
+      x-enum-varnames:
+      - INCIDENT
     EntityV3APIKind:
       description: The definition of Entity V3 API Kind object.
       enum:
@@ -347,80 +459,6 @@ components:
       type: string
       x-enum-varnames:
       - API
-    EntityV3DatadogEventItem:
-      additionalProperties: false
-      description: Events association item.
-      properties:
-        name:
-          description: The name of the query.
-          type: string
-          example: Example Monitor
-        query:
-          description: The query to run.
-          type: string
-          example: avg:system.cpu.user{*}
-      type: object
-    ListEntityCatalogResponse:
-      description: List entity response.
-      properties:
-        data:
-          $ref: '#/components/schemas/EntityResponseData'
-        included:
-          $ref: '#/components/schemas/ListEntityCatalogResponseIncluded'
-        links:
-          $ref: '#/components/schemas/ListEntityCatalogResponseLinks'
-        meta:
-          $ref: '#/components/schemas/EntityResponseMeta'
-      type: object
-    EntityV3SystemDatadog:
-      additionalProperties: false
-      description: Datadog product integrations for the service entity.
-      properties:
-        events:
-          $ref: '#/components/schemas/EntityV3DatadogEvents'
-        logs:
-          $ref: '#/components/schemas/EntityV3DatadogLogs'
-        performanceData:
-          $ref: '#/components/schemas/EntityV3DatadogPerformance'
-        pipelines:
-          $ref: '#/components/schemas/EntityV3DatadogPipelines'
-      type: object
-    EntityV3DatadogLogs:
-      additionalProperties: false
-      description: Logs association.
-      items:
-        $ref: '#/components/schemas/EntityV3DatadogLogItem'
-      type: array
-    EntityResponseIncludedRawSchemaAttributes:
-      description: Included raw schema attributes.
-      properties:
-        rawSchema:
-          description: Schema from user input in base64 encoding.
-          type: string
-          example: example_value
-      type: object
-    EntityResponseIncludedRelatedEntityMeta:
-      description: Included related entity meta.
-      properties:
-        createdAt:
-          description: Entity creation time.
-          format: date-time
-          type: string
-          example: example_value
-        defined_by:
-          description: Entity relation defined by.
-          type: string
-          example: example_value
-        modifiedAt:
-          description: Entity modification time.
-          format: date-time
-          type: string
-          example: example_value
-        source:
-          description: Entity relation source.
-          type: string
-          example: example_value
-      type: object
     EntityV3ServiceSpec:
       additionalProperties: false
       description: The definition of Entity V3 Service Spec object.
@@ -455,12 +493,120 @@ components:
           type: string
           example: metric alert
       type: object
-    EntityV3ServiceDatadog:
+    EntityResponseIncludedRelatedOncallAttributes:
+      description: Included related oncall attributes.
+      properties:
+        escalations:
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallEscalations'
+        provider:
+          description: Oncall provider.
+          type: string
+          example: abc-123-def
+      type: object
+    EntityAttributes:
+      description: Entity attributes.
+      properties:
+        apiVersion:
+          description: The API version.
+          type: string
+          example: example_value
+        description:
+          description: The description.
+          type: string
+          example: example_value
+        displayName:
+          description: The display name.
+          type: string
+          example: Example Monitor
+        kind:
+          description: The kind.
+          type: string
+          example: example_value
+        name:
+          description: The name.
+          type: string
+          example: Example Monitor
+        namespace:
+          description: The namespace.
+          type: string
+          example: Example Monitor
+        owner:
+          description: The owner.
+          type: string
+          example: example_value
+        tags:
+          description: The tags.
+          items:
+            type: string
+          type: array
+      type: object
+    EntityV3DatadogEventItem:
+      additionalProperties: false
+      description: Events association item.
+      properties:
+        name:
+          description: The name of the query.
+          type: string
+          example: Example Monitor
+        query:
+          description: The query to run.
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
+    EntityToIncidents:
+      description: Entity to incidents relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
+      type: object
+    ListEntityCatalogResponseLinks:
+      description: List entity response links.
+      properties:
+        next:
+          description: Next link.
+          type: string
+          example: example_value
+        previous:
+          description: Previous link.
+          type: string
+          example: example_value
+        self:
+          description: Current link.
+          type: string
+          example: example_value
+      type: object
+    EntityToRelatedEntities:
+      description: Entity to related entities relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
+      type: object
+    EntityResponseIncludedOncallType:
+      description: Oncall type.
+      enum:
+      - oncall
+      type: string
+      x-enum-varnames:
+      - ONCALL
+    EntityResponseIncludedSchemaType:
+      description: Schema type.
+      enum:
+      - schema
+      type: string
+      x-enum-varnames:
+      - SCHEMA
+    EntityV3DatastoreKind:
+      description: The definition of Entity V3 Datastore Kind object.
+      enum:
+      - datastore
+      example: datastore
+      type: string
+      x-enum-varnames:
+      - DATASTORE
+    EntityV3SystemDatadog:
       additionalProperties: false
       description: Datadog product integrations for the service entity.
       properties:
-        codeLocations:
-          $ref: '#/components/schemas/EntityV3DatadogCodeLocations'
         events:
           $ref: '#/components/schemas/EntityV3DatadogEvents'
         logs:
@@ -470,143 +616,18 @@ components:
         pipelines:
           $ref: '#/components/schemas/EntityV3DatadogPipelines'
       type: object
-    EntityResponseIncludedSchemaType:
-      description: Schema type.
-      enum:
-      - schema
-      type: string
-      x-enum-varnames:
-      - SCHEMA
-    EntityV3System:
-      additionalProperties: false
-      description: Schema for system entities.
-      properties:
-        apiVersion:
-          $ref: '#/components/schemas/EntityV3APIVersion'
-        datadog:
-          $ref: '#/components/schemas/EntityV3SystemDatadog'
-        extensions:
-          additionalProperties: {}
-          description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
-          type: object
-          x-ignore-duplicate-object: true
-        integrations:
-          $ref: '#/components/schemas/EntityV3Integrations'
-        kind:
-          $ref: '#/components/schemas/EntityV3SystemKind'
-        metadata:
-          $ref: '#/components/schemas/EntityV3Metadata'
-        spec:
-          $ref: '#/components/schemas/EntityV3SystemSpec'
-      required:
-      - apiVersion
-      - kind
-      - metadata
-      type: object
-    EntityV3APISpec:
-      additionalProperties: false
-      description: The definition of Entity V3 API Spec object.
-      properties:
-        implementedBy:
-          description: Services which implemented the API.
-          items:
-            type: string
-          type: array
-        interface:
-          $ref: '#/components/schemas/EntityV3APISpecInterface'
-        lifecycle:
-          description: The lifecycle state of the component.
-          minLength: 1
-          type: string
-          example: example_value
-        tier:
-          description: The importance of the component.
-          minLength: 1
-          type: string
-          example: example_value
-        type:
-          description: The type of API.
-          type: string
-          example: metric alert
-      type: object
-    EntityResponseData:
-      description: List of entity data.
-      items:
-        $ref: '#/components/schemas/EntityData'
-      type: array
-    EntityData:
-      description: Entity data.
+    EntityResponseIncludedOncall:
+      description: Included oncall.
       properties:
         attributes:
-          $ref: '#/components/schemas/EntityAttributes'
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallAttributes'
         id:
-          description: Entity ID.
+          description: Oncall ID.
           type: string
           example: abc-123-def
-        meta:
-          $ref: '#/components/schemas/EntityMeta'
-        relationships:
-          $ref: '#/components/schemas/EntityRelationships'
         type:
-          description: Entity.
-          type: string
-          example: metric alert
+          $ref: '#/components/schemas/EntityResponseIncludedOncallType'
       type: object
-    EntityV3Integrations:
-      additionalProperties: false
-      description: A base schema for defining third-party integrations.
-      properties:
-        opsgenie:
-          $ref: '#/components/schemas/EntityV3DatadogIntegrationOpsgenie'
-        pagerduty:
-          $ref: '#/components/schemas/EntityV3DatadogIntegrationPagerduty'
-      type: object
-    EntityV3APIVersion:
-      description: The schema version of entity type. The field is known as schema-version in the previous version.
-      enum:
-      - v3
-      example: v3
-      type: string
-      x-enum-varnames:
-      - V3
-    EntityResponseIncludedRelatedOncallEscalations:
-      description: Oncall escalations.
-      items:
-        $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallEscalationItem'
-      type: array
-    EntityToIncidents:
-      description: Entity to incidents relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    EntityResponseIncludedRelatedEntityAttributes:
-      description: Related entity attributes.
-      properties:
-        kind:
-          description: Entity kind.
-          type: string
-          example: example_value
-        name:
-          description: Entity name.
-          type: string
-          example: Example Monitor
-        namespace:
-          description: Entity namespace.
-          type: string
-          example: Example Monitor
-        type:
-          description: Entity relation type to the associated entity.
-          type: string
-          example: metric alert
-      type: object
-    EntityResponseIncludedRawSchemaType:
-      description: Raw schema type.
-      enum:
-      - rawSchema
-      type: string
-      x-enum-varnames:
-      - RAW_SCHEMA
     EntityV3MetadataContactsItems:
       additionalProperties: false
       description: The definition of Entity V3 Metadata Contacts Items object.
@@ -628,194 +649,56 @@ components:
       - type
       - contact
       type: object
-    EntityV3QueueKind:
-      description: The definition of Entity V3 Queue Kind object.
-      enum:
-      - queue
-      example: queue
-      type: string
-      x-enum-varnames:
-      - QUEUE
-    EntityV3Service:
+    EntityResponseData:
+      description: List of entity data.
+      items:
+        $ref: '#/components/schemas/EntityData'
+      type: array
+    EntityV3QueueSpec:
       additionalProperties: false
-      description: Schema for service entities.
+      description: The definition of Entity V3 Queue Spec object.
       properties:
-        apiVersion:
-          $ref: '#/components/schemas/EntityV3APIVersion'
-        datadog:
-          $ref: '#/components/schemas/EntityV3ServiceDatadog'
-        extensions:
-          additionalProperties: {}
-          description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
-          type: object
-          x-ignore-duplicate-object: true
-        integrations:
-          $ref: '#/components/schemas/EntityV3Integrations'
-        kind:
-          $ref: '#/components/schemas/EntityV3ServiceKind'
-        metadata:
-          $ref: '#/components/schemas/EntityV3Metadata'
-        spec:
-          $ref: '#/components/schemas/EntityV3ServiceSpec'
-      required:
-      - apiVersion
-      - kind
-      - metadata
-      type: object
-    EntityV3DatadogIntegrationOpsgenie:
-      additionalProperties: false
-      description: An Opsgenie integration schema.
-      properties:
-        region:
-          description: The region for the Opsgenie integration.
-          minLength: 1
-          type: string
-          example: example_value
-        serviceURL:
-          description: The service URL for the Opsgenie integration.
-          example: https://www.opsgenie.com/service/shopping-cart
-          minLength: 1
-          type: string
-      required:
-      - serviceURL
-      type: object
-    EntityV3SystemKind:
-      description: The definition of Entity V3 System Kind object.
-      enum:
-      - system
-      example: system
-      type: string
-      x-enum-varnames:
-      - SYSTEM
-    EntityResponseIncludedOncallType:
-      description: Oncall type.
-      enum:
-      - oncall
-      type: string
-      x-enum-varnames:
-      - ONCALL
-    EntityV3DatastoreDatadog:
-      additionalProperties: false
-      description: Datadog product integrations for the datastore entity.
-      properties:
-        events:
-          $ref: '#/components/schemas/EntityV3DatadogEvents'
-        logs:
-          $ref: '#/components/schemas/EntityV3DatadogLogs'
-        performanceData:
-          $ref: '#/components/schemas/EntityV3DatadogPerformance'
-      type: object
-      x-ignore-duplicate-object: true
-    EntityToOncalls:
-      description: Entity to oncalls relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    EntityV3DatadogLogItem:
-      additionalProperties: false
-      description: Log association item.
-      properties:
-        name:
-          description: The name of the query.
-          type: string
-          example: Example Monitor
-        query:
-          description: The query to run.
-          type: string
-          example: avg:system.cpu.user{*}
-      type: object
-    EntityResponseIncludedSchema:
-      description: Included detail entity schema.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EntityResponseIncludedSchemaAttributes'
-        id:
-          description: Entity ID.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/EntityResponseIncludedSchemaType'
-      type: object
-    EntityV3SystemSpec:
-      additionalProperties: false
-      description: The definition of Entity V3 System Spec object.
-      properties:
-        components:
-          description: A list of components belongs to the system.
+        componentOf:
+          description: A list of components the queue is a part of
           items:
             type: string
           type: array
         lifecycle:
-          description: The lifecycle state of the component.
+          description: The lifecycle state of the queue.
           minLength: 1
           type: string
           example: example_value
         tier:
-          description: An entity reference to the owner of the component.
+          description: The importance of the queue.
           minLength: 1
           type: string
           example: example_value
-      type: object
-    EntityResponseIncludedRelatedOncallAttributes:
-      description: Included related oncall attributes.
-      properties:
-        escalations:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallEscalations'
-        provider:
-          description: Oncall provider.
-          type: string
-          example: abc-123-def
-      type: object
-    EntityResponseMeta:
-      description: Entity metadata.
-      properties:
-        count:
-          description: Total entities count.
-          format: int64
-          type: integer
-          example: 42
-        includeCount:
-          description: Total included data count.
-          format: int64
-          type: integer
-          example: 42
-      type: object
-    EntityV3DatadogPerformance:
-      additionalProperties: false
-      description: Performance stats association.
-      properties:
-        tags:
-          description: A list of APM entity tags that associates the APM Stats data with the entity.
-          items:
-            type: string
-          type: array
-      type: object
-    EntityResponseIncludedOncall:
-      description: Included oncall.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EntityResponseIncludedRelatedOncallAttributes'
-        id:
-          description: Oncall ID.
-          type: string
-          example: abc-123-def
         type:
-          $ref: '#/components/schemas/EntityResponseIncludedOncallType'
-      type: object
-    EntityV3DatadogCodeLocationItem:
-      additionalProperties: false
-      description: Code location item.
-      properties:
-        paths:
-          description: The paths (glob) to the source code of the service.
-          items:
-            type: string
-          type: array
-        repositoryURL:
-          description: The repository path of the source code of the entity.
+          description: The type of queue.
           type: string
-          example: https://app.datadoghq.com
+          example: metric alert
+      type: object
+    EntityResponseIncludedRelatedEntityMeta:
+      description: Included related entity meta.
+      properties:
+        createdAt:
+          description: Entity creation time.
+          format: date-time
+          type: string
+          example: example_value
+        defined_by:
+          description: Entity relation defined by.
+          type: string
+          example: example_value
+        modifiedAt:
+          description: Entity modification time.
+          format: date-time
+          type: string
+          example: example_value
+        source:
+          description: Entity relation source.
+          type: string
+          example: example_value
       type: object
     EntityResponseIncludedRelatedIncidentAttributes:
       description: Incident attributes.
@@ -841,6 +724,67 @@ components:
           description: Incident title.
           type: string
           example: Example Monitor
+      type: object
+    EntityV3MetadataLinksItems:
+      additionalProperties: false
+      description: The definition of Entity V3 Metadata Links Items object.
+      properties:
+        name:
+          description: Link name.
+          example: mylink
+          type: string
+        provider:
+          description: Link provider.
+          type: string
+          example: abc-123-def
+        type:
+          default: other
+          description: Link type.
+          example: link
+          type: string
+        url:
+          description: Link URL.
+          example: https://mylink
+          type: string
+      required:
+      - name
+      - type
+      - url
+      type: object
+    EntityV3Queue:
+      additionalProperties: false
+      description: Schema for queue entities.
+      properties:
+        apiVersion:
+          $ref: '#/components/schemas/EntityV3APIVersion'
+        datadog:
+          $ref: '#/components/schemas/EntityV3QueueDatadog'
+        extensions:
+          additionalProperties: {}
+          description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
+          type: object
+          x-ignore-duplicate-object: true
+        integrations:
+          $ref: '#/components/schemas/EntityV3Integrations'
+        kind:
+          $ref: '#/components/schemas/EntityV3QueueKind'
+        metadata:
+          $ref: '#/components/schemas/EntityV3Metadata'
+        spec:
+          $ref: '#/components/schemas/EntityV3QueueSpec'
+      required:
+      - apiVersion
+      - kind
+      - metadata
+      type: object
+    EntityV3Integrations:
+      additionalProperties: false
+      description: A base schema for defining third-party integrations.
+      properties:
+        opsgenie:
+          $ref: '#/components/schemas/EntityV3DatadogIntegrationOpsgenie'
+        pagerduty:
+          $ref: '#/components/schemas/EntityV3DatadogIntegrationPagerduty'
       type: object
     EntityV3Metadata:
       additionalProperties: false
@@ -910,14 +854,150 @@ components:
       required:
       - name
       type: object
-    EntityV3DatastoreKind:
-      description: The definition of Entity V3 Datastore Kind object.
+    EntityV3DatadogCodeLocationItem:
+      additionalProperties: false
+      description: Code location item.
+      properties:
+        paths:
+          description: The paths (glob) to the source code of the service.
+          items:
+            type: string
+          type: array
+        repositoryURL:
+          description: The repository path of the source code of the entity.
+          type: string
+          example: https://app.datadoghq.com
+      type: object
+    EntityV3APISpecInterfaceFileRef:
+      additionalProperties: false
+      description: The definition of `EntityV3APISpecInterfaceFileRef` object.
+      properties:
+        fileRef:
+          description: The reference to the API definition file.
+          type: string
+          example: example_value
+      type: object
+    EntityV3QueueDatadog:
+      additionalProperties: false
+      description: Datadog product integrations for the datastore entity.
+      properties:
+        events:
+          $ref: '#/components/schemas/EntityV3DatadogEvents'
+        logs:
+          $ref: '#/components/schemas/EntityV3DatadogLogs'
+        performanceData:
+          $ref: '#/components/schemas/EntityV3DatadogPerformance'
+      type: object
+      x-ignore-duplicate-object: true
+    EntityResponseIncludedSchemaAttributes:
+      description: Included schema.
+      properties:
+        schema:
+          $ref: '#/components/schemas/EntityV3'
+      type: object
+    EntityToSchema:
+      description: Entity to detail schema relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipItem'
+      type: object
+    EntityV3DatadogPipelines:
+      additionalProperties: false
+      description: CI Pipelines association.
+      properties:
+        fingerprints:
+          description: A list of CI Fingerprints that associate CI Pipelines with the entity.
+          items:
+            type: string
+          type: array
+      type: object
+    EntityResponseIncludedRelatedOncallEscalationItem:
+      description: Oncall escalation.
+      properties:
+        email:
+          description: Oncall email.
+          type: string
+          example: user@example.com
+        escalationLevel:
+          description: Oncall level.
+          format: int64
+          type: integer
+          example: 42
+        name:
+          description: Oncall name.
+          type: string
+          example: Example Monitor
+      type: object
+    EntityV3SystemSpec:
+      additionalProperties: false
+      description: The definition of Entity V3 System Spec object.
+      properties:
+        components:
+          description: A list of components belongs to the system.
+          items:
+            type: string
+          type: array
+        lifecycle:
+          description: The lifecycle state of the component.
+          minLength: 1
+          type: string
+          example: example_value
+        tier:
+          description: An entity reference to the owner of the component.
+          minLength: 1
+          type: string
+          example: example_value
+      type: object
+    EntityData:
+      description: Entity data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EntityAttributes'
+        id:
+          description: Entity ID.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/EntityMeta'
+        relationships:
+          $ref: '#/components/schemas/EntityRelationships'
+        type:
+          description: Entity.
+          type: string
+          example: metric alert
+      type: object
+    EntityV3SystemKind:
+      description: The definition of Entity V3 System Kind object.
       enum:
-      - datastore
-      example: datastore
+      - system
+      example: system
       type: string
       x-enum-varnames:
-      - DATASTORE
+      - SYSTEM
+    EntityV3DatadogEvents:
+      additionalProperties: false
+      description: Events associations.
+      items:
+        $ref: '#/components/schemas/EntityV3DatadogEventItem'
+      type: array
+    RelationshipArray:
+      description: Relationships.
+      items:
+        $ref: '#/components/schemas/RelationshipItem'
+      type: array
+    EntityV3DatadogLogItem:
+      additionalProperties: false
+      description: Log association item.
+      properties:
+        name:
+          description: The name of the query.
+          type: string
+          example: Example Monitor
+        query:
+          description: The query to run.
+          type: string
+          example: avg:system.cpu.user{*}
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -933,60 +1013,96 @@ components:
       required:
       - errors
       type: object
-    RelationshipArray:
-      description: Relationships.
-      items:
-        $ref: '#/components/schemas/RelationshipItem'
-      type: array
-    EntityToSchema:
-      description: Entity to detail schema relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipItem'
-      type: object
-    EntityV3DatadogEvents:
+    IncludeType:
+      description: Supported include types.
+      enum:
+      - schema
+      - raw_schema
+      - oncall
+      - incident
+      - relation
+      type: string
+      x-enum-varnames:
+      - SCHEMA
+      - RAW_SCHEMA
+      - ONCALL
+      - INCIDENT
+      - RELATION
+    EntityV3API:
       additionalProperties: false
-      description: Events associations.
-      items:
-        $ref: '#/components/schemas/EntityV3DatadogEventItem'
-      type: array
-    EntityV3Datastore:
-      additionalProperties: false
-      description: Schema for datastore entities.
+      description: Schema for API entities.
       properties:
         apiVersion:
           $ref: '#/components/schemas/EntityV3APIVersion'
         datadog:
-          $ref: '#/components/schemas/EntityV3DatastoreDatadog'
+          $ref: '#/components/schemas/EntityV3APIDatadog'
         extensions:
           additionalProperties: {}
-          description: Custom extensions. This is the free-formed field to send client side metadata. No Datadog features are affected by this field.
+          description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
           type: object
           x-ignore-duplicate-object: true
         integrations:
           $ref: '#/components/schemas/EntityV3Integrations'
         kind:
-          $ref: '#/components/schemas/EntityV3DatastoreKind'
+          $ref: '#/components/schemas/EntityV3APIKind'
         metadata:
           $ref: '#/components/schemas/EntityV3Metadata'
         spec:
-          $ref: '#/components/schemas/EntityV3DatastoreSpec'
+          $ref: '#/components/schemas/EntityV3APISpec'
       required:
       - apiVersion
       - kind
       - metadata
       type: object
-    RelationshipItem:
-      description: Relationship entry.
+    EntityV3APISpecInterfaceDefinition:
+      additionalProperties: false
+      description: The definition of `EntityV3APISpecInterfaceDefinition` object.
       properties:
+        definition:
+          description: The API definition.
+          type: object
+      type: object
+    EntityV3APIDatadog:
+      additionalProperties: false
+      description: Datadog product integrations for the API entity.
+      properties:
+        codeLocations:
+          $ref: '#/components/schemas/EntityV3DatadogCodeLocations'
+        events:
+          $ref: '#/components/schemas/EntityV3DatadogEvents'
+        logs:
+          $ref: '#/components/schemas/EntityV3DatadogLogs'
+        performanceData:
+          $ref: '#/components/schemas/EntityV3DatadogPerformance'
+        pipelines:
+          $ref: '#/components/schemas/EntityV3DatadogPipelines'
+      type: object
+    EntityResponseIncludedRawSchemaAttributes:
+      description: Included raw schema attributes.
+      properties:
+        rawSchema:
+          description: Schema from user input in base64 encoding.
+          type: string
+          example: example_value
+      type: object
+    EntityResponseIncludedRelatedEntityType:
+      description: Related entity.
+      enum:
+      - relatedEntity
+      type: string
+      x-enum-varnames:
+      - RELATED_ENTITY
+    EntityResponseIncludedIncident:
+      description: Included incident.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EntityResponseIncludedRelatedIncidentAttributes'
         id:
-          description: Associated data ID.
+          description: Incident ID.
           type: string
           example: abc-123-def
         type:
-          description: Relationship type.
-          type: string
-          example: metric alert
+          $ref: '#/components/schemas/EntityResponseIncludedIncidentType'
       type: object
     EntityMeta:
       description: Entity metadata.
@@ -1008,155 +1124,34 @@ components:
           type: string
           example: example_value
       type: object
+    EntityV3DatadogLogs:
+      additionalProperties: false
+      description: Logs association.
+      items:
+        $ref: '#/components/schemas/EntityV3DatadogLogItem'
+      type: array
     EntityV3DatadogCodeLocations:
       additionalProperties: false
       description: Schema for mapping source code locations to an entity.
       items:
         $ref: '#/components/schemas/EntityV3DatadogCodeLocationItem'
       type: array
-    EntityV3APISpecInterface:
-      additionalProperties: false
-      description: The API definition.
-      oneOf:
-      - $ref: '#/components/schemas/EntityV3APISpecInterfaceFileRef'
-      - $ref: '#/components/schemas/EntityV3APISpecInterfaceDefinition'
-    EntityV3DatastoreSpec:
-      additionalProperties: false
-      description: The definition of Entity V3 Datastore Spec object.
-      properties:
-        componentOf:
-          description: A list of components the datastore is a part of
-          items:
-            type: string
-          type: array
-        lifecycle:
-          description: The lifecycle state of the datastore.
-          minLength: 1
-          type: string
-          example: example_value
-        tier:
-          description: The importance of the datastore.
-          minLength: 1
-          type: string
-          example: example_value
-        type:
-          description: The type of datastore.
-          type: string
-          example: metric alert
-      type: object
-    ListEntityCatalogResponseIncluded:
-      description: List entity response included.
-      items:
-        $ref: '#/components/schemas/ListEntityCatalogResponseIncludedItem'
-      type: array
-    EntityToRelatedEntities:
-      description: Entity to related entities relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    ListEntityCatalogResponseIncludedItem:
-      description: List entity response included item.
-      oneOf:
-      - $ref: '#/components/schemas/EntityResponseIncludedSchema'
-      - $ref: '#/components/schemas/EntityResponseIncludedRawSchema'
-      - $ref: '#/components/schemas/EntityResponseIncludedRelatedEntity'
-      - $ref: '#/components/schemas/EntityResponseIncludedOncall'
-      - $ref: '#/components/schemas/EntityResponseIncludedIncident'
-    EntityResponseIncludedIncidentType:
-      description: Incident description.
+    EntityV3ServiceKind:
+      description: The definition of Entity V3 Service Kind object.
       enum:
-      - incident
+      - service
+      example: service
       type: string
       x-enum-varnames:
-      - INCIDENT
-    EntityV3QueueDatadog:
+      - SERVICE
+    EntityV3Service:
       additionalProperties: false
-      description: Datadog product integrations for the datastore entity.
-      properties:
-        events:
-          $ref: '#/components/schemas/EntityV3DatadogEvents'
-        logs:
-          $ref: '#/components/schemas/EntityV3DatadogLogs'
-        performanceData:
-          $ref: '#/components/schemas/EntityV3DatadogPerformance'
-      type: object
-      x-ignore-duplicate-object: true
-    EntityResponseIncludedRelatedOncallEscalationItem:
-      description: Oncall escalation.
-      properties:
-        email:
-          description: Oncall email.
-          type: string
-          example: user@example.com
-        escalationLevel:
-          description: Oncall level.
-          format: int64
-          type: integer
-          example: 42
-        name:
-          description: Oncall name.
-          type: string
-          example: Example Monitor
-      type: object
-    EntityRelationships:
-      description: Entity relationships.
-      properties:
-        incidents:
-          $ref: '#/components/schemas/EntityToIncidents'
-        oncall:
-          $ref: '#/components/schemas/EntityToOncalls'
-        rawSchema:
-          $ref: '#/components/schemas/EntityToRawSchema'
-        relatedEntities:
-          $ref: '#/components/schemas/EntityToRelatedEntities'
-        schema:
-          $ref: '#/components/schemas/EntityToSchema'
-      type: object
-    EntityV3APISpecInterfaceDefinition:
-      additionalProperties: false
-      description: The definition of `EntityV3APISpecInterfaceDefinition` object.
-      properties:
-        definition:
-          description: The API definition.
-          type: object
-      type: object
-    EntityResponseIncludedRawSchema:
-      description: Included raw schema.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EntityResponseIncludedRawSchemaAttributes'
-        id:
-          description: Raw schema ID.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/EntityResponseIncludedRawSchemaType'
-      type: object
-    ListEntityCatalogResponseLinks:
-      description: List entity response links.
-      properties:
-        next:
-          description: Next link.
-          type: string
-          example: example_value
-        previous:
-          description: Previous link.
-          type: string
-          example: example_value
-        self:
-          description: Current link.
-          type: string
-          example: example_value
-      type: object
-    EntityV3Queue:
-      additionalProperties: false
-      description: Schema for queue entities.
+      description: Schema for service entities.
       properties:
         apiVersion:
           $ref: '#/components/schemas/EntityV3APIVersion'
         datadog:
-          $ref: '#/components/schemas/EntityV3QueueDatadog'
+          $ref: '#/components/schemas/EntityV3ServiceDatadog'
         extensions:
           additionalProperties: {}
           description: Custom extensions. This is the free-formed field to send client-side metadata. No Datadog features are affected by this field.
@@ -1165,58 +1160,87 @@ components:
         integrations:
           $ref: '#/components/schemas/EntityV3Integrations'
         kind:
-          $ref: '#/components/schemas/EntityV3QueueKind'
+          $ref: '#/components/schemas/EntityV3ServiceKind'
         metadata:
           $ref: '#/components/schemas/EntityV3Metadata'
         spec:
-          $ref: '#/components/schemas/EntityV3QueueSpec'
+          $ref: '#/components/schemas/EntityV3ServiceSpec'
       required:
       - apiVersion
       - kind
       - metadata
       type: object
-    EntityAttributes:
-      description: Entity attributes.
+    EntityV3QueueKind:
+      description: The definition of Entity V3 Queue Kind object.
+      enum:
+      - queue
+      example: queue
+      type: string
+      x-enum-varnames:
+      - QUEUE
+    ListEntityCatalogResponseIncluded:
+      description: List entity response included.
+      items:
+        $ref: '#/components/schemas/ListEntityCatalogResponseIncludedItem'
+      type: array
+    EntityV3MetadataAdditionalOwnersItems:
+      description: The definition of Entity V3 Metadata Additional Owners Items object.
       properties:
-        apiVersion:
-          description: The API version.
-          type: string
-          example: example_value
-        description:
-          description: The description.
-          type: string
-          example: example_value
-        displayName:
-          description: The display name.
-          type: string
-          example: Example Monitor
-        kind:
-          description: The kind.
-          type: string
-          example: example_value
         name:
-          description: The name.
+          description: Team name.
+          example: ''
           type: string
-          example: Example Monitor
-        namespace:
-          description: The namespace.
+        type:
+          description: Team type.
           type: string
-          example: Example Monitor
-        owner:
-          description: The owner.
-          type: string
-          example: example_value
-        tags:
-          description: The tags.
-          items:
-            type: string
-          type: array
+          example: metric alert
+      required:
+      - name
+      type: object
+    EntityV3ServiceDatadog:
+      additionalProperties: false
+      description: Datadog product integrations for the service entity.
+      properties:
+        codeLocations:
+          $ref: '#/components/schemas/EntityV3DatadogCodeLocations'
+        events:
+          $ref: '#/components/schemas/EntityV3DatadogEvents'
+        logs:
+          $ref: '#/components/schemas/EntityV3DatadogLogs'
+        performanceData:
+          $ref: '#/components/schemas/EntityV3DatadogPerformance'
+        pipelines:
+          $ref: '#/components/schemas/EntityV3DatadogPipelines'
       type: object
   parameters:
+    Include:
+      description: Include relationship data.
+      explode: true
+      in: query
+      name: include
+      required: false
+      schema:
+        $ref: '#/components/schemas/IncludeType'
+    FilterByOwner:
+      description: Filter entities by owner.
+      explode: true
+      in: query
+      name: filter[owner]
+      required: false
+      schema:
+        type: string
     FilterByExcludeSnapshot:
       description: Filter entities by excluding snapshotted entities.
       in: query
       name: filter[exclude_snapshot]
+      required: false
+      schema:
+        type: string
+    FilterByName:
+      description: Filter entities by name.
+      explode: true
+      in: query
+      name: filter[name]
       required: false
       schema:
         type: string
@@ -1238,6 +1262,14 @@ components:
       required: false
       schema:
         type: string
+    FilterByRelationType:
+      description: Filter entities by relation type.
+      explode: true
+      in: query
+      name: filter[relation][type]
+      required: false
+      schema:
+        $ref: '#/components/schemas/RelationType'
     FilterByRef:
       description: Filter entities by reference
       example: service:shopping-cart
@@ -1255,51 +1287,19 @@ components:
       required: false
       schema:
         type: string
-    FilterByRelationType:
-      description: Filter entities by relation type.
-      explode: true
-      in: query
-      name: filter[relation][type]
-      required: false
-      schema:
-        $ref: '#/components/schemas/RelationType'
-    FilterByOwner:
-      description: Filter entities by owner.
-      explode: true
-      in: query
-      name: filter[owner]
-      required: false
-      schema:
-        type: string
-    Include:
-      description: Include relationship data.
-      explode: true
-      in: query
-      name: include
-      required: false
-      schema:
-        $ref: '#/components/schemas/IncludeType'
-    FilterByName:
-      description: Filter entities by name.
-      explode: true
-      in: query
-      name: filter[name]
-      required: false
-      schema:
-        type: string
   responses:
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.
