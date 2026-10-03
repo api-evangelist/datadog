@@ -99,206 +99,103 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    ObservabilityPipelineKafkaSourceType:
-      default: kafka
-      description: The source type. The value should always be `kafka`.
+    MicrosoftSentinelDestinationType:
+      default: microsoft_sentinel
+      description: The destination type. The value should always be `microsoft_sentinel`.
       enum:
-      - kafka
-      example: kafka
+      - microsoft_sentinel
+      example: microsoft_sentinel
       type: string
       x-enum-varnames:
-      - KAFKA
-    ObservabilityPipelineSensitiveDataScannerProcessorKeywordOptions:
-      description: Configuration for keywords used to reinforce sensitive data pattern detection.
+      - MICROSOFT_SENTINEL
+    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternType:
+      description: Indicates that a predefined library pattern is used.
+      enum:
+      - library
+      example: library
+      type: string
+      x-enum-varnames:
+      - LIBRARY
+    ObservabilityPipelineHttpServerSource:
+      description: The `http_server` source collects logs over HTTP POST from external services.
       properties:
-        keywords:
-          description: A list of keywords to match near the sensitive pattern.
-          example:
-          - ssn
-          - card
-          - account
-          items:
-            type: string
-          type: array
-        proximity:
-          description: Maximum number of tokens between a keyword and a sensitive value match.
-          example: 5
-          format: int64
-          type: integer
-      required:
-      - keywords
-      - proximity
-      type: object
-    ObservabilityPipelineDedupeProcessorMode:
-      description: The deduplication mode to apply to the fields.
-      enum:
-      - match
-      - ignore
-      example: match
-      type: string
-      x-enum-varnames:
-      - MATCH
-      - IGNORE
-    ObservabilityPipelineAmazonS3SourceType:
-      default: amazon_s3
-      description: The source type. Always `amazon_s3`.
-      enum:
-      - amazon_s3
-      example: amazon_s3
-      type: string
-      x-enum-varnames:
-      - AMAZON_S3
-    ObservabilityPipelineSplunkHecSource:
-      description: 'The `splunk_hec` source implements the Splunk HTTP Event Collector (HEC) API.
-
-        '
-      properties:
+        auth_strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineHttpServerSourceAuthStrategy'
+        decoding:
+          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
         id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: splunk-hec-source
+          description: Unique ID for the HTTP server source.
+          example: http-server-source
           type: string
         tls:
           $ref: '#/components/schemas/ObservabilityPipelineTls'
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecSourceType'
+          $ref: '#/components/schemas/ObservabilityPipelineHttpServerSourceType'
       required:
       - id
       - type
+      - auth_strategy
+      - decoding
       type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorCustomPatternOptions:
-      description: Options for defining a custom regex pattern.
-      properties:
-        rule:
-          description: A regular expression used to detect sensitive values. Must be a valid regex.
-          example: \b\d{16}\b
-          type: string
-      required:
-      - rule
-      type: object
-    ObservabilityPipelineOpenSearchDestination:
-      description: The `opensearch` destination writes logs to an OpenSearch cluster.
-      properties:
-        bulk_index:
-          description: The index to write logs to.
-          example: logs-index
-          type: string
-        id:
-          description: The unique identifier for this component.
-          example: opensearch-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineOpenSearchDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
-    ObservabilityPipelineSplunkHecSourceType:
-      default: splunk_hec
-      description: The source type. Always `splunk_hec`.
+    ObservabilityPipelineSensitiveDataScannerProcessorActionHashAction:
+      description: Action type that replaces the matched sensitive data with a hashed representation, preserving structure while securing content.
       enum:
-      - splunk_hec
-      example: splunk_hec
+      - hash
+      example: hash
       type: string
       x-enum-varnames:
-      - SPLUNK_HEC
-    ObservabilityPipelineAddEnvVarsProcessorVariable:
-      description: Defines a mapping between an environment variable and a log field.
-      properties:
-        field:
-          description: The target field in the log event.
-          example: log.environment.region
-          type: string
-        name:
-          description: The name of the environment variable to read.
-          example: AWS_REGION
-          type: string
-      required:
-      - field
-      - name
-      type: object
-    ObservabilityPipelineFilterProcessorType:
-      default: filter
-      description: The processor type. The value should always be `filter`.
+      - HASH
+    ObservabilityPipelineGeneratedMetricIncrementByFieldStrategy:
+      description: Uses a numeric field in the log event as the metric increment.
       enum:
-      - filter
-      example: filter
+      - increment_by_field
+      example: increment_by_field
       type: string
       x-enum-varnames:
-      - FILTER
-    ObservabilityPipelineSumoLogicSource:
-      description: The `sumo_logic` source receives logs from Sumo Logic collectors.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: sumo-logic-source
-          type: string
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicSourceType'
-      required:
-      - id
-      - type
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorActionHash:
-      description: Configuration for hashing matched sensitive values.
-      properties:
-        action:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionHashAction'
-        options:
-          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionHash` `options`.
-          type: object
-      required:
-      - action
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeExclude:
-      description: Excludes specific fields from sensitive data scanning.
-      properties:
-        options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions'
-        target:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeExcludeTarget'
-      required:
-      - target
-      - options
-      type: object
-    ObservabilityPipelineDatadogLogsDestination:
-      description: The `datadog_logs` destination forwards logs to Datadog Log Management.
-      properties:
-        id:
-          description: The unique identifier for this component.
-          example: datadog-logs-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineDatadogLogsDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptionsDirection:
-      description: Indicates whether to redact characters from the first or last part of the matched value.
+      - INCREMENT_BY_FIELD
+    ObservabilityPipelineOcsfMappingLibrary:
+      description: Predefined library mappings for common log formats.
       enum:
-      - first
-      - last
-      example: last
+      - CloudTrail Account Change
+      - GCP Cloud Audit CreateBucket
+      - GCP Cloud Audit CreateSink
+      - GCP Cloud Audit SetIamPolicy
+      - GCP Cloud Audit UpdateSink
+      - Github Audit Log API Activity
+      - Google Workspace Admin Audit addPrivilege
+      - Microsoft 365 Defender Incident
+      - Microsoft 365 Defender UserLoggedIn
+      - Okta System Log Authentication
+      - Palo Alto Networks Firewall Traffic
+      example: CloudTrail Account Change
       type: string
       x-enum-varnames:
-      - FIRST
-      - LAST
+      - CLOUDTRAIL_ACCOUNT_CHANGE
+      - GCP_CLOUD_AUDIT_CREATEBUCKET
+      - GCP_CLOUD_AUDIT_CREATESINK
+      - GCP_CLOUD_AUDIT_SETIAMPOLICY
+      - GCP_CLOUD_AUDIT_UPDATESINK
+      - GITHUB_AUDIT_LOG_API_ACTIVITY
+      - GOOGLE_WORKSPACE_ADMIN_AUDIT_ADDPRIVILEGE
+      - MICROSOFT_365_DEFENDER_INCIDENT
+      - MICROSOFT_365_DEFENDER_USERLOGGEDIN
+      - OKTA_SYSTEM_LOG_AUTHENTICATION
+      - PALO_ALTO_NETWORKS_FIREWALL_TRAFFIC
+    ObservabilityPipelineHttpServerSourceType:
+      default: http_server
+      description: The source type. The value should always be `http_server`.
+      enum:
+      - http_server
+      example: http_server
+      type: string
+      x-enum-varnames:
+      - HTTP_SERVER
+    ObservabilityPipelineKafkaSourceSasl:
+      description: Specifies the SASL mechanism for authenticating with a Kafka cluster.
+      properties:
+        mechanism:
+          $ref: '#/components/schemas/ObservabilityPipelinePipelineKafkaSourceSaslMechanism'
+      type: object
     ObservabilityPipelineHttpClientSourceAuthStrategy:
       description: Optional authentication strategy for HTTP requests.
       enum:
@@ -309,100 +206,140 @@ components:
       x-enum-varnames:
       - BASIC
       - BEARER
-    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions:
-      description: Controls how partial redaction is applied, including character count and direction.
-      properties:
-        characters:
-          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions` `characters`.
-          example: 4
-          format: int64
-          type: integer
-        direction:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptionsDirection'
-      required:
-      - characters
-      - direction
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorActionRedact:
-      description: Configuration for completely redacting matched sensitive data.
-      properties:
-        action:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedactAction'
-        options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions'
-      required:
-      - action
-      - options
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorType:
-      default: sensitive_data_scanner
-      description: The processor type. The value should always be `sensitive_data_scanner`.
+    ObservabilityPipelineNewRelicDestinationRegion:
+      description: The New Relic region.
       enum:
-      - sensitive_data_scanner
-      example: sensitive_data_scanner
+      - us
+      - eu
+      example: us
       type: string
       x-enum-varnames:
-      - SENSITIVE_DATA_SCANNER
-    ObservabilityPipelineGcpAuth:
-      description: 'GCP credentials used to authenticate with Google Cloud Storage.
+      - US
+      - EU
+    ObservabilityPipelineQuotaProcessorType:
+      default: quota
+      description: The processor type. The value should always be `quota`.
+      enum:
+      - quota
+      example: quota
+      type: string
+      x-enum-varnames:
+      - QUOTA
+    ObservabilityPipelineMetadataEntry:
+      description: A custom metadata entry.
+      properties:
+        name:
+          description: The metadata key.
+          example: environment
+          type: string
+        value:
+          description: The metadata value.
+          example: production
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    ObservabilityPipelineGoogleCloudStorageDestinationStorageClass:
+      description: Storage class used for objects stored in GCS.
+      enum:
+      - STANDARD
+      - NEARLINE
+      - COLDLINE
+      - ARCHIVE
+      example: STANDARD
+      type: string
+      x-enum-varnames:
+      - STANDARD
+      - NEARLINE
+      - COLDLINE
+      - ARCHIVE
+    ObservabilityPipelineSplunkHecDestination:
+      description: 'The `splunk_hec` destination forwards logs to Splunk using the HTTP Event Collector (HEC).
 
         '
       properties:
-        credentials_file:
-          description: Path to the GCP service account key file.
-          example: /var/secrets/gcp-credentials.json
+        auto_extract_timestamp:
+          description: 'If `true`, Splunk tries to extract timestamps from incoming log events.
+
+            If `false`, Splunk assigns the time the event was received.
+
+            '
+          example: true
+          type: boolean
+        encoding:
+          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestinationEncoding'
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: splunk-hec-destination
           type: string
+        index:
+          description: Optional name of the Splunk index where logs are written.
+          example: main
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        sourcetype:
+          description: The Splunk sourcetype to assign to log events.
+          example: custom_sourcetype
+          type: string
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestinationType'
       required:
-      - credentials_file
+      - id
+      - type
+      - inputs
       type: object
-    ObservabilityPipelineHttpServerSourceAuthStrategy:
-      description: HTTP authentication method.
+    ObservabilityPipelineSyslogNgDestinationType:
+      default: syslog_ng
+      description: The destination type. The value should always be `syslog_ng`.
       enum:
-      - none
-      - plain
-      example: plain
+      - syslog_ng
+      example: syslog_ng
       type: string
       x-enum-varnames:
-      - NONE
-      - PLAIN
-    ObservabilityPipelineParseGrokProcessorRule:
-      description: 'A Grok parsing rule used in the `parse_grok` processor. Each rule defines how to extract structured fields
-
-        from a specific log field using Grok patterns.
-
-        '
-      properties:
-        match_rules:
-          description: 'A list of Grok parsing rules that define how to extract fields from the source field.
-
-            Each rule must contain a name and a valid Grok pattern.
-
-            '
-          example:
-          - name: MyParsingRule
-            rule: '%{word:user} connected on %{date("MM/dd/yyyy"):date}'
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessorRuleMatchRule'
-          type: array
-        source:
-          description: The name of the field in the log event to apply the Grok rules to.
-          example: message
-          type: string
-        support_rules:
-          description: 'A list of Grok helper rules that can be referenced by the parsing rules.
-
-            '
-          example:
-          - name: user
-            rule: '%{word:user.name}'
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessorRuleSupportRule'
-          type: array
-      required:
-      - source
-      - match_rules
-      - support_rules
-      type: object
+      - SYSLOG_NG
+    ObservabilityPipelineSplunkHecDestinationType:
+      default: splunk_hec
+      description: The destination type. Always `splunk_hec`.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    ObservabilityPipelineAmazonDataFirehoseSourceType:
+      default: amazon_data_firehose
+      description: The source type. The value should always be `amazon_data_firehose`.
+      enum:
+      - amazon_data_firehose
+      example: amazon_data_firehose
+      type: string
+      x-enum-varnames:
+      - AMAZON_DATA_FIREHOSE
+    ObservabilityPipelineAmazonOpenSearchDestinationType:
+      default: amazon_opensearch
+      description: The destination type. The value should always be `amazon_opensearch`.
+      enum:
+      - amazon_opensearch
+      example: amazon_opensearch
+      type: string
+      x-enum-varnames:
+      - AMAZON_OPENSEARCH
+    ObservabilityPipelineRenameFieldsProcessorType:
+      default: rename_fields
+      description: The processor type. The value should always be `rename_fields`.
+      enum:
+      - rename_fields
+      example: rename_fields
+      type: string
+      x-enum-varnames:
+      - RENAME_FIELDS
     ObservabilityPipelineGoogleCloudStorageDestination:
       description: 'The `google_cloud_storage` destination stores logs in a Google Cloud Storage (GCS) bucket.
 
@@ -451,6 +388,1612 @@ components:
       - storage_class
       - acl
       type: object
+    AzureStorageDestinationType:
+      default: azure_storage
+      description: The destination type. The value should always be `azure_storage`.
+      enum:
+      - azure_storage
+      example: azure_storage
+      type: string
+      x-enum-varnames:
+      - AZURE_STORAGE
+    ObservabilityPipelineFluentBitSourceType:
+      default: fluent_bit
+      description: The source type. The value should always be `fluent_bit`.
+      enum:
+      - fluent_bit
+      example: fluent_bit
+      type: string
+      x-enum-varnames:
+      - FLUENT_BIT
+    ObservabilityPipelineSplunkHecSource:
+      description: 'The `splunk_hec` source implements the Splunk HTTP Event Collector (HEC) API.
+
+        '
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: splunk-hec-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineAmazonDataFirehoseSource:
+      description: The `amazon_data_firehose` source ingests logs from AWS Data Firehose.
+      properties:
+        auth:
+          $ref: '#/components/schemas/ObservabilityPipelineAwsAuth'
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: amazon-firehose-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineAmazonDataFirehoseSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineRsyslogDestinationType:
+      default: rsyslog
+      description: The destination type. The value should always be `rsyslog`.
+      enum:
+      - rsyslog
+      example: rsyslog
+      type: string
+      x-enum-varnames:
+      - RSYSLOG
+    ObservabilityPipelineEnrichmentTableFile:
+      description: Defines a static enrichment table loaded from a CSV file.
+      properties:
+        encoding:
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileEncoding'
+        key:
+          description: Key fields used to look up enrichment values.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileKeyItems'
+          type: array
+        path:
+          description: Path to the CSV file.
+          example: /etc/enrichment/lookup.csv
+          type: string
+        schema:
+          description: Schema defining column names and their types.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileSchemaItems'
+          type: array
+      required:
+      - encoding
+      - key
+      - path
+      - schema
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptionsDirection:
+      description: Indicates whether to redact characters from the first or last part of the matched value.
+      enum:
+      - first
+      - last
+      example: last
+      type: string
+      x-enum-varnames:
+      - FIRST
+      - LAST
+    ObservabilityPipelineAmazonOpenSearchDestinationAuth:
+      description: 'Authentication settings for the Amazon OpenSearch destination.
+
+        The `strategy` field determines whether basic or AWS-based authentication is used.
+
+        '
+      properties:
+        assume_role:
+          description: The ARN of the role to assume (used with `aws` strategy).
+          type: string
+          example: example_value
+        aws_region:
+          description: AWS region
+          type: string
+          example: example_value
+        external_id:
+          description: External ID for the assumed role (used with `aws` strategy).
+          type: string
+          example: abc-123-def
+        session_name:
+          description: Session name for the assumed role (used with `aws` strategy).
+          type: string
+          example: Example Monitor
+        strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationAuthStrategy'
+      required:
+      - strategy
+      type: object
+    ObservabilityPipelineData:
+      description: Contains the pipeline’s ID, type, and configuration attributes.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ObservabilityPipelineDataAttributes'
+        id:
+          description: Unique identifier for the pipeline.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          type: string
+        type:
+          default: pipelines
+          description: The resource type identifier. For pipeline resources, this should always be set to `pipelines`.
+          example: pipelines
+          type: string
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    ObservabilityPipelineQuotaProcessorOverride:
+      description: Defines a custom quota limit that applies to specific log events based on matching field values.
+      properties:
+        fields:
+          description: A list of field matchers used to apply a specific override. If an event matches all listed key-value pairs, the corresponding override limit is enforced.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineFieldValue'
+          type: array
+        limit:
+          $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessorLimit'
+      required:
+      - fields
+      - limit
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPattern:
+      description: Specifies a pattern from Datadog’s sensitive data detection library to match known sensitive data types.
+      properties:
+        options:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternOptions'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternType'
+      required:
+      - type
+      - options
+      type: object
+    ObservabilityPipelineElasticsearchDestinationType:
+      default: elasticsearch
+      description: The destination type. The value should always be `elasticsearch`.
+      enum:
+      - elasticsearch
+      example: elasticsearch
+      type: string
+      x-enum-varnames:
+      - ELASTICSEARCH
+    ObservabilityPipelineOcsfMapperProcessorType:
+      default: ocsf_mapper
+      description: The processor type. The value should always be `ocsf_mapper`.
+      enum:
+      - ocsf_mapper
+      example: ocsf_mapper
+      type: string
+      x-enum-varnames:
+      - OCSF_MAPPER
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeInclude:
+      description: Includes only specific fields for sensitive data scanning.
+      properties:
+        options:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions'
+        target:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeIncludeTarget'
+      required:
+      - target
+      - options
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions:
+      description: Controls how partial redaction is applied, including character count and direction.
+      properties:
+        characters:
+          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions` `characters`.
+          example: 4
+          format: int64
+          type: integer
+        direction:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptionsDirection'
+      required:
+      - characters
+      - direction
+      type: object
+    ObservabilityPipelineAwsAuth:
+      description: 'AWS authentication credentials used for accessing AWS services such as S3.
+
+        If omitted, the system’s default credentials are used (for example, the IAM role and environment variables).
+
+        '
+      properties:
+        assume_role:
+          description: The Amazon Resource Name (ARN) of the role to assume.
+          type: string
+          example: example_value
+        external_id:
+          description: A unique identifier for cross-account role assumption.
+          type: string
+          example: abc-123-def
+        session_name:
+          description: A session identifier used for logging and tracing the assumed role session.
+          type: string
+          example: Example Monitor
+      type: object
+    ObservabilityPipelineSplunkHecDestinationEncoding:
+      description: Encoding format for log events.
+      enum:
+      - json
+      - raw_message
+      example: json
+      type: string
+      x-enum-varnames:
+      - JSON
+      - RAW_MESSAGE
+    ObservabilityPipelineAddFieldsProcessorType:
+      default: add_fields
+      description: The processor type. The value should always be `add_fields`.
+      enum:
+      - add_fields
+      example: add_fields
+      type: string
+      x-enum-varnames:
+      - ADD_FIELDS
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeExcludeTarget:
+      description: Excludes specific fields from processing.
+      enum:
+      - exclude
+      example: exclude
+      type: string
+      x-enum-varnames:
+      - EXCLUDE
+    ObservabilityPipelineAmazonS3Source:
+      description: 'The `amazon_s3` source ingests logs from an Amazon S3 bucket.
+
+        It supports AWS authentication and TLS encryption.
+
+        '
+      properties:
+        auth:
+          $ref: '#/components/schemas/ObservabilityPipelineAwsAuth'
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: aws-s3-source
+          type: string
+        region:
+          description: AWS region where the S3 bucket resides.
+          example: us-east-1
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineAmazonS3SourceType'
+      required:
+      - id
+      - type
+      - region
+      type: object
+    ObservabilityPipelineRsyslogSourceType:
+      default: rsyslog
+      description: The source type. The value should always be `rsyslog`.
+      enum:
+      - rsyslog
+      example: rsyslog
+      type: string
+      x-enum-varnames:
+      - RSYSLOG
+    ObservabilityPipelineParseGrokProcessorType:
+      default: parse_grok
+      description: The processor type. The value should always be `parse_grok`.
+      enum:
+      - parse_grok
+      example: parse_grok
+      type: string
+      x-enum-varnames:
+      - PARSE_GROK
+    ObservabilityPipelineSumoLogicSource:
+      description: The `sumo_logic` source receives logs from Sumo Logic collectors.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: sumo-logic-source
+          type: string
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineQuotaProcessorLimitEnforceType:
+      description: Unit for quota enforcement in bytes for data size or events for count.
+      enum:
+      - bytes
+      - events
+      example: bytes
+      type: string
+      x-enum-varnames:
+      - BYTES
+      - EVENTS
+    ObservabilityPipelineAmazonS3DestinationStorageClass:
+      description: S3 storage class.
+      enum:
+      - STANDARD
+      - REDUCED_REDUNDANCY
+      - INTELLIGENT_TIERING
+      - STANDARD_IA
+      - EXPRESS_ONEZONE
+      - ONEZONE_IA
+      - GLACIER
+      - GLACIER_IR
+      - DEEP_ARCHIVE
+      example: STANDARD
+      type: string
+      x-enum-varnames:
+      - STANDARD
+      - REDUCED_REDUNDANCY
+      - INTELLIGENT_TIERING
+      - STANDARD_IA
+      - EXPRESS_ONEZONE
+      - ONEZONE_IA
+      - GLACIER
+      - GLACIER_IR
+      - DEEP_ARCHIVE
+    ObservabilityPipelineNewRelicDestinationType:
+      default: new_relic
+      description: The destination type. The value should always be `new_relic`.
+      enum:
+      - new_relic
+      example: new_relic
+      type: string
+      x-enum-varnames:
+      - NEW_RELIC
+    ObservabilityPipelineFilterProcessor:
+      description: The `filter` processor allows conditional processing of logs based on a Datadog search query. Logs that match the `include` query are passed through; others are discarded.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
+          example: filter-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs should pass through the filter. Logs that match this query continue to downstream components; others are dropped.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineFilterProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      type: object
+    ObservabilityPipelineAmazonOpenSearchDestination:
+      description: The `amazon_opensearch` destination writes logs to Amazon OpenSearch.
+      properties:
+        auth:
+          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationAuth'
+        bulk_index:
+          description: The index to write logs to.
+          example: logs-index
+          type: string
+        id:
+          description: The unique identifier for this component.
+          example: elasticsearch-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      - auth
+      type: object
+    ObservabilityPipelineGeneratedMetricIncrementByOne:
+      description: Strategy that increments a generated metric by one for each matching event.
+      properties:
+        strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByOneStrategy'
+      required:
+      - strategy
+      type: object
+    ObservabilityPipelineDedupeProcessorType:
+      default: dedupe
+      description: The processor type. The value should always be `dedupe`.
+      enum:
+      - dedupe
+      example: dedupe
+      type: string
+      x-enum-varnames:
+      - DEDUPE
+    ObservabilityPipelineSampleProcessor:
+      description: The `sample` processor allows probabilistic sampling of logs at a fixed rate.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
+          example: sample-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        percentage:
+          description: The percentage of logs to sample.
+          example: 10
+          format: double
+          type: number
+        rate:
+          description: Number of events to sample (1 in N).
+          example: 10
+          format: int64
+          minimum: 1
+          type: integer
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSampleProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      type: object
+    ObservabilityPipelineGenerateMetricsProcessor:
+      description: 'The `generate_datadog_metrics` processor creates custom metrics from logs and sends them to Datadog.
+
+        Metrics can be counters, gauges, or distributions and optionally grouped by log fields.
+
+        '
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline.
+          example: generate-metrics-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this processor.
+          example:
+          - source-id
+          items:
+            type: string
+          type: array
+        metrics:
+          description: Configuration for generating individual metrics.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetric'
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineGenerateMetricsProcessorType'
+      required:
+      - id
+      - type
+      - inputs
+      - include
+      - metrics
+      type: object
+    ObservabilityPipelineReduceProcessorMergeStrategy:
+      description: Defines how a specific field should be merged across grouped events.
+      properties:
+        path:
+          description: The field path in the log event.
+          example: log.user.roles
+          type: string
+        strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorMergeStrategyStrategy'
+      required:
+      - path
+      - strategy
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorRule:
+      description: Defines a rule for detecting sensitive data, including matching pattern, scope, and the action to take.
+      properties:
+        keyword_options:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorKeywordOptions'
+        name:
+          description: A name identifying the rule.
+          example: Redact Credit Card Numbers
+          type: string
+        on_match:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorAction'
+        pattern:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorPattern'
+        scope:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScope'
+        tags:
+          description: Tags assigned to this rule for filtering and classification.
+          example:
+          - pii
+          - ccn
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      - tags
+      - pattern
+      - scope
+      - on_match
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorType:
+      default: sensitive_data_scanner
+      description: The processor type. The value should always be `sensitive_data_scanner`.
+      enum:
+      - sensitive_data_scanner
+      example: sensitive_data_scanner
+      type: string
+      x-enum-varnames:
+      - SENSITIVE_DATA_SCANNER
+    ObservabilityPipelineGoogleChronicleDestination:
+      description: The `google_chronicle` destination sends logs to Google Chronicle.
+      properties:
+        auth:
+          $ref: '#/components/schemas/ObservabilityPipelineGcpAuth'
+        customer_id:
+          description: The Google Chronicle customer ID.
+          example: abcdefg123456789
+          type: string
+        encoding:
+          $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestinationEncoding'
+        id:
+          description: The unique identifier for this component.
+          example: google-chronicle-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - parse-json-processor
+          items:
+            type: string
+          type: array
+        log_type:
+          description: The log type metadata associated with the Chronicle destination.
+          example: nginx_logs
+          type: string
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      - auth
+      - customer_id
+      type: object
+    MicrosoftSentinelDestination:
+      description: The `microsoft_sentinel` destination forwards logs to Microsoft Sentinel.
+      properties:
+        client_id:
+          description: Azure AD client ID used for authentication.
+          example: a1b2c3d4-5678-90ab-cdef-1234567890ab
+          type: string
+        dcr_immutable_id:
+          description: The immutable ID of the Data Collection Rule (DCR).
+          example: dcr-uuid-1234
+          type: string
+        id:
+          description: The unique identifier for this component.
+          example: sentinel-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        table:
+          description: The name of the Log Analytics table where logs are sent.
+          example: CustomLogsTable
+          type: string
+        tenant_id:
+          description: Azure AD tenant ID.
+          example: abcdef12-3456-7890-abcd-ef1234567890
+          type: string
+        type:
+          $ref: '#/components/schemas/MicrosoftSentinelDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      - client_id
+      - tenant_id
+      - dcr_immutable_id
+      - table
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessor:
+      description: The `sensitive_data_scanner` processor detects and optionally redacts sensitive data in log events.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: sensitive-scanner
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: source:prod
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - parse-json-processor
+          items:
+            type: string
+          type: array
+        rules:
+          description: A list of rules for identifying and acting on sensitive data patterns.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorRule'
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      - rules
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    ObservabilityPipelineEnrichmentTableProcessorType:
+      default: enrichment_table
+      description: The processor type. The value should always be `enrichment_table`.
+      enum:
+      - enrichment_table
+      example: enrichment_table
+      type: string
+      x-enum-varnames:
+      - ENRICHMENT_TABLE
+    ObservabilityPipelineAmazonOpenSearchDestinationAuthStrategy:
+      description: The authentication strategy to use.
+      enum:
+      - basic
+      - aws
+      example: aws
+      type: string
+      x-enum-varnames:
+      - BASIC
+      - AWS
+    ObservabilityPipelineGoogleCloudStorageDestinationType:
+      default: google_cloud_storage
+      description: The destination type. Always `google_cloud_storage`.
+      enum:
+      - google_cloud_storage
+      example: google_cloud_storage
+      type: string
+      x-enum-varnames:
+      - GOOGLE_CLOUD_STORAGE
+    ObservabilityPipelineAddFieldsProcessor:
+      description: The `add_fields` processor adds static key-value fields to logs.
+      properties:
+        fields:
+          description: A list of static fields (key-value pairs) that is added to each log event processed by this component.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineFieldValue'
+          type: array
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
+          example: add-fields-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineAddFieldsProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - fields
+      - inputs
+      type: object
+    ObservabilityPipelineSplunkTcpSourceType:
+      default: splunk_tcp
+      description: The source type. Always `splunk_tcp`.
+      enum:
+      - splunk_tcp
+      example: splunk_tcp
+      type: string
+      x-enum-varnames:
+      - SPLUNK_TCP
+    ObservabilityPipelineDatadogAgentSourceType:
+      default: datadog_agent
+      description: The source type. The value should always be `datadog_agent`.
+      enum:
+      - datadog_agent
+      example: datadog_agent
+      type: string
+      x-enum-varnames:
+      - DATADOG_AGENT
+    ObservabilityPipelineDedupeProcessor:
+      description: The `dedupe` processor removes duplicate fields in log events.
+      properties:
+        fields:
+          description: A list of log field paths to check for duplicates.
+          example:
+          - log.message
+          - log.error
+          items:
+            type: string
+          type: array
+        id:
+          description: The unique identifier for this processor.
+          example: dedupe-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the input for this processor.
+          example:
+          - parse-json-processor
+          items:
+            type: string
+          type: array
+        mode:
+          $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessorMode'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      - fields
+      - mode
+      type: object
+    ObservabilityPipelineRsyslogSource:
+      description: The `rsyslog` source listens for logs over TCP or UDP from an `rsyslog` server using the syslog protocol.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: rsyslog-source
+          type: string
+        mode:
+          $ref: '#/components/schemas/ObservabilityPipelineSyslogSourceMode'
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineRsyslogSourceType'
+      required:
+      - id
+      - type
+      - mode
+      type: object
+    ObservabilityPipelineReduceProcessor:
+      description: The `reduce` processor aggregates and merges logs based on matching keys and merge strategies.
+      properties:
+        group_by:
+          description: A list of fields used to group log events for merging.
+          example:
+          - log.user.id
+          - log.device.id
+          items:
+            type: string
+          type: array
+        id:
+          description: The unique identifier for this processor.
+          example: reduce-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: env:prod
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the input for this processor.
+          example:
+          - parse-json-processor
+          items:
+            type: string
+          type: array
+        merge_strategies:
+          description: List of merge strategies defining how values from grouped events should be combined.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorMergeStrategy'
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      - group_by
+      - merge_strategies
+      type: object
+    ObservabilityPipelineFluentBitSource:
+      description: The `fluent_bit` source ingests logs from Fluent Bit.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
+          example: fluent-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineFluentBitSourceType'
+      required:
+      - id
+      - type
+      type: object
+    AzureStorageDestination:
+      description: The `azure_storage` destination forwards logs to an Azure Blob Storage container.
+      properties:
+        blob_prefix:
+          description: Optional prefix for blobs written to the container.
+          example: logs/
+          type: string
+        container_name:
+          description: The name of the Azure Blob Storage container to store logs in.
+          example: my-log-container
+          type: string
+        id:
+          description: The unique identifier for this component.
+          example: azure-storage-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - processor-id
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/AzureStorageDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      - container_name
+      type: object
+    ObservabilityPipelineSplunkHecSourceType:
+      default: splunk_hec
+      description: The source type. Always `splunk_hec`.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    ObservabilityPipelineGooglePubSubSource:
+      description: The `google_pubsub` source ingests logs from a Google Cloud Pub/Sub subscription.
+      properties:
+        auth:
+          $ref: '#/components/schemas/ObservabilityPipelineGcpAuth'
+        decoding:
+          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: google-pubsub-source
+          type: string
+        project:
+          description: The GCP project ID that owns the Pub/Sub subscription.
+          example: my-gcp-project
+          type: string
+        subscription:
+          description: The Pub/Sub subscription name from which messages are consumed.
+          example: logs-subscription
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineGooglePubSubSourceType'
+      required:
+      - id
+      - type
+      - auth
+      - decoding
+      - project
+      - subscription
+      type: object
+    ObservabilityPipelineFilterProcessorType:
+      default: filter
+      description: The processor type. The value should always be `filter`.
+      enum:
+      - filter
+      example: filter
+      type: string
+      x-enum-varnames:
+      - FILTER
+    ObservabilityPipelineReduceProcessorMergeStrategyStrategy:
+      description: The merge strategy to apply.
+      enum:
+      - discard
+      - retain
+      - sum
+      - max
+      - min
+      - array
+      - concat
+      - concat_newline
+      - concat_raw
+      - shortest_array
+      - longest_array
+      - flat_unique
+      example: flat_unique
+      type: string
+      x-enum-varnames:
+      - DISCARD
+      - RETAIN
+      - SUM
+      - MAX
+      - MIN
+      - ARRAY
+      - CONCAT
+      - CONCAT_NEWLINE
+      - CONCAT_RAW
+      - SHORTEST_ARRAY
+      - LONGEST_ARRAY
+      - FLAT_UNIQUE
+    ObservabilityPipelineSensitiveDataScannerProcessorAction:
+      description: Defines what action to take when sensitive data is matched.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedact'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionHash'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedact'
+    ObservabilityPipelineGeneratedMetricIncrementByOneStrategy:
+      description: Increments the metric by 1 for each matching event.
+      enum:
+      - increment_by_one
+      example: increment_by_one
+      type: string
+      x-enum-varnames:
+      - INCREMENT_BY_ONE
+    ObservabilityPipelineConfigProcessorItem:
+      description: A processor for the pipeline.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineFilterProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineParseJSONProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineAddFieldsProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineRemoveFieldsProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineGenerateMetricsProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineSampleProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineAddEnvVarsProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineReduceProcessor'
+      - $ref: '#/components/schemas/ObservabilityPipelineThrottleProcessor'
+    ObservabilityPipelineLogstashSource:
+      description: The `logstash` source ingests logs from a Logstash forwarder.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: logstash-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineLogstashSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineEnrichmentTableFileSchemaItems:
+      description: Describes a single column and its type in an enrichment table schema.
+      properties:
+        column:
+          description: The `items` `column`.
+          example: region
+          type: string
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileSchemaItemsType'
+      required:
+      - column
+      - type
+      type: object
+    ObservabilityPipelineParseJSONProcessor:
+      description: The `parse_json` processor extracts JSON from a specified field and flattens it into the event. This is useful when logs contain embedded JSON as a string.
+      properties:
+        field:
+          description: The name of the log field that contains a JSON string.
+          example: message
+          type: string
+        id:
+          description: A unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: parse-json-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineParseJSONProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - field
+      - inputs
+      type: object
+    ObservabilityPipelineSyslogNgSource:
+      description: The `syslog_ng` source listens for logs over TCP or UDP from a `syslog-ng` server using the syslog protocol.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: syslog-ng-source
+          type: string
+        mode:
+          $ref: '#/components/schemas/ObservabilityPipelineSyslogSourceMode'
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSyslogNgSourceType'
+      required:
+      - id
+      - type
+      - mode
+      type: object
+    ObservabilityPipelineRsyslogDestination:
+      description: The `rsyslog` destination forwards logs to an external `rsyslog` server over TCP or UDP using the syslog protocol.
+      properties:
+        id:
+          description: The unique identifier for this component.
+          example: rsyslog-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        keepalive:
+          description: Optional socket keepalive duration in milliseconds.
+          example: 60000
+          format: int64
+          minimum: 0
+          type: integer
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineRsyslogDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorCustomPatternType:
+      description: Indicates a custom regular expression is used for matching.
+      enum:
+      - custom
+      example: custom
+      type: string
+      x-enum-varnames:
+      - CUSTOM
+    ObservabilityPipelineGcpAuth:
+      description: 'GCP credentials used to authenticate with Google Cloud Storage.
+
+        '
+      properties:
+        credentials_file:
+          description: Path to the GCP service account key file.
+          example: /var/secrets/gcp-credentials.json
+          type: string
+      required:
+      - credentials_file
+      type: object
+    ObservabilityPipelineElasticsearchDestination:
+      description: The `elasticsearch` destination writes logs to an Elasticsearch cluster.
+      properties:
+        api_version:
+          $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestinationApiVersion'
+        bulk_index:
+          description: The index to write logs to in Elasticsearch.
+          example: logs-index
+          type: string
+        id:
+          description: The unique identifier for this component.
+          example: elasticsearch-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestinationType'
+      required:
+      - id
+      - type
+      - inputs
+      type: object
+    ObservabilityPipelineFluentdSourceType:
+      default: fluentd
+      description: The source type. The value should always be `fluentd.
+      enum:
+      - fluentd
+      example: fluentd
+      type: string
+      x-enum-varnames:
+      - FLUENTD
+    ObservabilityPipelineSplunkTcpSource:
+      description: 'The `splunk_tcp` source receives logs from a Splunk Universal Forwarder over TCP.
+
+        TLS is supported for secure transmission.
+
+        '
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: splunk-tcp-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineSplunkTcpSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeExclude:
+      description: Excludes specific fields from sensitive data scanning.
+      properties:
+        options:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions'
+        target:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeExcludeTarget'
+      required:
+      - target
+      - options
+      type: object
+    ObservabilityPipelinePipelineKafkaSourceSaslMechanism:
+      description: SASL mechanism used for Kafka authentication.
+      enum:
+      - PLAIN
+      - SCRAM-SHA-256
+      - SCRAM-SHA-512
+      type: string
+      x-enum-varnames:
+      - PLAIN
+      - SCRAMNOT_SHANOT_256
+      - SCRAMNOT_SHANOT_512
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions:
+      description: Fields to which the scope rule applies.
+      properties:
+        fields:
+          description: The `ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions` `fields`.
+          example:
+          - ''
+          items:
+            type: string
+          type: array
+      required:
+      - fields
+      type: object
+    ObservabilityPipelineKafkaSourceLibrdkafkaOption:
+      description: Represents a key-value pair used to configure low-level `librdkafka` client options for Kafka sources, such as timeouts, buffer sizes, and security settings.
+      properties:
+        name:
+          description: The name of the `librdkafka` configuration option to set.
+          example: fetch.message.max.bytes
+          type: string
+        value:
+          description: The value assigned to the specified `librdkafka` configuration option.
+          example: '1048576'
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    ObservabilityPipelineConfig:
+      description: Specifies the pipeline's configuration, including its sources, processors, and destinations.
+      properties:
+        destinations:
+          description: A list of destination components where processed logs are sent.
+          example:
+          - id: datadog-logs-destination
+            inputs:
+            - filter-processor
+            type: datadog_logs
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineConfigDestinationItem'
+          type: array
+        processors:
+          description: A list of processors that transform or enrich log data.
+          example:
+          - id: filter-processor
+            include: service:my-service
+            inputs:
+            - datadog-agent-source
+            type: filter
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineConfigProcessorItem'
+          type: array
+        sources:
+          description: A list of configured data sources for the pipeline.
+          example:
+          - id: datadog-agent-source
+            type: datadog_agent
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineConfigSourceItem'
+          type: array
+      required:
+      - sources
+      - destinations
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeAll:
+      description: Applies scanning across all available fields.
+      properties:
+        target:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeAllTarget'
+      required:
+      - target
+      type: object
+    ObservabilityPipelineEnrichmentTableFileKeyItems:
+      description: Defines how to map log fields to enrichment table columns during lookups.
+      properties:
+        column:
+          description: The `items` `column`.
+          example: user_id
+          type: string
+        comparison:
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileKeyItemsComparison'
+        field:
+          description: The `items` `field`.
+          example: log.user.id
+          type: string
+      required:
+      - column
+      - comparison
+      - field
+      type: object
+    ObservabilityPipelineSumoLogicDestinationType:
+      default: sumo_logic
+      description: The destination type. The value should always be `sumo_logic`.
+      enum:
+      - sumo_logic
+      example: sumo_logic
+      type: string
+      x-enum-varnames:
+      - SUMO_LOGIC
+    ObservabilityPipelineHttpClientSource:
+      description: The `http_client` source scrapes logs from HTTP endpoints at regular intervals.
+      properties:
+        auth_strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineHttpClientSourceAuthStrategy'
+        decoding:
+          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: http-client-source
+          type: string
+        scrape_interval_secs:
+          description: The interval (in seconds) between HTTP scrape requests.
+          example: 60
+          format: int64
+          type: integer
+        scrape_timeout_secs:
+          description: The timeout (in seconds) for each scrape request.
+          example: 10
+          format: int64
+          type: integer
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineHttpClientSourceType'
+      required:
+      - id
+      - type
+      - decoding
+      type: object
+    ObservabilityPipelineGeneratedMetricMetricType:
+      description: Type of metric to create.
+      enum:
+      - count
+      - gauge
+      - distribution
+      example: count
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - GAUGE
+      - DISTRIBUTION
+    ObservabilityPipelineSyslogSourceMode:
+      description: Protocol used by the syslog source to receive messages.
+      enum:
+      - tcp
+      - udp
+      example: tcp
+      type: string
+      x-enum-varnames:
+      - TCP
+      - UDP
+    ObservabilityPipelineAddEnvVarsProcessorType:
+      default: add_env_vars
+      description: The processor type. The value should always be `add_env_vars`.
+      enum:
+      - add_env_vars
+      example: add_env_vars
+      type: string
+      x-enum-varnames:
+      - ADD_ENV_VARS
+    ObservabilityPipelineParseJSONProcessorType:
+      default: parse_json
+      description: The processor type. The value should always be `parse_json`.
+      enum:
+      - parse_json
+      example: parse_json
+      type: string
+      x-enum-varnames:
+      - PARSE_JSON
+    ObservabilityPipelineGoogleChronicleDestinationType:
+      default: google_chronicle
+      description: The destination type. The value should always be `google_chronicle`.
+      enum:
+      - google_chronicle
+      example: google_chronicle
+      type: string
+      x-enum-varnames:
+      - GOOGLE_CHRONICLE
+    ObservabilityPipelineSyslogNgSourceType:
+      default: syslog_ng
+      description: The source type. The value should always be `syslog_ng`.
+      enum:
+      - syslog_ng
+      example: syslog_ng
+      type: string
+      x-enum-varnames:
+      - SYSLOG_NG
+    ObservabilityPipelineOcsfMapperProcessor:
+      description: The `ocsf_mapper` processor transforms logs into the OCSF schema using a predefined mapping configuration.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline.
+          example: ocsf-mapper-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this processor.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
+        mappings:
+          description: A list of mapping rules to convert events to the OCSF format.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorMapping'
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - inputs
+      - mappings
+      type: object
+    ObservabilityPipelineRenameFieldsProcessor:
+      description: The `rename_fields` processor changes field names.
+      properties:
+        fields:
+          description: A list of rename rules specifying which fields to rename in the event, what to rename them to, and whether to preserve the original fields.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessorField'
+          type: array
+        id:
+          description: A unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: rename-fields-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - fields
+      - inputs
+      type: object
+    ObservabilityPipelineReduceProcessorType:
+      default: reduce
+      description: The processor type. The value should always be `reduce`.
+      enum:
+      - reduce
+      example: reduce
+      type: string
+      x-enum-varnames:
+      - REDUCE
+    ObservabilityPipelineHttpServerSourceAuthStrategy:
+      description: HTTP authentication method.
+      enum:
+      - none
+      - plain
+      example: plain
+      type: string
+      x-enum-varnames:
+      - NONE
+      - PLAIN
+    ObservabilityPipelineParseGrokProcessorRule:
+      description: 'A Grok parsing rule used in the `parse_grok` processor. Each rule defines how to extract structured fields
+
+        from a specific log field using Grok patterns.
+
+        '
+      properties:
+        match_rules:
+          description: 'A list of Grok parsing rules that define how to extract fields from the source field.
+
+            Each rule must contain a name and a valid Grok pattern.
+
+            '
+          example:
+          - name: MyParsingRule
+            rule: '%{word:user} connected on %{date("MM/dd/yyyy"):date}'
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessorRuleMatchRule'
+          type: array
+        source:
+          description: The name of the field in the log event to apply the Grok rules to.
+          example: message
+          type: string
+        support_rules:
+          description: 'A list of Grok helper rules that can be referenced by the parsing rules.
+
+            '
+          example:
+          - name: user
+            rule: '%{word:user.name}'
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessorRuleSupportRule'
+          type: array
+      required:
+      - source
+      - match_rules
+      - support_rules
+      type: object
+    ObservabilityPipelineDataAttributes:
+      description: Defines the pipeline’s name and its components (sources, processors, and destinations).
+      properties:
+        config:
+          $ref: '#/components/schemas/ObservabilityPipelineConfig'
+        name:
+          description: Name of the pipeline.
+          example: Main Observability Pipeline
+          type: string
+      required:
+      - name
+      - config
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedact:
+      description: Configuration for partially redacting matched sensitive data.
+      properties:
+        action:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactAction'
+        options:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions'
+      required:
+      - action
+      - options
+      type: object
+    ObservabilityPipelineRemoveFieldsProcessorType:
+      default: remove_fields
+      description: The processor type. The value should always be `remove_fields`.
+      enum:
+      - remove_fields
+      example: remove_fields
+      type: string
+      x-enum-varnames:
+      - REMOVE_FIELDS
+    ObservabilityPipelineRemoveFieldsProcessor:
+      description: The `remove_fields` processor deletes specified fields from logs.
+      properties:
+        fields:
+          description: A list of field names to be removed from each log event.
+          example:
+          - field1
+          - field2
+          items:
+            type: string
+          type: array
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
+          example: remove-fields-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: service:my-service
+          type: string
+        inputs:
+          description: The `PipelineRemoveFieldsProcessor` `inputs`.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineRemoveFieldsProcessorType'
+      required:
+      - id
+      - type
+      - include
+      - fields
+      - inputs
+      type: object
+    ObservabilityPipelineTls:
+      description: Configuration for enabling TLS encryption between the pipeline component and external services.
+      properties:
+        ca_file:
+          description: Path to the Certificate Authority (CA) file used to validate the server’s TLS certificate.
+          type: string
+          example: example_value
+        crt_file:
+          description: Path to the TLS client certificate file used to authenticate the pipeline component with upstream or downstream services.
+          example: /path/to/cert.crt
+          type: string
+        key_file:
+          description: Path to the private key file associated with the TLS client certificate. Used for mutual TLS authentication.
+          type: string
+          example: example_value
+      required:
+      - crt_file
+      type: object
     ObservabilityPipelineParseGrokProcessor:
       description: The `parse_grok` processor extracts structured fields from unstructured log messages using Grok patterns.
       properties:
@@ -488,112 +2031,6 @@ components:
       - inputs
       - rules
       type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorRule:
-      description: Defines a rule for detecting sensitive data, including matching pattern, scope, and the action to take.
-      properties:
-        keyword_options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorKeywordOptions'
-        name:
-          description: A name identifying the rule.
-          example: Redact Credit Card Numbers
-          type: string
-        on_match:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorAction'
-        pattern:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorPattern'
-        scope:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScope'
-        tags:
-          description: Tags assigned to this rule for filtering and classification.
-          example:
-          - pii
-          - ccn
-          items:
-            type: string
-          type: array
-      required:
-      - name
-      - tags
-      - pattern
-      - scope
-      - on_match
-      type: object
-    ObservabilityPipelinePipelineKafkaSourceSaslMechanism:
-      description: SASL mechanism used for Kafka authentication.
-      enum:
-      - PLAIN
-      - SCRAM-SHA-256
-      - SCRAM-SHA-512
-      type: string
-      x-enum-varnames:
-      - PLAIN
-      - SCRAMNOT_SHANOT_256
-      - SCRAMNOT_SHANOT_512
-    ObservabilityPipelineSensitiveDataScannerProcessorScope:
-      description: Determines which parts of the log the pattern-matching rule should be applied to.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeInclude'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeExclude'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeAll'
-    ObservabilityPipelineFluentdSourceType:
-      default: fluentd
-      description: The source type. The value should always be `fluentd.
-      enum:
-      - fluentd
-      example: fluentd
-      type: string
-      x-enum-varnames:
-      - FLUENTD
-    ObservabilityPipelineSensitiveDataScannerProcessorAction:
-      description: Defines what action to take when sensitive data is matched.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedact'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionHash'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedact'
-    ObservabilityPipelineRenameFieldsProcessorType:
-      default: rename_fields
-      description: The processor type. The value should always be `rename_fields`.
-      enum:
-      - rename_fields
-      example: rename_fields
-      type: string
-      x-enum-varnames:
-      - RENAME_FIELDS
-    ObservabilityPipelineSentinelOneDestinationRegion:
-      description: The SentinelOne region to send logs to.
-      enum:
-      - us
-      - eu
-      - ca
-      - data_set_us
-      example: us
-      type: string
-      x-enum-varnames:
-      - US
-      - EU
-      - CA
-      - DATA_SET_US
-    ObservabilityPipelineReduceProcessorType:
-      default: reduce
-      description: The processor type. The value should always be `reduce`.
-      enum:
-      - reduce
-      example: reduce
-      type: string
-      x-enum-varnames:
-      - REDUCE
-    ObservabilityPipelineGeneratedMetricMetricType:
-      description: Type of metric to create.
-      enum:
-      - count
-      - gauge
-      - distribution
-      example: count
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - GAUGE
-      - DISTRIBUTION
     ObservabilityPipelineEnrichmentTableGeoIp:
       description: Uses a GeoIP database to enrich logs based on an IP field.
       properties:
@@ -614,108 +2051,30 @@ components:
       - locale
       - path
       type: object
-    ObservabilityPipelineGeneratedMetricIncrementByOne:
-      description: Strategy that increments a generated metric by one for each matching event.
-      properties:
-        strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByOneStrategy'
-      required:
-      - strategy
-      type: object
-    ObservabilityPipelineOcsfMapperProcessorType:
-      default: ocsf_mapper
-      description: The processor type. The value should always be `ocsf_mapper`.
+    ObservabilityPipelineHttpClientSourceType:
+      default: http_client
+      description: The source type. The value should always be `http_client`.
       enum:
-      - ocsf_mapper
-      example: ocsf_mapper
+      - http_client
+      example: http_client
       type: string
       x-enum-varnames:
-      - OCSF_MAPPER
-    ObservabilityPipelineRenameFieldsProcessorField:
-      description: Defines how to rename a field in log events.
-      properties:
-        destination:
-          description: The field name to assign the renamed value to.
-          example: destination_field
-          type: string
-        preserve_source:
-          description: Indicates whether the original field, that is received from the source, should be kept (`true`) or removed (`false`) after renaming.
-          example: false
-          type: boolean
-        source:
-          description: The original field name in the log event that should be renamed.
-          example: source_field
-          type: string
-      required:
-      - source
-      - destination
-      - preserve_source
-      type: object
-    AzureStorageDestinationType:
-      default: azure_storage
-      description: The destination type. The value should always be `azure_storage`.
+      - HTTP_CLIENT
+    ObservabilityPipelineGooglePubSubSourceType:
+      default: google_pubsub
+      description: The source type. The value should always be `google_pubsub`.
       enum:
-      - azure_storage
-      example: azure_storage
+      - google_pubsub
+      example: google_pubsub
       type: string
       x-enum-varnames:
-      - AZURE_STORAGE
-    ObservabilityPipelineEnrichmentTableFileKeyItemsComparison:
-      description: Defines how to compare key fields for enrichment table lookups.
-      enum:
-      - equals
-      example: equals
-      type: string
-      x-enum-varnames:
-      - EQUALS
-    ObservabilityPipelineKafkaSource:
-      description: The `kafka` source ingests data from Apache Kafka topics.
+      - GOOGLE_PUBSUB
+    ObservabilityPipelineDatadogLogsDestination:
+      description: The `datadog_logs` destination forwards logs to Datadog Log Management.
       properties:
-        group_id:
-          description: Consumer group ID used by the Kafka client.
-          example: consumer-group-0
-          type: string
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: kafka-source
-          type: string
-        librdkafka_options:
-          description: Optional list of advanced Kafka client configuration options, defined as key-value pairs.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceLibrdkafkaOption'
-          type: array
-        sasl:
-          $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceSasl'
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        topics:
-          description: A list of Kafka topic names to subscribe to. The source ingests messages from each topic specified.
-          example:
-          - topic1
-          - topic2
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceType'
-      required:
-      - id
-      - type
-      - group_id
-      - topics
-      type: object
-    ObservabilityPipelineAmazonOpenSearchDestination:
-      description: The `amazon_opensearch` destination writes logs to Amazon OpenSearch.
-      properties:
-        auth:
-          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationAuth'
-        bulk_index:
-          description: The index to write logs to.
-          example: logs-index
-          type: string
         id:
           description: The unique identifier for this component.
-          example: elasticsearch-destination
+          example: datadog-logs-destination
           type: string
         inputs:
           description: A list of component IDs whose output is used as the `input` for this component.
@@ -725,104 +2084,38 @@ components:
             type: string
           type: array
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationType'
+          $ref: '#/components/schemas/ObservabilityPipelineDatadogLogsDestinationType'
       required:
       - id
       - type
       - inputs
-      - auth
       type: object
-    ObservabilityPipelineSentinelOneDestinationType:
-      default: sentinel_one
-      description: The destination type. The value should always be `sentinel_one`.
-      enum:
-      - sentinel_one
-      example: sentinel_one
-      type: string
-      x-enum-varnames:
-      - SENTINEL_ONE
-    ObservabilityPipelineGeneratedMetricIncrementByOneStrategy:
-      description: Increments the metric by 1 for each matching event.
-      enum:
-      - increment_by_one
-      example: increment_by_one
-      type: string
-      x-enum-varnames:
-      - INCREMENT_BY_ONE
-    ObservabilityPipelineParseJSONProcessorType:
-      default: parse_json
-      description: The processor type. The value should always be `parse_json`.
-      enum:
-      - parse_json
-      example: parse_json
-      type: string
-      x-enum-varnames:
-      - PARSE_JSON
-    ObservabilityPipelineSyslogNgDestinationType:
-      default: syslog_ng
-      description: The destination type. The value should always be `syslog_ng`.
-      enum:
-      - syslog_ng
-      example: syslog_ng
-      type: string
-      x-enum-varnames:
-      - SYSLOG_NG
-    ObservabilityPipelineGenerateMetricsProcessor:
-      description: 'The `generate_datadog_metrics` processor creates custom metrics from logs and sends them to Datadog.
-
-        Metrics can be counters, gauges, or distributions and optionally grouped by log fields.
-
-        '
+    ObservabilityPipelineNewRelicDestination:
+      description: The `new_relic` destination sends logs to the New Relic platform.
       properties:
         id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline.
-          example: generate-metrics-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
+          description: The unique identifier for this component.
+          example: new-relic-destination
           type: string
         inputs:
-          description: A list of component IDs whose output is used as the `input` for this processor.
+          description: A list of component IDs whose output is used as the `input` for this component.
           example:
-          - source-id
+          - parse-json-processor
           items:
             type: string
           type: array
-        metrics:
-          description: Configuration for generating individual metrics.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetric'
-          type: array
+        region:
+          $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestinationRegion'
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineGenerateMetricsProcessorType'
+          $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestinationType'
       required:
       - id
       - type
       - inputs
-      - include
-      - metrics
+      - region
       type: object
-    ObservabilityPipelineEnrichmentTableProcessorType:
-      default: enrichment_table
-      description: The processor type. The value should always be `enrichment_table`.
-      enum:
-      - enrichment_table
-      example: enrichment_table
-      type: string
-      x-enum-varnames:
-      - ENRICHMENT_TABLE
-    ObservabilityPipelineAddFieldsProcessorType:
-      default: add_fields
-      description: The processor type. The value should always be `add_fields`.
-      enum:
-      - add_fields
-      example: add_fields
-      type: string
-      x-enum-varnames:
-      - ADD_FIELDS
-    ObservabilityPipelineSplunkHecDestinationEncoding:
-      description: Encoding format for log events.
+    ObservabilityPipelineGoogleChronicleDestinationEncoding:
+      description: The encoding format for the logs sent to Chronicle.
       enum:
       - json
       - raw_message
@@ -831,266 +2124,15 @@ components:
       x-enum-varnames:
       - JSON
       - RAW_MESSAGE
-    ObservabilityPipelineAmazonOpenSearchDestinationAuth:
-      description: 'Authentication settings for the Amazon OpenSearch destination.
-
-        The `strategy` field determines whether basic or AWS-based authentication is used.
-
-        '
-      properties:
-        assume_role:
-          description: The ARN of the role to assume (used with `aws` strategy).
-          type: string
-          example: example_value
-        aws_region:
-          description: AWS region
-          type: string
-          example: example_value
-        external_id:
-          description: External ID for the assumed role (used with `aws` strategy).
-          type: string
-          example: abc-123-def
-        session_name:
-          description: Session name for the assumed role (used with `aws` strategy).
-          type: string
-          example: Example Monitor
-        strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestinationAuthStrategy'
-      required:
-      - strategy
-      type: object
-    ObservabilityPipelineOcsfMapperProcessorMapping:
-      description: Defines how specific events are transformed to OCSF using a mapping configuration.
-      properties:
-        include:
-          description: A Datadog search query used to select the logs that this mapping should apply to.
-          example: service:my-service
-          type: string
-        mapping:
-          $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorMappingMapping'
-      required:
-      - include
-      - mapping
-      type: object
-    ObservabilityPipelineRsyslogSourceType:
-      default: rsyslog
-      description: The source type. The value should always be `rsyslog`.
+    ObservabilityPipelineKafkaSourceType:
+      default: kafka
+      description: The source type. The value should always be `kafka`.
       enum:
-      - rsyslog
-      example: rsyslog
+      - kafka
+      example: kafka
       type: string
       x-enum-varnames:
-      - RSYSLOG
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeIncludeTarget:
-      description: Applies the rule only to included fields.
-      enum:
-      - include
-      example: include
-      type: string
-      x-enum-varnames:
-      - INCLUDE
-    ObservabilityPipelineGoogleCloudStorageDestinationStorageClass:
-      description: Storage class used for objects stored in GCS.
-      enum:
-      - STANDARD
-      - NEARLINE
-      - COLDLINE
-      - ARCHIVE
-      example: STANDARD
-      type: string
-      x-enum-varnames:
-      - STANDARD
-      - NEARLINE
-      - COLDLINE
-      - ARCHIVE
-    ObservabilityPipelineNewRelicDestinationRegion:
-      description: The New Relic region.
-      enum:
-      - us
-      - eu
-      example: us
-      type: string
-      x-enum-varnames:
-      - US
-      - EU
-    ObservabilityPipelineSumoLogicDestination:
-      description: The `sumo_logic` destination forwards logs to Sumo Logic.
-      properties:
-        encoding:
-          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationEncoding'
-        header_custom_fields:
-          description: A list of custom headers to include in the request to Sumo Logic.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationHeaderCustomFieldsItem'
-          type: array
-        header_host_name:
-          description: Optional override for the host name header.
-          example: host-123
-          type: string
-        header_source_category:
-          description: Optional override for the source category header.
-          example: source-category
-          type: string
-        header_source_name:
-          description: Optional override for the source name header.
-          example: source-name
-          type: string
-        id:
-          description: The unique identifier for this component.
-          example: sumo-logic-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
-    ObservabilityPipelineEnrichmentTableFile:
-      description: Defines a static enrichment table loaded from a CSV file.
-      properties:
-        encoding:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileEncoding'
-        key:
-          description: Key fields used to look up enrichment values.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileKeyItems'
-          type: array
-        path:
-          description: Path to the CSV file.
-          example: /etc/enrichment/lookup.csv
-          type: string
-        schema:
-          description: Schema defining column names and their types.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileSchemaItems'
-          type: array
-      required:
-      - encoding
-      - key
-      - path
-      - schema
-      type: object
-    ObservabilityPipelineGeneratedMetricIncrementByFieldStrategy:
-      description: Uses a numeric field in the log event as the metric increment.
-      enum:
-      - increment_by_field
-      example: increment_by_field
-      type: string
-      x-enum-varnames:
-      - INCREMENT_BY_FIELD
-    ObservabilityPipelineTls:
-      description: Configuration for enabling TLS encryption between the pipeline component and external services.
-      properties:
-        ca_file:
-          description: Path to the Certificate Authority (CA) file used to validate the server’s TLS certificate.
-          type: string
-          example: example_value
-        crt_file:
-          description: Path to the TLS client certificate file used to authenticate the pipeline component with upstream or downstream services.
-          example: /path/to/cert.crt
-          type: string
-        key_file:
-          description: Path to the private key file associated with the TLS client certificate. Used for mutual TLS authentication.
-          type: string
-          example: example_value
-      required:
-      - crt_file
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeAll:
-      description: Applies scanning across all available fields.
-      properties:
-        target:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeAllTarget'
-      required:
-      - target
-      type: object
-    ObservabilityPipelineSyslogSourceMode:
-      description: Protocol used by the syslog source to receive messages.
-      enum:
-      - tcp
-      - udp
-      example: tcp
-      type: string
-      x-enum-varnames:
-      - TCP
-      - UDP
-    ObservabilityPipelineQuotaProcessorLimitEnforceType:
-      description: Unit for quota enforcement in bytes for data size or events for count.
-      enum:
-      - bytes
-      - events
-      example: bytes
-      type: string
-      x-enum-varnames:
-      - BYTES
-      - EVENTS
-    ObservabilityPipelineConfig:
-      description: Specifies the pipeline's configuration, including its sources, processors, and destinations.
-      properties:
-        destinations:
-          description: A list of destination components where processed logs are sent.
-          example:
-          - id: datadog-logs-destination
-            inputs:
-            - filter-processor
-            type: datadog_logs
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineConfigDestinationItem'
-          type: array
-        processors:
-          description: A list of processors that transform or enrich log data.
-          example:
-          - id: filter-processor
-            include: service:my-service
-            inputs:
-            - datadog-agent-source
-            type: filter
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineConfigProcessorItem'
-          type: array
-        sources:
-          description: A list of configured data sources for the pipeline.
-          example:
-          - id: datadog-agent-source
-            type: datadog_agent
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineConfigSourceItem'
-          type: array
-      required:
-      - sources
-      - destinations
-      type: object
-    ObservabilityPipelineFluentdSource:
-      description: The `fluentd` source ingests logs from a Fluentd-compatible service.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
-          example: fluent-source
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineFluentdSourceType'
-      required:
-      - id
-      - type
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorActionRedactAction:
-      description: Action type that completely replaces the matched sensitive data with a fixed replacement string to remove all visibility.
-      enum:
-      - redact
-      example: redact
-      type: string
-      x-enum-varnames:
-      - REDACT
+      - KAFKA
     ObservabilityPipelineAddEnvVarsProcessor:
       description: The `add_env_vars` processor adds environment variable values to log events.
       properties:
@@ -1123,126 +2165,183 @@ components:
       - inputs
       - variables
       type: object
-    ObservabilityPipelineSplunkTcpSourceType:
-      default: splunk_tcp
-      description: The source type. Always `splunk_tcp`.
+    ObservabilityPipelineQuotaProcessorLimit:
+      description: The maximum amount of data or number of events allowed before the quota is enforced. Can be specified in bytes or events.
+      properties:
+        enforce:
+          $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessorLimitEnforceType'
+        limit:
+          description: The limit for quota enforcement.
+          example: 1000
+          format: int64
+          type: integer
+      required:
+      - enforce
+      - limit
+      type: object
+    ObservabilityPipelineMetricValue:
+      description: Specifies how the value of the generated metric is computed.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByOne'
+      - $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByField'
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeIncludeTarget:
+      description: Applies the rule only to included fields.
       enum:
-      - splunk_tcp
-      example: splunk_tcp
+      - include
+      example: include
       type: string
       x-enum-varnames:
-      - SPLUNK_TCP
-    ObservabilityPipelineSensitiveDataScannerProcessor:
-      description: The `sensitive_data_scanner` processor detects and optionally redacts sensitive data in log events.
+      - INCLUDE
+    ObservabilityPipelineSampleProcessorType:
+      default: sample
+      description: The processor type. The value should always be `sample`.
+      enum:
+      - sample
+      example: sample
+      type: string
+      x-enum-varnames:
+      - SAMPLE
+    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactAction:
+      description: Action type that redacts part of the sensitive data while preserving a configurable number of characters, typically used for masking purposes (e.g., show last 4 digits of a credit card).
+      enum:
+      - partial_redact
+      example: partial_redact
+      type: string
+      x-enum-varnames:
+      - PARTIAL_REDACT
+    ObservabilityPipelineGenerateMetricsProcessorType:
+      default: generate_datadog_metrics
+      description: The processor type. Always `generate_datadog_metrics`.
+      enum:
+      - generate_datadog_metrics
+      example: generate_datadog_metrics
+      type: string
+      x-enum-varnames:
+      - GENERATE_DATADOG_METRICS
+    ObservabilityPipelineSentinelOneDestinationType:
+      default: sentinel_one
+      description: The destination type. The value should always be `sentinel_one`.
+      enum:
+      - sentinel_one
+      example: sentinel_one
+      type: string
+      x-enum-varnames:
+      - SENTINEL_ONE
+    ObservabilityPipelineConfigSourceItem:
+      description: A data source for the pipeline.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineKafkaSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineDatadogAgentSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineSplunkTcpSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineSplunkHecSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineAmazonS3Source'
+      - $ref: '#/components/schemas/ObservabilityPipelineFluentdSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineFluentBitSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineHttpServerSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineSumoLogicSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineRsyslogSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineSyslogNgSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineAmazonDataFirehoseSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineGooglePubSubSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineHttpClientSource'
+      - $ref: '#/components/schemas/ObservabilityPipelineLogstashSource'
+    ObservabilityPipelineFluentdSource:
+      description: The `fluentd` source ingests logs from a Fluentd-compatible service.
+      properties:
+        id:
+          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
+          example: fluent-source
+          type: string
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineFluentdSourceType'
+      required:
+      - id
+      - type
+      type: object
+    ObservabilityPipelineEnrichmentTableFileKeyItemsComparison:
+      description: Defines how to compare key fields for enrichment table lookups.
+      enum:
+      - equals
+      example: equals
+      type: string
+      x-enum-varnames:
+      - EQUALS
+    ObservabilityPipelineSumoLogicDestinationEncoding:
+      description: The output encoding format.
+      enum:
+      - json
+      - raw_message
+      - logfmt
+      example: json
+      type: string
+      x-enum-varnames:
+      - JSON
+      - RAW_MESSAGE
+      - LOGFMT
+    ObservabilityPipelineDatadogAgentSource:
+      description: The `datadog_agent` source collects logs from the Datadog Agent.
       properties:
         id:
           description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: sensitive-scanner
+          example: datadog-agent-source
           type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: source:prod
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - parse-json-processor
-          items:
-            type: string
-          type: array
-        rules:
-          description: A list of rules for identifying and acting on sensitive data patterns.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorRule'
-          type: array
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorType'
+          $ref: '#/components/schemas/ObservabilityPipelineDatadogAgentSourceType'
       required:
       - id
       - type
-      - include
-      - inputs
-      - rules
       type: object
-    ObservabilityPipelineParseGrokProcessorRuleMatchRule:
-      description: 'Defines a Grok parsing rule, which extracts structured fields from log content using named Grok patterns.
-
-        Each rule must have a unique name and a valid Datadog Grok pattern that will be applied to the source field.
-
-        '
+    ObservabilityPipelineSentinelOneDestination:
+      description: The `sentinel_one` destination sends logs to SentinelOne.
       properties:
-        name:
-          description: The name of the rule.
-          example: MyParsingRule
-          type: string
-        rule:
-          description: The definition of the Grok rule.
-          example: '%{word:user} connected on %{date("MM/dd/yyyy"):date}'
-          type: string
-      required:
-      - name
-      - rule
-      type: object
-    ObservabilityPipelineRenameFieldsProcessor:
-      description: The `rename_fields` processor changes field names.
-      properties:
-        fields:
-          description: A list of rename rules specifying which fields to rename in the event, what to rename them to, and whether to preserve the original fields.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessorField'
-          type: array
         id:
-          description: A unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: rename-fields-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
+          description: The unique identifier for this component.
+          example: sentinelone-destination
           type: string
         inputs:
           description: A list of component IDs whose output is used as the `input` for this component.
           example:
-          - datadog-agent-source
+          - filter-processor
           items:
             type: string
           type: array
+        region:
+          $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestinationRegion'
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessorType'
+          $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestinationType'
       required:
       - id
       - type
-      - include
-      - fields
       - inputs
+      - region
       type: object
-    ObservabilityPipelineOcsfMappingLibrary:
-      description: Predefined library mappings for common log formats.
+    ObservabilityPipelineDecoding:
+      description: The decoding format used to interpret incoming logs.
       enum:
-      - CloudTrail Account Change
-      - GCP Cloud Audit CreateBucket
-      - GCP Cloud Audit CreateSink
-      - GCP Cloud Audit SetIamPolicy
-      - GCP Cloud Audit UpdateSink
-      - Github Audit Log API Activity
-      - Google Workspace Admin Audit addPrivilege
-      - Microsoft 365 Defender Incident
-      - Microsoft 365 Defender UserLoggedIn
-      - Okta System Log Authentication
-      - Palo Alto Networks Firewall Traffic
-      example: CloudTrail Account Change
+      - bytes
+      - gelf
+      - json
+      - syslog
+      example: json
       type: string
       x-enum-varnames:
-      - CLOUDTRAIL_ACCOUNT_CHANGE
-      - GCP_CLOUD_AUDIT_CREATEBUCKET
-      - GCP_CLOUD_AUDIT_CREATESINK
-      - GCP_CLOUD_AUDIT_SETIAMPOLICY
-      - GCP_CLOUD_AUDIT_UPDATESINK
-      - GITHUB_AUDIT_LOG_API_ACTIVITY
-      - GOOGLE_WORKSPACE_ADMIN_AUDIT_ADDPRIVILEGE
-      - MICROSOFT_365_DEFENDER_INCIDENT
-      - MICROSOFT_365_DEFENDER_USERLOGGEDIN
-      - OKTA_SYSTEM_LOG_AUTHENTICATION
-      - PALO_ALTO_NETWORKS_FIREWALL_TRAFFIC
+      - DECODE_BYTES
+      - DECODE_GELF
+      - DECODE_JSON
+      - DECODE_SYSLOG
+    ObservabilityPipelineAmazonS3SourceType:
+      default: amazon_s3
+      description: The source type. Always `amazon_s3`.
+      enum:
+      - amazon_s3
+      example: amazon_s3
+      type: string
+      x-enum-varnames:
+      - AMAZON_S3
     ObservabilityPipelineAmazonS3Destination:
       description: The `amazon_s3` destination sends your logs in Datadog-rehydratable format to an Amazon S3 bucket for archiving.
       properties:
@@ -1285,350 +2384,55 @@ components:
       - region
       - storage_class
       type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedact:
-      description: Configuration for partially redacting matched sensitive data.
+    ObservabilityPipelineEnrichmentTableProcessor:
+      description: The `enrichment_table` processor enriches logs using a static CSV file or GeoIP database.
       properties:
-        action:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactAction'
-        options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactOptions'
-      required:
-      - action
-      - options
-      type: object
-    ObservabilityPipelineOpenSearchDestinationType:
-      default: opensearch
-      description: The destination type. The value should always be `opensearch`.
-      enum:
-      - opensearch
-      example: opensearch
-      type: string
-      x-enum-varnames:
-      - OPENSEARCH
-    ObservabilityPipelineQuotaProcessorOverride:
-      description: Defines a custom quota limit that applies to specific log events based on matching field values.
-      properties:
-        fields:
-          description: A list of field matchers used to apply a specific override. If an event matches all listed key-value pairs, the corresponding override limit is enforced.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineFieldValue'
-          type: array
-        limit:
-          $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessorLimit'
-      required:
-      - fields
-      - limit
-      type: object
-    ObservabilityPipelineConfigDestinationItem:
-      description: A destination for the pipeline.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineDatadogLogsDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineAmazonS3Destination'
-      - $ref: '#/components/schemas/ObservabilityPipelineGoogleCloudStorageDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineRsyslogDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineSyslogNgDestination'
-      - $ref: '#/components/schemas/AzureStorageDestination'
-      - $ref: '#/components/schemas/MicrosoftSentinelDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineOpenSearchDestination'
-      - $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestination'
-    ObservabilityPipelineSplunkHecDestinationType:
-      default: splunk_hec
-      description: The destination type. Always `splunk_hec`.
-      enum:
-      - splunk_hec
-      example: splunk_hec
-      type: string
-      x-enum-varnames:
-      - SPLUNK_HEC
-    ObservabilityPipelineRemoveFieldsProcessorType:
-      default: remove_fields
-      description: The processor type. The value should always be `remove_fields`.
-      enum:
-      - remove_fields
-      example: remove_fields
-      type: string
-      x-enum-varnames:
-      - REMOVE_FIELDS
-    ObservabilityPipelineGooglePubSubSource:
-      description: The `google_pubsub` source ingests logs from a Google Cloud Pub/Sub subscription.
-      properties:
-        auth:
-          $ref: '#/components/schemas/ObservabilityPipelineGcpAuth'
-        decoding:
-          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: google-pubsub-source
-          type: string
-        project:
-          description: The GCP project ID that owns the Pub/Sub subscription.
-          example: my-gcp-project
-          type: string
-        subscription:
-          description: The Pub/Sub subscription name from which messages are consumed.
-          example: logs-subscription
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineGooglePubSubSourceType'
-      required:
-      - id
-      - type
-      - auth
-      - decoding
-      - project
-      - subscription
-      type: object
-    ObservabilityPipelineAwsAuth:
-      description: 'AWS authentication credentials used for accessing AWS services such as S3.
-
-        If omitted, the system’s default credentials are used (for example, the IAM role and environment variables).
-
-        '
-      properties:
-        assume_role:
-          description: The Amazon Resource Name (ARN) of the role to assume.
-          type: string
-          example: example_value
-        external_id:
-          description: A unique identifier for cross-account role assumption.
-          type: string
-          example: abc-123-def
-        session_name:
-          description: A session identifier used for logging and tracing the assumed role session.
-          type: string
-          example: Example Monitor
-      type: object
-    ObservabilityPipelineFluentBitSourceType:
-      default: fluent_bit
-      description: The source type. The value should always be `fluent_bit`.
-      enum:
-      - fluent_bit
-      example: fluent_bit
-      type: string
-      x-enum-varnames:
-      - FLUENT_BIT
-    ObservabilityPipelineAmazonOpenSearchDestinationType:
-      default: amazon_opensearch
-      description: The destination type. The value should always be `amazon_opensearch`.
-      enum:
-      - amazon_opensearch
-      example: amazon_opensearch
-      type: string
-      x-enum-varnames:
-      - AMAZON_OPENSEARCH
-    ObservabilityPipelineKafkaSourceLibrdkafkaOption:
-      description: Represents a key-value pair used to configure low-level `librdkafka` client options for Kafka sources, such as timeouts, buffer sizes, and security settings.
-      properties:
-        name:
-          description: The name of the `librdkafka` configuration option to set.
-          example: fetch.message.max.bytes
-          type: string
-        value:
-          description: The value assigned to the specified `librdkafka` configuration option.
-          example: '1048576'
-          type: string
-      required:
-      - name
-      - value
-      type: object
-    ObservabilityPipelineNewRelicDestination:
-      description: The `new_relic` destination sends logs to the New Relic platform.
-      properties:
-        id:
-          description: The unique identifier for this component.
-          example: new-relic-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - parse-json-processor
-          items:
-            type: string
-          type: array
-        region:
-          $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestinationRegion'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      - region
-      type: object
-    ObservabilityPipelineGenerateMetricsProcessorType:
-      default: generate_datadog_metrics
-      description: The processor type. Always `generate_datadog_metrics`.
-      enum:
-      - generate_datadog_metrics
-      example: generate_datadog_metrics
-      type: string
-      x-enum-varnames:
-      - GENERATE_DATADOG_METRICS
-    ObservabilityPipelineSumoLogicDestinationHeaderCustomFieldsItem:
-      description: Single key-value pair used as a custom log header for Sumo Logic.
-      properties:
-        name:
-          description: The header field name.
-          example: X-Sumo-Category
-          type: string
-        value:
-          description: The header field value.
-          example: my-app-logs
-          type: string
-      required:
-      - name
-      - value
-      type: object
-    ObservabilityPipelineRemoveFieldsProcessor:
-      description: The `remove_fields` processor deletes specified fields from logs.
-      properties:
-        fields:
-          description: A list of field names to be removed from each log event.
-          example:
-          - field1
-          - field2
-          items:
-            type: string
-          type: array
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: remove-fields-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
-          type: string
-        inputs:
-          description: The `PipelineRemoveFieldsProcessor` `inputs`.
-          example:
-          - datadog-agent-source
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineRemoveFieldsProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - fields
-      - inputs
-      type: object
-    ObservabilityPipelineSumoLogicDestinationType:
-      default: sumo_logic
-      description: The destination type. The value should always be `sumo_logic`.
-      enum:
-      - sumo_logic
-      example: sumo_logic
-      type: string
-      x-enum-varnames:
-      - SUMO_LOGIC
-    ObservabilityPipelineDedupeProcessor:
-      description: The `dedupe` processor removes duplicate fields in log events.
-      properties:
-        fields:
-          description: A list of log field paths to check for duplicates.
-          example:
-          - log.message
-          - log.error
-          items:
-            type: string
-          type: array
+        file:
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFile'
+        geoip:
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableGeoIp'
         id:
           description: The unique identifier for this processor.
-          example: dedupe-processor
+          example: enrichment-table-processor
           type: string
         include:
           description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
+          example: source:my-source
           type: string
         inputs:
           description: A list of component IDs whose output is used as the input for this processor.
           example:
-          - parse-json-processor
+          - add-fields-processor
           items:
             type: string
           type: array
-        mode:
-          $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessorMode'
+        target:
+          description: Path where enrichment results should be stored in the log.
+          example: enriched.geoip
+          type: string
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessorType'
+          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableProcessorType'
       required:
       - id
       - type
       - include
       - inputs
-      - fields
-      - mode
+      - target
       type: object
-    ObservabilityPipelineSplunkHecDestination:
-      description: 'The `splunk_hec` destination forwards logs to Splunk using the HTTP Event Collector (HEC).
-
-        '
-      properties:
-        auto_extract_timestamp:
-          description: 'If `true`, Splunk tries to extract timestamps from incoming log events.
-
-            If `false`, Splunk assigns the time the event was received.
-
-            '
-          example: true
-          type: boolean
-        encoding:
-          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestinationEncoding'
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: splunk-hec-destination
-          type: string
-        index:
-          description: Optional name of the Splunk index where logs are written.
-          example: main
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        sourcetype:
-          description: The Splunk sourcetype to assign to log events.
-          example: custom_sourcetype
-          type: string
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
-    ObservabilityPipelineMetricValue:
-      description: Specifies how the value of the generated metric is computed.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByOne'
-      - $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByField'
-    ObservabilityPipelineDecoding:
-      description: The decoding format used to interpret incoming logs.
+    ObservabilityPipelineElasticsearchDestinationApiVersion:
+      description: The Elasticsearch API version to use. Set to `auto` to auto-detect.
       enum:
-      - bytes
-      - gelf
-      - json
-      - syslog
-      example: json
+      - auto
+      - v6
+      - v7
+      - v8
+      example: auto
       type: string
       x-enum-varnames:
-      - DECODE_BYTES
-      - DECODE_GELF
-      - DECODE_JSON
-      - DECODE_SYSLOG
+      - AUTO
+      - V6
+      - V7
+      - V8
     ObservabilityPipelineGoogleCloudStorageDestinationAcl:
       description: Access control list setting for objects written to the bucket.
       enum:
@@ -1647,182 +2451,16 @@ components:
       - AUTHENTICATEDNOT_READ
       - BUCKETNOT_OWNERNOT_READ
       - BUCKETNOT_OWNERNOT_FULLNOT_CONTROL
-    ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions:
-      description: Configuration for fully redacting sensitive data.
+    ObservabilityPipelineSensitiveDataScannerProcessorActionRedact:
+      description: Configuration for completely redacting matched sensitive data.
       properties:
-        replace:
-          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions` `replace`.
-          example: '***'
-          type: string
-      required:
-      - replace
-      type: object
-    ObservabilityPipelineReduceProcessorMergeStrategy:
-      description: Defines how a specific field should be merged across grouped events.
-      properties:
-        path:
-          description: The field path in the log event.
-          example: log.user.roles
-          type: string
-        strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorMergeStrategyStrategy'
-      required:
-      - path
-      - strategy
-      type: object
-    ObservabilityPipelineGoogleChronicleDestinationEncoding:
-      description: The encoding format for the logs sent to Chronicle.
-      enum:
-      - json
-      - raw_message
-      example: json
-      type: string
-      x-enum-varnames:
-      - JSON
-      - RAW_MESSAGE
-    ObservabilityPipelineGeneratedMetricIncrementByField:
-      description: Strategy that increments a generated metric based on the value of a log field.
-      properties:
-        field:
-          description: Name of the log field containing the numeric value to increment the metric by.
-          example: errors
-          type: string
-        strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByFieldStrategy'
-      required:
-      - strategy
-      - field
-      type: object
-    ObservabilityPipelineSumoLogicDestinationEncoding:
-      description: The output encoding format.
-      enum:
-      - json
-      - raw_message
-      - logfmt
-      example: json
-      type: string
-      x-enum-varnames:
-      - JSON
-      - RAW_MESSAGE
-      - LOGFMT
-    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPattern:
-      description: Specifies a pattern from Datadog’s sensitive data detection library to match known sensitive data types.
-      properties:
+        action:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedactAction'
         options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternOptions'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternType'
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions'
       required:
-      - type
+      - action
       - options
-      type: object
-    ObservabilityPipelineFieldValue:
-      description: Represents a static key-value pair used in various processors.
-      properties:
-        name:
-          description: The field name.
-          example: field_name
-          type: string
-        value:
-          description: The field value.
-          example: field_value
-          type: string
-      required:
-      - name
-      - value
-      type: object
-    ObservabilityPipelineEnrichmentTableFileEncodingType:
-      description: Specifies the encoding format (e.g., CSV) used for enrichment tables.
-      enum:
-      - csv
-      example: csv
-      type: string
-      x-enum-varnames:
-      - CSV
-    ObservabilityPipelineSensitiveDataScannerProcessorActionPartialRedactAction:
-      description: Action type that redacts part of the sensitive data while preserving a configurable number of characters, typically used for masking purposes (e.g., show last 4 digits of a credit card).
-      enum:
-      - partial_redact
-      example: partial_redact
-      type: string
-      x-enum-varnames:
-      - PARTIAL_REDACT
-    ObservabilityPipelineKafkaSourceSasl:
-      description: Specifies the SASL mechanism for authenticating with a Kafka cluster.
-      properties:
-        mechanism:
-          $ref: '#/components/schemas/ObservabilityPipelinePipelineKafkaSourceSaslMechanism'
-      type: object
-    ObservabilityPipelineGoogleChronicleDestinationType:
-      default: google_chronicle
-      description: The destination type. The value should always be `google_chronicle`.
-      enum:
-      - google_chronicle
-      example: google_chronicle
-      type: string
-      x-enum-varnames:
-      - GOOGLE_CHRONICLE
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeAllTarget:
-      description: Applies the rule to all fields.
-      enum:
-      - all
-      example: all
-      type: string
-      x-enum-varnames:
-      - ALL
-    ObservabilityPipelineThrottleProcessorType:
-      default: throttle
-      description: The processor type. The value should always be `throttle`.
-      enum:
-      - throttle
-      example: throttle
-      type: string
-      x-enum-varnames:
-      - THROTTLE
-    ObservabilityPipelineOcsfMapperProcessor:
-      description: The `ocsf_mapper` processor transforms logs into the OCSF schema using a predefined mapping configuration.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline.
-          example: ocsf-mapper-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this processor.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        mappings:
-          description: A list of mapping rules to convert events to the OCSF format.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorMapping'
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      - mappings
-      type: object
-    ObservabilityPipelineEnrichmentTableFileSchemaItems:
-      description: Describes a single column and its type in an enrichment table schema.
-      properties:
-        column:
-          description: The `items` `column`.
-          example: region
-          type: string
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileSchemaItemsType'
-      required:
-      - column
-      - type
       type: object
     ObservabilityPipelineEnrichmentTableFileEncoding:
       description: File encoding format.
@@ -1842,65 +2480,110 @@ components:
       - delimiter
       - includes_headers
       type: object
-    ObservabilityPipelineEnrichmentTableFileKeyItems:
-      description: Defines how to map log fields to enrichment table columns during lookups.
+    ObservabilityPipelineEnrichmentTableFileEncodingType:
+      description: Specifies the encoding format (e.g., CSV) used for enrichment tables.
+      enum:
+      - csv
+      example: csv
+      type: string
+      x-enum-varnames:
+      - CSV
+    ObservabilityPipelineSumoLogicDestinationHeaderCustomFieldsItem:
+      description: Single key-value pair used as a custom log header for Sumo Logic.
       properties:
-        column:
-          description: The `items` `column`.
-          example: user_id
+        name:
+          description: The header field name.
+          example: X-Sumo-Category
           type: string
-        comparison:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFileKeyItemsComparison'
-        field:
-          description: The `items` `field`.
-          example: log.user.id
+        value:
+          description: The header field value.
+          example: my-app-logs
           type: string
       required:
-      - column
-      - comparison
-      - field
+      - name
+      - value
       type: object
-    ObservabilityPipelineFluentBitSource:
-      description: The `fluent_bit` source ingests logs from Fluent Bit.
+    ObservabilityPipelineOcsfMapperProcessorMappingMapping:
+      description: Defines a single mapping rule for transforming logs into the OCSF schema.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineOcsfMappingLibrary'
+    ObservabilityPipelineAmazonS3DestinationType:
+      default: amazon_s3
+      description: The destination type. Always `amazon_s3`.
+      enum:
+      - amazon_s3
+      example: amazon_s3
+      type: string
+      x-enum-varnames:
+      - AMAZON_S3
+    ObservabilityPipelineOpenSearchDestination:
+      description: The `opensearch` destination writes logs to an OpenSearch cluster.
       properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
-          example: fluent-source
+        bulk_index:
+          description: The index to write logs to.
+          example: logs-index
           type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        id:
+          description: The unique identifier for this component.
+          example: opensearch-destination
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineFluentBitSourceType'
+          $ref: '#/components/schemas/ObservabilityPipelineOpenSearchDestinationType'
       required:
       - id
       - type
+      - inputs
       type: object
-    ObservabilityPipelineDatadogLogsDestinationType:
-      default: datadog_logs
-      description: The destination type. The value should always be `datadog_logs`.
-      enum:
-      - datadog_logs
-      example: datadog_logs
-      type: string
-      x-enum-varnames:
-      - DATADOG_LOGS
-    ObservabilityPipelineSensitiveDataScannerProcessorCustomPatternType:
-      description: Indicates a custom regular expression is used for matching.
-      enum:
-      - custom
-      example: custom
-      type: string
-      x-enum-varnames:
-      - CUSTOM
-    ObservabilityPipelineSampleProcessorType:
-      default: sample
-      description: The processor type. The value should always be `sample`.
-      enum:
-      - sample
-      example: sample
-      type: string
-      x-enum-varnames:
-      - SAMPLE
+    ObservabilityPipelineParseGrokProcessorRuleSupportRule:
+      description: The Grok helper rule referenced in the parsing rules.
+      properties:
+        name:
+          description: The name of the Grok helper rule.
+          example: user
+          type: string
+        rule:
+          description: The definition of the Grok helper rule.
+          example: ' %{word:user.name}'
+          type: string
+      required:
+      - name
+      - rule
+      type: object
+    ObservabilityPipelineAddEnvVarsProcessorVariable:
+      description: Defines a mapping between an environment variable and a log field.
+      properties:
+        field:
+          description: The target field in the log event.
+          example: log.environment.region
+          type: string
+        name:
+          description: The name of the environment variable to read.
+          example: AWS_REGION
+          type: string
+      required:
+      - field
+      - name
+      type: object
+    ObservabilityPipelineGeneratedMetricIncrementByField:
+      description: Strategy that increments a generated metric based on the value of a log field.
+      properties:
+        field:
+          description: Name of the log field containing the numeric value to increment the metric by.
+          example: errors
+          type: string
+        strategy:
+          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricIncrementByFieldStrategy'
+      required:
+      - strategy
+      - field
+      type: object
     ObservabilityPipelineSensitiveDataScannerProcessorCustomPattern:
       description: Defines a custom regex-based pattern for identifying sensitive data in logs.
       properties:
@@ -1912,175 +2595,215 @@ components:
       - type
       - options
       type: object
-    ObservabilityPipelineSampleProcessor:
-      description: The `sample` processor allows probabilistic sampling of logs at a fixed rate.
+    ObservabilityPipelineSumoLogicSourceType:
+      default: sumo_logic
+      description: The source type. The value should always be `sumo_logic`.
+      enum:
+      - sumo_logic
+      example: sumo_logic
+      type: string
+      x-enum-varnames:
+      - SUMO_LOGIC
+    ObservabilityPipelineQuotaProcessorOverflowAction:
+      description: 'The action to take when the quota is exceeded. Options:
+
+        - `drop`: Drop the event.
+
+        - `no_action`: Let the event pass through.
+
+        - `overflow_routing`: Route to an overflow destination.
+
+        '
+      enum:
+      - drop
+      - no_action
+      - overflow_routing
+      example: drop
+      type: string
+      x-enum-varnames:
+      - DROP
+      - NO_ACTION
+      - OVERFLOW_ROUTING
+    ObservabilityPipelineConfigDestinationItem:
+      description: A destination for the pipeline.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineDatadogLogsDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineAmazonS3Destination'
+      - $ref: '#/components/schemas/ObservabilityPipelineGoogleCloudStorageDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineSplunkHecDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineRsyslogDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineSyslogNgDestination'
+      - $ref: '#/components/schemas/AzureStorageDestination'
+      - $ref: '#/components/schemas/MicrosoftSentinelDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineNewRelicDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineOpenSearchDestination'
+      - $ref: '#/components/schemas/ObservabilityPipelineAmazonOpenSearchDestination'
+    ObservabilityPipelineSyslogNgDestination:
+      description: The `syslog_ng` destination forwards logs to an external `syslog-ng` server over TCP or UDP using the syslog protocol.
       properties:
         id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
-          example: sample-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
+          description: The unique identifier for this component.
+          example: syslog-ng-destination
           type: string
         inputs:
           description: A list of component IDs whose output is used as the `input` for this component.
           example:
-          - datadog-agent-source
+          - filter-processor
           items:
             type: string
           type: array
-        percentage:
-          description: The percentage of logs to sample.
-          example: 10
-          format: double
-          type: number
-        rate:
-          description: Number of events to sample (1 in N).
-          example: 10
+        keepalive:
+          description: Optional socket keepalive duration in milliseconds.
+          example: 60000
           format: int64
-          minimum: 1
+          minimum: 0
           type: integer
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSampleProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      type: object
-    ObservabilityPipelineThrottleProcessor:
-      description: The `throttle` processor limits the number of events that pass through over a given time window.
-      properties:
-        group_by:
-          description: Optional list of fields used to group events before the threshold has been reached.
-          example:
-          - log.user.id
-          items:
-            type: string
-          type: array
-        id:
-          description: The unique identifier for this processor.
-          example: throttle-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: env:prod
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the input for this processor.
-          example:
-          - datadog-agent-source
-          items:
-            type: string
-          type: array
-        threshold:
-          description: the number of events allowed in a given time window. Events sent after the threshold has been reached, are dropped.
-          example: 1000
-          format: int64
-          type: integer
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineThrottleProcessorType'
-        window:
-          description: The time window in seconds over which the threshold applies.
-          example: 60
-          format: double
-          type: number
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      - threshold
-      - window
-      type: object
-    ObservabilityPipelineAddEnvVarsProcessorType:
-      default: add_env_vars
-      description: The processor type. The value should always be `add_env_vars`.
-      enum:
-      - add_env_vars
-      example: add_env_vars
-      type: string
-      x-enum-varnames:
-      - ADD_ENV_VARS
-    ObservabilityPipelineSensitiveDataScannerProcessorActionHashAction:
-      description: Action type that replaces the matched sensitive data with a hashed representation, preserving structure while securing content.
-      enum:
-      - hash
-      example: hash
-      type: string
-      x-enum-varnames:
-      - HASH
-    ObservabilityPipelineSplunkTcpSource:
-      description: 'The `splunk_tcp` source receives logs from a Splunk Universal Forwarder over TCP.
-
-        TLS is supported for secure transmission.
-
-        '
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: splunk-tcp-source
-          type: string
         tls:
           $ref: '#/components/schemas/ObservabilityPipelineTls'
         type:
-          $ref: '#/components/schemas/ObservabilityPipelineSplunkTcpSourceType'
+          $ref: '#/components/schemas/ObservabilityPipelineSyslogNgDestinationType'
       required:
       - id
       - type
+      - inputs
       type: object
-    ObservabilityPipelineData:
-      description: Contains the pipeline’s ID, type, and configuration attributes.
+    ObservabilityPipelineSensitiveDataScannerProcessorScope:
+      description: Determines which parts of the log the pattern-matching rule should be applied to.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeInclude'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeExclude'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeAll'
+    ObservabilityPipelineSensitiveDataScannerProcessorActionHash:
+      description: Configuration for hashing matched sensitive values.
       properties:
-        attributes:
-          $ref: '#/components/schemas/ObservabilityPipelineDataAttributes'
+        action:
+          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorActionHashAction'
+        options:
+          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionHash` `options`.
+          type: object
+      required:
+      - action
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions:
+      description: Configuration for fully redacting sensitive data.
+      properties:
+        replace:
+          description: The `ObservabilityPipelineSensitiveDataScannerProcessorActionRedactOptions` `replace`.
+          example: '***'
+          type: string
+      required:
+      - replace
+      type: object
+    ObservabilityPipelineDedupeProcessorMode:
+      description: The deduplication mode to apply to the fields.
+      enum:
+      - match
+      - ignore
+      example: match
+      type: string
+      x-enum-varnames:
+      - MATCH
+      - IGNORE
+    ObservabilityPipelineSensitiveDataScannerProcessorPattern:
+      description: Pattern detection configuration for identifying sensitive data using either a custom regex or a library reference.
+      oneOf:
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorCustomPattern'
+      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPattern'
+    ObservabilityPipelineSumoLogicDestination:
+      description: The `sumo_logic` destination forwards logs to Sumo Logic.
+      properties:
+        encoding:
+          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationEncoding'
+        header_custom_fields:
+          description: A list of custom headers to include in the request to Sumo Logic.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationHeaderCustomFieldsItem'
+          type: array
+        header_host_name:
+          description: Optional override for the host name header.
+          example: host-123
+          type: string
+        header_source_category:
+          description: Optional override for the source category header.
+          example: source-category
+          type: string
+        header_source_name:
+          description: Optional override for the source name header.
+          example: source-name
+          type: string
         id:
-          description: Unique identifier for the pipeline.
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          description: The unique identifier for this component.
+          example: sumo-logic-destination
           type: string
+        inputs:
+          description: A list of component IDs whose output is used as the `input` for this component.
+          example:
+          - filter-processor
+          items:
+            type: string
+          type: array
         type:
-          default: pipelines
-          description: The resource type identifier. For pipeline resources, this should always be set to `pipelines`.
-          example: pipelines
-          type: string
+          $ref: '#/components/schemas/ObservabilityPipelineSumoLogicDestinationType'
       required:
       - id
       - type
-      - attributes
+      - inputs
       type: object
-    ObservabilityPipelineQuotaProcessorType:
-      default: quota
-      description: The processor type. The value should always be `quota`.
+    ObservabilityPipelineThrottleProcessorType:
+      default: throttle
+      description: The processor type. The value should always be `throttle`.
       enum:
-      - quota
-      example: quota
+      - throttle
+      example: throttle
       type: string
       x-enum-varnames:
-      - QUOTA
-    ObservabilityPipelineElasticsearchDestinationApiVersion:
-      description: The Elasticsearch API version to use. Set to `auto` to auto-detect.
+      - THROTTLE
+    ObservabilityPipelineDatadogLogsDestinationType:
+      default: datadog_logs
+      description: The destination type. The value should always be `datadog_logs`.
       enum:
-      - auto
-      - v6
-      - v7
-      - v8
-      example: auto
+      - datadog_logs
+      example: datadog_logs
       type: string
       x-enum-varnames:
-      - AUTO
-      - V6
-      - V7
-      - V8
-    ObservabilityPipelineGooglePubSubSourceType:
-      default: google_pubsub
-      description: The source type. The value should always be `google_pubsub`.
-      enum:
-      - google_pubsub
-      example: google_pubsub
-      type: string
-      x-enum-varnames:
-      - GOOGLE_PUBSUB
+      - DATADOG_LOGS
+    ObservabilityPipelineGeneratedMetric:
+      description: 'Defines a log-based custom metric, including its name, type, filter, value computation strategy,
+
+        and optional grouping fields.
+
+        '
+      properties:
+        group_by:
+          description: Optional fields used to group the metric series.
+          example:
+          - service
+          - env
+          items:
+            type: string
+          type: array
+        include:
+          description: Datadog filter query to match logs for metric generation.
+          example: service:billing
+          type: string
+        metric_type:
+          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricMetricType'
+        name:
+          description: Name of the custom metric to be created.
+          example: logs.processed
+          type: string
+        value:
+          $ref: '#/components/schemas/ObservabilityPipelineMetricValue'
+      required:
+      - name
+      - include
+      - metric_type
+      - value
+      type: object
     ObservabilityPipelineQuotaProcessor:
       description: The Quota Processor measures logging traffic for logs that match a specified filter. When the configured daily quota is met, the processor can drop or alert.
       properties:
@@ -2136,60 +2859,70 @@ components:
       - limit
       - inputs
       type: object
-    ObservabilityPipelineParseGrokProcessorRuleSupportRule:
-      description: The Grok helper rule referenced in the parsing rules.
+    ObservabilityPipelineSensitiveDataScannerProcessorKeywordOptions:
+      description: Configuration for keywords used to reinforce sensitive data pattern detection.
+      properties:
+        keywords:
+          description: A list of keywords to match near the sensitive pattern.
+          example:
+          - ssn
+          - card
+          - account
+          items:
+            type: string
+          type: array
+        proximity:
+          description: Maximum number of tokens between a keyword and a sensitive value match.
+          example: 5
+          format: int64
+          type: integer
+      required:
+      - keywords
+      - proximity
+      type: object
+    ObservabilityPipelineFieldValue:
+      description: Represents a static key-value pair used in various processors.
       properties:
         name:
-          description: The name of the Grok helper rule.
-          example: user
+          description: The field name.
+          example: field_name
+          type: string
+        value:
+          description: The field value.
+          example: field_value
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    ObservabilityPipelineParseGrokProcessorRuleMatchRule:
+      description: 'Defines a Grok parsing rule, which extracts structured fields from log content using named Grok patterns.
+
+        Each rule must have a unique name and a valid Datadog Grok pattern that will be applied to the source field.
+
+        '
+      properties:
+        name:
+          description: The name of the rule.
+          example: MyParsingRule
           type: string
         rule:
-          description: The definition of the Grok helper rule.
-          example: ' %{word:user.name}'
+          description: The definition of the Grok rule.
+          example: '%{word:user} connected on %{date("MM/dd/yyyy"):date}'
           type: string
       required:
       - name
       - rule
       type: object
-    ObservabilityPipelineNewRelicDestinationType:
-      default: new_relic
-      description: The destination type. The value should always be `new_relic`.
+    ObservabilityPipelineLogstashSourceType:
+      default: logstash
+      description: The source type. The value should always be `logstash`.
       enum:
-      - new_relic
-      example: new_relic
+      - logstash
+      example: logstash
       type: string
       x-enum-varnames:
-      - NEW_RELIC
-    ObservabilityPipelineReduceProcessorMergeStrategyStrategy:
-      description: The merge strategy to apply.
-      enum:
-      - discard
-      - retain
-      - sum
-      - max
-      - min
-      - array
-      - concat
-      - concat_newline
-      - concat_raw
-      - shortest_array
-      - longest_array
-      - flat_unique
-      example: flat_unique
-      type: string
-      x-enum-varnames:
-      - DISCARD
-      - RETAIN
-      - SUM
-      - MAX
-      - MIN
-      - ARRAY
-      - CONCAT
-      - CONCAT_NEWLINE
-      - CONCAT_RAW
-      - SHORTEST_ARRAY
-      - LONGEST_ARRAY
-      - FLAT_UNIQUE
+      - LOGSTASH
     ObservabilityPipeline:
       description: Top-level schema representing a pipeline.
       properties:
@@ -2198,247 +2931,182 @@ components:
       required:
       - data
       type: object
-    ObservabilityPipelineHttpClientSource:
-      description: The `http_client` source scrapes logs from HTTP endpoints at regular intervals.
+    ObservabilityPipelineRenameFieldsProcessorField:
+      description: Defines how to rename a field in log events.
       properties:
-        auth_strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineHttpClientSourceAuthStrategy'
-        decoding:
-          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
+        destination:
+          description: The field name to assign the renamed value to.
+          example: destination_field
+          type: string
+        preserve_source:
+          description: Indicates whether the original field, that is received from the source, should be kept (`true`) or removed (`false`) after renaming.
+          example: false
+          type: boolean
+        source:
+          description: The original field name in the log event that should be renamed.
+          example: source_field
+          type: string
+      required:
+      - source
+      - destination
+      - preserve_source
+      type: object
+    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternOptions:
+      description: Options for selecting a predefined library pattern and enabling keyword support.
+      properties:
+        id:
+          description: Identifier for a predefined pattern from the sensitive data scanner pattern library.
+          example: credit_card
+          type: string
+        use_recommended_keywords:
+          description: Whether to augment the pattern with recommended keywords (optional).
+          type: boolean
+          example: true
+      required:
+      - id
+      type: object
+    ObservabilityPipelineSentinelOneDestinationRegion:
+      description: The SentinelOne region to send logs to.
+      enum:
+      - us
+      - eu
+      - ca
+      - data_set_us
+      example: us
+      type: string
+      x-enum-varnames:
+      - US
+      - EU
+      - CA
+      - DATA_SET_US
+    ObservabilityPipelineKafkaSource:
+      description: The `kafka` source ingests data from Apache Kafka topics.
+      properties:
+        group_id:
+          description: Consumer group ID used by the Kafka client.
+          example: consumer-group-0
+          type: string
         id:
           description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: http-client-source
+          example: kafka-source
           type: string
-        scrape_interval_secs:
-          description: The interval (in seconds) between HTTP scrape requests.
+        librdkafka_options:
+          description: Optional list of advanced Kafka client configuration options, defined as key-value pairs.
+          items:
+            $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceLibrdkafkaOption'
+          type: array
+        sasl:
+          $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceSasl'
+        tls:
+          $ref: '#/components/schemas/ObservabilityPipelineTls'
+        topics:
+          description: A list of Kafka topic names to subscribe to. The source ingests messages from each topic specified.
+          example:
+          - topic1
+          - topic2
+          items:
+            type: string
+          type: array
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineKafkaSourceType'
+      required:
+      - id
+      - type
+      - group_id
+      - topics
+      type: object
+    ObservabilityPipelineOpenSearchDestinationType:
+      default: opensearch
+      description: The destination type. The value should always be `opensearch`.
+      enum:
+      - opensearch
+      example: opensearch
+      type: string
+      x-enum-varnames:
+      - OPENSEARCH
+    ObservabilityPipelineThrottleProcessor:
+      description: The `throttle` processor limits the number of events that pass through over a given time window.
+      properties:
+        group_by:
+          description: Optional list of fields used to group events before the threshold has been reached.
+          example:
+          - log.user.id
+          items:
+            type: string
+          type: array
+        id:
+          description: The unique identifier for this processor.
+          example: throttle-processor
+          type: string
+        include:
+          description: A Datadog search query used to determine which logs this processor targets.
+          example: env:prod
+          type: string
+        inputs:
+          description: A list of component IDs whose output is used as the input for this processor.
+          example:
+          - datadog-agent-source
+          items:
+            type: string
+          type: array
+        threshold:
+          description: the number of events allowed in a given time window. Events sent after the threshold has been reached, are dropped.
+          example: 1000
+          format: int64
+          type: integer
+        type:
+          $ref: '#/components/schemas/ObservabilityPipelineThrottleProcessorType'
+        window:
+          description: The time window in seconds over which the threshold applies.
           example: 60
-          format: int64
-          type: integer
-        scrape_timeout_secs:
-          description: The timeout (in seconds) for each scrape request.
-          example: 10
-          format: int64
-          type: integer
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineHttpClientSourceType'
+          format: double
+          type: number
       required:
       - id
       - type
-      - decoding
+      - include
+      - inputs
+      - threshold
+      - window
       type: object
-    MicrosoftSentinelDestinationType:
-      default: microsoft_sentinel
-      description: The destination type. The value should always be `microsoft_sentinel`.
+    ObservabilityPipelineSensitiveDataScannerProcessorActionRedactAction:
+      description: Action type that completely replaces the matched sensitive data with a fixed replacement string to remove all visibility.
       enum:
-      - microsoft_sentinel
-      example: microsoft_sentinel
+      - redact
+      example: redact
       type: string
       x-enum-varnames:
-      - MICROSOFT_SENTINEL
-    MicrosoftSentinelDestination:
-      description: The `microsoft_sentinel` destination forwards logs to Microsoft Sentinel.
-      properties:
-        client_id:
-          description: Azure AD client ID used for authentication.
-          example: a1b2c3d4-5678-90ab-cdef-1234567890ab
-          type: string
-        dcr_immutable_id:
-          description: The immutable ID of the Data Collection Rule (DCR).
-          example: dcr-uuid-1234
-          type: string
-        id:
-          description: The unique identifier for this component.
-          example: sentinel-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        table:
-          description: The name of the Log Analytics table where logs are sent.
-          example: CustomLogsTable
-          type: string
-        tenant_id:
-          description: Azure AD tenant ID.
-          example: abcdef12-3456-7890-abcd-ef1234567890
-          type: string
-        type:
-          $ref: '#/components/schemas/MicrosoftSentinelDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      - client_id
-      - tenant_id
-      - dcr_immutable_id
-      - table
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions:
-      description: Fields to which the scope rule applies.
-      properties:
-        fields:
-          description: The `ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions` `fields`.
-          example:
-          - ''
-          items:
-            type: string
-          type: array
-      required:
-      - fields
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternType:
-      description: Indicates that a predefined library pattern is used.
+      - REDACT
+    ObservabilityPipelineSensitiveDataScannerProcessorScopeAllTarget:
+      description: Applies the rule to all fields.
       enum:
-      - library
-      example: library
+      - all
+      example: all
       type: string
       x-enum-varnames:
-      - LIBRARY
-    ObservabilityPipelineAmazonS3DestinationType:
-      default: amazon_s3
-      description: The destination type. Always `amazon_s3`.
-      enum:
-      - amazon_s3
-      example: amazon_s3
-      type: string
-      x-enum-varnames:
-      - AMAZON_S3
-    ObservabilityPipelineSentinelOneDestination:
-      description: The `sentinel_one` destination sends logs to SentinelOne.
+      - ALL
+    ObservabilityPipelineOcsfMapperProcessorMapping:
+      description: Defines how specific events are transformed to OCSF using a mapping configuration.
       properties:
-        id:
-          description: The unique identifier for this component.
-          example: sentinelone-destination
+        include:
+          description: A Datadog search query used to select the logs that this mapping should apply to.
+          example: service:my-service
           type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        region:
-          $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestinationRegion'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSentinelOneDestinationType'
+        mapping:
+          $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessorMappingMapping'
       required:
-      - id
-      - type
-      - inputs
-      - region
+      - include
+      - mapping
       type: object
-    ObservabilityPipelineSyslogNgDestination:
-      description: The `syslog_ng` destination forwards logs to an external `syslog-ng` server over TCP or UDP using the syslog protocol.
+    ObservabilityPipelineSensitiveDataScannerProcessorCustomPatternOptions:
+      description: Options for defining a custom regex pattern.
       properties:
-        id:
-          description: The unique identifier for this component.
-          example: syslog-ng-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        keepalive:
-          description: Optional socket keepalive duration in milliseconds.
-          example: 60000
-          format: int64
-          minimum: 0
-          type: integer
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSyslogNgDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorPattern:
-      description: Pattern detection configuration for identifying sensitive data using either a custom regex or a library reference.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorCustomPattern'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorLibraryPattern'
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    ObservabilityPipelineDataAttributes:
-      description: Defines the pipeline’s name and its components (sources, processors, and destinations).
-      properties:
-        config:
-          $ref: '#/components/schemas/ObservabilityPipelineConfig'
-        name:
-          description: Name of the pipeline.
-          example: Main Observability Pipeline
+        rule:
+          description: A regular expression used to detect sensitive values. Must be a valid regex.
+          example: \b\d{16}\b
           type: string
       required:
-      - name
-      - config
-      type: object
-    ObservabilityPipelineConfigProcessorItem:
-      description: A processor for the pipeline.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineFilterProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineParseJSONProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineAddFieldsProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineRemoveFieldsProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineRenameFieldsProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineGenerateMetricsProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineSampleProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineParseGrokProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineOcsfMapperProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineAddEnvVarsProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineDedupeProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineReduceProcessor'
-      - $ref: '#/components/schemas/ObservabilityPipelineThrottleProcessor'
-    ObservabilityPipelineElasticsearchDestination:
-      description: The `elasticsearch` destination writes logs to an Elasticsearch cluster.
-      properties:
-        api_version:
-          $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestinationApiVersion'
-        bulk_index:
-          description: The index to write logs to in Elasticsearch.
-          example: logs-index
-          type: string
-        id:
-          description: The unique identifier for this component.
-          example: elasticsearch-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineElasticsearchDestinationType'
-      required:
-      - id
-      - type
-      - inputs
+      - rule
       type: object
     ObservabilityPipelineEnrichmentTableFileSchemaItemsType:
       description: Declares allowed data types for enrichment table columns.
@@ -2458,705 +3126,37 @@ components:
       - FLOAT
       - DATE
       - TIMESTAMP
-    ObservabilityPipelineParseGrokProcessorType:
-      default: parse_grok
-      description: The processor type. The value should always be `parse_grok`.
-      enum:
-      - parse_grok
-      example: parse_grok
-      type: string
-      x-enum-varnames:
-      - PARSE_GROK
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeExcludeTarget:
-      description: Excludes specific fields from processing.
-      enum:
-      - exclude
-      example: exclude
-      type: string
-      x-enum-varnames:
-      - EXCLUDE
-    ObservabilityPipelineAmazonS3DestinationStorageClass:
-      description: S3 storage class.
-      enum:
-      - STANDARD
-      - REDUCED_REDUNDANCY
-      - INTELLIGENT_TIERING
-      - STANDARD_IA
-      - EXPRESS_ONEZONE
-      - ONEZONE_IA
-      - GLACIER
-      - GLACIER_IR
-      - DEEP_ARCHIVE
-      example: STANDARD
-      type: string
-      x-enum-varnames:
-      - STANDARD
-      - REDUCED_REDUNDANCY
-      - INTELLIGENT_TIERING
-      - STANDARD_IA
-      - EXPRESS_ONEZONE
-      - ONEZONE_IA
-      - GLACIER
-      - GLACIER_IR
-      - DEEP_ARCHIVE
-    AzureStorageDestination:
-      description: The `azure_storage` destination forwards logs to an Azure Blob Storage container.
-      properties:
-        blob_prefix:
-          description: Optional prefix for blobs written to the container.
-          example: logs/
-          type: string
-        container_name:
-          description: The name of the Azure Blob Storage container to store logs in.
-          example: my-log-container
-          type: string
-        id:
-          description: The unique identifier for this component.
-          example: azure-storage-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - processor-id
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/AzureStorageDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      - container_name
-      type: object
-    ObservabilityPipelineSensitiveDataScannerProcessorLibraryPatternOptions:
-      description: Options for selecting a predefined library pattern and enabling keyword support.
-      properties:
-        id:
-          description: Identifier for a predefined pattern from the sensitive data scanner pattern library.
-          example: credit_card
-          type: string
-        use_recommended_keywords:
-          description: Whether to augment the pattern with recommended keywords (optional).
-          type: boolean
-          example: true
-      required:
-      - id
-      type: object
-    ObservabilityPipelineConfigSourceItem:
-      description: A data source for the pipeline.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineKafkaSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineDatadogAgentSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineSplunkTcpSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineSplunkHecSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineAmazonS3Source'
-      - $ref: '#/components/schemas/ObservabilityPipelineFluentdSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineFluentBitSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineHttpServerSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineSumoLogicSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineRsyslogSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineSyslogNgSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineAmazonDataFirehoseSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineGooglePubSubSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineHttpClientSource'
-      - $ref: '#/components/schemas/ObservabilityPipelineLogstashSource'
-    ObservabilityPipelineReduceProcessor:
-      description: The `reduce` processor aggregates and merges logs based on matching keys and merge strategies.
-      properties:
-        group_by:
-          description: A list of fields used to group log events for merging.
-          example:
-          - log.user.id
-          - log.device.id
-          items:
-            type: string
-          type: array
-        id:
-          description: The unique identifier for this processor.
-          example: reduce-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: env:prod
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the input for this processor.
-          example:
-          - parse-json-processor
-          items:
-            type: string
-          type: array
-        merge_strategies:
-          description: List of merge strategies defining how values from grouped events should be combined.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorMergeStrategy'
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineReduceProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      - group_by
-      - merge_strategies
-      type: object
-    ObservabilityPipelineRsyslogSource:
-      description: The `rsyslog` source listens for logs over TCP or UDP from an `rsyslog` server using the syslog protocol.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: rsyslog-source
-          type: string
-        mode:
-          $ref: '#/components/schemas/ObservabilityPipelineSyslogSourceMode'
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineRsyslogSourceType'
-      required:
-      - id
-      - type
-      - mode
-      type: object
-    ObservabilityPipelineAmazonS3Source:
-      description: 'The `amazon_s3` source ingests logs from an Amazon S3 bucket.
-
-        It supports AWS authentication and TLS encryption.
-
-        '
-      properties:
-        auth:
-          $ref: '#/components/schemas/ObservabilityPipelineAwsAuth'
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: aws-s3-source
-          type: string
-        region:
-          description: AWS region where the S3 bucket resides.
-          example: us-east-1
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineAmazonS3SourceType'
-      required:
-      - id
-      - type
-      - region
-      type: object
-    ObservabilityPipelineQuotaProcessorLimit:
-      description: The maximum amount of data or number of events allowed before the quota is enforced. Can be specified in bytes or events.
-      properties:
-        enforce:
-          $ref: '#/components/schemas/ObservabilityPipelineQuotaProcessorLimitEnforceType'
-        limit:
-          description: The limit for quota enforcement.
-          example: 1000
-          format: int64
-          type: integer
-      required:
-      - enforce
-      - limit
-      type: object
-    ObservabilityPipelineEnrichmentTableProcessor:
-      description: The `enrichment_table` processor enriches logs using a static CSV file or GeoIP database.
-      properties:
-        file:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableFile'
-        geoip:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableGeoIp'
-        id:
-          description: The unique identifier for this processor.
-          example: enrichment-table-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: source:my-source
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the input for this processor.
-          example:
-          - add-fields-processor
-          items:
-            type: string
-          type: array
-        target:
-          description: Path where enrichment results should be stored in the log.
-          example: enriched.geoip
-          type: string
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineEnrichmentTableProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      - target
-      type: object
-    ObservabilityPipelineGoogleCloudStorageDestinationType:
-      default: google_cloud_storage
-      description: The destination type. Always `google_cloud_storage`.
-      enum:
-      - google_cloud_storage
-      example: google_cloud_storage
-      type: string
-      x-enum-varnames:
-      - GOOGLE_CLOUD_STORAGE
-    ObservabilityPipelineOcsfMapperProcessorMappingMapping:
-      description: Defines a single mapping rule for transforming logs into the OCSF schema.
-      oneOf:
-      - $ref: '#/components/schemas/ObservabilityPipelineOcsfMappingLibrary'
-    ObservabilityPipelineDatadogAgentSource:
-      description: The `datadog_agent` source collects logs from the Datadog Agent.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: datadog-agent-source
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineDatadogAgentSourceType'
-      required:
-      - id
-      - type
-      type: object
-    ObservabilityPipelineMetadataEntry:
-      description: A custom metadata entry.
-      properties:
-        name:
-          description: The metadata key.
-          example: environment
-          type: string
-        value:
-          description: The metadata value.
-          example: production
-          type: string
-      required:
-      - name
-      - value
-      type: object
-    ObservabilityPipelineQuotaProcessorOverflowAction:
-      description: 'The action to take when the quota is exceeded. Options:
-
-        - `drop`: Drop the event.
-
-        - `no_action`: Let the event pass through.
-
-        - `overflow_routing`: Route to an overflow destination.
-
-        '
-      enum:
-      - drop
-      - no_action
-      - overflow_routing
-      example: drop
-      type: string
-      x-enum-varnames:
-      - DROP
-      - NO_ACTION
-      - OVERFLOW_ROUTING
-    ObservabilityPipelineGeneratedMetric:
-      description: 'Defines a log-based custom metric, including its name, type, filter, value computation strategy,
-
-        and optional grouping fields.
-
-        '
-      properties:
-        group_by:
-          description: Optional fields used to group the metric series.
-          example:
-          - service
-          - env
-          items:
-            type: string
-          type: array
-        include:
-          description: Datadog filter query to match logs for metric generation.
-          example: service:billing
-          type: string
-        metric_type:
-          $ref: '#/components/schemas/ObservabilityPipelineGeneratedMetricMetricType'
-        name:
-          description: Name of the custom metric to be created.
-          example: logs.processed
-          type: string
-        value:
-          $ref: '#/components/schemas/ObservabilityPipelineMetricValue'
-      required:
-      - name
-      - include
-      - metric_type
-      - value
-      type: object
-    ObservabilityPipelineGoogleChronicleDestination:
-      description: The `google_chronicle` destination sends logs to Google Chronicle.
-      properties:
-        auth:
-          $ref: '#/components/schemas/ObservabilityPipelineGcpAuth'
-        customer_id:
-          description: The Google Chronicle customer ID.
-          example: abcdefg123456789
-          type: string
-        encoding:
-          $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestinationEncoding'
-        id:
-          description: The unique identifier for this component.
-          example: google-chronicle-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - parse-json-processor
-          items:
-            type: string
-          type: array
-        log_type:
-          description: The log type metadata associated with the Chronicle destination.
-          example: nginx_logs
-          type: string
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineGoogleChronicleDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      - auth
-      - customer_id
-      type: object
-    ObservabilityPipelineSumoLogicSourceType:
-      default: sumo_logic
-      description: The source type. The value should always be `sumo_logic`.
-      enum:
-      - sumo_logic
-      example: sumo_logic
-      type: string
-      x-enum-varnames:
-      - SUMO_LOGIC
-    ObservabilityPipelineLogstashSource:
-      description: The `logstash` source ingests logs from a Logstash forwarder.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: logstash-source
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineLogstashSourceType'
-      required:
-      - id
-      - type
-      type: object
-    ObservabilityPipelineHttpServerSource:
-      description: The `http_server` source collects logs over HTTP POST from external services.
-      properties:
-        auth_strategy:
-          $ref: '#/components/schemas/ObservabilityPipelineHttpServerSourceAuthStrategy'
-        decoding:
-          $ref: '#/components/schemas/ObservabilityPipelineDecoding'
-        id:
-          description: Unique ID for the HTTP server source.
-          example: http-server-source
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineHttpServerSourceType'
-      required:
-      - id
-      - type
-      - auth_strategy
-      - decoding
-      type: object
-    ObservabilityPipelineAmazonDataFirehoseSource:
-      description: The `amazon_data_firehose` source ingests logs from AWS Data Firehose.
-      properties:
-        auth:
-          $ref: '#/components/schemas/ObservabilityPipelineAwsAuth'
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: amazon-firehose-source
-          type: string
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineAmazonDataFirehoseSourceType'
-      required:
-      - id
-      - type
-      type: object
-    ObservabilityPipelineHttpServerSourceType:
-      default: http_server
-      description: The source type. The value should always be `http_server`.
-      enum:
-      - http_server
-      example: http_server
-      type: string
-      x-enum-varnames:
-      - HTTP_SERVER
-    ObservabilityPipelineParseJSONProcessor:
-      description: The `parse_json` processor extracts JSON from a specified field and flattens it into the event. This is useful when logs contain embedded JSON as a string.
-      properties:
-        field:
-          description: The name of the log field that contains a JSON string.
-          example: message
-          type: string
-        id:
-          description: A unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: parse-json-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - datadog-agent-source
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineParseJSONProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - field
-      - inputs
-      type: object
-    ObservabilityPipelineSyslogNgSourceType:
-      default: syslog_ng
-      description: The source type. The value should always be `syslog_ng`.
-      enum:
-      - syslog_ng
-      example: syslog_ng
-      type: string
-      x-enum-varnames:
-      - SYSLOG_NG
-    ObservabilityPipelineSyslogNgSource:
-      description: The `syslog_ng` source listens for logs over TCP or UDP from a `syslog-ng` server using the syslog protocol.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (e.g., as input to downstream components).
-          example: syslog-ng-source
-          type: string
-        mode:
-          $ref: '#/components/schemas/ObservabilityPipelineSyslogSourceMode'
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineSyslogNgSourceType'
-      required:
-      - id
-      - type
-      - mode
-      type: object
-    ObservabilityPipelineLogstashSourceType:
-      default: logstash
-      description: The source type. The value should always be `logstash`.
-      enum:
-      - logstash
-      example: logstash
-      type: string
-      x-enum-varnames:
-      - LOGSTASH
-    ObservabilityPipelineFilterProcessor:
-      description: The `filter` processor allows conditional processing of logs based on a Datadog search query. Logs that match the `include` query are passed through; others are discarded.
-      properties:
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
-          example: filter-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs should pass through the filter. Logs that match this query continue to downstream components; others are dropped.
-          example: service:my-service
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - datadog-agent-source
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineFilterProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - inputs
-      type: object
-    ObservabilityPipelineElasticsearchDestinationType:
-      default: elasticsearch
-      description: The destination type. The value should always be `elasticsearch`.
-      enum:
-      - elasticsearch
-      example: elasticsearch
-      type: string
-      x-enum-varnames:
-      - ELASTICSEARCH
-    ObservabilityPipelineDatadogAgentSourceType:
-      default: datadog_agent
-      description: The source type. The value should always be `datadog_agent`.
-      enum:
-      - datadog_agent
-      example: datadog_agent
-      type: string
-      x-enum-varnames:
-      - DATADOG_AGENT
-    ObservabilityPipelineAmazonOpenSearchDestinationAuthStrategy:
-      description: The authentication strategy to use.
-      enum:
-      - basic
-      - aws
-      example: aws
-      type: string
-      x-enum-varnames:
-      - BASIC
-      - AWS
-    ObservabilityPipelineRsyslogDestinationType:
-      default: rsyslog
-      description: The destination type. The value should always be `rsyslog`.
-      enum:
-      - rsyslog
-      example: rsyslog
-      type: string
-      x-enum-varnames:
-      - RSYSLOG
-    ObservabilityPipelineAmazonDataFirehoseSourceType:
-      default: amazon_data_firehose
-      description: The source type. The value should always be `amazon_data_firehose`.
-      enum:
-      - amazon_data_firehose
-      example: amazon_data_firehose
-      type: string
-      x-enum-varnames:
-      - AMAZON_DATA_FIREHOSE
-    ObservabilityPipelineHttpClientSourceType:
-      default: http_client
-      description: The source type. The value should always be `http_client`.
-      enum:
-      - http_client
-      example: http_client
-      type: string
-      x-enum-varnames:
-      - HTTP_CLIENT
-    ObservabilityPipelineDedupeProcessorType:
-      default: dedupe
-      description: The processor type. The value should always be `dedupe`.
-      enum:
-      - dedupe
-      example: dedupe
-      type: string
-      x-enum-varnames:
-      - DEDUPE
-    ObservabilityPipelineSensitiveDataScannerProcessorScopeInclude:
-      description: Includes only specific fields for sensitive data scanning.
-      properties:
-        options:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeOptions'
-        target:
-          $ref: '#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessorScopeIncludeTarget'
-      required:
-      - target
-      - options
-      type: object
-    ObservabilityPipelineAddFieldsProcessor:
-      description: The `add_fields` processor adds static key-value fields to logs.
-      properties:
-        fields:
-          description: A list of static fields (key-value pairs) that is added to each log event processed by this component.
-          items:
-            $ref: '#/components/schemas/ObservabilityPipelineFieldValue'
-          type: array
-        id:
-          description: The unique identifier for this component. Used to reference this component in other parts of the pipeline (for example, as the `input` to downstream components).
-          example: add-fields-processor
-          type: string
-        include:
-          description: A Datadog search query used to determine which logs this processor targets.
-          example: service:my-service
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - datadog-agent-source
-          items:
-            type: string
-          type: array
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineAddFieldsProcessorType'
-      required:
-      - id
-      - type
-      - include
-      - fields
-      - inputs
-      type: object
-    ObservabilityPipelineRsyslogDestination:
-      description: The `rsyslog` destination forwards logs to an external `rsyslog` server over TCP or UDP using the syslog protocol.
-      properties:
-        id:
-          description: The unique identifier for this component.
-          example: rsyslog-destination
-          type: string
-        inputs:
-          description: A list of component IDs whose output is used as the `input` for this component.
-          example:
-          - filter-processor
-          items:
-            type: string
-          type: array
-        keepalive:
-          description: Optional socket keepalive duration in milliseconds.
-          example: 60000
-          format: int64
-          minimum: 0
-          type: integer
-        tls:
-          $ref: '#/components/schemas/ObservabilityPipelineTls'
-        type:
-          $ref: '#/components/schemas/ObservabilityPipelineRsyslogDestinationType'
-      required:
-      - id
-      - type
-      - inputs
-      type: object
   responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     ConflictResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Conflict
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

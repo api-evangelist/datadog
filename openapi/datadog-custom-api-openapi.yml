@@ -549,64 +549,61 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    CustomCostsFileUsageChargePeriod:
-      description: Usage charge period of a Custom Costs file.
+    CustomFrameworkRequirement:
+      description: Framework Requirement.
       properties:
-        end:
-          description: End of the usage of the Custom Costs file.
-          example: 1706745600000
-          format: double
-          type: number
-        start:
-          description: Start of the usage of the Custom Costs file.
-          example: 1704067200000
-          format: double
-          type: number
-      type: object
-    CustomDestinationForwardDestinationHttp:
-      description: The HTTP destination.
-      properties:
-        auth:
-          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuth'
-        endpoint:
-          description: 'The destination for which logs will be forwarded to.
-
-            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
-          example: https://example.com
+        controls:
+          description: Requirement Controls.
+          items:
+            $ref: '#/components/schemas/CustomFrameworkControl'
+          type: array
+        name:
+          description: Requirement Name.
+          example: criteria
           type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationForwardDestinationHttpType'
       required:
-      - type
-      - endpoint
-      - auth
+      - name
+      - controls
       type: object
-    CustomDestinationHttpDestinationAuthBasic:
-      description: Basic access authentication.
+    CustomCostGetResponseMeta:
+      description: Meta for the response from the Get Custom Costs endpoints.
       properties:
-        password:
-          description: The password of the authentication. This field is not returned by the API.
-          example: datadog-custom-destination-password
+        version:
+          description: Version of Custom Costs file
           type: string
-          writeOnly: true
-        type:
-          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasicType'
-        username:
-          description: The username of the authentication. This field is not returned by the API.
-          example: datadog-custom-destination-username
-          type: string
-          writeOnly: true
-      required:
-      - type
-      - username
-      - password
+          example: example_value
       type: object
-    CustomDestinationForwardDestination:
-      description: A custom destination's location to forward logs.
-      oneOf:
-      - $ref: '#/components/schemas/CustomDestinationForwardDestinationHttp'
-      - $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunk'
-      - $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearch'
+    CustomCostsFileUploadResponse:
+      description: Response for Uploaded Custom Costs files.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomCostsFileMetadataHighLevel'
+        meta:
+          $ref: '#/components/schemas/CustomCostUploadResponseMeta'
+      type: object
+    CustomCostsFileMetadataHighLevel:
+      description: JSON API format for a Custom Costs file.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomCostsFileMetadata'
+        id:
+          description: ID of the Custom Costs metadata.
+          type: string
+          example: abc-123-def
+        type:
+          description: Type of the Custom Costs file metadata.
+          type: string
+          example: metric alert
+      type: object
+    CustomDestinationHttpDestinationAuthBasicType:
+      default: basic
+      description: Type of the basic access authentication.
+      enum:
+      - basic
+      example: basic
+      type: string
+      x-enum-varnames:
+      - BASIC
     CustomDestinationAttributeTagsRestrictionListType:
       default: ALLOW_LIST
       description: 'How `forward_tags_restriction_list` parameter should be interpreted.
@@ -625,774 +622,6 @@ components:
       x-enum-varnames:
       - ALLOW_LIST
       - BLOCK_LIST
-    CustomDestinationResponseElasticsearchDestinationAuth:
-      additionalProperties:
-        description: Basic access authentication.
-      description: Basic access authentication.
-      type: object
-    CustomCostsFileMetadataHighLevel:
-      description: JSON API format for a Custom Costs file.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomCostsFileMetadata'
-        id:
-          description: ID of the Custom Costs metadata.
-          type: string
-          example: abc-123-def
-        type:
-          description: Type of the Custom Costs file metadata.
-          type: string
-          example: metric alert
-      type: object
-    CustomFrameworkMetadata:
-      description: Metadata for custom frameworks.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomFrameworkWithoutRequirements'
-        id:
-          description: The ID of the custom framework.
-          example: handle-version
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomFrameworkType'
-      type: object
-    CustomFrameworkData:
-      description: Contains type and attributes for custom frameworks.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomFrameworkDataAttributes'
-        type:
-          $ref: '#/components/schemas/CustomFrameworkType'
-      required:
-      - type
-      - attributes
-      type: object
-    CustomCostsFileUploadResponse:
-      description: Response for Uploaded Custom Costs files.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomCostsFileMetadataHighLevel'
-        meta:
-          $ref: '#/components/schemas/CustomCostUploadResponseMeta'
-      type: object
-    ApplicationSecurityWafCustomRuleAction:
-      description: The definition of `ApplicationSecurityWafCustomRuleAction` object.
-      properties:
-        action:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleActionAction'
-        parameters:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleActionParameters'
-      type: object
-    CustomCostsFileLineItem:
-      description: Line item details from a Custom Costs file.
-      properties:
-        BilledCost:
-          description: Total cost in the cost file.
-          example: 100.5
-          format: double
-          type: number
-        BillingCurrency:
-          description: Currency used in the Custom Costs file.
-          example: USD
-          type: string
-        ChargeDescription:
-          description: Description for the line item cost.
-          example: Monthly usage charge for my service
-          type: string
-        ChargePeriodEnd:
-          description: End date of the usage charge.
-          example: '2023-02-28'
-          pattern: ^\d{4}-\d{2}-\d{2}$
-          type: string
-        ChargePeriodStart:
-          description: Start date of the usage charge.
-          example: '2023-02-01'
-          pattern: ^\d{4}-\d{2}-\d{2}$
-          type: string
-        ProviderName:
-          description: Name of the provider for the line item.
-          type: string
-          example: abc-123-def
-        Tags:
-          additionalProperties:
-            type: string
-          description: Additional tags for the line item.
-          type: object
-      type: object
-    CustomDestinationForwardDestinationSplunkType:
-      default: splunk_hec
-      description: Type of the Splunk HTTP Event Collector (HEC) destination.
-      enum:
-      - splunk_hec
-      example: splunk_hec
-      type: string
-      x-enum-varnames:
-      - SPLUNK_HEC
-    CustomDestinationHttpDestinationAuth:
-      description: Authentication method of the HTTP requests.
-      oneOf:
-      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasic'
-      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeader'
-    DeleteCustomFrameworkResponse:
-      description: Response object to delete a custom framework.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomFrameworkMetadata'
-      required:
-      - data
-      type: object
-    CustomDestinationResponseForwardDestinationSplunkType:
-      default: splunk_hec
-      description: Type of the Splunk HTTP Event Collector (HEC) destination.
-      enum:
-      - splunk_hec
-      example: splunk_hec
-      type: string
-      x-enum-varnames:
-      - SPLUNK_HEC
-    CustomDestinationResponseHttpDestinationAuthBasicType:
-      default: basic
-      description: Type of the basic access authentication.
-      enum:
-      - basic
-      example: basic
-      type: string
-      x-enum-varnames:
-      - BASIC
-    CustomFrameworkRequirement:
-      description: Framework Requirement.
-      properties:
-        controls:
-          description: Requirement Controls.
-          items:
-            $ref: '#/components/schemas/CustomFrameworkControl'
-          type: array
-        name:
-          description: Requirement Name.
-          example: criteria
-          type: string
-      required:
-      - name
-      - controls
-      type: object
-    ApplicationSecurityWafCustomRuleData:
-      description: Object for a single WAF custom rule.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAttributes'
-        id:
-          description: The ID of the custom rule.
-          example: 2857c47d-1e3a-4300-8b2f-dc24089c084b
-          readOnly: true
-          type: string
-        type:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleType'
-      type: object
-    CustomCostsFileMetadataWithContent:
-      description: Schema of a cost file's metadata.
-      properties:
-        billed_cost:
-          description: Total cost in the cost file.
-          example: 100.5
-          format: double
-          type: number
-        billing_currency:
-          description: Currency used in the Custom Costs file.
-          example: USD
-          type: string
-        charge_period:
-          $ref: '#/components/schemas/CustomCostsFileUsageChargePeriod'
-        content:
-          description: Detail of the line items from the Custom Costs file.
-          items:
-            $ref: '#/components/schemas/CustomCostsFileLineItem'
-          type: array
-        name:
-          description: Name of the Custom Costs file.
-          example: my_file.json
-          type: string
-        provider_names:
-          description: Providers contained in the Custom Costs file.
-          items:
-            description: Name of a provider.
-            example: my_provider
-            type: string
-          type: array
-        status:
-          description: Status of the Custom Costs file.
-          example: active
-          type: string
-        uploaded_at:
-          description: Timestamp in millisecond of the upload time of the Custom Costs file.
-          example: 1704067200000
-          format: double
-          type: number
-        uploaded_by:
-          $ref: '#/components/schemas/CustomCostsUser'
-      type: object
-    FullCustomFrameworkDataAttributes:
-      description: Full Framework Data Attributes.
-      properties:
-        handle:
-          description: Framework Handle
-          example: sec2
-          type: string
-        icon_url:
-          description: Framework Icon URL
-          example: https://example.com/icon.png
-          type: string
-        name:
-          description: Framework Name
-          example: security-framework
-          type: string
-        requirements:
-          description: Framework Requirements
-          items:
-            $ref: '#/components/schemas/CustomFrameworkRequirement'
-          type: array
-        version:
-          description: Framework Version
-          example: '2'
-          type: string
-      required:
-      - handle
-      - version
-      - name
-      - requirements
-      type: object
-    CustomCostsFileMetadataWithContentHighLevel:
-      description: JSON API format of for a Custom Costs file with content.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomCostsFileMetadataWithContent'
-        id:
-          description: ID of the Custom Costs metadata.
-          type: string
-          example: abc-123-def
-        type:
-          description: Type of the Custom Costs file metadata.
-          type: string
-          example: metric alert
-      type: object
-    ApplicationSecurityWafCustomRuleUpdateData:
-      description: Object for a single WAF Custom Rule.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleType'
-      required:
-      - attributes
-      - type
-      type: object
-    CustomFrameworkType:
-      default: custom_framework
-      description: The type of the resource. The value must be `custom_framework`.
-      enum:
-      - custom_framework
-      example: custom_framework
-      type: string
-      x-enum-varnames:
-      - CUSTOM_FRAMEWORK
-    CustomCostListResponseMeta:
-      description: Meta for the response from the List Custom Costs endpoints.
-      properties:
-        total_filtered_count:
-          description: Number of Custom Costs files returned by the List Custom Costs endpoint
-          format: int64
-          type: integer
-          example: 42
-        version:
-          description: Version of Custom Costs file
-          type: string
-          example: example_value
-      type: object
-    CustomDestinationResponseForwardDestinationHttp:
-      description: The HTTP destination.
-      properties:
-        auth:
-          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuth'
-        endpoint:
-          description: 'The destination for which logs will be forwarded to.
-
-            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
-          example: https://example.com
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttpType'
-      required:
-      - type
-      - endpoint
-      - auth
-      type: object
-    CustomDestinationResponseHttpDestinationAuthCustomHeader:
-      description: Custom header access authentication.
-      properties:
-        header_name:
-          description: The header name of the authentication.
-          example: CUSTOM-HEADER-NAME
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeaderType'
-      required:
-      - type
-      - header_name
-      type: object
-    CustomDestinationUpdateRequestAttributes:
-      description: The attributes associated with the custom destination.
-      properties:
-        enabled:
-          default: true
-          description: Whether logs matching this custom destination should be forwarded or not.
-          example: true
-          type: boolean
-        forward_tags:
-          default: true
-          description: Whether tags from the forwarded logs should be forwarded or not.
-          example: true
-          type: boolean
-        forward_tags_restriction_list:
-          default: []
-          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be restricted from being forwarded.
-
-            An empty list represents no restriction is in place and either all or no tags will be forwarded depending on `forward_tags_restriction_list_type` parameter.'
-          example:
-          - datacenter
-          - host
-          items:
-            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
-            type: string
-          maxItems: 10
-          minItems: 0
-          type: array
-        forward_tags_restriction_list_type:
-          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
-        forwarder_destination:
-          $ref: '#/components/schemas/CustomDestinationForwardDestination'
-        name:
-          description: The custom destination name.
-          example: Nginx logs
-          type: string
-        query:
-          default: ''
-          description: The custom destination query and filter. Logs matching this query are forwarded to the destination.
-          example: source:nginx
-          type: string
-      type: object
-    CustomDestinationForwardDestinationElasticsearch:
-      description: The Elasticsearch destination.
-      properties:
-        auth:
-          $ref: '#/components/schemas/CustomDestinationElasticsearchDestinationAuth'
-        endpoint:
-          description: 'The destination for which logs will be forwarded to.
-
-            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
-          example: https://example.com
-          type: string
-        index_name:
-          description: Name of the Elasticsearch index (must follow [Elasticsearch's criteria](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/indices-create-index.html#indices-create-api-path-params)).
-          example: nginx-logs
-          type: string
-        index_rotation:
-          description: 'Date pattern with US locale and UTC timezone to be appended to the index name after adding `-`
-
-            (that is, `${index_name}-${indexPattern}`).
-
-            You can customize the index rotation naming pattern by choosing one of these options:
-
-            - Hourly: `yyyy-MM-dd-HH` (as an example, it would render: `2022-10-19-09`)
-
-            - Daily: `yyyy-MM-dd` (as an example, it would render: `2022-10-19`)
-
-            - Weekly: `yyyy-''W''ww` (as an example, it would render: `2022-W42`)
-
-            - Monthly: `yyyy-MM` (as an example, it would render: `2022-10`)
-
-
-            If this field is missing or is blank, it means that the index name will always be the same
-
-            (that is, no rotation).'
-          example: yyyy-MM-dd
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearchType'
-      required:
-      - type
-      - endpoint
-      - auth
-      - index_name
-      type: object
-    FrameworkHandleAndVersionResponseData:
-      description: Contains type and attributes for custom frameworks.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomFrameworkDataHandleAndVersion'
-        id:
-          description: The ID of the custom framework.
-          example: handle-version
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomFrameworkType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    CustomCostGetResponseMeta:
-      description: Meta for the response from the Get Custom Costs endpoints.
-      properties:
-        version:
-          description: Version of Custom Costs file
-          type: string
-          example: example_value
-      type: object
-    CustomDestinationResponseDefinition:
-      description: The definition of a custom destination.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomDestinationResponseAttributes'
-        id:
-          description: The custom destination ID.
-          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
-          readOnly: true
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationType'
-      type: object
-    UpdateCustomFrameworkRequest:
-      description: Request object to update a custom framework.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomFrameworkData'
-      required:
-      - data
-      type: object
-    ApplicationSecurityWafCustomRuleAttributes:
-      description: A WAF custom rule.
-      properties:
-        action:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAction'
-        blocking:
-          description: Indicates whether the WAF custom rule will block the request.
-          example: false
-          type: boolean
-        conditions:
-          description: 'Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF
-
-            rule to trigger.'
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleCondition'
-          type: array
-        enabled:
-          description: Indicates whether the WAF custom rule is enabled.
-          example: false
-          type: boolean
-        metadata:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleMetadata'
-        name:
-          description: The Name of the WAF custom rule.
-          example: Block request from bad useragent
-          type: string
-        path_glob:
-          description: The path glob for the WAF custom rule.
-          example: /api/search/*
-          type: string
-        scope:
-          description: The scope of the WAF custom rule.
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleScope'
-          type: array
-        tags:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTags'
-      required:
-      - enabled
-      - blocking
-      - name
-      - tags
-      - conditions
-      type: object
-    CustomDestinationForwardDestinationElasticsearchType:
-      default: elasticsearch
-      description: Type of the Elasticsearch destination.
-      enum:
-      - elasticsearch
-      example: elasticsearch
-      type: string
-      x-enum-varnames:
-      - ELASTICSEARCH
-    CustomDestinationUpdateRequest:
-      description: The custom destination.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomDestinationUpdateRequestDefinition'
-      type: object
-    CustomDestinationResponseForwardDestinationElasticsearchType:
-      default: elasticsearch
-      description: Type of the Elasticsearch destination.
-      enum:
-      - elasticsearch
-      example: elasticsearch
-      type: string
-      x-enum-varnames:
-      - ELASTICSEARCH
-    ApplicationSecurityWafCustomRuleTags:
-      additionalProperties:
-        type: string
-      description: 'Tags associated with the WAF Custom Rule. The concatenation of category and type will form the security
-
-        activity field associated with the traces.'
-      maxProperties: 32
-      properties:
-        category:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTagsCategory'
-        type:
-          description: The type of the WAF rule, associated with the category will form the security activity.
-          example: users.login.success
-          type: string
-      required:
-      - category
-      - type
-      type: object
-    CustomCostsFileMetadata:
-      description: Schema of a Custom Costs metadata.
-      properties:
-        billed_cost:
-          description: Total cost in the cost file.
-          example: 100.5
-          format: double
-          type: number
-        billing_currency:
-          description: Currency used in the Custom Costs file.
-          example: USD
-          type: string
-        charge_period:
-          $ref: '#/components/schemas/CustomCostsFileUsageChargePeriod'
-        name:
-          description: Name of the Custom Costs file.
-          example: my_file.json
-          type: string
-        provider_names:
-          description: Providers contained in the Custom Costs file.
-          items:
-            description: Name of the provider.
-            example: my_provider
-            type: string
-          type: array
-        status:
-          description: Status of the Custom Costs file.
-          example: active
-          type: string
-        uploaded_at:
-          description: Timestamp, in millisecond, of the upload time of the Custom Costs file.
-          example: 1704067200000
-          format: double
-          type: number
-        uploaded_by:
-          $ref: '#/components/schemas/CustomCostsUser'
-      type: object
-    CustomDestinationResponseForwardDestination:
-      description: A custom destination's location to forward logs.
-      oneOf:
-      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttp'
-      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunk'
-      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationElasticsearch'
-    CustomFrameworkControl:
-      description: Framework Control.
-      properties:
-        name:
-          description: Control Name.
-          example: A1.2
-          type: string
-        rules_id:
-          description: Rule IDs.
-          example:
-          - '["def-000-abc"]'
-          items:
-            type: string
-          type: array
-      required:
-      - name
-      - rules_id
-      type: object
-    CustomCostUploadResponseMeta:
-      description: Meta for the response from the Upload Custom Costs endpoints.
-      properties:
-        version:
-          description: Version of Custom Costs file
-          type: string
-          example: example_value
-      type: object
-    CustomDestinationResponseHttpDestinationAuthBasic:
-      description: Basic access authentication.
-      properties:
-        type:
-          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasicType'
-      required:
-      - type
-      type: object
-    CustomDestinationHttpDestinationAuthCustomHeader:
-      description: Custom header access authentication.
-      properties:
-        header_name:
-          description: The header name of the authentication.
-          example: CUSTOM-HEADER-NAME
-          type: string
-        header_value:
-          description: The header value of the authentication. This field is not returned by the API.
-          example: CUSTOM-HEADER-AUTHENTICATION-VALUE
-          type: string
-          writeOnly: true
-        type:
-          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeaderType'
-      required:
-      - type
-      - header_name
-      - header_value
-      type: object
-    CustomDestinationForwardDestinationHttpType:
-      default: http
-      description: Type of the HTTP destination.
-      enum:
-      - http
-      example: http
-      type: string
-      x-enum-varnames:
-      - HTTP
-    ApplicationSecurityWafCustomRuleUpdateRequest:
-      description: Request object that includes the Custom Rule to update.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleUpdateData'
-      required:
-      - data
-      type: object
-    CustomFrameworkWithoutRequirements:
-      description: Framework without requirements.
-      properties:
-        description:
-          description: Framework Description
-          example: this is a security description
-          type: string
-        handle:
-          description: Framework Handle
-          example: sec2
-          type: string
-        icon_url:
-          description: Framework Icon URL
-          example: https://example.com/icon.png
-          type: string
-        name:
-          description: Framework Name
-          example: security-framework
-          type: string
-        version:
-          description: Framework Version
-          example: '2'
-          type: string
-      required:
-      - handle
-      - version
-      - name
-      type: object
-    ApplicationSecurityWafCustomRuleActionAction:
-      default: block_request
-      description: Override the default action to take when the WAF custom rule would block.
-      enum:
-      - redirect_request
-      - block_request
-      example: block_request
-      type: string
-      x-enum-varnames:
-      - REDIRECT_REQUEST
-      - BLOCK_REQUEST
-    CustomDestinationResponseHttpDestinationAuthCustomHeaderType:
-      default: custom_header
-      description: Type of the custom header access authentication.
-      enum:
-      - custom_header
-      example: custom_header
-      type: string
-      x-enum-varnames:
-      - CUSTOM_HEADER
-    ApplicationSecurityWafCustomRuleConditionOperator:
-      description: Operator to use for the WAF Condition.
-      enum:
-      - match_regex
-      - '!match_regex'
-      - phrase_match
-      - '!phrase_match'
-      - is_xss
-      - is_sqli
-      - exact_match
-      - '!exact_match'
-      - ip_match
-      - '!ip_match'
-      - capture_data
-      example: match_regex
-      type: string
-      x-enum-varnames:
-      - MATCH_REGEX
-      - NOT_MATCH_REGEX
-      - PHRASE_MATCH
-      - NOT_PHRASE_MATCH
-      - IS_XSS
-      - IS_SQLI
-      - EXACT_MATCH
-      - NOT_EXACT_MATCH
-      - IP_MATCH
-      - NOT_IP_MATCH
-      - CAPTURE_DATA
-    CustomCostsFileListResponse:
-      description: Response for List Custom Costs files.
-      properties:
-        data:
-          description: List of Custom Costs files.
-          items:
-            $ref: '#/components/schemas/CustomCostsFileMetadataHighLevel'
-          type: array
-        meta:
-          $ref: '#/components/schemas/CustomCostListResponseMeta'
-      type: object
-    FullCustomFrameworkData:
-      description: Contains type and attributes for custom frameworks.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FullCustomFrameworkDataAttributes'
-        id:
-          description: The ID of the custom framework.
-          example: handle-version
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomFrameworkType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    CustomDestinationUpdateRequestDefinition:
-      description: The definition of a custom destination.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CustomDestinationUpdateRequestAttributes'
-        id:
-          description: The custom destination ID.
-          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationType'
-      required:
-      - type
-      - id
-      type: object
-    UpdateCustomFrameworkResponse:
-      description: Response object to update a custom framework.
-      properties:
-        data:
-          $ref: '#/components/schemas/FrameworkHandleAndVersionResponseData'
-      required:
-      - data
-      type: object
     CustomDestinationResponseForwardDestinationElasticsearch:
       description: The Elasticsearch destination.
       properties:
@@ -1437,394 +666,14 @@ components:
       - auth
       - index_name
       type: object
-    CustomCostsFileUploadRequest:
-      description: Request for uploading a Custom Costs file.
-      items:
-        $ref: '#/components/schemas/CustomCostsFileLineItem'
-      type: array
-    CustomCostsFileGetResponse:
-      description: Response for Get Custom Costs files.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomCostsFileMetadataWithContentHighLevel'
-        meta:
-          $ref: '#/components/schemas/CustomCostGetResponseMeta'
-      type: object
-    ApplicationSecurityWafCustomRuleScope:
-      description: The scope of the WAF custom rule.
-      properties:
-        env:
-          description: The environment scope for the WAF custom rule.
-          example: prod
-          type: string
-        service:
-          description: The service scope for the WAF custom rule.
-          example: billing-service
-          type: string
-      required:
-      - service
-      - env
-      type: object
-    CustomDestinationResponseForwardDestinationSplunk:
-      description: The Splunk HTTP Event Collector (HEC) destination.
-      properties:
-        endpoint:
-          description: 'The destination for which logs will be forwarded to.
-
-            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
-          example: https://example.com
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunkType'
-      required:
-      - type
-      - endpoint
-      type: object
-    CustomDestinationForwardDestinationSplunk:
-      description: The Splunk HTTP Event Collector (HEC) destination.
-      properties:
-        access_token:
-          description: Access token of the Splunk HTTP Event Collector. This field is not returned by the API.
-          example: splunk_access_token
-          type: string
-          writeOnly: true
-        endpoint:
-          description: 'The destination for which logs will be forwarded to.
-
-            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
-          example: https://example.com
-          type: string
-        type:
-          $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunkType'
-      required:
-      - type
-      - endpoint
-      - access_token
-      type: object
-    ApplicationSecurityWafCustomRuleConditionInput:
-      description: Input from the request on which the condition should apply.
-      properties:
-        address:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionInputAddress'
-        key_path:
-          description: Specific path for the input.
-          items:
-            type: string
-          type: array
-      required:
-      - address
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    CustomDestinationHttpDestinationAuthBasicType:
-      default: basic
-      description: Type of the basic access authentication.
-      enum:
-      - basic
-      example: basic
-      type: string
-      x-enum-varnames:
-      - BASIC
-    ApplicationSecurityWafCustomRuleResponse:
-      description: Response object that includes a single WAF custom rule.
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleData'
-      type: object
-    CustomDestinationResponse:
-      description: The custom destination.
-      properties:
-        data:
-          $ref: '#/components/schemas/CustomDestinationResponseDefinition'
-      type: object
-    CustomDestinationElasticsearchDestinationAuth:
-      description: Basic access authentication.
-      properties:
-        password:
-          description: The password of the authentication. This field is not returned by the API.
-          example: datadog-custom-destination-password
-          type: string
-          writeOnly: true
-        username:
-          description: The username of the authentication. This field is not returned by the API.
-          example: datadog-custom-destination-username
-          type: string
-          writeOnly: true
-      required:
-      - username
-      - password
-      type: object
-    ApplicationSecurityWafCustomRuleConditionOptions:
-      description: Options for the operator of this condition.
-      properties:
-        case_sensitive:
-          default: false
-          description: Evaluate the value as case sensitive.
-          type: boolean
-          example: true
-        min_length:
-          default: 0
-          description: Only evaluate this condition if the value has a minimum amount of characters.
-          format: int64
-          type: integer
-          example: 42
-      type: object
-    CustomDestinationResponseForwardDestinationHttpType:
-      default: http
-      description: Type of the HTTP destination.
-      enum:
-      - http
-      example: http
-      type: string
-      x-enum-varnames:
-      - HTTP
-    CustomDestinationResponseAttributes:
-      description: The attributes associated with the custom destination.
-      properties:
-        enabled:
-          default: true
-          description: Whether logs matching this custom destination should be forwarded or not.
-          example: true
-          type: boolean
-        forward_tags:
-          default: true
-          description: Whether tags from the forwarded logs should be forwarded or not.
-          example: true
-          type: boolean
-        forward_tags_restriction_list:
-          default: []
-          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.
-
-
-            An empty list represents no restriction is in place and either all or no tags will be
-
-            forwarded depending on `forward_tags_restriction_list_type` parameter.'
-          example:
-          - datacenter
-          - host
-          items:
-            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
-            type: string
-          maxItems: 10
-          minItems: 0
-          type: array
-        forward_tags_restriction_list_type:
-          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
-        forwarder_destination:
-          $ref: '#/components/schemas/CustomDestinationResponseForwardDestination'
-        name:
-          description: The custom destination name.
-          example: Nginx logs
-          type: string
-        query:
-          default: ''
-          description: The custom destination query filter. Logs matching this query are forwarded to the destination.
-          example: source:nginx
-          type: string
-      type: object
-    ApplicationSecurityWafCustomRuleCondition:
-      description: One condition of the WAF Custom Rule.
-      properties:
-        operator:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionOperator'
-        parameters:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionParameters'
-      required:
-      - operator
-      - parameters
-      type: object
-    ApplicationSecurityWafCustomRuleTagsCategory:
-      description: The category of the WAF Rule, can be either `business_logic`, `attack_attempt` or `security_response`.
-      enum:
-      - attack_attempt
-      - business_logic
-      - security_response
-      example: business_logic
-      type: string
-      x-enum-varnames:
-      - ATTACK_ATTEMPT
-      - BUSINESS_LOGIC
-      - SECURITY_RESPONSE
-    ApplicationSecurityWafCustomRuleActionParameters:
-      description: The definition of `ApplicationSecurityWafCustomRuleActionParameters` object.
-      properties:
-        location:
-          description: The location to redirect to when the WAF custom rule triggers.
-          example: /blocking
-          type: string
-        status_code:
-          default: 403
-          description: The status code to return when the WAF custom rule triggers.
-          example: 403
-          format: int64
-          type: integer
-      type: object
-    CustomFrameworkDataHandleAndVersion:
-      description: Framework Handle and Version.
-      properties:
-        handle:
-          description: Framework Handle
-          example: sec2
-          type: string
-        version:
-          description: Framework Version
-          example: '2'
-          type: string
-      type: object
-    CustomFrameworkDataAttributes:
-      description: Framework Data Attributes.
-      properties:
-        description:
-          description: Framework Description
-          type: string
-          example: example_value
-        handle:
-          description: Framework Handle
-          example: sec2
-          type: string
-        icon_url:
-          description: Framework Icon URL
-          type: string
-          example: https://app.datadoghq.com
-        name:
-          description: Framework Name
-          example: security-framework
-          type: string
-        requirements:
-          description: Framework Requirements
-          items:
-            $ref: '#/components/schemas/CustomFrameworkRequirement'
-          type: array
-        version:
-          description: Framework Version
-          example: '2'
-          type: string
-      required:
-      - handle
-      - version
-      - name
-      - requirements
-      type: object
-    GetCustomFrameworkResponse:
-      description: Response object to get a custom framework.
-      properties:
-        data:
-          $ref: '#/components/schemas/FullCustomFrameworkData'
-      required:
-      - data
-      type: object
-    ApplicationSecurityWafCustomRuleUpdateAttributes:
-      description: Update a WAF custom rule.
+    ApplicationSecurityWafCustomRuleAction:
+      description: The definition of `ApplicationSecurityWafCustomRuleAction` object.
       properties:
         action:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAction'
-        blocking:
-          description: Indicates whether the WAF custom rule will block the request.
-          example: false
-          type: boolean
-        conditions:
-          description: 'Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF
-
-            rule to trigger.'
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleCondition'
-          type: array
-        enabled:
-          description: Indicates whether the WAF custom rule is enabled.
-          example: false
-          type: boolean
-        name:
-          description: The Name of the WAF custom rule.
-          example: Block request from bad useragent
-          type: string
-        path_glob:
-          description: The path glob for the WAF custom rule.
-          example: /api/search/*
-          type: string
-        scope:
-          description: The scope of the WAF custom rule.
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleScope'
-          type: array
-        tags:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTags'
-      required:
-      - enabled
-      - blocking
-      - name
-      - tags
-      - conditions
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleActionAction'
+        parameters:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleActionParameters'
       type: object
-    ApplicationSecurityWafCustomRuleConditionParameters:
-      description: The scope of the WAF custom rule.
-      properties:
-        data:
-          description: Identifier of a list of data from the denylist. Can only be used as substitution from the list parameter.
-          example: blocked_users
-          type: string
-        inputs:
-          description: List of inputs on which at least one should match with the given operator.
-          items:
-            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionInput'
-          type: array
-        list:
-          description: 'List of value to use with the condition. Only used with the phrase_match, !phrase_match, exact_match and
-
-            !exact_match operator.'
-          items:
-            type: string
-          type: array
-        options:
-          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionOptions'
-        regex:
-          description: Regex to use with the condition. Only used with match_regex and !match_regex operator.
-          example: path.*
-          type: string
-        value:
-          description: Store the captured value in the specified tag name. Only used with the capture_data operator.
-          example: custom_tag
-          type: string
-      required:
-      - inputs
-      type: object
-    CustomCostsUser:
-      description: Metadata of the user that has uploaded the Custom Costs file.
-      properties:
-        email:
-          description: The name of the Custom Costs file.
-          example: email.test@datadohq.com
-          type: string
-        icon:
-          description: The name of the Custom Costs file.
-          example: icon.png
-          type: string
-        name:
-          description: Name of the user.
-          example: Test User
-          type: string
-      type: object
-    CustomDestinationType:
-      default: custom_destination
-      description: The type of the resource. The value should always be `custom_destination`.
-      enum:
-      - custom_destination
-      example: custom_destination
-      type: string
-      x-enum-varnames:
-      - CUSTOM_DESTINATION
     ApplicationSecurityWafCustomRuleMetadata:
       description: Metadata associated with the WAF Custom Rule.
       properties:
@@ -1856,15 +705,6 @@ components:
           type: string
       readOnly: true
       type: object
-    ApplicationSecurityWafCustomRuleType:
-      default: custom_rule
-      description: The type of the resource. The value should always be `custom_rule`.
-      enum:
-      - custom_rule
-      example: custom_rule
-      type: string
-      x-enum-varnames:
-      - CUSTOM_RULE
     ApplicationSecurityWafCustomRuleConditionInputAddress:
       description: Input from the request on which the condition should apply.
       enum:
@@ -1913,6 +753,1040 @@ components:
       - GRAPHQL_SERVER_ALL_RESOLVERS
       - USR_ID
       - HTTP_CLIENT_IP
+    CustomDestinationForwardDestinationElasticsearchType:
+      default: elasticsearch
+      description: Type of the Elasticsearch destination.
+      enum:
+      - elasticsearch
+      example: elasticsearch
+      type: string
+      x-enum-varnames:
+      - ELASTICSEARCH
+    CustomCostsFileGetResponse:
+      description: Response for Get Custom Costs files.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomCostsFileMetadataWithContentHighLevel'
+        meta:
+          $ref: '#/components/schemas/CustomCostGetResponseMeta'
+      type: object
+    CustomDestinationResponseForwardDestination:
+      description: A custom destination's location to forward logs.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttp'
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunk'
+      - $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationElasticsearch'
+    ApplicationSecurityWafCustomRuleUpdateData:
+      description: Object for a single WAF Custom Rule.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleType'
+      required:
+      - attributes
+      - type
+      type: object
+    CustomDestinationForwardDestinationElasticsearch:
+      description: The Elasticsearch destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationElasticsearchDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        index_name:
+          description: Name of the Elasticsearch index (must follow [Elasticsearch's criteria](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/indices-create-index.html#indices-create-api-path-params)).
+          example: nginx-logs
+          type: string
+        index_rotation:
+          description: 'Date pattern with US locale and UTC timezone to be appended to the index name after adding `-`
+
+            (that is, `${index_name}-${indexPattern}`).
+
+            You can customize the index rotation naming pattern by choosing one of these options:
+
+            - Hourly: `yyyy-MM-dd-HH` (as an example, it would render: `2022-10-19-09`)
+
+            - Daily: `yyyy-MM-dd` (as an example, it would render: `2022-10-19`)
+
+            - Weekly: `yyyy-''W''ww` (as an example, it would render: `2022-W42`)
+
+            - Monthly: `yyyy-MM` (as an example, it would render: `2022-10`)
+
+
+            If this field is missing or is blank, it means that the index name will always be the same
+
+            (that is, no rotation).'
+          example: yyyy-MM-dd
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearchType'
+      required:
+      - type
+      - endpoint
+      - auth
+      - index_name
+      type: object
+    CustomCostsFileMetadata:
+      description: Schema of a Custom Costs metadata.
+      properties:
+        billed_cost:
+          description: Total cost in the cost file.
+          example: 100.5
+          format: double
+          type: number
+        billing_currency:
+          description: Currency used in the Custom Costs file.
+          example: USD
+          type: string
+        charge_period:
+          $ref: '#/components/schemas/CustomCostsFileUsageChargePeriod'
+        name:
+          description: Name of the Custom Costs file.
+          example: my_file.json
+          type: string
+        provider_names:
+          description: Providers contained in the Custom Costs file.
+          items:
+            description: Name of the provider.
+            example: my_provider
+            type: string
+          type: array
+        status:
+          description: Status of the Custom Costs file.
+          example: active
+          type: string
+        uploaded_at:
+          description: Timestamp, in millisecond, of the upload time of the Custom Costs file.
+          example: 1704067200000
+          format: double
+          type: number
+        uploaded_by:
+          $ref: '#/components/schemas/CustomCostsUser'
+      type: object
+    CustomCostsFileMetadataWithContent:
+      description: Schema of a cost file's metadata.
+      properties:
+        billed_cost:
+          description: Total cost in the cost file.
+          example: 100.5
+          format: double
+          type: number
+        billing_currency:
+          description: Currency used in the Custom Costs file.
+          example: USD
+          type: string
+        charge_period:
+          $ref: '#/components/schemas/CustomCostsFileUsageChargePeriod'
+        content:
+          description: Detail of the line items from the Custom Costs file.
+          items:
+            $ref: '#/components/schemas/CustomCostsFileLineItem'
+          type: array
+        name:
+          description: Name of the Custom Costs file.
+          example: my_file.json
+          type: string
+        provider_names:
+          description: Providers contained in the Custom Costs file.
+          items:
+            description: Name of a provider.
+            example: my_provider
+            type: string
+          type: array
+        status:
+          description: Status of the Custom Costs file.
+          example: active
+          type: string
+        uploaded_at:
+          description: Timestamp in millisecond of the upload time of the Custom Costs file.
+          example: 1704067200000
+          format: double
+          type: number
+        uploaded_by:
+          $ref: '#/components/schemas/CustomCostsUser'
+      type: object
+    ApplicationSecurityWafCustomRuleData:
+      description: Object for a single WAF custom rule.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAttributes'
+        id:
+          description: The ID of the custom rule.
+          example: 2857c47d-1e3a-4300-8b2f-dc24089c084b
+          readOnly: true
+          type: string
+        type:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleType'
+      type: object
+    CustomFrameworkDataHandleAndVersion:
+      description: Framework Handle and Version.
+      properties:
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      type: object
+    UpdateCustomFrameworkRequest:
+      description: Request object to update a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomFrameworkData'
+      required:
+      - data
+      type: object
+    CustomDestinationResponseHttpDestinationAuthBasic:
+      description: Basic access authentication.
+      properties:
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasicType'
+      required:
+      - type
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    CustomCostsFileUploadRequest:
+      description: Request for uploading a Custom Costs file.
+      items:
+        $ref: '#/components/schemas/CustomCostsFileLineItem'
+      type: array
+    ApplicationSecurityWafCustomRuleConditionOperator:
+      description: Operator to use for the WAF Condition.
+      enum:
+      - match_regex
+      - '!match_regex'
+      - phrase_match
+      - '!phrase_match'
+      - is_xss
+      - is_sqli
+      - exact_match
+      - '!exact_match'
+      - ip_match
+      - '!ip_match'
+      - capture_data
+      example: match_regex
+      type: string
+      x-enum-varnames:
+      - MATCH_REGEX
+      - NOT_MATCH_REGEX
+      - PHRASE_MATCH
+      - NOT_PHRASE_MATCH
+      - IS_XSS
+      - IS_SQLI
+      - EXACT_MATCH
+      - NOT_EXACT_MATCH
+      - IP_MATCH
+      - NOT_IP_MATCH
+      - CAPTURE_DATA
+    CustomDestinationType:
+      default: custom_destination
+      description: The type of the resource. The value should always be `custom_destination`.
+      enum:
+      - custom_destination
+      example: custom_destination
+      type: string
+      x-enum-varnames:
+      - CUSTOM_DESTINATION
+    CustomFrameworkWithoutRequirements:
+      description: Framework without requirements.
+      properties:
+        description:
+          description: Framework Description
+          example: this is a security description
+          type: string
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          example: https://example.com/icon.png
+          type: string
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      type: object
+    CustomFrameworkData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkDataAttributes'
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - type
+      - attributes
+      type: object
+    FullCustomFrameworkData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FullCustomFrameworkDataAttributes'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    CustomFrameworkMetadata:
+      description: Metadata for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkWithoutRequirements'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      type: object
+    CustomDestinationResponseHttpDestinationAuth:
+      description: Authentication method of the HTTP requests.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasic'
+      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeader'
+    CustomCostUploadResponseMeta:
+      description: Meta for the response from the Upload Custom Costs endpoints.
+      properties:
+        version:
+          description: Version of Custom Costs file
+          type: string
+          example: example_value
+      type: object
+    CustomDestinationResponseForwardDestinationSplunkType:
+      default: splunk_hec
+      description: Type of the Splunk HTTP Event Collector (HEC) destination.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    ApplicationSecurityWafCustomRuleActionParameters:
+      description: The definition of `ApplicationSecurityWafCustomRuleActionParameters` object.
+      properties:
+        location:
+          description: The location to redirect to when the WAF custom rule triggers.
+          example: /blocking
+          type: string
+        status_code:
+          default: 403
+          description: The status code to return when the WAF custom rule triggers.
+          example: 403
+          format: int64
+          type: integer
+      type: object
+    ApplicationSecurityWafCustomRuleConditionOptions:
+      description: Options for the operator of this condition.
+      properties:
+        case_sensitive:
+          default: false
+          description: Evaluate the value as case sensitive.
+          type: boolean
+          example: true
+        min_length:
+          default: 0
+          description: Only evaluate this condition if the value has a minimum amount of characters.
+          format: int64
+          type: integer
+          example: 42
+      type: object
+    ApplicationSecurityWafCustomRuleType:
+      default: custom_rule
+      description: The type of the resource. The value should always be `custom_rule`.
+      enum:
+      - custom_rule
+      example: custom_rule
+      type: string
+      x-enum-varnames:
+      - CUSTOM_RULE
+    ApplicationSecurityWafCustomRuleAttributes:
+      description: A WAF custom rule.
+      properties:
+        action:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAction'
+        blocking:
+          description: Indicates whether the WAF custom rule will block the request.
+          example: false
+          type: boolean
+        conditions:
+          description: 'Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF
+
+            rule to trigger.'
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleCondition'
+          type: array
+        enabled:
+          description: Indicates whether the WAF custom rule is enabled.
+          example: false
+          type: boolean
+        metadata:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleMetadata'
+        name:
+          description: The Name of the WAF custom rule.
+          example: Block request from bad useragent
+          type: string
+        path_glob:
+          description: The path glob for the WAF custom rule.
+          example: /api/search/*
+          type: string
+        scope:
+          description: The scope of the WAF custom rule.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleScope'
+          type: array
+        tags:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTags'
+      required:
+      - enabled
+      - blocking
+      - name
+      - tags
+      - conditions
+      type: object
+    CustomCostListResponseMeta:
+      description: Meta for the response from the List Custom Costs endpoints.
+      properties:
+        total_filtered_count:
+          description: Number of Custom Costs files returned by the List Custom Costs endpoint
+          format: int64
+          type: integer
+          example: 42
+        version:
+          description: Version of Custom Costs file
+          type: string
+          example: example_value
+      type: object
+    ApplicationSecurityWafCustomRuleScope:
+      description: The scope of the WAF custom rule.
+      properties:
+        env:
+          description: The environment scope for the WAF custom rule.
+          example: prod
+          type: string
+        service:
+          description: The service scope for the WAF custom rule.
+          example: billing-service
+          type: string
+      required:
+      - service
+      - env
+      type: object
+    ApplicationSecurityWafCustomRuleConditionInput:
+      description: Input from the request on which the condition should apply.
+      properties:
+        address:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionInputAddress'
+        key_path:
+          description: Specific path for the input.
+          items:
+            type: string
+          type: array
+      required:
+      - address
+      type: object
+    CustomDestinationResponseForwardDestinationElasticsearchType:
+      default: elasticsearch
+      description: Type of the Elasticsearch destination.
+      enum:
+      - elasticsearch
+      example: elasticsearch
+      type: string
+      x-enum-varnames:
+      - ELASTICSEARCH
+    ApplicationSecurityWafCustomRuleTags:
+      additionalProperties:
+        type: string
+      description: 'Tags associated with the WAF Custom Rule. The concatenation of category and type will form the security
+
+        activity field associated with the traces.'
+      maxProperties: 32
+      properties:
+        category:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTagsCategory'
+        type:
+          description: The type of the WAF rule, associated with the category will form the security activity.
+          example: users.login.success
+          type: string
+      required:
+      - category
+      - type
+      type: object
+    DeleteCustomFrameworkResponse:
+      description: Response object to delete a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomFrameworkMetadata'
+      required:
+      - data
+      type: object
+    CustomCostsFileUsageChargePeriod:
+      description: Usage charge period of a Custom Costs file.
+      properties:
+        end:
+          description: End of the usage of the Custom Costs file.
+          example: 1706745600000
+          format: double
+          type: number
+        start:
+          description: Start of the usage of the Custom Costs file.
+          example: 1704067200000
+          format: double
+          type: number
+      type: object
+    CustomDestinationUpdateRequestDefinition:
+      description: The definition of a custom destination.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomDestinationUpdateRequestAttributes'
+        id:
+          description: The custom destination ID.
+          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationType'
+      required:
+      - type
+      - id
+      type: object
+    CustomDestinationResponseForwardDestinationHttp:
+      description: The HTTP destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationHttpType'
+      required:
+      - type
+      - endpoint
+      - auth
+      type: object
+    CustomDestinationResponseForwardDestinationSplunk:
+      description: The Splunk HTTP Event Collector (HEC) destination.
+      properties:
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestinationSplunkType'
+      required:
+      - type
+      - endpoint
+      type: object
+    ApplicationSecurityWafCustomRuleCondition:
+      description: One condition of the WAF Custom Rule.
+      properties:
+        operator:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionOperator'
+        parameters:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionParameters'
+      required:
+      - operator
+      - parameters
+      type: object
+    CustomCostsFileMetadataWithContentHighLevel:
+      description: JSON API format of for a Custom Costs file with content.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomCostsFileMetadataWithContent'
+        id:
+          description: ID of the Custom Costs metadata.
+          type: string
+          example: abc-123-def
+        type:
+          description: Type of the Custom Costs file metadata.
+          type: string
+          example: metric alert
+      type: object
+    UpdateCustomFrameworkResponse:
+      description: Response object to update a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/FrameworkHandleAndVersionResponseData'
+      required:
+      - data
+      type: object
+    CustomDestinationResponseHttpDestinationAuthCustomHeader:
+      description: Custom header access authentication.
+      properties:
+        header_name:
+          description: The header name of the authentication.
+          example: CUSTOM-HEADER-NAME
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeaderType'
+      required:
+      - type
+      - header_name
+      type: object
+    FullCustomFrameworkDataAttributes:
+      description: Full Framework Data Attributes.
+      properties:
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          example: https://example.com/icon.png
+          type: string
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        requirements:
+          description: Framework Requirements
+          items:
+            $ref: '#/components/schemas/CustomFrameworkRequirement'
+          type: array
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      - requirements
+      type: object
+    CustomFrameworkDataAttributes:
+      description: Framework Data Attributes.
+      properties:
+        description:
+          description: Framework Description
+          type: string
+          example: example_value
+        handle:
+          description: Framework Handle
+          example: sec2
+          type: string
+        icon_url:
+          description: Framework Icon URL
+          type: string
+          example: https://app.datadoghq.com
+        name:
+          description: Framework Name
+          example: security-framework
+          type: string
+        requirements:
+          description: Framework Requirements
+          items:
+            $ref: '#/components/schemas/CustomFrameworkRequirement'
+          type: array
+        version:
+          description: Framework Version
+          example: '2'
+          type: string
+      required:
+      - handle
+      - version
+      - name
+      - requirements
+      type: object
+    CustomFrameworkType:
+      default: custom_framework
+      description: The type of the resource. The value must be `custom_framework`.
+      enum:
+      - custom_framework
+      example: custom_framework
+      type: string
+      x-enum-varnames:
+      - CUSTOM_FRAMEWORK
+    CustomDestinationResponseHttpDestinationAuthCustomHeaderType:
+      default: custom_header
+      description: Type of the custom header access authentication.
+      enum:
+      - custom_header
+      example: custom_header
+      type: string
+      x-enum-varnames:
+      - CUSTOM_HEADER
+    CustomDestinationForwardDestinationHttpType:
+      default: http
+      description: Type of the HTTP destination.
+      enum:
+      - http
+      example: http
+      type: string
+      x-enum-varnames:
+      - HTTP
+    CustomFrameworkControl:
+      description: Framework Control.
+      properties:
+        name:
+          description: Control Name.
+          example: A1.2
+          type: string
+        rules_id:
+          description: Rule IDs.
+          example:
+          - '["def-000-abc"]'
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      - rules_id
+      type: object
+    ApplicationSecurityWafCustomRuleUpdateAttributes:
+      description: Update a WAF custom rule.
+      properties:
+        action:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleAction'
+        blocking:
+          description: Indicates whether the WAF custom rule will block the request.
+          example: false
+          type: boolean
+        conditions:
+          description: 'Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF
+
+            rule to trigger.'
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleCondition'
+          type: array
+        enabled:
+          description: Indicates whether the WAF custom rule is enabled.
+          example: false
+          type: boolean
+        name:
+          description: The Name of the WAF custom rule.
+          example: Block request from bad useragent
+          type: string
+        path_glob:
+          description: The path glob for the WAF custom rule.
+          example: /api/search/*
+          type: string
+        scope:
+          description: The scope of the WAF custom rule.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleScope'
+          type: array
+        tags:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleTags'
+      required:
+      - enabled
+      - blocking
+      - name
+      - tags
+      - conditions
+      type: object
+    CustomDestinationForwardDestinationHttp:
+      description: The HTTP destination.
+      properties:
+        auth:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuth'
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationHttpType'
+      required:
+      - type
+      - endpoint
+      - auth
+      type: object
+    CustomDestinationForwardDestinationSplunkType:
+      default: splunk_hec
+      description: Type of the Splunk HTTP Event Collector (HEC) destination.
+      enum:
+      - splunk_hec
+      example: splunk_hec
+      type: string
+      x-enum-varnames:
+      - SPLUNK_HEC
+    CustomDestinationResponseAttributes:
+      description: The attributes associated with the custom destination.
+      properties:
+        enabled:
+          default: true
+          description: Whether logs matching this custom destination should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags:
+          default: true
+          description: Whether tags from the forwarded logs should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags_restriction_list:
+          default: []
+          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.
+
+
+            An empty list represents no restriction is in place and either all or no tags will be
+
+            forwarded depending on `forward_tags_restriction_list_type` parameter.'
+          example:
+          - datacenter
+          - host
+          items:
+            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
+            type: string
+          maxItems: 10
+          minItems: 0
+          type: array
+        forward_tags_restriction_list_type:
+          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
+        forwarder_destination:
+          $ref: '#/components/schemas/CustomDestinationResponseForwardDestination'
+        name:
+          description: The custom destination name.
+          example: Nginx logs
+          type: string
+        query:
+          default: ''
+          description: The custom destination query filter. Logs matching this query are forwarded to the destination.
+          example: source:nginx
+          type: string
+      type: object
+    CustomDestinationHttpDestinationAuth:
+      description: Authentication method of the HTTP requests.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasic'
+      - $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeader'
+    CustomDestinationForwardDestinationSplunk:
+      description: The Splunk HTTP Event Collector (HEC) destination.
+      properties:
+        access_token:
+          description: Access token of the Splunk HTTP Event Collector. This field is not returned by the API.
+          example: splunk_access_token
+          type: string
+          writeOnly: true
+        endpoint:
+          description: 'The destination for which logs will be forwarded to.
+
+            Must have HTTPS scheme and forwarding back to Datadog is not allowed.'
+          example: https://example.com
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunkType'
+      required:
+      - type
+      - endpoint
+      - access_token
+      type: object
+    ApplicationSecurityWafCustomRuleUpdateRequest:
+      description: Request object that includes the Custom Rule to update.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleUpdateData'
+      required:
+      - data
+      type: object
+    CustomDestinationUpdateRequest:
+      description: The custom destination.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomDestinationUpdateRequestDefinition'
+      type: object
+    GetCustomFrameworkResponse:
+      description: Response object to get a custom framework.
+      properties:
+        data:
+          $ref: '#/components/schemas/FullCustomFrameworkData'
+      required:
+      - data
+      type: object
+    CustomDestinationForwardDestination:
+      description: A custom destination's location to forward logs.
+      oneOf:
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationHttp'
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationSplunk'
+      - $ref: '#/components/schemas/CustomDestinationForwardDestinationElasticsearch'
+    FrameworkHandleAndVersionResponseData:
+      description: Contains type and attributes for custom frameworks.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomFrameworkDataHandleAndVersion'
+        id:
+          description: The ID of the custom framework.
+          example: handle-version
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomFrameworkType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    CustomDestinationResponseHttpDestinationAuthBasicType:
+      default: basic
+      description: Type of the basic access authentication.
+      enum:
+      - basic
+      example: basic
+      type: string
+      x-enum-varnames:
+      - BASIC
+    CustomDestinationUpdateRequestAttributes:
+      description: The attributes associated with the custom destination.
+      properties:
+        enabled:
+          default: true
+          description: Whether logs matching this custom destination should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags:
+          default: true
+          description: Whether tags from the forwarded logs should be forwarded or not.
+          example: true
+          type: boolean
+        forward_tags_restriction_list:
+          default: []
+          description: 'List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be restricted from being forwarded.
+
+            An empty list represents no restriction is in place and either all or no tags will be forwarded depending on `forward_tags_restriction_list_type` parameter.'
+          example:
+          - datacenter
+          - host
+          items:
+            description: The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
+            type: string
+          maxItems: 10
+          minItems: 0
+          type: array
+        forward_tags_restriction_list_type:
+          $ref: '#/components/schemas/CustomDestinationAttributeTagsRestrictionListType'
+        forwarder_destination:
+          $ref: '#/components/schemas/CustomDestinationForwardDestination'
+        name:
+          description: The custom destination name.
+          example: Nginx logs
+          type: string
+        query:
+          default: ''
+          description: The custom destination query and filter. Logs matching this query are forwarded to the destination.
+          example: source:nginx
+          type: string
+      type: object
+    CustomDestinationHttpDestinationAuthBasic:
+      description: Basic access authentication.
+      properties:
+        password:
+          description: The password of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-password
+          type: string
+          writeOnly: true
+        type:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthBasicType'
+        username:
+          description: The username of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-username
+          type: string
+          writeOnly: true
+      required:
+      - type
+      - username
+      - password
+      type: object
+    ApplicationSecurityWafCustomRuleActionAction:
+      default: block_request
+      description: Override the default action to take when the WAF custom rule would block.
+      enum:
+      - redirect_request
+      - block_request
+      example: block_request
+      type: string
+      x-enum-varnames:
+      - REDIRECT_REQUEST
+      - BLOCK_REQUEST
+    CustomDestinationElasticsearchDestinationAuth:
+      description: Basic access authentication.
+      properties:
+        password:
+          description: The password of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-password
+          type: string
+          writeOnly: true
+        username:
+          description: The username of the authentication. This field is not returned by the API.
+          example: datadog-custom-destination-username
+          type: string
+          writeOnly: true
+      required:
+      - username
+      - password
+      type: object
+    ApplicationSecurityWafCustomRuleTagsCategory:
+      description: The category of the WAF Rule, can be either `business_logic`, `attack_attempt` or `security_response`.
+      enum:
+      - attack_attempt
+      - business_logic
+      - security_response
+      example: business_logic
+      type: string
+      x-enum-varnames:
+      - ATTACK_ATTEMPT
+      - BUSINESS_LOGIC
+      - SECURITY_RESPONSE
+    CustomDestinationResponse:
+      description: The custom destination.
+      properties:
+        data:
+          $ref: '#/components/schemas/CustomDestinationResponseDefinition'
+      type: object
+    CustomCostsUser:
+      description: Metadata of the user that has uploaded the Custom Costs file.
+      properties:
+        email:
+          description: The name of the Custom Costs file.
+          example: email.test@datadohq.com
+          type: string
+        icon:
+          description: The name of the Custom Costs file.
+          example: icon.png
+          type: string
+        name:
+          description: Name of the user.
+          example: Test User
+          type: string
+      type: object
     CustomDestinationHttpDestinationAuthCustomHeaderType:
       default: custom_header
       description: Type of the custom header access authentication.
@@ -1922,31 +1796,142 @@ components:
       type: string
       x-enum-varnames:
       - CUSTOM_HEADER
-    CustomDestinationResponseHttpDestinationAuth:
-      description: Authentication method of the HTTP requests.
-      oneOf:
-      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthBasic'
-      - $ref: '#/components/schemas/CustomDestinationResponseHttpDestinationAuthCustomHeader'
+    CustomDestinationResponseForwardDestinationHttpType:
+      default: http
+      description: Type of the HTTP destination.
+      enum:
+      - http
+      example: http
+      type: string
+      x-enum-varnames:
+      - HTTP
+    ApplicationSecurityWafCustomRuleResponse:
+      description: Response object that includes a single WAF custom rule.
+      properties:
+        data:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleData'
+      type: object
+    CustomDestinationResponseDefinition:
+      description: The definition of a custom destination.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CustomDestinationResponseAttributes'
+        id:
+          description: The custom destination ID.
+          example: be5d7a69-d0c8-4d4d-8ee8-bba292d98139
+          readOnly: true
+          type: string
+        type:
+          $ref: '#/components/schemas/CustomDestinationType'
+      type: object
+    CustomDestinationHttpDestinationAuthCustomHeader:
+      description: Custom header access authentication.
+      properties:
+        header_name:
+          description: The header name of the authentication.
+          example: CUSTOM-HEADER-NAME
+          type: string
+        header_value:
+          description: The header value of the authentication. This field is not returned by the API.
+          example: CUSTOM-HEADER-AUTHENTICATION-VALUE
+          type: string
+          writeOnly: true
+        type:
+          $ref: '#/components/schemas/CustomDestinationHttpDestinationAuthCustomHeaderType'
+      required:
+      - type
+      - header_name
+      - header_value
+      type: object
+    CustomCostsFileLineItem:
+      description: Line item details from a Custom Costs file.
+      properties:
+        BilledCost:
+          description: Total cost in the cost file.
+          example: 100.5
+          format: double
+          type: number
+        BillingCurrency:
+          description: Currency used in the Custom Costs file.
+          example: USD
+          type: string
+        ChargeDescription:
+          description: Description for the line item cost.
+          example: Monthly usage charge for my service
+          type: string
+        ChargePeriodEnd:
+          description: End date of the usage charge.
+          example: '2023-02-28'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          type: string
+        ChargePeriodStart:
+          description: Start date of the usage charge.
+          example: '2023-02-01'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          type: string
+        ProviderName:
+          description: Name of the provider for the line item.
+          type: string
+          example: abc-123-def
+        Tags:
+          additionalProperties:
+            type: string
+          description: Additional tags for the line item.
+          type: object
+      type: object
+    ApplicationSecurityWafCustomRuleConditionParameters:
+      description: The scope of the WAF custom rule.
+      properties:
+        data:
+          description: Identifier of a list of data from the denylist. Can only be used as substitution from the list parameter.
+          example: blocked_users
+          type: string
+        inputs:
+          description: List of inputs on which at least one should match with the given operator.
+          items:
+            $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionInput'
+          type: array
+        list:
+          description: 'List of value to use with the condition. Only used with the phrase_match, !phrase_match, exact_match and
+
+            !exact_match operator.'
+          items:
+            type: string
+          type: array
+        options:
+          $ref: '#/components/schemas/ApplicationSecurityWafCustomRuleConditionOptions'
+        regex:
+          description: Regex to use with the condition. Only used with match_regex and !match_regex operator.
+          example: path.*
+          type: string
+        value:
+          description: Store the captured value in the specified tag name. Only used with the capture_data operator.
+          example: custom_tag
+          type: string
+      required:
+      - inputs
+      type: object
+    CustomCostsFileListResponse:
+      description: Response for List Custom Costs files.
+      properties:
+        data:
+          description: List of Custom Costs files.
+          items:
+            $ref: '#/components/schemas/CustomCostsFileMetadataHighLevel'
+          type: array
+        meta:
+          $ref: '#/components/schemas/CustomCostListResponseMeta'
+      type: object
+    CustomDestinationResponseElasticsearchDestinationAuth:
+      additionalProperties:
+        description: Basic access authentication.
+      description: Basic access authentication.
+      type: object
   parameters:
-    ApplicationSecurityWafCustomRuleIDParam:
-      description: The ID of the custom rule.
-      example: 3b5-v82-ns6
-      in: path
-      name: custom_rule_id
-      required: true
-      schema:
-        type: string
     FileID:
       description: File ID.
       in: path
       name: file_id
-      required: true
-      schema:
-        type: string
-    CustomFrameworkVersion:
-      description: The framework version
-      in: path
-      name: version
       required: true
       schema:
         type: string
@@ -1964,49 +1949,64 @@ components:
       required: true
       schema:
         type: string
+    CustomFrameworkVersion:
+      description: The framework version
+      in: path
+      name: version
+      required: true
+      schema:
+        type: string
+    ApplicationSecurityWafCustomRuleIDParam:
+      description: The ID of the custom rule.
+      example: 3b5-v82-ns6
+      in: path
+      name: custom_rule_id
+      required: true
+      schema:
+        type: string
   responses:
-    ConcurrentModificationResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Concurrent Modification
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     ConflictResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Conflict
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
     ForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Forbidden
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    ConcurrentModificationResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Concurrent Modification
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

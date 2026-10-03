@@ -387,90 +387,23 @@ paths:
           default: api
           description: The subdomain where the API is deployed.
 components:
-  responses:
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   schemas:
-    LogsListRequestPage:
-      description: Paging attributes for listing logs.
+    HTTPLogError:
+      description: List of errors.
       properties:
-        cursor:
-          description: List following results with a cursor provided in the previous query.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        detail:
+          description: Error message.
+          example: Malformed payload
           type: string
-        limit:
-          default: 10
-          description: Maximum number of logs in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
+        status:
+          description: Error code.
+          example: '400'
+          type: string
+        title:
+          description: Error title.
+          example: Bad Request
+          type: string
       type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    HTTPLog:
-      description: Structured log message.
-      items:
-        $ref: '#/components/schemas/HTTPLogItem'
-      type: array
-    LogType:
-      default: log
-      description: Type of the event.
-      enum:
-      - log
-      example: log
-      type: string
-      x-enum-varnames:
-      - LOG
-    LogsSort:
-      description: Sort parameters when querying logs.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    ContentEncoding:
-      description: HTTP header used to compress the media-type.
-      enum:
-      - identity
-      - gzip
-      - deflate
-      type: string
-      x-enum-varnames:
-      - IDENTITY
-      - GZIP
-      - DEFLATE
     LogsListResponseLinks:
       description: Links attributes.
       properties:
@@ -480,6 +413,46 @@ components:
             POST endpoint.'
           example: https://app.datadoghq.com/api/v2/logs/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
+      type: object
+    HTTPLogItem:
+      additionalProperties:
+        description: Additional log attributes.
+      description: Logs that are sent over HTTP.
+      properties:
+        ddsource:
+          description: 'The integration name associated with your log: the technology from which the log originated.
+
+            When it matches an integration name, Datadog automatically installs the corresponding parsers and facets.
+
+            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
+          example: nginx
+          type: string
+        ddtags:
+          description: Tags associated with your logs.
+          example: env:staging,version:5.1
+          type: string
+        hostname:
+          description: The name of the originating host of the log.
+          example: i-012345678
+          type: string
+        message:
+          description: 'The message [reserved attribute](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes)
+
+            of your log. By default, Datadog ingests the value of the message attribute as the body of the log entry.
+
+            That value is then highlighted and displayed in the Logstream, where it is indexed for full text search.'
+          example: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
+          type: string
+        service:
+          description: 'The name of the application or service generating the log events.
+
+            It is used to switch from Logs to APM, so make sure you define the same value when you use both products.
+
+            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
+          example: payment
+          type: string
+      required:
+      - message
       type: object
     LogAttributes:
       description: JSON object containing all log attributes and their associated values.
@@ -529,89 +502,6 @@ components:
           format: date-time
           type: string
       type: object
-    HTTPLogErrors:
-      description: Invalid query performed.
-      properties:
-        errors:
-          description: Structured errors.
-          items:
-            $ref: '#/components/schemas/HTTPLogError'
-          type: array
-      type: object
-    LogsListRequest:
-      description: The request for a logs list.
-      properties:
-        filter:
-          $ref: '#/components/schemas/LogsQueryFilter'
-        options:
-          $ref: '#/components/schemas/LogsQueryOptions'
-        page:
-          $ref: '#/components/schemas/LogsListRequestPage'
-        sort:
-          $ref: '#/components/schemas/LogsSort'
-      type: object
-    LogsWarning:
-      description: A warning message indicating something that went wrong with the query
-      properties:
-        code:
-          description: A unique code for this type of warning
-          example: unknown_index
-          type: string
-        detail:
-          description: A detailed explanation of this specific warning
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
-      type: object
-    HTTPLogError:
-      description: List of errors.
-      properties:
-        detail:
-          description: Error message.
-          example: Malformed payload
-          type: string
-        status:
-          description: Error code.
-          example: '400'
-          type: string
-        title:
-          description: Error title.
-          example: Bad Request
-          type: string
-      type: object
-    LogsQueryOptions:
-      deprecated: true
-      description: 'Global query options that are used during the query.
-
-        Note: These fields are currently deprecated and do not affect the query results.'
-      properties:
-        timeOffset:
-          description: The time offset (in seconds) to apply to the query.
-          format: int64
-          type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
-          type: string
-      type: object
-    LogsListResponse:
-      description: Response object with all logs matching the request and pagination information.
-      properties:
-        data:
-          description: Array of logs matching the request.
-          items:
-            $ref: '#/components/schemas/Log'
-          type: array
-        links:
-          $ref: '#/components/schemas/LogsListResponseLinks'
-        meta:
-          $ref: '#/components/schemas/LogsResponseMetadata'
-      type: object
     LogsQueryFilter:
       description: The search and filter query settings
       properties:
@@ -644,6 +534,33 @@ components:
           example: now
           type: string
       type: object
+    Log:
+      description: Object description of a log after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogAttributes'
+        id:
+          description: Unique ID of the Log.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/LogType'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
     LogsStorageTier:
       default: indexes
       description: Specifies storage type as indexes, online-archives or flex
@@ -657,17 +574,17 @@ components:
       - INDEXES
       - ONLINE_ARCHIVES
       - FLEX
-    Log:
-      description: Object description of a log after being processed and stored by Datadog.
+    LogsListRequest:
+      description: The request for a logs list.
       properties:
-        attributes:
-          $ref: '#/components/schemas/LogAttributes'
-        id:
-          description: Unique ID of the Log.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
-          type: string
-        type:
-          $ref: '#/components/schemas/LogType'
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/LogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/LogsListRequestPage'
+        sort:
+          $ref: '#/components/schemas/LogsSort'
       type: object
     LogsAggregateResponseStatus:
       description: The status of the response
@@ -679,56 +596,59 @@ components:
       x-enum-varnames:
       - DONE
       - TIMEOUT
-    HTTPLogItem:
-      additionalProperties:
-        description: Additional log attributes.
-      description: Logs that are sent over HTTP.
+    LogsWarning:
+      description: A warning message indicating something that went wrong with the query
       properties:
-        ddsource:
-          description: 'The integration name associated with your log: the technology from which the log originated.
-
-            When it matches an integration name, Datadog automatically installs the corresponding parsers and facets.
-
-            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
-          example: nginx
+        code:
+          description: A unique code for this type of warning
+          example: unknown_index
           type: string
-        ddtags:
-          description: Tags associated with your logs.
-          example: env:staging,version:5.1
+        detail:
+          description: A detailed explanation of this specific warning
+          example: 'indexes: foo, bar'
           type: string
-        hostname:
-          description: The name of the originating host of the log.
-          example: i-012345678
+        title:
+          description: A short human-readable summary of the warning
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
           type: string
-        message:
-          description: 'The message [reserved attribute](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes)
-
-            of your log. By default, Datadog ingests the value of the message attribute as the body of the log entry.
-
-            That value is then highlighted and displayed in the Logstream, where it is indexed for full text search.'
-          example: 2019-11-19T14:37:58,995 INFO [process.name][20081] Hello World
-          type: string
-        service:
-          description: 'The name of the application or service generating the log events.
-
-            It is used to switch from Logs to APM, so make sure you define the same value when you use both products.
-
-            See [reserved attributes](https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#reserved-attributes).'
-          example: payment
-          type: string
-      required:
-      - message
       type: object
-    LogsResponseMetadataPage:
-      description: Paging attributes.
+    LogsListRequestPage:
+      description: Paging attributes for listing logs.
       properties:
-        after:
-          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
-
-            parameters with the addition of the `page[cursor]`.'
+        cursor:
+          description: List following results with a cursor provided in the previous query.
           example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
+        limit:
+          default: 10
+          description: Maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
       type: object
+    LogsQueryOptions:
+      deprecated: true
+      description: 'Global query options that are used during the query.
+
+        Note: These fields are currently deprecated and do not affect the query results.'
+      properties:
+        timeOffset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    HTTPLog:
+      description: Structured log message.
+      items:
+        $ref: '#/components/schemas/HTTPLogItem'
+      type: array
     LogsResponseMetadata:
       description: The metadata associated with a request
       properties:
@@ -753,6 +673,67 @@ components:
             $ref: '#/components/schemas/LogsWarning'
           type: array
       type: object
+    LogsResponseMetadataPage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: 'The cursor to use to get the next results, if any. To make the next request, use the same
+
+            parameters with the addition of the `page[cursor]`.'
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    LogType:
+      default: log
+      description: Type of the event.
+      enum:
+      - log
+      example: log
+      type: string
+      x-enum-varnames:
+      - LOG
+    ContentEncoding:
+      description: HTTP header used to compress the media-type.
+      enum:
+      - identity
+      - gzip
+      - deflate
+      type: string
+      x-enum-varnames:
+      - IDENTITY
+      - GZIP
+      - DEFLATE
+    HTTPLogErrors:
+      description: Invalid query performed.
+      properties:
+        errors:
+          description: Structured errors.
+          items:
+            $ref: '#/components/schemas/HTTPLogError'
+          type: array
+      type: object
+    LogsListResponse:
+      description: Response object with all logs matching the request and pagination information.
+      properties:
+        data:
+          description: Array of logs matching the request.
+          items:
+            $ref: '#/components/schemas/Log'
+          type: array
+        links:
+          $ref: '#/components/schemas/LogsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/LogsResponseMetadata'
+      type: object
+    LogsSort:
+      description: Sort parameters when querying logs.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
     LogsQueryFilter_2:
       type: object
       description: Filter criteria for log search queries
@@ -788,10 +769,6 @@ components:
           example: metric alert
         attributes:
           $ref: '#/components/schemas/LogAttributes_2'
-    HTTPLogSuccess:
-      type: object
-      description: Response indicating logs were accepted for processing
-      properties: {}
     APIErrorResponse_2:
       type: object
       description: Standard API error response returned for failed requests
@@ -803,44 +780,32 @@ components:
           description: List of error messages describing the failure
           items:
             type: string
-    LogAttributes_2:
+    LogsListRequest_2:
       type: object
-      description: The attributes of a log event returned from the search API
+      description: Request body for searching log events
       properties:
-        timestamp:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter_2'
+        sort:
           type: string
-          format: date-time
-          description: ISO 8601 timestamp when the log was generated
-          example: '2026-04-17T12:00:00Z'
-        status:
-          type: string
-          description: The log level or severity status of the event
-          example: OK
-        message:
-          type: string
-          description: The raw log message content
-          example: CPU usage is high on {{host.name}}
-        host:
-          type: string
-          description: The hostname of the machine that generated the log
-          example: example_value
-        service:
-          type: string
-          description: The name of the application or service that generated the log
-          example: example_value
-        source:
-          type: string
-          description: The technology source that generated the log (e.g., nginx, java)
-          example: example_value
-        tags:
-          type: array
-          description: List of tags associated with the log event in key:value format
-          items:
-            type: string
-        attributes:
+          description: The sort order for log results, either ascending or descending by timestamp
+          enum:
+          - timestamp
+          - -timestamp
+          example: timestamp
+        page:
           type: object
-          description: Custom key-value attributes extracted from the log message
-          additionalProperties: true
+          description: Pagination configuration for log search results
+          properties:
+            cursor:
+              type: string
+              description: A cursor token from a previous response to retrieve the next page of results
+            limit:
+              type: integer
+              description: The maximum number of logs to return per page (default 10, max 1000)
+              minimum: 1
+              maximum: 1000
+              default: 10
     HTTPLogItem_2:
       type: object
       description: A single log entry to submit to Datadog
@@ -909,32 +874,67 @@ components:
               enum:
               - done
               - timeout
-    LogsListRequest_2:
+    HTTPLogSuccess:
       type: object
-      description: Request body for searching log events
+      description: Response indicating logs were accepted for processing
+      properties: {}
+    LogAttributes_2:
+      type: object
+      description: The attributes of a log event returned from the search API
       properties:
-        filter:
-          $ref: '#/components/schemas/LogsQueryFilter_2'
-        sort:
+        timestamp:
           type: string
-          description: The sort order for log results, either ascending or descending by timestamp
-          enum:
-          - timestamp
-          - -timestamp
-          example: timestamp
-        page:
+          format: date-time
+          description: ISO 8601 timestamp when the log was generated
+          example: '2026-04-17T12:00:00Z'
+        status:
+          type: string
+          description: The log level or severity status of the event
+          example: OK
+        message:
+          type: string
+          description: The raw log message content
+          example: CPU usage is high on {{host.name}}
+        host:
+          type: string
+          description: The hostname of the machine that generated the log
+          example: example_value
+        service:
+          type: string
+          description: The name of the application or service that generated the log
+          example: example_value
+        source:
+          type: string
+          description: The technology source that generated the log (e.g., nginx, java)
+          example: example_value
+        tags:
+          type: array
+          description: List of tags associated with the log event in key:value format
+          items:
+            type: string
+        attributes:
           type: object
-          description: Pagination configuration for log search results
-          properties:
-            cursor:
-              type: string
-              description: A cursor token from a previous response to retrieve the next page of results
-            limit:
-              type: integer
-              description: The maximum number of logs to return per page (default 10, max 1000)
-              minimum: 1
-              maximum: 1000
-              default: 10
+          description: Custom key-value attributes extracted from the log message
+          additionalProperties: true
+  responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

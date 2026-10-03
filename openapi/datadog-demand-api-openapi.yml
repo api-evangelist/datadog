@@ -155,6 +155,36 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    AwsOnDemandListResponse:
+      description: Response object that includes a list of AWS on demand tasks.
+      properties:
+        data:
+          description: A list of on demand tasks.
+          items:
+            $ref: '#/components/schemas/AwsOnDemandData'
+          type: array
+      type: object
+    AwsOnDemandResponse:
+      description: Response object that includes an AWS on demand task.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsOnDemandData'
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
     AwsOnDemandType:
       default: aws_resource
       description: The type of the on demand task. The value should always be `aws_resource`.
@@ -164,6 +194,18 @@ components:
       type: string
       x-enum-varnames:
       - AWS_RESOURCE
+    AwsOnDemandData:
+      description: Single AWS on demand task.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsOnDemandAttributes'
+        id:
+          description: The UUID of the task.
+          example: 6d09294c-9ad9-42fd-a759-a0c1599b4828
+          type: string
+        type:
+          $ref: '#/components/schemas/AwsOnDemandType'
+      type: object
     AwsOnDemandAttributes:
       description: Attributes for the AWS on demand task.
       properties:
@@ -190,6 +232,16 @@ components:
           example: QUEUED
           type: string
       type: object
+    AwsOnDemandCreateAttributes:
+      description: Attributes for the AWS on demand task.
+      properties:
+        arn:
+          description: The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets.
+          example: arn:aws:ec2:us-east-1:727000456123:instance/i-0eabb50529b67a1ba
+          type: string
+      required:
+      - arn
+      type: object
     AwsOnDemandCreateRequest:
       description: Request object that includes the on demand task to submit.
       properties:
@@ -197,42 +249,6 @@ components:
           $ref: '#/components/schemas/AwsOnDemandCreateData'
       required:
       - data
-      type: object
-    AwsOnDemandData:
-      description: Single AWS on demand task.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsOnDemandAttributes'
-        id:
-          description: The UUID of the task.
-          example: 6d09294c-9ad9-42fd-a759-a0c1599b4828
-          type: string
-        type:
-          $ref: '#/components/schemas/AwsOnDemandType'
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    AwsOnDemandListResponse:
-      description: Response object that includes a list of AWS on demand tasks.
-      properties:
-        data:
-          description: A list of on demand tasks.
-          items:
-            $ref: '#/components/schemas/AwsOnDemandData'
-          type: array
       type: object
     AwsOnDemandCreateData:
       description: Object for a single AWS on demand task.
@@ -245,22 +261,6 @@ components:
       - type
       - attributes
       type: object
-    AwsOnDemandCreateAttributes:
-      description: Attributes for the AWS on demand task.
-      properties:
-        arn:
-          description: The arn of the resource to scan. Agentless supports the scan of EC2 instances, lambda functions, AMI, ECR, RDS and S3 buckets.
-          example: arn:aws:ec2:us-east-1:727000456123:instance/i-0eabb50529b67a1ba
-          type: string
-      required:
-      - arn
-      type: object
-    AwsOnDemandResponse:
-      description: Response object that includes an AWS on demand task.
-      properties:
-        data:
-          $ref: '#/components/schemas/AwsOnDemandData'
-      type: object
   responses:
     NotFoundResponse:
       content:
@@ -268,6 +268,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
     NotAuthorizedResponse:
       content:
         application/json:
@@ -280,12 +286,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   parameters:
     OnDemandTaskId:
       description: The UUID of the task.

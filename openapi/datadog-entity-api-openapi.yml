@@ -98,30 +98,74 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    RelationshipItem:
-      description: Relationship entry.
+    ListRelationCatalogResponse:
+      description: List entity relation response.
       properties:
-        id:
-          description: Associated data ID.
-          type: string
-          example: abc-123-def
-        type:
-          description: Relationship type.
-          type: string
-          example: metric alert
+        data:
+          $ref: '#/components/schemas/RelationResponseData'
+        included:
+          $ref: '#/components/schemas/ListRelationCatalogResponseIncluded'
+        links:
+          $ref: '#/components/schemas/ListRelationCatalogResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RelationResponseMeta'
       type: object
-    RelationshipArray:
-      description: Relationships.
-      items:
-        $ref: '#/components/schemas/RelationshipItem'
-      type: array
-    RelationResponseType:
-      description: Relation type.
+    RelationIncludeType:
+      description: Supported include types for relations.
       enum:
-      - relation
+      - entity
+      - schema
       type: string
       x-enum-varnames:
-      - RELATION
+      - ENTITY
+      - SCHEMA
+    RelationMeta:
+      description: Relation metadata.
+      properties:
+        createdAt:
+          description: Relation creation time.
+          format: date-time
+          type: string
+          example: example_value
+        definedBy:
+          description: Relation defined by.
+          type: string
+          example: example_value
+        modifiedAt:
+          description: Relation modification time.
+          format: date-time
+          type: string
+          example: example_value
+        source:
+          description: Relation source.
+          type: string
+          example: example_value
+      type: object
+    RelationType:
+      description: Supported relation types.
+      enum:
+      - RelationTypeOwns
+      - RelationTypeOwnedBy
+      - RelationTypeDependsOn
+      - RelationTypeDependencyOf
+      - RelationTypePartsOf
+      - RelationTypeHasPart
+      - RelationTypeOtherOwns
+      - RelationTypeOtherOwnedBy
+      - RelationTypeImplementedBy
+      - RelationTypeImplements
+      type: string
+      x-enum-varnames:
+      - RELATIONTYPEOWNS
+      - RELATIONTYPEOWNEDBY
+      - RELATIONTYPEDEPENDSON
+      - RELATIONTYPEDEPENDENCYOF
+      - RELATIONTYPEPARTSOF
+      - RELATIONTYPEHASPART
+      - RELATIONTYPEOTHEROWNS
+      - RELATIONTYPEOTHEROWNEDBY
+      - RELATIONTYPEIMPLEMENTEDBY
+      - RELATIONTYPEIMPLEMENTS
     ListRelationCatalogResponseLinks:
       description: List relation response links.
       properties:
@@ -138,6 +182,49 @@ components:
           example: /api/v2/catalog/relation?filter[from_ref]=service:service-catalog&include=entity&page[limit]=2&page[offset]=0
           type: string
       type: object
+    RelationResponse:
+      description: Relation response data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RelationAttributes'
+        id:
+          description: Relation ID.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/RelationMeta'
+        relationships:
+          $ref: '#/components/schemas/RelationRelationships'
+        subtype:
+          description: Relation subtype.
+          type: string
+          example: metric alert
+        type:
+          $ref: '#/components/schemas/RelationResponseType'
+      type: object
+    EntityToSchema:
+      description: Entity to detail schema relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipItem'
+      type: object
+    RelationResponseData:
+      description: Array of relation responses
+      items:
+        $ref: '#/components/schemas/RelationResponse'
+      type: array
+    RelationshipItem:
+      description: Relationship entry.
+      properties:
+        id:
+          description: Associated data ID.
+          type: string
+          example: abc-123-def
+        type:
+          description: Relationship type.
+          type: string
+          example: metric alert
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -153,30 +240,49 @@ components:
       required:
       - errors
       type: object
-    ListRelationCatalogResponseIncluded:
-      description: List relation response included entities.
-      items:
-        $ref: '#/components/schemas/EntityData'
-      type: array
-    RelationRelationships:
-      description: Relation relationships.
-      properties:
-        fromEntity:
-          $ref: '#/components/schemas/RelationToEntity'
-        toEntity:
-          $ref: '#/components/schemas/RelationToEntity'
-      type: object
-    ListRelationCatalogResponse:
-      description: List entity relation response.
+    RelationToEntity:
+      description: Relation to entity.
       properties:
         data:
-          $ref: '#/components/schemas/RelationResponseData'
-        included:
-          $ref: '#/components/schemas/ListRelationCatalogResponseIncluded'
-        links:
-          $ref: '#/components/schemas/ListRelationCatalogResponseLinks'
+          $ref: '#/components/schemas/RelationshipItem'
         meta:
-          $ref: '#/components/schemas/RelationResponseMeta'
+          $ref: '#/components/schemas/EntityMeta'
+      type: object
+    RelationAttributes:
+      description: Relation attributes.
+      properties:
+        from:
+          $ref: '#/components/schemas/RelationEntity'
+        to:
+          $ref: '#/components/schemas/RelationEntity'
+        type:
+          $ref: '#/components/schemas/RelationType'
+      type: object
+    EntityToRelatedEntities:
+      description: Entity to related entities relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
+      type: object
+    EntityMeta:
+      description: Entity metadata.
+      properties:
+        createdAt:
+          description: The creation time.
+          type: string
+          example: example_value
+        ingestionSource:
+          description: The ingestion source.
+          type: string
+          example: example_value
+        modifiedAt:
+          description: The modification time.
+          type: string
+          example: example_value
+        origin:
+          description: The origin.
+          type: string
+          example: example_value
       type: object
     EntityAttributes:
       description: Entity attributes.
@@ -215,175 +321,11 @@ components:
             type: string
           type: array
       type: object
-    RelationResponseData:
-      description: Array of relation responses
-      items:
-        $ref: '#/components/schemas/RelationResponse'
-      type: array
     EntityToRawSchema:
       description: Entity to raw schema relationship.
       properties:
         data:
           $ref: '#/components/schemas/RelationshipItem'
-      type: object
-    RelationToEntity:
-      description: Relation to entity.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipItem'
-        meta:
-          $ref: '#/components/schemas/EntityMeta'
-      type: object
-    RelationResponse:
-      description: Relation response data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RelationAttributes'
-        id:
-          description: Relation ID.
-          type: string
-          example: abc-123-def
-        meta:
-          $ref: '#/components/schemas/RelationMeta'
-        relationships:
-          $ref: '#/components/schemas/RelationRelationships'
-        subtype:
-          description: Relation subtype.
-          type: string
-          example: metric alert
-        type:
-          $ref: '#/components/schemas/RelationResponseType'
-      type: object
-    EntityMeta:
-      description: Entity metadata.
-      properties:
-        createdAt:
-          description: The creation time.
-          type: string
-          example: example_value
-        ingestionSource:
-          description: The ingestion source.
-          type: string
-          example: example_value
-        modifiedAt:
-          description: The modification time.
-          type: string
-          example: example_value
-        origin:
-          description: The origin.
-          type: string
-          example: example_value
-      type: object
-    RelationAttributes:
-      description: Relation attributes.
-      properties:
-        from:
-          $ref: '#/components/schemas/RelationEntity'
-        to:
-          $ref: '#/components/schemas/RelationEntity'
-        type:
-          $ref: '#/components/schemas/RelationType'
-      type: object
-    EntityToIncidents:
-      description: Entity to incidents relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    EntityToOncalls:
-      description: Entity to oncalls relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    EntityToRelatedEntities:
-      description: Entity to related entities relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipArray'
-      type: object
-    RelationType:
-      description: Supported relation types.
-      enum:
-      - RelationTypeOwns
-      - RelationTypeOwnedBy
-      - RelationTypeDependsOn
-      - RelationTypeDependencyOf
-      - RelationTypePartsOf
-      - RelationTypeHasPart
-      - RelationTypeOtherOwns
-      - RelationTypeOtherOwnedBy
-      - RelationTypeImplementedBy
-      - RelationTypeImplements
-      type: string
-      x-enum-varnames:
-      - RELATIONTYPEOWNS
-      - RELATIONTYPEOWNEDBY
-      - RELATIONTYPEDEPENDSON
-      - RELATIONTYPEDEPENDENCYOF
-      - RELATIONTYPEPARTSOF
-      - RELATIONTYPEHASPART
-      - RELATIONTYPEOTHEROWNS
-      - RELATIONTYPEOTHEROWNEDBY
-      - RELATIONTYPEIMPLEMENTEDBY
-      - RELATIONTYPEIMPLEMENTS
-    EntityRelationships:
-      description: Entity relationships.
-      properties:
-        incidents:
-          $ref: '#/components/schemas/EntityToIncidents'
-        oncall:
-          $ref: '#/components/schemas/EntityToOncalls'
-        rawSchema:
-          $ref: '#/components/schemas/EntityToRawSchema'
-        relatedEntities:
-          $ref: '#/components/schemas/EntityToRelatedEntities'
-        schema:
-          $ref: '#/components/schemas/EntityToSchema'
-      type: object
-    RelationEntity:
-      description: Relation entity reference.
-      properties:
-        kind:
-          description: Entity kind.
-          type: string
-          example: example_value
-        name:
-          description: Entity name.
-          type: string
-          example: Example Monitor
-        namespace:
-          description: Entity namespace.
-          type: string
-          example: Example Monitor
-      type: object
-    EntityToSchema:
-      description: Entity to detail schema relationship.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipItem'
-      type: object
-    RelationMeta:
-      description: Relation metadata.
-      properties:
-        createdAt:
-          description: Relation creation time.
-          format: date-time
-          type: string
-          example: example_value
-        definedBy:
-          description: Relation defined by.
-          type: string
-          example: example_value
-        modifiedAt:
-          description: Relation modification time.
-          format: date-time
-          type: string
-          example: example_value
-        source:
-          description: Relation source.
-          type: string
-          example: example_value
       type: object
     RelationResponseMeta:
       description: Relation response metadata.
@@ -399,6 +341,11 @@ components:
           type: integer
           example: 42
       type: object
+    RelationshipArray:
+      description: Relationships.
+      items:
+        $ref: '#/components/schemas/RelationshipItem'
+      type: array
     EntityData:
       description: Entity data.
       properties:
@@ -417,25 +364,69 @@ components:
           type: string
           example: metric alert
       type: object
-    RelationIncludeType:
-      description: Supported include types for relations.
+    EntityToOncalls:
+      description: Entity to oncalls relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
+      type: object
+    ListRelationCatalogResponseIncluded:
+      description: List relation response included entities.
+      items:
+        $ref: '#/components/schemas/EntityData'
+      type: array
+    EntityRelationships:
+      description: Entity relationships.
+      properties:
+        incidents:
+          $ref: '#/components/schemas/EntityToIncidents'
+        oncall:
+          $ref: '#/components/schemas/EntityToOncalls'
+        rawSchema:
+          $ref: '#/components/schemas/EntityToRawSchema'
+        relatedEntities:
+          $ref: '#/components/schemas/EntityToRelatedEntities'
+        schema:
+          $ref: '#/components/schemas/EntityToSchema'
+      type: object
+    RelationRelationships:
+      description: Relation relationships.
+      properties:
+        fromEntity:
+          $ref: '#/components/schemas/RelationToEntity'
+        toEntity:
+          $ref: '#/components/schemas/RelationToEntity'
+      type: object
+    EntityToIncidents:
+      description: Entity to incidents relationship.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipArray'
+      type: object
+    RelationEntity:
+      description: Relation entity reference.
+      properties:
+        kind:
+          description: Entity kind.
+          type: string
+          example: example_value
+        name:
+          description: Entity name.
+          type: string
+          example: Example Monitor
+        namespace:
+          description: Entity namespace.
+          type: string
+          example: Example Monitor
+      type: object
+    RelationResponseType:
+      description: Relation type.
       enum:
-      - entity
-      - schema
+      - relation
       type: string
       x-enum-varnames:
-      - ENTITY
-      - SCHEMA
+      - RELATION
   parameters:
-    FilterRelationByToRef:
-      description: Filter relations by the reference of the second entity in the relation.
-      example: service:shopping-cart
-      explode: true
-      in: query
-      name: filter[to_ref]
-      required: false
-      schema:
-        type: string
     PageOffset:
       description: Specific offset to use as the beginning of the returned page.
       in: query
@@ -446,14 +437,23 @@ components:
         example: 0
         format: int64
         type: integer
-    RelationInclude:
-      description: Include relationship data.
+    FilterRelationByType:
+      description: Filter relations by type.
       explode: true
       in: query
-      name: include
+      name: filter[type]
       required: false
       schema:
-        $ref: '#/components/schemas/RelationIncludeType'
+        $ref: '#/components/schemas/RelationType'
+    FilterRelationByToRef:
+      description: Filter relations by the reference of the second entity in the relation.
+      example: service:shopping-cart
+      explode: true
+      in: query
+      name: filter[to_ref]
+      required: false
+      schema:
+        type: string
     FilterRelationByFromRef:
       description: Filter relations by the reference of the first entity in the relation.
       example: service:shopping-cart
@@ -463,14 +463,14 @@ components:
       required: false
       schema:
         type: string
-    FilterRelationByType:
-      description: Filter relations by type.
+    RelationInclude:
+      description: Include relationship data.
       explode: true
       in: query
-      name: filter[type]
+      name: include
       required: false
       schema:
-        $ref: '#/components/schemas/RelationType'
+        $ref: '#/components/schemas/RelationIncludeType'
   responses:
     ForbiddenResponse:
       content:

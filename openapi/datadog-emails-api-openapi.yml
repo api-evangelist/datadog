@@ -107,15 +107,75 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    UsersType:
-      default: users
-      description: Users resource type.
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
       enum:
-      - users
-      example: users
+      - user_invitations
+      example: user_invitations
       type: string
       x-enum-varnames:
-      - USERS
+      - USER_INVITATIONS
+    UserInvitationsResponse:
+      description: User invitations as returned by the API.
+      properties:
+        data:
+          description: Array of user invitations.
+          items:
+            $ref: '#/components/schemas/UserInvitationResponseData'
+          type: array
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
+      properties:
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      required:
+      - user
+      type: object
+    UserInvitationData:
+      description: Object to create a user invitation.
+      properties:
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      required:
+      - type
+      - relationships
+      type: object
+      x-merge-override:
+        required: false
     RelationshipToUser:
       description: Relationship to user.
       properties:
@@ -124,6 +184,22 @@ components:
       required:
       - data
       type: object
+    UserInvitationResponseData:
+      description: Object of a user invitation returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserInvitationDataAttributes'
+        id:
+          description: ID of the user invitation.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      type: object
+      x-merge-override:
+        required: false
     UserInvitationsRequest:
       description: Object to invite users to join the organization.
       properties:
@@ -136,15 +212,15 @@ components:
       required:
       - data
       type: object
-    UserInvitationsType:
-      default: user_invitations
-      description: User invitations type.
+    UsersType:
+      default: users
+      description: Users resource type.
       enum:
-      - user_invitations
-      example: user_invitations
+      - users
+      example: users
       type: string
       x-enum-varnames:
-      - USER_INVITATIONS
+      - USERS
     UserInvitationDataAttributes:
       description: Attributes of a user invitation.
       properties:
@@ -166,82 +242,6 @@ components:
           description: UUID of the user invitation.
           type: string
           example: abc-123-def
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    UserInvitationsResponse:
-      description: User invitations as returned by the API.
-      properties:
-        data:
-          description: Array of user invitations.
-          items:
-            $ref: '#/components/schemas/UserInvitationResponseData'
-          type: array
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    UserInvitationData:
-      description: Object to create a user invitation.
-      properties:
-        relationships:
-          $ref: '#/components/schemas/UserInvitationRelationships'
-        type:
-          $ref: '#/components/schemas/UserInvitationsType'
-      required:
-      - type
-      - relationships
-      type: object
-      x-merge-override:
-        required: false
-    UserInvitationResponseData:
-      description: Object of a user invitation returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserInvitationDataAttributes'
-        id:
-          description: ID of the user invitation.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserInvitationRelationships'
-        type:
-          $ref: '#/components/schemas/UserInvitationsType'
-      type: object
-      x-merge-override:
-        required: false
-    UserInvitationRelationships:
-      description: Relationships data for user invitation.
-      properties:
-        user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      required:
-      - user
       type: object
   responses:
     TooManyRequestsResponse:

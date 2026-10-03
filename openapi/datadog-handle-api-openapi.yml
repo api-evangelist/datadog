@@ -140,59 +140,57 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  parameters:
-    MicrosoftTeamsWorkflowsWebhookHandleIDPathParameter:
-      description: Your Workflows webhook handle id.
-      in: path
-      name: handle_id
-      required: true
-      schema:
-        type: string
-    MicrosoftTeamsTenantBasedHandleIDPathParameter:
-      description: Your tenant-based handle id.
-      in: path
-      name: handle_id
-      required: true
-      schema:
-        type: string
-  responses:
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    PreconditionFailedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Failed Precondition
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   schemas:
+    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData:
+      description: Workflows Webhook handle data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleAttributes'
+        type:
+          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
+      required:
+      - type
+      - attributes
+      type: object
+    MicrosoftTeamsWorkflowsWebhookHandleAttributes:
+      description: Workflows Webhook handle attributes.
+      properties:
+        name:
+          description: Workflows Webhook handle name.
+          example: fake-handle-name
+          maxLength: 255
+          type: string
+        url:
+          description: Workflows Webhook URL.
+          example: https://fake.url.com
+          maxLength: 255
+          type: string
+      type: object
+    MicrosoftTeamsTenantBasedHandleResponseData:
+      description: Tenant-based handle data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleAttributes'
+        id:
+          description: The ID of the tenant-based handle.
+          example: 596da4af-0563-4097-90ff-07230c3f9db3
+          maxLength: 100
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleType'
+      type: object
+      x-merge-override:
+        required: false
+    MicrosoftTeamsWorkflowsWebhookResponseAttributes:
+      description: Workflows Webhook handle attributes.
+      properties:
+        name:
+          description: Workflows Webhook handle name.
+          example: fake-handle-name
+          maxLength: 255
+          type: string
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -243,14 +241,19 @@ components:
       type: object
       x-merge-override:
         required: false
-    MicrosoftTeamsTenantBasedHandleResponse:
-      description: Response of a tenant-based handle.
+    MicrosoftTeamsUpdateTenantBasedHandleRequestData:
+      description: Tenant-based handle data from a response.
       properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleResponseData'
+        attributes:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleAttributes'
+        type:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleType'
       required:
-      - data
+      - type
+      - attributes
       type: object
+      x-merge-override:
+        required: false
     MicrosoftTeamsWorkflowsWebhookHandleResponse:
       description: Response of a Workflows webhook handle.
       properties:
@@ -259,14 +262,15 @@ components:
       required:
       - data
       type: object
-    MicrosoftTeamsUpdateTenantBasedHandleRequest:
-      description: Update tenant-based handle request.
-      properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsUpdateTenantBasedHandleRequestData'
-      required:
-      - data
-      type: object
+    MicrosoftTeamsTenantBasedHandleType:
+      default: tenant-based-handle
+      description: Specifies the tenant-based handle resource type.
+      enum:
+      - tenant-based-handle
+      example: tenant-based-handle
+      type: string
+      x-enum-varnames:
+      - TENANT_BASED_HANDLE
     MicrosoftTeamsUpdateWorkflowsWebhookHandleRequest:
       description: Update Workflows webhook handle request.
       properties:
@@ -289,78 +293,74 @@ components:
         type:
           $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
       type: object
-    MicrosoftTeamsUpdateWorkflowsWebhookHandleRequestData:
-      description: Workflows Webhook handle data from a response.
+    MicrosoftTeamsTenantBasedHandleResponse:
+      description: Response of a tenant-based handle.
       properties:
-        attributes:
-          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleAttributes'
-        type:
-          $ref: '#/components/schemas/MicrosoftTeamsWorkflowsWebhookHandleType'
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleResponseData'
       required:
-      - type
-      - attributes
+      - data
       type: object
-    MicrosoftTeamsUpdateTenantBasedHandleRequestData:
-      description: Tenant-based handle data from a response.
+    MicrosoftTeamsUpdateTenantBasedHandleRequest:
+      description: Update tenant-based handle request.
       properties:
-        attributes:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleAttributes'
-        type:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleType'
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsUpdateTenantBasedHandleRequestData'
       required:
-      - type
-      - attributes
+      - data
       type: object
-      x-merge-override:
-        required: false
-    MicrosoftTeamsTenantBasedHandleResponseData:
-      description: Tenant-based handle data from a response.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleAttributes'
-        id:
-          description: The ID of the tenant-based handle.
-          example: 596da4af-0563-4097-90ff-07230c3f9db3
-          maxLength: 100
-          minLength: 1
-          type: string
-        type:
-          $ref: '#/components/schemas/MicrosoftTeamsTenantBasedHandleType'
-      type: object
-      x-merge-override:
-        required: false
-    MicrosoftTeamsWorkflowsWebhookHandleAttributes:
-      description: Workflows Webhook handle attributes.
-      properties:
-        name:
-          description: Workflows Webhook handle name.
-          example: fake-handle-name
-          maxLength: 255
-          type: string
-        url:
-          description: Workflows Webhook URL.
-          example: https://fake.url.com
-          maxLength: 255
-          type: string
-      type: object
-    MicrosoftTeamsWorkflowsWebhookResponseAttributes:
-      description: Workflows Webhook handle attributes.
-      properties:
-        name:
-          description: Workflows Webhook handle name.
-          example: fake-handle-name
-          maxLength: 255
-          type: string
-      type: object
-    MicrosoftTeamsTenantBasedHandleType:
-      default: tenant-based-handle
-      description: Specifies the tenant-based handle resource type.
-      enum:
-      - tenant-based-handle
-      example: tenant-based-handle
-      type: string
-      x-enum-varnames:
-      - TENANT_BASED_HANDLE
+  parameters:
+    MicrosoftTeamsWorkflowsWebhookHandleIDPathParameter:
+      description: Your Workflows webhook handle id.
+      in: path
+      name: handle_id
+      required: true
+      schema:
+        type: string
+    MicrosoftTeamsTenantBasedHandleIDPathParameter:
+      description: Your tenant-based handle id.
+      in: path
+      name: handle_id
+      required: true
+      schema:
+        type: string
+  responses:
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    PreconditionFailedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Failed Precondition
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

@@ -143,167 +143,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    JSONAPIErrorItem:
-      description: API error response body
-      properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the error.
-          example: Missing required attribute in body
-          type: string
-        meta:
-          additionalProperties: {}
-          description: Non-standard meta-information about the error
-          type: object
-        source:
-          $ref: '#/components/schemas/JSONAPIErrorItemSource'
-        status:
-          description: Status code of the response.
-          example: '400'
-          type: string
-        title:
-          description: Short human-readable summary of the error.
-          example: Bad Request
-          type: string
-      type: object
-    RuleType:
-      default: rule
-      description: The JSON:API type for scorecard rules.
-      enum:
-      - rule
-      example: rule
-      type: string
-      x-enum-varnames:
-      - RULE
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    OutcomesBatchAttributes:
-      description: The JSON:API attributes for a batched set of scorecard outcomes.
-      properties:
-        results:
-          description: Set of scorecard outcomes to update.
-          items:
-            $ref: '#/components/schemas/OutcomesBatchRequestItem'
-          type: array
-      type: object
-    RuleId:
-      description: The unique ID for a scorecard rule.
-      example: q8MQxk8TCqrHnWkx
-      type: string
-    BulkMuteFindingsRequestAttributes:
-      additionalProperties: false
-      description: The mute properties to be updated.
-      properties:
-        mute:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestProperties'
-      required:
-      - mute
-      type: object
-    BulkMuteFindingsRequestProperties:
-      additionalProperties: false
-      description: Object containing the new mute properties of the findings.
-      properties:
-        description:
-          description: Additional information about the reason why those findings are muted or unmuted. This field has a maximum limit of 280 characters.
-          type: string
-          example: example_value
-        expiration_date:
-          description: 'The expiration date of the mute or unmute action (Unix ms). It must be set to a value greater than the current timestamp.
-
-            If this field is not provided, the finding will be muted or unmuted indefinitely, which is equivalent to setting the expiration date to 9999999999999.
-
-            '
-          example: 1778721573794
-          format: int64
-          type: integer
-        muted:
-          description: Whether those findings should be muted or unmuted.
-          example: true
-          type: boolean
-        reason:
-          $ref: '#/components/schemas/FindingMuteReason'
-      required:
-      - muted
-      - reason
-      type: object
-    OutcomesBatchResponseData:
-      description: List of rule outcomes which were affected during the bulk operation.
-      items:
-        $ref: '#/components/schemas/OutcomesResponseDataItem'
-      type: array
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    OutcomesBatchRequestItem:
-      description: Scorecard outcome for a specific rule, for a given service within a batched update.
-      properties:
-        remarks:
-          description: Any remarks regarding the scorecard rule's evaluation, and supports HTML hyperlinks.
-          example: 'See: <a href="https://app.datadoghq.com/services">Services</a>'
-          type: string
-        rule_id:
-          $ref: '#/components/schemas/RuleId'
-        service_name:
-          description: The unique name for a service in the catalog.
-          example: my-service
-          type: string
-        state:
-          $ref: '#/components/schemas/State'
-      required:
-      - rule_id
-      - service_name
-      - state
-      type: object
-    FindingType:
-      default: finding
-      description: The JSON:API type for findings.
-      enum:
-      - finding
-      example: finding
-      type: string
-      x-enum-varnames:
-      - FINDING
-    RuleOutcomeRelationships:
-      description: The JSON:API relationship to a scorecard rule.
-      properties:
-        rule:
-          $ref: '#/components/schemas/RelationshipToOutcome'
-      type: object
-    OutcomesBatchType:
-      default: batched-outcome
-      description: The JSON:API type for scorecard outcomes.
-      enum:
-      - batched-outcome
-      example: batched-outcome
-      type: string
-      x-enum-varnames:
-      - BATCHED_OUTCOME
-    OutcomesBatchRequest:
-      description: Scorecard outcomes batch request.
-      properties:
-        data:
-          $ref: '#/components/schemas/OutcomesBatchRequestData'
-      type: object
     State:
       description: The state of the rule evaluation.
       enum:
@@ -335,39 +174,36 @@ components:
         type:
           $ref: '#/components/schemas/FindingType'
       type: object
-    OutcomesBatchResponse:
-      description: Scorecard outcomes batch response.
+    OutcomesBatchRequest:
+      description: Scorecard outcomes batch request.
       properties:
         data:
-          $ref: '#/components/schemas/OutcomesBatchResponseData'
+          $ref: '#/components/schemas/OutcomesBatchRequestData'
+      type: object
+    BulkMuteFindingsRequestData:
+      description: Data object containing the new bulk mute properties of the finding.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/BulkMuteFindingsRequestAttributes'
+        id:
+          description: UUID to identify the request
+          example: dbe5f567-192b-4404-b908-29b70e1c9f76
+          type: string
         meta:
-          $ref: '#/components/schemas/OutcomesBatchResponseMeta'
+          $ref: '#/components/schemas/BulkMuteFindingsRequestMeta'
+        type:
+          $ref: '#/components/schemas/FindingType'
       required:
-      - data
+      - id
+      - type
+      - attributes
       - meta
       type: object
-    OutcomeType:
-      default: outcome
-      description: The JSON:API type for an outcome.
-      enum:
-      - outcome
-      example: outcome
-      type: string
-      x-enum-varnames:
-      - OUTCOME
-    RelationshipToOutcomeData:
-      description: The JSON:API relationship to an outcome, which returns the related rule id.
+    RelationshipToOutcome:
+      description: The JSON:API relationship to a scorecard outcome.
       properties:
-        id:
-          $ref: '#/components/schemas/RuleId'
-        type:
-          $ref: '#/components/schemas/RuleType'
-      type: object
-    BulkMuteFindingsRequestMetaFindings:
-      description: Finding object containing the finding information.
-      properties:
-        finding_id:
-          $ref: '#/components/schemas/FindingID'
+        data:
+          $ref: '#/components/schemas/RelationshipToOutcomeData'
       type: object
     OutcomesResponseDataItem:
       description: A single rule outcome.
@@ -382,6 +218,54 @@ components:
           $ref: '#/components/schemas/RuleOutcomeRelationships'
         type:
           $ref: '#/components/schemas/OutcomeType'
+      type: object
+    OutcomesBatchResponseData:
+      description: List of rule outcomes which were affected during the bulk operation.
+      items:
+        $ref: '#/components/schemas/OutcomesResponseDataItem'
+      type: array
+    BulkMuteFindingsRequestProperties:
+      additionalProperties: false
+      description: Object containing the new mute properties of the findings.
+      properties:
+        description:
+          description: Additional information about the reason why those findings are muted or unmuted. This field has a maximum limit of 280 characters.
+          type: string
+          example: example_value
+        expiration_date:
+          description: 'The expiration date of the mute or unmute action (Unix ms). It must be set to a value greater than the current timestamp.
+
+            If this field is not provided, the finding will be muted or unmuted indefinitely, which is equivalent to setting the expiration date to 9999999999999.
+
+            '
+          example: 1778721573794
+          format: int64
+          type: integer
+        muted:
+          description: Whether those findings should be muted or unmuted.
+          example: true
+          type: boolean
+        reason:
+          $ref: '#/components/schemas/FindingMuteReason'
+      required:
+      - muted
+      - reason
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
       type: object
     OutcomesBatchResponseAttributes:
       description: The JSON:API attributes for an outcome.
@@ -407,63 +291,62 @@ components:
         state:
           $ref: '#/components/schemas/State'
       type: object
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
+    BulkMuteFindingsRequestAttributes:
+      additionalProperties: false
+      description: The mute properties to be updated.
       properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
-    BulkMuteFindingsRequestData:
-      description: Data object containing the new bulk mute properties of the finding.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestAttributes'
-        id:
-          description: UUID to identify the request
-          example: dbe5f567-192b-4404-b908-29b70e1c9f76
-          type: string
-        meta:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestMeta'
-        type:
-          $ref: '#/components/schemas/FindingType'
+        mute:
+          $ref: '#/components/schemas/BulkMuteFindingsRequestProperties'
       required:
-      - id
-      - type
-      - attributes
-      - meta
+      - mute
       type: object
-    BulkMuteFindingsResponse:
-      description: The expected response schema.
+    RuleOutcomeRelationships:
+      description: The JSON:API relationship to a scorecard rule.
+      properties:
+        rule:
+          $ref: '#/components/schemas/RelationshipToOutcome'
+      type: object
+    BulkMuteFindingsRequest:
+      description: The new bulk mute finding request.
       properties:
         data:
-          $ref: '#/components/schemas/BulkMuteFindingsResponseData'
+          $ref: '#/components/schemas/BulkMuteFindingsRequestData'
       required:
       - data
       type: object
-    RelationshipToOutcome:
-      description: The JSON:API relationship to a scorecard outcome.
+    APIErrorResponse:
+      description: API error response.
       properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOutcomeData'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
       type: object
-    OutcomesBatchRequestData:
-      description: Scorecard outcomes batch request data.
+    OutcomesBatchAttributes:
+      description: The JSON:API attributes for a batched set of scorecard outcomes.
       properties:
-        attributes:
-          $ref: '#/components/schemas/OutcomesBatchAttributes'
-        type:
-          $ref: '#/components/schemas/OutcomesBatchType'
+        results:
+          description: Set of scorecard outcomes to update.
+          items:
+            $ref: '#/components/schemas/OutcomesBatchRequestItem'
+          type: array
       type: object
+    OutcomeType:
+      default: outcome
+      description: The JSON:API type for an outcome.
+      enum:
+      - outcome
+      example: outcome
+      type: string
+      x-enum-varnames:
+      - OUTCOME
     OutcomesBatchResponseMeta:
       description: Metadata pertaining to the bulk operation.
       properties:
@@ -478,11 +361,113 @@ components:
           type: integer
           example: 42
       type: object
-    BulkMuteFindingsRequest:
-      description: The new bulk mute finding request.
+    BulkMuteFindingsRequestMetaFindings:
+      description: Finding object containing the finding information.
+      properties:
+        finding_id:
+          $ref: '#/components/schemas/FindingID'
+      type: object
+    RelationshipToOutcomeData:
+      description: The JSON:API relationship to an outcome, which returns the related rule id.
+      properties:
+        id:
+          $ref: '#/components/schemas/RuleId'
+        type:
+          $ref: '#/components/schemas/RuleType'
+      type: object
+    OutcomesBatchRequestData:
+      description: Scorecard outcomes batch request data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OutcomesBatchAttributes'
+        type:
+          $ref: '#/components/schemas/OutcomesBatchType'
+      type: object
+    OutcomesBatchType:
+      default: batched-outcome
+      description: The JSON:API type for scorecard outcomes.
+      enum:
+      - batched-outcome
+      example: batched-outcome
+      type: string
+      x-enum-varnames:
+      - BATCHED_OUTCOME
+    FindingType:
+      default: finding
+      description: The JSON:API type for findings.
+      enum:
+      - finding
+      example: finding
+      type: string
+      x-enum-varnames:
+      - FINDING
+    OutcomesBatchRequestItem:
+      description: Scorecard outcome for a specific rule, for a given service within a batched update.
+      properties:
+        remarks:
+          description: Any remarks regarding the scorecard rule's evaluation, and supports HTML hyperlinks.
+          example: 'See: <a href="https://app.datadoghq.com/services">Services</a>'
+          type: string
+        rule_id:
+          $ref: '#/components/schemas/RuleId'
+        service_name:
+          description: The unique name for a service in the catalog.
+          example: my-service
+          type: string
+        state:
+          $ref: '#/components/schemas/State'
+      required:
+      - rule_id
+      - service_name
+      - state
+      type: object
+    RuleType:
+      default: rule
+      description: The JSON:API type for scorecard rules.
+      enum:
+      - rule
+      example: rule
+      type: string
+      x-enum-varnames:
+      - RULE
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    OutcomesBatchResponse:
+      description: Scorecard outcomes batch response.
       properties:
         data:
-          $ref: '#/components/schemas/BulkMuteFindingsRequestData'
+          $ref: '#/components/schemas/OutcomesBatchResponseData'
+        meta:
+          $ref: '#/components/schemas/OutcomesBatchResponseMeta'
+      required:
+      - data
+      - meta
+      type: object
+    BulkMuteFindingsResponse:
+      description: The expected response schema.
+      properties:
+        data:
+          $ref: '#/components/schemas/BulkMuteFindingsResponseData'
       required:
       - data
       type: object
@@ -490,6 +475,17 @@ components:
       description: The unique ID for this finding.
       example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
       type: string
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
     FindingMuteReason:
       description: The reason why this finding is muted or unmuted.
       enum:
@@ -510,49 +506,53 @@ components:
       - HUMAN_ERROR
       - NO_LONGER_ACCEPTED_RISK
       - OTHER
+    RuleId:
+      description: The unique ID for a scorecard rule.
+      example: q8MQxk8TCqrHnWkx
+      type: string
   responses:
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    FindingsNotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Not Found: The requested finding cannot be found.'
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    FindingsBadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
     FindingsTooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Too many requests: The rate limit set by the API has been exceeded.'
-    TooManyRequestsResponse:
+    ForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
+      description: Forbidden
     FindingsForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Forbidden: Access denied'
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    FindingsBadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Bad Request: The server cannot process the request due to invalid syntax in the request.'
+    FindingsNotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Not Found: The requested finding cannot be found.'
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

@@ -1396,42 +1396,203 @@ paths:
       description: Datadog API Production Server
 components:
   schemas:
-    CIAppSort:
-      description: Sort parameters when querying events.
+    CIAppPipelineEventJob:
+      description: Details of a CI job.
+      properties:
+        dependencies:
+          description: A list of job IDs that this job depends on.
+          example:
+          - f7e6a006-a029-46c3-b0cc-742c9d7d363b
+          - c8a69849-3c3b-4721-8b33-3e8ec2df1ebe
+          items:
+            description: A list of job IDs.
+            type: string
+          type:
+          - array
+          - 'null'
+        end:
+          description: Time when the job run finished. The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        error:
+          $ref: '#/components/schemas/CIAppCIError'
+        git:
+          $ref: '#/components/schemas/CIAppGitInfo'
+        id:
+          description: The UUID for the job. It has to be unique within each pipeline execution.
+          example: c865bad4-de82-44b8-ade7-2c987528eb54
+          type: string
+        level:
+          $ref: '#/components/schemas/CIAppPipelineEventJobLevel'
+        metrics:
+          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
+        name:
+          description: The name for the job.
+          example: test
+          type: string
+        node:
+          $ref: '#/components/schemas/CIAppHostInfo'
+        parameters:
+          $ref: '#/components/schemas/CIAppPipelineEventParameters'
+        pipeline_name:
+          description: The parent pipeline name.
+          example: Build
+          type: string
+        pipeline_unique_id:
+          description: The parent pipeline UUID.
+          example: 76b572af-a078-42b2-a08a-cc28f98b944f
+          type: string
+        queue_time:
+          description: The queue time in milliseconds, if applicable.
+          example: 1004
+          format: int64
+          minimum: 0
+          type:
+          - integer
+          - 'null'
+        stage_id:
+          description: The parent stage UUID (if applicable).
+          type:
+          - string
+          - 'null'
+          example: abc-123-def
+        stage_name:
+          description: The parent stage name (if applicable).
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        start:
+          description: Time when the job run instance started (it should not include any queue time). The time format must be RFC3339.
+          example: '2023-05-31T15:30:00Z'
+          format: date-time
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppPipelineEventJobStatus'
+        tags:
+          $ref: '#/components/schemas/CIAppPipelineEventTags'
+        url:
+          description: The URL to look at the job in the CI provider UI.
+          example: https://ci-platform.com/job/your-job-name/build/123
+          type: string
+      required:
+      - level
+      - id
+      - name
+      - pipeline_unique_id
+      - pipeline_name
+      - start
+      - end
+      - status
+      - url
+      type: object
+    EventStatusType:
+      description: 'If an alert event is enabled, its status is one of the following:
+
+        `failure`, `error`, `warning`, `info`, `success`, `user_update`,
+
+        `recommendation`, or `snapshot`.'
       enum:
-      - timestamp
-      - -timestamp
+      - failure
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      example: info
       type: string
       x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    RUMEventType:
-      default: rum
+      - FAILURE
+      - ERROR
+      - WARNING
+      - INFO
+      - SUCCESS
+      - USER_UPDATE
+      - RECOMMENDATION
+      - SNAPSHOT
+    EventPayload:
+      description: Event attributes.
+      properties:
+        aggregation_key:
+          description: An arbitrary string to use for aggregation when correlating events. Limited to 100 characters.
+          maxLength: 100
+          type: string
+          example: example_value
+        attributes:
+          $ref: '#/components/schemas/EventPayloadAttributes'
+        category:
+          $ref: '#/components/schemas/EventCategory'
+        message:
+          description: The body of the event. Limited to 4000 characters.
+          example: payment_processed feature flag has been enabled
+          maxLength: 4000
+          type: string
+        tags:
+          description: 'A list of tags to apply to the event.
+
+            Refer to [Tags docs](https://docs.datadoghq.com/getting_started/tagging/).'
+          example:
+          - env:test
+          items:
+            description: A tag.
+            type: string
+          type: array
+        timestamp:
+          description: 'Timestamp when the event occurred. Must follow [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format.
+
+            For example `"2017-01-15T01:30:15.010000Z"`.
+
+            Defaults to the timestamp of receipt. Limited to values no older than 18 hours.'
+          type: string
+          example: '2026-04-17T12:00:00Z'
+        title:
+          description: The event title. Limited to 500 characters.
+          example: payment_processed feature flag updated
+          maxLength: 500
+          type: string
+      required:
+      - title
+      - category
+      - attributes
+      type: object
+    CIAppPipelineEventTypeName:
       description: Type of the event.
       enum:
-      - rum
-      example: rum
+      - cipipeline
+      example: cipipeline
       type: string
       x-enum-varnames:
-      - RUM
-    CIAppPipelineEventPipelineStatus:
-      description: The final status of the pipeline.
+      - CIPIPELINE
+    DORAIncidentType:
+      default: dora_incident
+      description: JSON:API type for DORA incident events.
       enum:
-      - success
-      - error
-      - canceled
-      - skipped
-      - blocked
-      example: success
+      - dora_incident
+      example: dora_incident
       type: string
       x-enum-varnames:
-      - SUCCESS
-      - ERROR
-      - CANCELED
-      - SKIPPED
-      - BLOCKED
-    CIAppPipelineEventPreviousPipeline:
-      description: If the pipeline is a retry, this should contain the details of the previous attempt.
+      - DORA_INCIDENT
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    CIAppPipelineEventParentPipeline:
+      description: If the pipeline is triggered as child of another pipeline, this should contain the details of the parent pipeline.
       properties:
         id:
           description: UUID of a pipeline.
@@ -1446,27 +1607,304 @@ components:
       type:
       - object
       - 'null'
-    CIAppTestEvent:
-      description: Object description of test event after being processed and stored by Datadog.
+    EventCreateRequest:
+      description: Object representing an event creation request.
       properties:
         attributes:
-          $ref: '#/components/schemas/CIAppEventAttributes'
+          $ref: '#/components/schemas/EventPayload'
+        type:
+          $ref: '#/components/schemas/EventCreateRequestType'
+      type: object
+    CIAppPipelineEventMetrics:
+      description: A list of user-defined metrics. The metrics must follow the `key:value` pattern and the value must be numeric.
+      example:
+      - bundle_size:370
+      - build_time:50021
+      items:
+        description: Metrics in the form of `key:value`. The value needs to be numeric.
+        type: string
+      type:
+      - array
+      - 'null'
+    CIAppPipelineEventPipelineLevel:
+      default: pipeline
+      description: Used to distinguish between pipelines, stages, jobs, and steps.
+      enum:
+      - pipeline
+      example: pipeline
+      type: string
+      x-enum-varnames:
+      - PIPELINE
+    ChangeEventCustomAttributesAuthor:
+      description: Object representing the entity which made the change. Optional field but if provided should include `type` and `name`.
+      properties:
+        name:
+          description: Author's name. Limited to 128 characters.
+          example: datadog@datadog.com
+          maxLength: 128
+          type: string
+        type:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthorType'
+      required:
+      - name
+      - type
+      type: object
+    CIAppGitInfo:
+      description: 'If pipelines are triggered due to actions to a Git repository, then all payloads must contain this.
+
+        Note that either `tag` or `branch` has to be provided, but not both.'
+      properties:
+        author_email:
+          description: The commit author email.
+          example: author@example.com
+          type: string
+        author_name:
+          description: The commit author name.
+          example: John Doe
+          type:
+          - string
+          - 'null'
+        author_time:
+          description: The commit author timestamp in RFC3339 format.
+          example: '2023-05-31T15:30:00Z'
+          type:
+          - string
+          - 'null'
+        branch:
+          description: The branch name (if a tag use the tag parameter).
+          example: feature-1
+          type:
+          - string
+          - 'null'
+        commit_time:
+          description: The commit timestamp in RFC3339 format.
+          example: '2023-05-31T15:30:00Z'
+          type:
+          - string
+          - 'null'
+        committer_email:
+          description: The committer email.
+          example: committer@example.com
+          type:
+          - string
+          - 'null'
+        committer_name:
+          description: The committer name.
+          type:
+          - string
+          - 'null'
+          example: Example Monitor
+        default_branch:
+          description: The Git repository's default branch.
+          example: main
+          type:
+          - string
+          - 'null'
+        message:
+          description: The commit message.
+          example: Instrumenting tests with CI Visibility.
+          type:
+          - string
+          - 'null'
+        repository_url:
+          description: The URL of the repository.
+          example: https://github.com/username/repository
+          type: string
+        sha:
+          description: The git commit SHA.
+          example: da39a3ee5e6b4b0d3255bfef95601890afd80709
+          pattern: ^[a-fA-F0-9]{40}$
+          type: string
+        tag:
+          description: The tag name (if a branch use the branch parameter).
+          example: v1.0.0
+          type:
+          - string
+          - 'null'
+      required:
+      - repository_url
+      - sha
+      - author_email
+      type:
+      - object
+      - 'null'
+    CIAppPipelineEventPipelineInProgressStatus:
+      description: The in progress status of the pipeline.
+      enum:
+      - running
+      example: running
+      type: string
+      x-enum-varnames:
+      - RUNNING
+    MonitorType:
+      description: Attributes from the monitor that triggered the event.
+      properties:
+        created_at:
+          description: The POSIX timestamp of the monitor's creation in nanoseconds.
+          example: 1646318692000
+          format: int64
+          type: integer
+        group_status:
+          description: Monitor group status used when there is no `result_groups`.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+        groups:
+          description: Groups to which the monitor belongs.
+          items:
+            description: A group.
+            type: string
+          type: array
         id:
-          description: Unique ID of the event.
+          description: The monitor ID.
+          format: int64
+          type: integer
+          example: 42
+        message:
+          description: The monitor message.
+          type: string
+          example: CPU usage is high on {{host.name}}
+        modified:
+          description: The monitor's last-modified timestamp.
+          format: int64
+          type: integer
+          example: 42
+        name:
+          description: The monitor name.
+          type: string
+          example: Example Monitor
+        query:
+          description: The query that triggers the alert.
+          type: string
+          example: avg:system.cpu.user{*}
+        tags:
+          description: A list of tags attached to the monitor.
+          example:
+          - environment:test
+          items:
+            description: A tag.
+            type: string
+          type: array
+        templated_name:
+          description: The templated name of the monitor before resolving any template variables.
+          type: string
+          example: Example Monitor
+        type:
+          description: The monitor type.
+          type: string
+          example: metric alert
+      type:
+      - object
+      - 'null'
+    EventPayloadAttributes:
+      description: JSON object for custom attributes. Schema are different per each event category.
+      oneOf:
+      - $ref: '#/components/schemas/ChangeEventCustomAttributes'
+    CIAppResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    EventsQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events. Supports date math and regular timestamps in milliseconds.
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the event search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events. Supports date math and regular timestamps in milliseconds.
+          example: now
+          type: string
+      type: object
+    ChangeEventCustomAttributes:
+      description: Object representing custom change event attributes.
+      properties:
+        author:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthor'
+        change_metadata:
+          additionalProperties: {}
+          description: Free form object with information related to the `change` event. Can be arbitrarily nested and contain any valid JSON.
+          example:
+            dd:
+              team: datadog_team
+              user_email: datadog@datadog.com
+              user_id: datadog_user_id
+              user_name: datadog_username
+            resource_link: datadog.com/feature/fallback_payments_test
+          type: object
+        changed_resource:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResource'
+        impacted_resources:
+          description: 'A list of resources impacted by this change. It is recommended to provide an impacted resource to display
+
+            the change event at the right location. Only resources of type `service` are supported.'
+          example:
+          - name: payments_api
+            type: service
+          items:
+            $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItems'
+          type: array
+        new_value:
+          additionalProperties: {}
+          description: Free form object to track new value of the changed resource.
+          example:
+            enabled: true
+            percentage: 50%
+            rule:
+              datacenter: devcycle.us1.prod
+          type: object
+        prev_value:
+          additionalProperties: {}
+          description: Free form object to track previous value of the changed resource.
+          example:
+            enabled: true
+            percentage: 10%
+            rule:
+              datacenter: devcycle.us1.prod
+          type: object
+      required:
+      - changed_resource
+      type: object
+    CIAppCreatePipelineEventRequestDataType:
+      default: cipipeline_resource_request
+      description: Type of the event.
+      enum:
+      - cipipeline_resource_request
+      example: cipipeline_resource_request
+      type: string
+      x-enum-varnames:
+      - CIPIPELINE_RESOURCE_REQUEST
+    EventResponse:
+      description: The object description of an event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventResponseAttributes'
+        id:
+          description: the unique ID of the event.
           example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
           type: string
         type:
-          $ref: '#/components/schemas/CIAppTestEventTypeName'
+          $ref: '#/components/schemas/EventType'
       type: object
-    EventCreateResponse:
-      description: Object containing an event response.
+    DORAListFailuresRequest:
+      description: Request to get a list of failures.
       properties:
-        attributes:
-          $ref: '#/components/schemas/EventCreateResponseAttributes'
-        type:
-          description: Event type
-          example: event
-          type: string
+        data:
+          $ref: '#/components/schemas/DORAListFailuresRequestData'
+      required:
+      - data
       type: object
     CIAppCreatePipelineEventRequest:
       description: Request object.
@@ -1474,81 +1912,64 @@ components:
         data:
           $ref: '#/components/schemas/CIAppCreatePipelineEventRequestData'
       type: object
-    CIAppPipelineEventStageLevel:
-      default: stage
-      description: Used to distinguish between pipelines, stages, jobs and steps.
+    EventCreateResponseAttributesAttributesEvt:
+      description: JSON object of event system attributes.
+      properties:
+        id:
+          description: Event id
+          type: string
+          example: abc-123-def
+      type: object
+    CIAppPipelineEventTags:
+      description: A list of user-defined tags. The tags must follow the `key:value` pattern.
+      example:
+      - team:backend
+      - type:deployment
+      items:
+        description: Tags in the form of `key:value`.
+        type: string
+      type:
+      - array
+      - 'null'
+    DORAListFailuresRequestDataType:
+      description: The definition of `DORAListFailuresRequestDataType` object.
       enum:
-      - stage
-      example: stage
+      - dora_failures_list_request
       type: string
       x-enum-varnames:
-      - STAGE
-    EventsListResponse:
-      description: The response object with all events matching the request and pagination information.
-      properties:
-        data:
-          description: An array of events matching the request.
-          items:
-            $ref: '#/components/schemas/EventResponse'
-          type: array
-        links:
-          $ref: '#/components/schemas/EventsListResponseLinks'
-        meta:
-          $ref: '#/components/schemas/EventsResponseMetadata'
-      type: object
-    EventsRequestPage:
-      description: Pagination settings.
-      properties:
-        cursor:
-          description: The returned paging point to use to get the next results.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-        limit:
-          default: 10
-          description: The maximum number of logs in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
-      type: object
-    ChangeEventCustomAttributesChangedResource:
-      description: Object representing a uniquely identified resource.
-      properties:
-        name:
-          description: Resource's name.
-          example: fallback_payments_test
-          type: string
-        type:
-          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResourceType'
-      required:
-      - type
-      - name
-      type: object
-    CIAppPipelinesQueryFilter:
-      description: The search and filter query settings.
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
-          example: now-15m
-          type: string
-        query:
-          default: '*'
-          description: The search query following the CI Visibility Explorer search syntax.
-          example: '@ci.provider.name:github AND @ci.status:error'
-          type: string
-        to:
-          default: now
-          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
-          example: now
-          type: string
-      type: object
-    DORAFetchResponse:
-      description: Response for the DORA fetch endpoints.
-      properties:
-        data:
-          $ref: '#/components/schemas/DORAEvent'
-      type: object
+      - DORA_FAILURES_LIST_REQUEST
+    CIAppTestLevel:
+      description: Test run level.
+      enum:
+      - session
+      - module
+      - suite
+      - test
+      example: test
+      type: string
+      x-enum-varnames:
+      - SESSION
+      - MODULE
+      - SUITE
+      - TEST
+    CIAppSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    CIAppPipelineEventJobLevel:
+      default: job
+      description: Used to distinguish between pipelines, stages, jobs, and steps.
+      enum:
+      - job
+      example: job
+      type: string
+      x-enum-varnames:
+      - JOB
     CIAppPipelineEventStep:
       description: Details of a CI step.
       properties:
@@ -1634,127 +2055,43 @@ components:
       - end
       - status
       type: object
-    EventsListRequest:
-      description: The object sent with the request to retrieve a list of events from your organization.
+    CIAppPipelineEventJobStatus:
+      description: The final status of the job.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
+    DORAIncidentResponseData:
+      description: Response after receiving a DORA incident event.
       properties:
-        filter:
-          $ref: '#/components/schemas/EventsQueryFilter'
-        options:
-          $ref: '#/components/schemas/EventsQueryOptions'
-        page:
-          $ref: '#/components/schemas/EventsRequestPage'
-        sort:
-          $ref: '#/components/schemas/EventsSort'
+        id:
+          description: The ID of the received DORA incident event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORAIncidentType'
+      required:
+      - id
       type: object
-    DORAListResponse:
-      description: Response for the DORA list endpoints.
-      properties:
-        data:
-          description: The list of DORA events.
-          items:
-            $ref: '#/components/schemas/DORAEvent'
-          type: array
-      type: object
-    CIAppPipelineEvent:
-      description: Object description of a pipeline event after being processed and stored by Datadog.
+    CIAppTestEvent:
+      description: Object description of test event after being processed and stored by Datadog.
       properties:
         attributes:
-          $ref: '#/components/schemas/CIAppPipelineEventAttributes'
+          $ref: '#/components/schemas/CIAppEventAttributes'
         id:
           description: Unique ID of the event.
           example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
           type: string
         type:
-          $ref: '#/components/schemas/CIAppPipelineEventTypeName'
-      type: object
-    CIAppTestsQueryFilter:
-      description: The search and filter query settings.
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
-          example: now-15m
-          type: string
-        query:
-          default: '*'
-          description: The search query following the CI Visibility Explorer search syntax.
-          example: '@test.service:web-ui-tests AND @test.status:fail'
-          type: string
-        to:
-          default: now
-          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
-          example: now
-          type: string
-      type: object
-    RUMWarning:
-      description: A warning message indicating something that went wrong with the query.
-      properties:
-        code:
-          description: A unique code for this type of warning.
-          example: unknown_index
-          type: string
-        detail:
-          description: A detailed explanation of this specific warning.
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning.
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
-      type: object
-    RUMQueryOptions:
-      description: 'Global query options that are used during the query.
-
-        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
-      properties:
-        time_offset:
-          description: The time offset (in seconds) to apply to the query.
-          format: int64
-          type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
-          type: string
-      type: object
-    EventsResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/EventsResponseMetadataPage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          description: The request status.
-          example: done
-          type: string
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results might be returned if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/EventsWarning'
-          type: array
-      type: object
-    EventResponse:
-      description: The object description of an event after being processed and stored by Datadog.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EventResponseAttributes'
-        id:
-          description: the unique ID of the event.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
-          type: string
-        type:
-          $ref: '#/components/schemas/EventType'
+          $ref: '#/components/schemas/CIAppTestEventTypeName'
       type: object
     EventCategory:
       description: Event category to identify the type of event. Only the value `change` is supported. Support for other categories are coming. please reach out to datadog support if you're interested.
@@ -1764,76 +2101,66 @@ components:
       type: string
       x-enum-varnames:
       - CHANGE
-    CIAppPipelineEventTags:
-      description: A list of user-defined tags. The tags must follow the `key:value` pattern.
-      example:
-      - team:backend
-      - type:deployment
-      items:
-        description: Tags in the form of `key:value`.
-        type: string
-      type:
-      - array
-      - 'null'
-    DORAIncidentRequest:
-      description: Request to create a DORA incident event.
+    EventCreateResponseAttributes:
+      description: JSON object containing all events attributes and their associated values.
       properties:
-        data:
-          $ref: '#/components/schemas/DORAIncidentRequestData'
-      required:
-      - data
+        attributes:
+          $ref: '#/components/schemas/EventCreateResponseAttributesAttributes'
       type: object
-    CIAppCIError:
-      description: Contains information of the CI error.
+    CIAppPipelineEventPreviousPipeline:
+      description: If the pipeline is a retry, this should contain the details of the previous attempt.
       properties:
-        domain:
-          $ref: '#/components/schemas/CIAppCIErrorDomain'
-        message:
-          description: Error message.
-          maxLength: 5000
-          type:
-          - string
-          - 'null'
-          example: CPU usage is high on {{host.name}}
-        stack:
-          description: The stack trace of the reported errors.
-          type:
-          - string
-          - 'null'
-          example: example_value
-        type:
-          description: Short description of the error type.
-          maxLength: 100
-          type:
-          - string
-          - 'null'
-          example: metric alert
+        id:
+          description: UUID of a pipeline.
+          example: 93bfeb70-af47-424d-908a-948d3f08e37f
+          type: string
+        url:
+          description: The URL to look at the pipeline in the CI provider UI.
+          example: https://ci-platform.com/pipelines/123456789
+          type: string
+      required:
+      - id
       type:
       - object
       - 'null'
-    CIAppResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. The request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/ci/tests/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    RUMResponsePage:
-      description: Paging attributes.
-      properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    EventCreateRequestPayload:
-      description: Payload for creating an event.
+    DORAIncidentResponse:
+      description: Response after receiving a DORA incident event.
       properties:
         data:
-          $ref: '#/components/schemas/EventCreateRequest'
+          $ref: '#/components/schemas/DORAIncidentResponseData'
+      required:
+      - data
+      type: object
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    TagsEventAttribute:
+      description: Array of tags associated with your event.
+      example:
+      - team:A
+      items:
+        description: Tag associated with your event.
+        type: string
+      type: array
+    CIAppCreatePipelineEventRequestData:
+      description: Data of the pipeline event to create.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributes'
+        type:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestDataType'
       type: object
     CIAppQueryPageOptions:
       description: Paging attributes for listing events.
@@ -1850,77 +2177,86 @@ components:
           maximum: 1000
           type: integer
       type: object
-    RUMEventsResponse:
-      description: Response object with all events matching the request and pagination information.
+    RUMEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
       properties:
-        data:
-          description: Array of events matching the request.
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from RUM events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        service:
+          description: 'The name of the application or service generating RUM events.
+
+            It is used to switch from RUM to APM, so make sure you define the same
+
+            value when you use both products.'
+          example: web-app
+          type: string
+        tags:
+          description: Array of tags associated with your event.
+          example:
+          - team:A
           items:
-            $ref: '#/components/schemas/RUMEvent'
+            description: Tag associated with your event.
+            type: string
           type: array
-        links:
-          $ref: '#/components/schemas/RUMResponseLinks'
-        meta:
-          $ref: '#/components/schemas/RUMResponseMetadata'
+        timestamp:
+          description: Timestamp of your event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
+          type: string
       type: object
-    EventStatusType:
-      description: 'If an alert event is enabled, its status is one of the following:
-
-        `failure`, `error`, `warning`, `info`, `success`, `user_update`,
-
-        `recommendation`, or `snapshot`.'
+    CIAppHostInfo:
+      description: Contains information of the host running the pipeline, stage, job, or step.
+      properties:
+        hostname:
+          description: FQDN of the host.
+          example: www.example.com
+          type: string
+        labels:
+          description: A list of labels used to select or identify the node.
+          example:
+          - ubuntu-18.04
+          - n2.large
+          items:
+            type: string
+          type: array
+        name:
+          description: Name for the host.
+          type: string
+          example: Example Monitor
+        workspace:
+          description: The path where the code is checked out.
+          example: /home/workspace/code/my-repo
+          type: string
+      type:
+      - object
+      - 'null'
+    EventPriority:
+      description: The priority of the event's monitor. For example, `normal` or `low`.
       enum:
-      - failure
-      - error
-      - warning
-      - info
-      - success
-      - user_update
-      - recommendation
-      - snapshot
-      example: info
+      - normal
+      - low
+      example: normal
+      type:
+      - string
+      - 'null'
+      x-enum-varnames:
+      - NORMAL
+      - LOW
+    ChangeEventCustomAttributesAuthorType:
+      description: Author's type.
+      enum:
+      - user
+      - system
+      example: user
       type: string
       x-enum-varnames:
-      - FAILURE
-      - ERROR
-      - WARNING
-      - INFO
-      - SUCCESS
-      - USER_UPDATE
-      - RECOMMENDATION
-      - SNAPSHOT
-    CIAppQueryOptions:
-      description: 'Global query options that are used during the query.
-
-        Only supply timezone or time offset, not both. Otherwise, the query fails.'
-      properties:
-        time_offset:
-          description: The time offset (in seconds) to apply to the query.
-          format: int64
-          type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
-          type: string
-      type: object
-    EventsWarning:
-      description: A warning message indicating something is wrong with the query.
-      properties:
-        code:
-          description: A unique code for this type of warning.
-          example: unknown_index
-          type: string
-        detail:
-          description: A detailed explanation of this specific warning.
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning.
-          example: One or several indexes are missing or invalid. Results hold data from the other indexes.
-          type: string
-      type: object
+      - USER
+      - SYSTEM
     EventCreateRequestType:
       description: Entity type.
       enum:
@@ -1929,6 +2265,16 @@ components:
       type: string
       x-enum-varnames:
       - EVENT
+    EventsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
     Event:
       description: The metadata associated with a request.
       properties:
@@ -1950,11 +2296,116 @@ components:
           example: error_tracking_alert
           type: string
       type: object
-    CIAppTestEventsRequest:
-      description: The request for a tests search.
+    HTTPCIAppError:
+      description: List of errors.
+      properties:
+        detail:
+          description: Error message.
+          example: Malformed payload
+          type: string
+        status:
+          description: Error code.
+          example: '400'
+          type: string
+        title:
+          description: Error title.
+          example: Bad Request
+          type: string
+      type: object
+    DORAListResponse:
+      description: Response for the DORA list endpoints.
+      properties:
+        data:
+          description: The list of DORA events.
+          items:
+            $ref: '#/components/schemas/DORAEvent'
+          type: array
+      type: object
+    RUMWarning:
+      description: A warning message indicating something that went wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    RUMQueryPageOptions:
+      description: Paging attributes for listing events.
+      properties:
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+        limit:
+          default: 10
+          description: Maximum number of events in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    CIAppCreatePipelineEventRequestAttributes:
+      description: Attributes of the pipeline event to create.
+      properties:
+        env:
+          description: The Datadog environment.
+          type: string
+          example: example_value
+        provider_name:
+          description: The name of the CI provider. By default, this is "custom".
+          type: string
+          example: abc-123-def
+        resource:
+          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributesResource'
+        service:
+          description: If the CI provider is SaaS, use this to differentiate between instances.
+          type: string
+          example: example_value
+      required:
+      - resource
+      type: object
+    RUMSort:
+      description: Sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    GitCommitSHA:
+      description: Git Commit SHA.
+      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
+      pattern: ^[a-fA-F0-9]{40,}$
+      type: string
+    EventCreateResponseAttributesAttributes:
+      description: JSON object of attributes from your events.
+      properties:
+        evt:
+          $ref: '#/components/schemas/EventCreateResponseAttributesAttributesEvt'
+      type: object
+    EventsSort:
+      description: The sort parameters when querying events.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    CIAppPipelineEventsRequest:
+      description: The request for a pipelines search.
       properties:
         filter:
-          $ref: '#/components/schemas/CIAppTestsQueryFilter'
+          $ref: '#/components/schemas/CIAppPipelinesQueryFilter'
         options:
           $ref: '#/components/schemas/CIAppQueryOptions'
         page:
@@ -1962,28 +2413,61 @@ components:
         sort:
           $ref: '#/components/schemas/CIAppSort'
       type: object
-    CIAppCIErrorDomain:
-      description: Error category used to differentiate between issues related to the developer or provider environments.
+    RUMEventsResponse:
+      description: Response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/RUMEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/RUMResponseLinks'
+        meta:
+          $ref: '#/components/schemas/RUMResponseMetadata'
+      type: object
+    EventsWarning:
+      description: A warning message indicating something is wrong with the query.
+      properties:
+        code:
+          description: A unique code for this type of warning.
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning.
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning.
+          example: One or several indexes are missing or invalid. Results hold data from the other indexes.
+          type: string
+      type: object
+    ChangeEventCustomAttributesImpactedResourcesItemsType:
+      description: Resource's type.
       enum:
-      - provider
-      - user
-      - unknown
+      - service
+      example: service
       type: string
       x-enum-varnames:
-      - PROVIDER
-      - USER
-      - UNKNOWN
-    RUMEvent:
-      description: Object description of a RUM event after being processed and stored by Datadog.
+      - SERVICE
+    CIAppPipelinesQueryFilter:
+      description: The search and filter query settings.
       properties:
-        attributes:
-          $ref: '#/components/schemas/RUMEventAttributes'
-        id:
-          description: Unique ID of the event.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
           type: string
-        type:
-          $ref: '#/components/schemas/RUMEventType'
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@ci.provider.name:github AND @ci.status:error'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
       type: object
     ChangeEventCustomAttributesChangedResourceType:
       description: Resource's type.
@@ -1995,13 +2479,15 @@ components:
       x-enum-varnames:
       - FEATURE_FLAG
       - CONFIGURATION
-    DORAListFailuresRequest:
-      description: Request to get a list of failures.
+    RUMResponseLinks:
+      description: Links attributes.
       properties:
-        data:
-          $ref: '#/components/schemas/DORAListFailuresRequestData'
-      required:
-      - data
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
       type: object
     CIAppPipelineEventStage:
       description: Details of a CI stage.
@@ -2077,122 +2563,287 @@ components:
       - end
       - status
       type: object
-    EventPriority:
-      description: The priority of the event's monitor. For example, `normal` or `low`.
-      enum:
-      - normal
-      - low
-      example: normal
-      type:
-      - string
-      - 'null'
-      x-enum-varnames:
-      - NORMAL
-      - LOW
-    CIAppPipelineEventStepLevel:
-      default: step
-      description: Used to distinguish between pipelines, stages, jobs and steps.
-      enum:
-      - step
-      example: step
-      type: string
-      x-enum-varnames:
-      - STEP
-    ChangeEventCustomAttributes:
-      description: Object representing custom change event attributes.
+    DORAIncidentRequestAttributes:
+      description: Attributes to create a DORA incident event.
       properties:
-        author:
-          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthor'
-        change_metadata:
-          additionalProperties: {}
-          description: Free form object with information related to the `change` event. Can be arbitrarily nested and contain any valid JSON.
+        env:
+          description: Environment name that was impacted by the incident.
+          example: staging
+          type: string
+        finished_at:
+          description: Unix timestamp when the incident finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
+          example: 1693491984000000000
+          format: int64
+          type: integer
+        git:
+          $ref: '#/components/schemas/DORAGitInfo'
+        id:
+          description: Incident ID. Must have at least 16 characters. Required to update a previously sent incident.
+          type: string
+          example: abc-123-def
+        name:
+          description: Incident name.
+          example: Webserver is down failing all requests.
+          type: string
+        services:
+          description: Service names impacted by the incident. If possible, use names registered in the Service Catalog. Required when the team field is not provided.
           example:
-            dd:
-              team: datadog_team
-              user_email: datadog@datadog.com
-              user_id: datadog_user_id
-              user_name: datadog_username
-            resource_link: datadog.com/feature/fallback_payments_test
-          type: object
-        changed_resource:
-          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResource'
-        impacted_resources:
-          description: 'A list of resources impacted by this change. It is recommended to provide an impacted resource to display
-
-            the change event at the right location. Only resources of type `service` are supported.'
-          example:
-          - name: payments_api
-            type: service
+          - shopist
           items:
-            $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItems'
+            type: string
           type: array
-        new_value:
-          additionalProperties: {}
-          description: Free form object to track new value of the changed resource.
-          example:
-            enabled: true
-            percentage: 50%
-            rule:
-              datacenter: devcycle.us1.prod
-          type: object
-        prev_value:
-          additionalProperties: {}
-          description: Free form object to track previous value of the changed resource.
-          example:
-            enabled: true
-            percentage: 10%
-            rule:
-              datacenter: devcycle.us1.prod
-          type: object
+        severity:
+          description: Incident severity.
+          example: High
+          type: string
+        started_at:
+          description: Unix timestamp when the incident started. It must be in nanoseconds, milliseconds, or seconds.
+          example: 1693491974000000000
+          format: int64
+          type: integer
+        team:
+          description: Name of the team owning the services impacted. If possible, use team handles registered in Datadog. Required when the services field is not provided.
+          example: backend
+          type: string
+        version:
+          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
+          example: v1.12.07
+          type: string
       required:
-      - changed_resource
+      - started_at
       type: object
-    ChangeEventCustomAttributesAuthorType:
-      description: Author's type.
+    CIAppPipelineEvent:
+      description: Object description of a pipeline event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CIAppPipelineEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/CIAppPipelineEventTypeName'
+      type: object
+    HTTPCIAppErrors:
+      description: Errors occurred.
+      properties:
+        errors:
+          description: Structured errors.
+          items:
+            $ref: '#/components/schemas/HTTPCIAppError'
+          type: array
+      type: object
+    EventsQueryOptions:
+      description: 'The global query options that are used. Either provide a timezone or a time offset but not both,
+
+        otherwise the query fails.'
+      properties:
+        timeOffset:
+          description: The time offset to apply to the query in seconds.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    CIAppResponseStatus:
+      description: The status of the response.
       enum:
-      - user
-      - system
-      example: user
+      - done
+      - timeout
+      example: done
       type: string
       x-enum-varnames:
-      - USER
-      - SYSTEM
-    CIAppPipelineEventJobLevel:
-      default: job
-      description: Used to distinguish between pipelines, stages, jobs, and steps.
-      enum:
-      - job
-      example: job
-      type: string
-      x-enum-varnames:
-      - JOB
-    CIAppPipelineEventPipelineLevel:
-      default: pipeline
-      description: Used to distinguish between pipelines, stages, jobs, and steps.
+      - DONE
+      - TIMEOUT
+    CIAppTestEventsRequest:
+      description: The request for a tests search.
+      properties:
+        filter:
+          $ref: '#/components/schemas/CIAppTestsQueryFilter'
+        options:
+          $ref: '#/components/schemas/CIAppQueryOptions'
+        page:
+          $ref: '#/components/schemas/CIAppQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/CIAppSort'
+      type: object
+    CIAppPipelineEventsResponse:
+      description: Response object with all pipeline events matching the request and pagination information.
+      properties:
+        data:
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/CIAppPipelineEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
+      type: object
+    EventCreateResponse:
+      description: Object containing an event response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventCreateResponseAttributes'
+        type:
+          description: Event type
+          example: event
+          type: string
+      type: object
+    RUMSearchEventsRequest:
+      description: The request for a RUM events list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/RUMQueryFilter'
+        options:
+          $ref: '#/components/schemas/RUMQueryOptions'
+        page:
+          $ref: '#/components/schemas/RUMQueryPageOptions'
+        sort:
+          $ref: '#/components/schemas/RUMSort'
+      type: object
+    RUMEvent:
+      description: Object description of a RUM event after being processed and stored by Datadog.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RUMEventAttributes'
+        id:
+          description: Unique ID of the event.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/RUMEventType'
+      type: object
+    DORAIncidentRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAIncidentRequestAttributes'
+      required:
+      - attributes
+      type: object
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    CIAppResponseMetadataWithPagination:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/CIAppResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/CIAppResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/CIAppWarning'
+          type: array
+      type: object
+    CIAppPipelineLevel:
+      description: Pipeline execution level.
       enum:
       - pipeline
+      - stage
+      - job
+      - step
+      - custom
       example: pipeline
       type: string
       x-enum-varnames:
       - PIPELINE
-    RUMResponseLinks:
-      description: Links attributes.
+      - STAGE
+      - JOB
+      - STEP
+      - CUSTOM
+    CIAppEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
       properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/rum/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from CI Visibility test events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        tags:
+          $ref: '#/components/schemas/TagsEventAttribute'
+        test_level:
+          $ref: '#/components/schemas/CIAppTestLevel'
+      type: object
+    RUMQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the RUM search syntax.
+          example: '@type:session AND @session.type:user'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
+          example: now
           type: string
       type: object
-    CIAppTestEventTypeName:
-      description: Type of the event.
-      enum:
-      - citest
-      example: citest
-      type: string
-      x-enum-varnames:
-      - CITEST
+    EventCreateResponsePayload:
+      description: Response containing information about created event.
+      properties:
+        data:
+          $ref: '#/components/schemas/EventCreateResponse'
+      type: object
+    RUMQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Note: Only supply timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
     EventAttributes:
       description: Object description of attributes from your event.
       properties:
@@ -2288,20 +2939,14 @@ components:
           example: Oh boy!
           type: string
       type: object
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
+    CIAppResponseLinks:
+      description: Links attributes.
       properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
+        next:
+          description: 'Link for the next set of results. The request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/ci/tests/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
       type: object
     EventsResponseMetadataPage:
@@ -2314,193 +2959,34 @@ components:
           example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
       type: object
-    CIAppEventAttributes:
-      description: JSON object containing all event attributes and their associated values.
+    CIAppTestEventTypeName:
+      description: Type of the event.
+      enum:
+      - citest
+      example: citest
+      type: string
+      x-enum-varnames:
+      - CITEST
+    JSONAPIErrorResponse:
+      description: API error response.
       properties:
-        attributes:
-          additionalProperties: {}
-          description: JSON object of attributes from CI Visibility test events.
-          example:
-            customAttribute: 123
-            duration: 2345
-          type: object
-        tags:
-          $ref: '#/components/schemas/TagsEventAttribute'
-        test_level:
-          $ref: '#/components/schemas/CIAppTestLevel'
-      type: object
-    RUMEventAttributes:
-      description: JSON object containing all event attributes and their associated values.
-      properties:
-        attributes:
-          additionalProperties: {}
-          description: JSON object of attributes from RUM events.
-          example:
-            customAttribute: 123
-            duration: 2345
-          type: object
-        service:
-          description: 'The name of the application or service generating RUM events.
-
-            It is used to switch from RUM to APM, so make sure you define the same
-
-            value when you use both products.'
-          example: web-app
-          type: string
-        tags:
-          description: Array of tags associated with your event.
-          example:
-          - team:A
+        errors:
+          description: A list of errors.
           items:
-            description: Tag associated with your event.
-            type: string
+            $ref: '#/components/schemas/JSONAPIErrorItem'
           type: array
-        timestamp:
-          description: Timestamp of your event.
-          example: '2019-01-02T09:42:36.320Z'
-          format: date-time
-          type: string
-      type: object
-    DORAIncidentRequestData:
-      description: The JSON:API data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DORAIncidentRequestAttributes'
       required:
-      - attributes
+      - errors
       type: object
-    RUMResponseStatus:
-      description: The status of the response.
+    CIAppPipelineEventStageLevel:
+      default: stage
+      description: Used to distinguish between pipelines, stages, jobs and steps.
       enum:
-      - done
-      - timeout
-      example: done
+      - stage
+      example: stage
       type: string
       x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    CIAppResponseMetadataWithPagination:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/CIAppResponsePage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/CIAppResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/CIAppWarning'
-          type: array
-      type: object
-    GitCommitSHA:
-      description: Git Commit SHA.
-      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
-      pattern: ^[a-fA-F0-9]{40,}$
-      type: string
-    CIAppTestEventsResponse:
-      description: Response object with all test events matching the request and pagination information.
-      properties:
-        data:
-          description: Array of events matching the request.
-          items:
-            $ref: '#/components/schemas/CIAppTestEvent'
-          type: array
-        links:
-          $ref: '#/components/schemas/CIAppResponseLinks'
-        meta:
-          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
-      type: object
-    DORAIncidentType:
-      default: dora_incident
-      description: JSON:API type for DORA incident events.
-      enum:
-      - dora_incident
-      example: dora_incident
-      type: string
-      x-enum-varnames:
-      - DORA_INCIDENT
-    CIAppPipelineEventParameters:
-      additionalProperties:
-        type: string
-      description: A map of key-value parameters or environment variables that were defined for the pipeline.
-      example:
-        LOG_LEVEL: debug
-      type:
-      - object
-      - 'null'
-    CIAppResponseStatus:
-      description: The status of the response.
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
-    TagsEventAttribute:
-      description: Array of tags associated with your event.
-      example:
-      - team:A
-      items:
-        description: Tag associated with your event.
-        type: string
-      type: array
-    CIAppPipelineEventJobStatus:
-      description: The final status of the job.
-      enum:
-      - success
-      - error
-      - canceled
-      - skipped
-      example: success
-      type: string
-      x-enum-varnames:
-      - SUCCESS
-      - ERROR
-      - CANCELED
-      - SKIPPED
-    CIAppPipelineEventStageStatus:
-      description: The final status of the stage.
-      enum:
-      - success
-      - error
-      - canceled
-      - skipped
-      example: success
-      type: string
-      x-enum-varnames:
-      - SUCCESS
-      - ERROR
-      - CANCELED
-      - SKIPPED
-    EventCreateResponseAttributesAttributesEvt:
-      description: JSON object of event system attributes.
-      properties:
-        id:
-          description: Event id
-          type: string
-          example: abc-123-def
-      type: object
-    CIAppPipelineEventPipelineInProgressStatus:
-      description: The in progress status of the pipeline.
-      enum:
-      - running
-      example: running
-      type: string
-      x-enum-varnames:
-      - RUNNING
+      - STAGE
     CIAppWarning:
       description: A warning message indicating something that went wrong with the query.
       properties:
@@ -2517,570 +3003,43 @@ components:
           example: One or several indexes are missing or invalid, results hold data from the other indexes
           type: string
       type: object
-    EventCreateResponseAttributesAttributes:
-      description: JSON object of attributes from your events.
-      properties:
-        evt:
-          $ref: '#/components/schemas/EventCreateResponseAttributesAttributesEvt'
-      type: object
-    EventsQueryOptions:
-      description: 'The global query options that are used. Either provide a timezone or a time offset but not both,
-
-        otherwise the query fails.'
-      properties:
-        timeOffset:
-          description: The time offset to apply to the query in seconds.
-          format: int64
-          type: integer
-          example: 42
-        timezone:
-          default: UTC
-          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
-          example: GMT
-          type: string
-      type: object
-    EventPayloadAttributes:
-      description: JSON object for custom attributes. Schema are different per each event category.
+    CIAppCIErrorDomain:
+      description: Error category used to differentiate between issues related to the developer or provider environments.
+      enum:
+      - provider
+      - user
+      - unknown
+      type: string
+      x-enum-varnames:
+      - PROVIDER
+      - USER
+      - UNKNOWN
+    CIAppPipelineEventPipeline:
+      description: Details of the top level pipeline, build, or workflow of your CI.
       oneOf:
-      - $ref: '#/components/schemas/ChangeEventCustomAttributes'
-    DORAIncidentRequestAttributes:
-      description: Attributes to create a DORA incident event.
-      properties:
-        env:
-          description: Environment name that was impacted by the incident.
-          example: staging
-          type: string
-        finished_at:
-          description: Unix timestamp when the incident finished. It must be in nanoseconds, milliseconds, or seconds, and it should not be older than 1 hour.
-          example: 1693491984000000000
-          format: int64
-          type: integer
-        git:
-          $ref: '#/components/schemas/DORAGitInfo'
-        id:
-          description: Incident ID. Must have at least 16 characters. Required to update a previously sent incident.
-          type: string
-          example: abc-123-def
-        name:
-          description: Incident name.
-          example: Webserver is down failing all requests.
-          type: string
-        services:
-          description: Service names impacted by the incident. If possible, use names registered in the Service Catalog. Required when the team field is not provided.
-          example:
-          - shopist
-          items:
-            type: string
-          type: array
-        severity:
-          description: Incident severity.
-          example: High
-          type: string
-        started_at:
-          description: Unix timestamp when the incident started. It must be in nanoseconds, milliseconds, or seconds.
-          example: 1693491974000000000
-          format: int64
-          type: integer
-        team:
-          description: Name of the team owning the services impacted. If possible, use team handles registered in Datadog. Required when the services field is not provided.
-          example: backend
-          type: string
-        version:
-          description: Version to correlate with [APM Deployment Tracking](https://docs.datadoghq.com/tracing/services/deployment_tracking/).
-          example: v1.12.07
-          type: string
-      required:
-      - started_at
-      type: object
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    CIAppResponsePage:
-      description: Paging attributes.
-      properties:
-        after:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    CIAppPipelineEventAttributes:
-      description: JSON object containing all event attributes and their associated values.
-      properties:
-        attributes:
-          additionalProperties: {}
-          description: JSON object of attributes from CI Visibility pipeline events.
-          example:
-            customAttribute: 123
-            duration: 2345
-          type: object
-        ci_level:
-          $ref: '#/components/schemas/CIAppPipelineLevel'
-        tags:
-          $ref: '#/components/schemas/TagsEventAttribute'
-      type: object
-    HTTPCIAppError:
-      description: List of errors.
-      properties:
-        detail:
-          description: Error message.
-          example: Malformed payload
-          type: string
-        status:
-          description: Error code.
-          example: '400'
-          type: string
-        title:
-          description: Error title.
-          example: Bad Request
-          type: string
-      type: object
-    RUMQueryPageOptions:
-      description: Paging attributes for listing events.
-      properties:
-        cursor:
-          description: List following results with a cursor provided in the previous query.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-        limit:
-          default: 10
-          description: Maximum number of events in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
-      type: object
-    CIAppPipelineEventMetrics:
-      description: A list of user-defined metrics. The metrics must follow the `key:value` pattern and the value must be numeric.
-      example:
-      - bundle_size:370
-      - build_time:50021
-      items:
-        description: Metrics in the form of `key:value`. The value needs to be numeric.
-        type: string
-      type:
-      - array
-      - 'null'
-    CIAppGitInfo:
-      description: 'If pipelines are triggered due to actions to a Git repository, then all payloads must contain this.
-
-        Note that either `tag` or `branch` has to be provided, but not both.'
-      properties:
-        author_email:
-          description: The commit author email.
-          example: author@example.com
-          type: string
-        author_name:
-          description: The commit author name.
-          example: John Doe
-          type:
-          - string
-          - 'null'
-        author_time:
-          description: The commit author timestamp in RFC3339 format.
-          example: '2023-05-31T15:30:00Z'
-          type:
-          - string
-          - 'null'
-        branch:
-          description: The branch name (if a tag use the tag parameter).
-          example: feature-1
-          type:
-          - string
-          - 'null'
-        commit_time:
-          description: The commit timestamp in RFC3339 format.
-          example: '2023-05-31T15:30:00Z'
-          type:
-          - string
-          - 'null'
-        committer_email:
-          description: The committer email.
-          example: committer@example.com
-          type:
-          - string
-          - 'null'
-        committer_name:
-          description: The committer name.
-          type:
-          - string
-          - 'null'
-          example: Example Monitor
-        default_branch:
-          description: The Git repository's default branch.
-          example: main
-          type:
-          - string
-          - 'null'
-        message:
-          description: The commit message.
-          example: Instrumenting tests with CI Visibility.
-          type:
-          - string
-          - 'null'
-        repository_url:
-          description: The URL of the repository.
-          example: https://github.com/username/repository
-          type: string
-        sha:
-          description: The git commit SHA.
-          example: da39a3ee5e6b4b0d3255bfef95601890afd80709
-          pattern: ^[a-fA-F0-9]{40}$
-          type: string
-        tag:
-          description: The tag name (if a branch use the branch parameter).
-          example: v1.0.0
-          type:
-          - string
-          - 'null'
-      required:
-      - repository_url
-      - sha
-      - author_email
-      type:
-      - object
-      - 'null'
-    CIAppTestLevel:
-      description: Test run level.
-      enum:
-      - session
-      - module
-      - suite
-      - test
-      example: test
-      type: string
-      x-enum-varnames:
-      - SESSION
-      - MODULE
-      - SUITE
-      - TEST
-    CIAppHostInfo:
-      description: Contains information of the host running the pipeline, stage, job, or step.
-      properties:
-        hostname:
-          description: FQDN of the host.
-          example: www.example.com
-          type: string
-        labels:
-          description: A list of labels used to select or identify the node.
-          example:
-          - ubuntu-18.04
-          - n2.large
-          items:
-            type: string
-          type: array
-        name:
-          description: Name for the host.
-          type: string
-          example: Example Monitor
-        workspace:
-          description: The path where the code is checked out.
-          example: /home/workspace/code/my-repo
-          type: string
-      type:
-      - object
-      - 'null'
-    DORAGitInfo:
-      description: Git info for DORA Metrics events.
-      properties:
-        commit_sha:
-          $ref: '#/components/schemas/GitCommitSHA'
-        repository_url:
-          $ref: '#/components/schemas/GitRepositoryURL'
-      required:
-      - repository_url
-      - commit_sha
-      type: object
-    CIAppPipelineEventTypeName:
-      description: Type of the event.
-      enum:
-      - cipipeline
-      example: cipipeline
-      type: string
-      x-enum-varnames:
-      - CIPIPELINE
-    EventsListResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/events?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    CIAppPipelineEventStepStatus:
-      description: The final status of the step.
-      enum:
-      - success
-      - error
-      example: success
-      type: string
-      x-enum-varnames:
-      - SUCCESS
-      - ERROR
-    CIAppPipelineEventsResponse:
-      description: Response object with all pipeline events matching the request and pagination information.
+      - $ref: '#/components/schemas/CIAppPipelineEventFinishedPipeline'
+      - $ref: '#/components/schemas/CIAppPipelineEventInProgressPipeline'
+    DORAIncidentRequest:
+      description: Request to create a DORA incident event.
       properties:
         data:
-          description: Array of events matching the request.
-          items:
-            $ref: '#/components/schemas/CIAppPipelineEvent'
-          type: array
-        links:
-          $ref: '#/components/schemas/CIAppResponseLinks'
-        meta:
-          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
-      type: object
-    ChangeEventCustomAttributesAuthor:
-      description: Object representing the entity which made the change. Optional field but if provided should include `type` and `name`.
-      properties:
-        name:
-          description: Author's name. Limited to 128 characters.
-          example: datadog@datadog.com
-          maxLength: 128
-          type: string
-        type:
-          $ref: '#/components/schemas/ChangeEventCustomAttributesAuthorType'
-      required:
-      - name
-      - type
-      type: object
-    EventResponseAttributes:
-      description: The object description of an event response attribute.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EventAttributes'
-        message:
-          description: The message of the event.
-          type: string
-          example: CPU usage is high on {{host.name}}
-        tags:
-          description: An array of tags associated with the event.
-          example:
-          - team:A
-          items:
-            description: The tag associated with the event.
-            type: string
-          type: array
-        timestamp:
-          description: The timestamp of the event.
-          example: '2019-01-02T09:42:36.320Z'
-          format: date-time
-          type: string
-      type: object
-    HTTPCIAppErrors:
-      description: Errors occurred.
-      properties:
-        errors:
-          description: Structured errors.
-          items:
-            $ref: '#/components/schemas/HTTPCIAppError'
-          type: array
-      type: object
-    CIAppCreatePipelineEventRequestAttributes:
-      description: Attributes of the pipeline event to create.
-      properties:
-        env:
-          description: The Datadog environment.
-          type: string
-          example: example_value
-        provider_name:
-          description: The name of the CI provider. By default, this is "custom".
-          type: string
-          example: abc-123-def
-        resource:
-          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributesResource'
-        service:
-          description: If the CI provider is SaaS, use this to differentiate between instances.
-          type: string
-          example: example_value
-      required:
-      - resource
-      type: object
-    JSONAPIErrorItem:
-      description: API error response body
-      properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the error.
-          example: Missing required attribute in body
-          type: string
-        meta:
-          additionalProperties: {}
-          description: Non-standard meta-information about the error
-          type: object
-        source:
-          $ref: '#/components/schemas/JSONAPIErrorItemSource'
-        status:
-          description: Status code of the response.
-          example: '400'
-          type: string
-        title:
-          description: Short human-readable summary of the error.
-          example: Bad Request
-          type: string
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    DORAIncidentResponse:
-      description: Response after receiving a DORA incident event.
-      properties:
-        data:
-          $ref: '#/components/schemas/DORAIncidentResponseData'
+          $ref: '#/components/schemas/DORAIncidentRequestData'
       required:
       - data
       type: object
-    DORAEvent:
-      description: A DORA event.
+    ChangeEventCustomAttributesChangedResource:
+      description: Object representing a uniquely identified resource.
       properties:
-        attributes:
-          description: The attributes of the event.
-          type: object
-        id:
-          description: The ID of the event.
-          type: string
-          example: abc-123-def
-        type:
-          description: The type of the event.
-          type: string
-          example: metric alert
-      type: object
-    DORAIncidentResponseData:
-      description: Response after receiving a DORA incident event.
-      properties:
-        id:
-          description: The ID of the received DORA incident event.
-          example: 4242fcdd31586083
+        name:
+          description: Resource's name.
+          example: fallback_payments_test
           type: string
         type:
-          $ref: '#/components/schemas/DORAIncidentType'
+          $ref: '#/components/schemas/ChangeEventCustomAttributesChangedResourceType'
       required:
-      - id
+      - type
+      - name
       type: object
-    DORAListFailuresRequestData:
-      description: The JSON:API data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DORAListFailuresRequestAttributes'
-        type:
-          $ref: '#/components/schemas/DORAListFailuresRequestDataType'
-      required:
-      - attributes
-      type: object
-    EventCreateResponseAttributes:
-      description: JSON object containing all events attributes and their associated values.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EventCreateResponseAttributesAttributes'
-      type: object
-    CIAppPipelineEventsRequest:
-      description: The request for a pipelines search.
-      properties:
-        filter:
-          $ref: '#/components/schemas/CIAppPipelinesQueryFilter'
-        options:
-          $ref: '#/components/schemas/CIAppQueryOptions'
-        page:
-          $ref: '#/components/schemas/CIAppQueryPageOptions'
-        sort:
-          $ref: '#/components/schemas/CIAppSort'
-      type: object
-    CIAppCreatePipelineEventRequestAttributesResource:
-      description: Details of the CI pipeline event.
-      example: Details TBD
-      oneOf:
-      - $ref: '#/components/schemas/CIAppPipelineEventPipeline'
-      - $ref: '#/components/schemas/CIAppPipelineEventStage'
-      - $ref: '#/components/schemas/CIAppPipelineEventJob'
-      - $ref: '#/components/schemas/CIAppPipelineEventStep'
-    EventPayload:
-      description: Event attributes.
-      properties:
-        aggregation_key:
-          description: An arbitrary string to use for aggregation when correlating events. Limited to 100 characters.
-          maxLength: 100
-          type: string
-          example: example_value
-        attributes:
-          $ref: '#/components/schemas/EventPayloadAttributes'
-        category:
-          $ref: '#/components/schemas/EventCategory'
-        message:
-          description: The body of the event. Limited to 4000 characters.
-          example: payment_processed feature flag has been enabled
-          maxLength: 4000
-          type: string
-        tags:
-          description: 'A list of tags to apply to the event.
-
-            Refer to [Tags docs](https://docs.datadoghq.com/getting_started/tagging/).'
-          example:
-          - env:test
-          items:
-            description: A tag.
-            type: string
-          type: array
-        timestamp:
-          description: 'Timestamp when the event occurred. Must follow [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format.
-
-            For example `"2017-01-15T01:30:15.010000Z"`.
-
-            Defaults to the timestamp of receipt. Limited to values no older than 18 hours.'
-          type: string
-          example: '2026-04-17T12:00:00Z'
-        title:
-          description: The event title. Limited to 500 characters.
-          example: payment_processed feature flag updated
-          maxLength: 500
-          type: string
-      required:
-      - title
-      - category
-      - attributes
-      type: object
-    EventCreateRequest:
-      description: Object representing an event creation request.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/EventPayload'
-        type:
-          $ref: '#/components/schemas/EventCreateRequestType'
-      type: object
-    ChangeEventCustomAttributesImpactedResourcesItemsType:
-      description: Resource's type.
-      enum:
-      - service
-      example: service
-      type: string
-      x-enum-varnames:
-      - SERVICE
-    DORAListFailuresRequestDataType:
-      description: The definition of `DORAListFailuresRequestDataType` object.
-      enum:
-      - dora_failures_list_request
-      type: string
-      x-enum-varnames:
-      - DORA_FAILURES_LIST_REQUEST
     CIAppPipelineEventInProgressPipeline:
       description: Details of a running pipeline.
       properties:
@@ -3162,6 +3121,303 @@ components:
       - status
       - partial_retry
       type: object
+    DORAListFailuresRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAListFailuresRequestAttributes'
+        type:
+          $ref: '#/components/schemas/DORAListFailuresRequestDataType'
+      required:
+      - attributes
+      type: object
+    CIAppPipelineEventParameters:
+      additionalProperties:
+        type: string
+      description: A map of key-value parameters or environment variables that were defined for the pipeline.
+      example:
+        LOG_LEVEL: debug
+      type:
+      - object
+      - 'null'
+    EventCreateRequestPayload:
+      description: Payload for creating an event.
+      properties:
+        data:
+          $ref: '#/components/schemas/EventCreateRequest'
+      type: object
+    CIAppCIError:
+      description: Contains information of the CI error.
+      properties:
+        domain:
+          $ref: '#/components/schemas/CIAppCIErrorDomain'
+        message:
+          description: Error message.
+          maxLength: 5000
+          type:
+          - string
+          - 'null'
+          example: CPU usage is high on {{host.name}}
+        stack:
+          description: The stack trace of the reported errors.
+          type:
+          - string
+          - 'null'
+          example: example_value
+        type:
+          description: Short description of the error type.
+          maxLength: 100
+          type:
+          - string
+          - 'null'
+          example: metric alert
+      type:
+      - object
+      - 'null'
+    CIAppPipelineEventAttributes:
+      description: JSON object containing all event attributes and their associated values.
+      properties:
+        attributes:
+          additionalProperties: {}
+          description: JSON object of attributes from CI Visibility pipeline events.
+          example:
+            customAttribute: 123
+            duration: 2345
+          type: object
+        ci_level:
+          $ref: '#/components/schemas/CIAppPipelineLevel'
+        tags:
+          $ref: '#/components/schemas/TagsEventAttribute'
+      type: object
+    CIAppQueryOptions:
+      description: 'Global query options that are used during the query.
+
+        Only supply timezone or time offset, not both. Otherwise, the query fails.'
+      properties:
+        time_offset:
+          description: The time offset (in seconds) to apply to the query.
+          format: int64
+          type: integer
+          example: 42
+        timezone:
+          default: UTC
+          description: The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).
+          example: GMT
+          type: string
+      type: object
+    ChangeEventCustomAttributesImpactedResourcesItems:
+      description: Object representing a uniquely identified resource. Only the resource type `service` is supported.
+      properties:
+        name:
+          description: Resource's name.
+          example: payments_api
+          type: string
+        type:
+          $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItemsType'
+      required:
+      - type
+      - name
+      type: object
+    DORAFetchResponse:
+      description: Response for the DORA fetch endpoints.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAEvent'
+      type: object
+    EventsListRequest:
+      description: The object sent with the request to retrieve a list of events from your organization.
+      properties:
+        filter:
+          $ref: '#/components/schemas/EventsQueryFilter'
+        options:
+          $ref: '#/components/schemas/EventsQueryOptions'
+        page:
+          $ref: '#/components/schemas/EventsRequestPage'
+        sort:
+          $ref: '#/components/schemas/EventsSort'
+      type: object
+    EventsResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/EventsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          description: The request status.
+          example: done
+          type: string
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/EventsWarning'
+          type: array
+      type: object
+    RUMEventType:
+      default: rum
+      description: Type of the event.
+      enum:
+      - rum
+      example: rum
+      type: string
+      x-enum-varnames:
+      - RUM
+    GitRepositoryURL:
+      description: Git Repository URL
+      example: https://github.com/organization/example-repository
+      type: string
+    EventType:
+      default: event
+      description: Type of the event.
+      enum:
+      - event
+      example: event
+      type: string
+      x-enum-varnames:
+      - EVENT
+    EventsListResponse:
+      description: The response object with all events matching the request and pagination information.
+      properties:
+        data:
+          description: An array of events matching the request.
+          items:
+            $ref: '#/components/schemas/EventResponse'
+          type: array
+        links:
+          $ref: '#/components/schemas/EventsListResponseLinks'
+        meta:
+          $ref: '#/components/schemas/EventsResponseMetadata'
+      type: object
+    CIAppTestsQueryFilter:
+      description: The search and filter query settings.
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested events; supports date, math, and regular timestamps (in milliseconds).
+          example: now-15m
+          type: string
+        query:
+          default: '*'
+          description: The search query following the CI Visibility Explorer search syntax.
+          example: '@test.service:web-ui-tests AND @test.status:fail'
+          type: string
+        to:
+          default: now
+          description: The maximum time for the requested events, supports date, math, and regular timestamps (in milliseconds).
+          example: now
+          type: string
+      type: object
+    RUMResponseMetadata:
+      description: The metadata associated with a request.
+      properties:
+        elapsed:
+          description: The time elapsed in milliseconds.
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/RUMResponsePage'
+        request_id:
+          description: The identifier of the request.
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
+          type: string
+        status:
+          $ref: '#/components/schemas/RUMResponseStatus'
+        warnings:
+          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/RUMWarning'
+          type: array
+      type: object
+    CIAppPipelineEventPipelineStatus:
+      description: The final status of the pipeline.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      - blocked
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
+      - BLOCKED
+    CIAppPipelineEventStepStatus:
+      description: The final status of the step.
+      enum:
+      - success
+      - error
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+    DORAGitInfo:
+      description: Git info for DORA Metrics events.
+      properties:
+        commit_sha:
+          $ref: '#/components/schemas/GitCommitSHA'
+        repository_url:
+          $ref: '#/components/schemas/GitRepositoryURL'
+      required:
+      - repository_url
+      - commit_sha
+      type: object
+    RUMResponsePage:
+      description: Paging attributes.
+      properties:
+        after:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of `page[cursor]`.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
+      type: object
+    RUMResponseStatus:
+      description: The status of the response.
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
+    CIAppPipelineEventStepLevel:
+      default: step
+      description: Used to distinguish between pipelines, stages, jobs and steps.
+      enum:
+      - step
+      example: step
+      type: string
+      x-enum-varnames:
+      - STEP
+    CIAppPipelineEventStageStatus:
+      description: The final status of the stage.
+      enum:
+      - success
+      - error
+      - canceled
+      - skipped
+      example: success
+      type: string
+      x-enum-varnames:
+      - SUCCESS
+      - ERROR
+      - CANCELED
+      - SKIPPED
     CIAppPipelineEventFinishedPipeline:
       description: Details of a finished pipeline.
       properties:
@@ -3251,23 +3507,50 @@ components:
       - status
       - partial_retry
       type: object
-    EventsQueryFilter:
-      description: The search and filter query settings.
+    EventsRequestPage:
+      description: Pagination settings.
       properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events. Supports date math and regular timestamps in milliseconds.
-          example: now-15m
+        cursor:
+          description: The returned paging point to use to get the next results.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
-        query:
-          default: '*'
-          description: The search query following the event search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
+        limit:
+          default: 10
+          description: The maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
+          type: integer
+      type: object
+    CIAppCreatePipelineEventRequestAttributesResource:
+      description: Details of the CI pipeline event.
+      example: Details TBD
+      oneOf:
+      - $ref: '#/components/schemas/CIAppPipelineEventPipeline'
+      - $ref: '#/components/schemas/CIAppPipelineEventStage'
+      - $ref: '#/components/schemas/CIAppPipelineEventJob'
+      - $ref: '#/components/schemas/CIAppPipelineEventStep'
+    EventResponseAttributes:
+      description: The object description of an event response attribute.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/EventAttributes'
+        message:
+          description: The message of the event.
           type: string
-        to:
-          default: now
-          description: The maximum time for the requested events. Supports date math and regular timestamps in milliseconds.
-          example: now
+          example: CPU usage is high on {{host.name}}
+        tags:
+          description: An array of tags associated with the event.
+          example:
+          - team:A
+          items:
+            description: The tag associated with the event.
+            type: string
+          type: array
+        timestamp:
+          description: The timestamp of the event.
+          example: '2019-01-02T09:42:36.320Z'
+          format: date-time
           type: string
       type: object
     DORAListFailuresRequestAttributes:
@@ -3299,317 +3582,95 @@ components:
           type: string
           example: example_value
       type: object
-    CIAppPipelineEventPipeline:
-      description: Details of the top level pipeline, build, or workflow of your CI.
-      oneOf:
-      - $ref: '#/components/schemas/CIAppPipelineEventFinishedPipeline'
-      - $ref: '#/components/schemas/CIAppPipelineEventInProgressPipeline'
-    CIAppCreatePipelineEventRequestData:
-      description: Data of the pipeline event to create.
+    DORAEvent:
+      description: A DORA event.
       properties:
         attributes:
-          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestAttributes'
-        type:
-          $ref: '#/components/schemas/CIAppCreatePipelineEventRequestDataType'
-      type: object
-    RUMResponseMetadata:
-      description: The metadata associated with a request.
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds.
-          example: 132
-          format: int64
-          type: integer
-        page:
-          $ref: '#/components/schemas/RUMResponsePage'
-        request_id:
-          description: The identifier of the request.
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/RUMResponseStatus'
-        warnings:
-          description: 'A list of warnings (non-fatal errors) encountered. Partial results may return if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/RUMWarning'
-          type: array
-      type: object
-    EventType:
-      default: event
-      description: Type of the event.
-      enum:
-      - event
-      example: event
-      type: string
-      x-enum-varnames:
-      - EVENT
-    EventsSort:
-      description: The sort parameters when querying events.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    CIAppPipelineEventParentPipeline:
-      description: If the pipeline is triggered as child of another pipeline, this should contain the details of the parent pipeline.
-      properties:
+          description: The attributes of the event.
+          type: object
         id:
-          description: UUID of a pipeline.
-          example: 93bfeb70-af47-424d-908a-948d3f08e37f
+          description: The ID of the event.
           type: string
-        url:
-          description: The URL to look at the pipeline in the CI provider UI.
-          example: https://ci-platform.com/pipelines/123456789
-          type: string
-      required:
-      - id
-      type:
-      - object
-      - 'null'
-    MonitorType:
-      description: Attributes from the monitor that triggered the event.
-      properties:
-        created_at:
-          description: The POSIX timestamp of the monitor's creation in nanoseconds.
-          example: 1646318692000
-          format: int64
-          type: integer
-        group_status:
-          description: Monitor group status used when there is no `result_groups`.
-          format: int32
-          maximum: 2147483647
-          type: integer
-          example: 42
-        groups:
-          description: Groups to which the monitor belongs.
-          items:
-            description: A group.
-            type: string
-          type: array
-        id:
-          description: The monitor ID.
-          format: int64
-          type: integer
-          example: 42
-        message:
-          description: The monitor message.
-          type: string
-          example: CPU usage is high on {{host.name}}
-        modified:
-          description: The monitor's last-modified timestamp.
-          format: int64
-          type: integer
-          example: 42
-        name:
-          description: The monitor name.
-          type: string
-          example: Example Monitor
-        query:
-          description: The query that triggers the alert.
-          type: string
-          example: avg:system.cpu.user{*}
-        tags:
-          description: A list of tags attached to the monitor.
-          example:
-          - environment:test
-          items:
-            description: A tag.
-            type: string
-          type: array
-        templated_name:
-          description: The templated name of the monitor before resolving any template variables.
-          type: string
-          example: Example Monitor
+          example: abc-123-def
         type:
-          description: The monitor type.
+          description: The type of the event.
           type: string
           example: metric alert
-      type:
-      - object
-      - 'null'
-    CIAppPipelineLevel:
-      description: Pipeline execution level.
-      enum:
-      - pipeline
-      - stage
-      - job
-      - step
-      - custom
-      example: pipeline
-      type: string
-      x-enum-varnames:
-      - PIPELINE
-      - STAGE
-      - JOB
-      - STEP
-      - CUSTOM
-    CIAppPipelineEventJob:
-      description: Details of a CI job.
-      properties:
-        dependencies:
-          description: A list of job IDs that this job depends on.
-          example:
-          - f7e6a006-a029-46c3-b0cc-742c9d7d363b
-          - c8a69849-3c3b-4721-8b33-3e8ec2df1ebe
-          items:
-            description: A list of job IDs.
-            type: string
-          type:
-          - array
-          - 'null'
-        end:
-          description: Time when the job run finished. The time format must be RFC3339.
-          example: '2023-05-31T15:30:00Z'
-          format: date-time
-          type: string
-        error:
-          $ref: '#/components/schemas/CIAppCIError'
-        git:
-          $ref: '#/components/schemas/CIAppGitInfo'
-        id:
-          description: The UUID for the job. It has to be unique within each pipeline execution.
-          example: c865bad4-de82-44b8-ade7-2c987528eb54
-          type: string
-        level:
-          $ref: '#/components/schemas/CIAppPipelineEventJobLevel'
-        metrics:
-          $ref: '#/components/schemas/CIAppPipelineEventMetrics'
-        name:
-          description: The name for the job.
-          example: test
-          type: string
-        node:
-          $ref: '#/components/schemas/CIAppHostInfo'
-        parameters:
-          $ref: '#/components/schemas/CIAppPipelineEventParameters'
-        pipeline_name:
-          description: The parent pipeline name.
-          example: Build
-          type: string
-        pipeline_unique_id:
-          description: The parent pipeline UUID.
-          example: 76b572af-a078-42b2-a08a-cc28f98b944f
-          type: string
-        queue_time:
-          description: The queue time in milliseconds, if applicable.
-          example: 1004
-          format: int64
-          minimum: 0
-          type:
-          - integer
-          - 'null'
-        stage_id:
-          description: The parent stage UUID (if applicable).
-          type:
-          - string
-          - 'null'
-          example: abc-123-def
-        stage_name:
-          description: The parent stage name (if applicable).
-          type:
-          - string
-          - 'null'
-          example: Example Monitor
-        start:
-          description: Time when the job run instance started (it should not include any queue time). The time format must be RFC3339.
-          example: '2023-05-31T15:30:00Z'
-          format: date-time
-          type: string
-        status:
-          $ref: '#/components/schemas/CIAppPipelineEventJobStatus'
-        tags:
-          $ref: '#/components/schemas/CIAppPipelineEventTags'
-        url:
-          description: The URL to look at the job in the CI provider UI.
-          example: https://ci-platform.com/job/your-job-name/build/123
-          type: string
-      required:
-      - level
-      - id
-      - name
-      - pipeline_unique_id
-      - pipeline_name
-      - start
-      - end
-      - status
-      - url
       type: object
-    GitRepositoryURL:
-      description: Git Repository URL
-      example: https://github.com/organization/example-repository
-      type: string
-    CIAppCreatePipelineEventRequestDataType:
-      default: cipipeline_resource_request
-      description: Type of the event.
-      enum:
-      - cipipeline_resource_request
-      example: cipipeline_resource_request
-      type: string
-      x-enum-varnames:
-      - CIPIPELINE_RESOURCE_REQUEST
-    ChangeEventCustomAttributesImpactedResourcesItems:
-      description: Object representing a uniquely identified resource. Only the resource type `service` is supported.
-      properties:
-        name:
-          description: Resource's name.
-          example: payments_api
-          type: string
-        type:
-          $ref: '#/components/schemas/ChangeEventCustomAttributesImpactedResourcesItemsType'
-      required:
-      - type
-      - name
-      type: object
-    EventCreateResponsePayload:
-      description: Response containing information about created event.
+    CIAppTestEventsResponse:
+      description: Response object with all test events matching the request and pagination information.
       properties:
         data:
-          $ref: '#/components/schemas/EventCreateResponse'
+          description: Array of events matching the request.
+          items:
+            $ref: '#/components/schemas/CIAppTestEvent'
+          type: array
+        links:
+          $ref: '#/components/schemas/CIAppResponseLinks'
+        meta:
+          $ref: '#/components/schemas/CIAppResponseMetadataWithPagination'
       type: object
-    RUMSearchEventsRequest:
-      description: The request for a RUM events list.
+    EventAttributes_2:
+      type: object
+      description: The attributes of an event returned from the Events Explorer
       properties:
-        filter:
-          $ref: '#/components/schemas/RUMQueryFilter'
-        options:
-          $ref: '#/components/schemas/RUMQueryOptions'
-        page:
-          $ref: '#/components/schemas/RUMQueryPageOptions'
-        sort:
-          $ref: '#/components/schemas/RUMSort'
-      type: object
-    RUMSort:
-      description: Sort parameters when querying events.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    RUMQueryFilter:
-      description: The search and filter query settings.
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
-          example: now-15m
+        title:
           type: string
-        query:
-          default: '*'
-          description: The search query following the RUM search syntax.
-          example: '@type:session AND @session.type:user'
+          description: The event title as displayed in the Events Explorer
+          example: Example Monitor
+        message:
           type: string
-        to:
-          default: now
-          description: The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).
-          example: now
+          description: The event body text containing details about the event
+          example: CPU usage is high on {{host.name}}
+        timestamp:
           type: string
-      type: object
+          format: date-time
+          description: ISO 8601 timestamp when the event was recorded
+          example: '2026-04-17T12:00:00Z'
+        priority:
+          type: string
+          description: The event priority level
+          enum:
+          - normal
+          - low
+          example: normal
+        host:
+          type: string
+          description: The hostname associated with this event
+          example: example_value
+        tags:
+          type: array
+          description: List of tags associated with the event in key:value format
+          items:
+            type: string
+        alert_type:
+          type: string
+          description: The alert type category for visual display
+          enum:
+          - error
+          - warning
+          - info
+          - success
+          - user_update
+          - recommendation
+          - snapshot
+          example: error
+        aggregation_key:
+          type: string
+          description: The arbitrary string used to group related events into a rollup
+          example: example_value
+        source_type_name:
+          type: string
+          description: The source technology or integration that generated this event
+          example: Example Monitor
+        status:
+          type: string
+          description: The event status (active or expired)
+          example: OK
+        attributes:
+          type: object
+          description: Custom key-value attributes associated with the event
+          additionalProperties: true
     APIErrorResponse_2:
       type: object
       description: Standard API error response returned for failed requests
@@ -3681,12 +3742,41 @@ components:
           type: string
           description: The source technology or integration that generated this event (e.g., aws, chef, nagios)
           example: Example Monitor
+    Event_2:
+      type: object
+      description: A single event from the Datadog Events Explorer
+      properties:
+        id:
+          type: string
+          description: The unique string identifier of the event
+          example: abc-123-def
+        type:
+          type: string
+          description: The resource type identifier (always 'event')
+          example: metric alert
+        attributes:
+          $ref: '#/components/schemas/EventAttributes_2'
     EventResponse_2:
       type: object
       description: Response wrapper for a single event
       properties:
         data:
           $ref: '#/components/schemas/Event_2'
+    EventCreateResponse_2:
+      type: object
+      description: Response indicating an event was accepted for processing
+      properties:
+        status:
+          type: string
+          description: The status of the event creation request
+          enum:
+          - ok
+          example: ok
+        event_id:
+          type: integer
+          format: int64
+          description: The unique numeric identifier assigned to the created event
+          example: 42
     EventsListResponse_2:
       type: object
       description: Response containing a paginated list of events from the Events Explorer
@@ -3768,67 +3858,6 @@ components:
               minimum: 1
               maximum: 1000
               default: 10
-    EventAttributes_2:
-      type: object
-      description: The attributes of an event returned from the Events Explorer
-      properties:
-        title:
-          type: string
-          description: The event title as displayed in the Events Explorer
-          example: Example Monitor
-        message:
-          type: string
-          description: The event body text containing details about the event
-          example: CPU usage is high on {{host.name}}
-        timestamp:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp when the event was recorded
-          example: '2026-04-17T12:00:00Z'
-        priority:
-          type: string
-          description: The event priority level
-          enum:
-          - normal
-          - low
-          example: normal
-        host:
-          type: string
-          description: The hostname associated with this event
-          example: example_value
-        tags:
-          type: array
-          description: List of tags associated with the event in key:value format
-          items:
-            type: string
-        alert_type:
-          type: string
-          description: The alert type category for visual display
-          enum:
-          - error
-          - warning
-          - info
-          - success
-          - user_update
-          - recommendation
-          - snapshot
-          example: error
-        aggregation_key:
-          type: string
-          description: The arbitrary string used to group related events into a rollup
-          example: example_value
-        source_type_name:
-          type: string
-          description: The source technology or integration that generated this event
-          example: Example Monitor
-        status:
-          type: string
-          description: The event status (active or expired)
-          example: OK
-        attributes:
-          type: object
-          description: Custom key-value attributes associated with the event
-          additionalProperties: true
     EventCreateRequest_2:
       type: object
       description: Request body for creating a new event in the Datadog Events Explorer
@@ -3849,54 +3878,25 @@ components:
               - event
             attributes:
               $ref: '#/components/schemas/EventCreateAttributes'
-    EventCreateResponse_2:
-      type: object
-      description: Response indicating an event was accepted for processing
-      properties:
-        status:
-          type: string
-          description: The status of the event creation request
-          enum:
-          - ok
-          example: ok
-        event_id:
-          type: integer
-          format: int64
-          description: The unique numeric identifier assigned to the created event
-          example: 42
-    Event_2:
-      type: object
-      description: A single event from the Datadog Events Explorer
-      properties:
-        id:
-          type: string
-          description: The unique string identifier of the event
-          example: abc-123-def
-        type:
-          type: string
-          description: The resource type identifier (always 'event')
-          example: metric alert
-        attributes:
-          $ref: '#/components/schemas/EventAttributes_2'
   responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
   parameters:
     eventIdParam:
       name: event_id

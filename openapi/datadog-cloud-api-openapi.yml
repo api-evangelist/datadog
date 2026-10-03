@@ -419,15 +419,122 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    AwsCURConfigPatchRequestType:
-      default: aws_cur_config_patch_request
-      description: Type of AWS CUR config Patch Request.
+    AwsCURConfigPostRequestAttributes:
+      description: Attributes for AWS CUR config Post Request.
+      properties:
+        account_filters:
+          $ref: '#/components/schemas/AccountFilteringConfig'
+        account_id:
+          description: The AWS account ID.
+          example: '123456789123'
+          type: string
+        bucket_name:
+          description: The AWS bucket name used to store the Cost and Usage Report.
+          example: dd-cost-bucket
+          type: string
+        bucket_region:
+          description: The region the bucket is located in.
+          example: us-east-1
+          type: string
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          type: boolean
+          example: true
+        months:
+          description: The month of the report.
+          format: int32
+          maximum: 36
+          type: integer
+          example: 42
+        report_name:
+          description: The name of the Cost and Usage Report.
+          example: dd-report-name
+          type: string
+        report_prefix:
+          description: The report prefix used for the Cost and Usage Report.
+          example: dd-report-prefix
+          type: string
+      required:
+      - account_id
+      - bucket_name
+      - report_name
+      - report_prefix
+      type: object
+    AzureUCConfigsResponse:
+      description: List of Azure accounts with configs.
+      properties:
+        data:
+          description: An Azure config pair.
+          items:
+            $ref: '#/components/schemas/AzureUCConfigPair'
+          type: array
+      type: object
+    AzureUCConfigPatchRequestAttributes:
+      description: Attributes for Azure config Patch Request.
+      properties:
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          example: true
+          type: boolean
+      required:
+      - is_enabled
+      type: object
+    AwsCURConfigPatchRequest:
+      description: AWS CUR config Patch Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsCURConfigPatchData'
+      required:
+      - data
+      type: object
+    AwsCURConfig:
+      description: AWS CUR config.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigAttributes'
+        id:
+          description: The ID of the AWS CUR config.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          $ref: '#/components/schemas/AwsCURConfigType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AzureUCConfigPatchRequestType:
+      default: azure_uc_config_patch_request
+      description: Type of Azure config Patch Request.
       enum:
-      - aws_cur_config_patch_request
-      example: aws_cur_config_patch_request
+      - azure_uc_config_patch_request
+      example: azure_uc_config_patch_request
       type: string
       x-enum-varnames:
-      - AWS_CUR_CONFIG_PATCH_REQUEST
+      - AZURE_UC_CONFIG_PATCH_REQUEST
+    AwsCURConfigPatchRequestAttributes:
+      description: Attributes for AWS CUR config Patch Request.
+      properties:
+        account_filters:
+          $ref: '#/components/schemas/AccountFilteringConfig'
+        is_enabled:
+          description: Whether or not the Cloud Cost Management account is enabled.
+          example: true
+          type: boolean
+      type: object
+    AwsCURConfigPostData:
+      description: AWS CUR config Post data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigPostRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AwsCURConfigPostRequestType'
+      required:
+      - attributes
+      - type
+      type: object
     AzureUCConfigPostData:
       description: Azure config Post data.
       properties:
@@ -439,28 +546,6 @@ components:
       - attributes
       - type
       type: object
-    AwsCURConfigPatchData:
-      description: AWS CUR config Patch data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsCURConfigPatchRequestAttributes'
-        type:
-          $ref: '#/components/schemas/AwsCURConfigPatchRequestType'
-      required:
-      - attributes
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    AwsCURConfigType:
-      default: aws_cur_config
-      description: Type of AWS CUR config.
-      enum:
-      - aws_cur_config
-      example: aws_cur_config
-      type: string
-      x-enum-varnames:
-      - AWS_CUR_CONFIG
     APIErrorResponse:
       description: API error response.
       properties:
@@ -475,25 +560,6 @@ components:
           type: array
       required:
       - errors
-      type: object
-    AwsCURConfigsResponse:
-      description: List of AWS CUR configs.
-      properties:
-        data:
-          description: An AWS CUR config.
-          items:
-            $ref: '#/components/schemas/AwsCURConfig'
-          type: array
-      type: object
-    AwsCURConfigPatchRequestAttributes:
-      description: Attributes for AWS CUR config Patch Request.
-      properties:
-        account_filters:
-          $ref: '#/components/schemas/AccountFilteringConfig'
-        is_enabled:
-          description: Whether or not the Cloud Cost Management account is enabled.
-          example: true
-          type: boolean
       type: object
     AzureUCConfigPostRequestAttributes:
       description: Attributes for Azure config Post Request.
@@ -524,6 +590,132 @@ components:
       - amortized_bill_config
       - client_id
       - scope
+      type: object
+    AzureUCConfigPairsResponse:
+      description: Response of Azure config pair.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPair'
+      type: object
+    AzureUCConfigPairAttributes:
+      description: Attributes for Azure config pair.
+      properties:
+        configs:
+          description: An Azure config.
+          items:
+            $ref: '#/components/schemas/AzureUCConfig'
+          type: array
+        id:
+          description: The ID of the Azure config pair.
+          format: int64
+          type: integer
+          example: 42
+      required:
+      - configs
+      type: object
+      x-merge-override:
+        properties: false
+    AzureUCConfigPostRequest:
+      description: Azure config Post Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPostData'
+      required:
+      - data
+      type: object
+    AzureUCConfigPostRequestType:
+      default: azure_uc_config_post_request
+      description: Type of Azure config Post Request.
+      enum:
+      - azure_uc_config_post_request
+      example: azure_uc_config_post_request
+      type: string
+      x-enum-varnames:
+      - AZURE_UC_CONFIG_POST_REQUEST
+    AwsCURConfigPatchRequestType:
+      default: aws_cur_config_patch_request
+      description: Type of AWS CUR config Patch Request.
+      enum:
+      - aws_cur_config_patch_request
+      example: aws_cur_config_patch_request
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG_PATCH_REQUEST
+    AzureUCConfigPair:
+      description: Azure config pair.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AzureUCConfigPairAttributes'
+        id:
+          description: The ID of Cloud Cost Management account.
+          format: int64
+          type: integer
+          example: 42
+        type:
+          $ref: '#/components/schemas/AzureUCConfigPairType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AzureUCConfigPatchData:
+      description: Azure config Patch data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AzureUCConfigPatchRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AzureUCConfigPatchRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+    AzureUCConfigPatchRequest:
+      description: Azure config Patch Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AzureUCConfigPatchData'
+      required:
+      - data
+      type: object
+    AwsCURConfigPostRequest:
+      description: AWS CUR config Post Request.
+      properties:
+        data:
+          $ref: '#/components/schemas/AwsCURConfigPostData'
+      required:
+      - data
+      type: object
+    AwsCURConfigPostRequestType:
+      default: aws_cur_config_post_request
+      description: Type of AWS CUR config Post Request.
+      enum:
+      - aws_cur_config_post_request
+      example: aws_cur_config_post_request
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG_POST_REQUEST
+    AwsCURConfigPatchData:
+      description: AWS CUR config Patch data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/AwsCURConfigPatchRequestAttributes'
+        type:
+          $ref: '#/components/schemas/AwsCURConfigPatchRequestType'
+      required:
+      - attributes
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    AwsCURConfigsResponse:
+      description: List of AWS CUR configs.
+      properties:
+        data:
+          description: An AWS CUR config.
+          items:
+            $ref: '#/components/schemas/AwsCURConfig'
+          type: array
       type: object
     AzureUCConfig:
       description: Azure config.
@@ -615,118 +807,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    AzureUCConfigPostRequest:
-      description: Azure config Post Request.
-      properties:
-        data:
-          $ref: '#/components/schemas/AzureUCConfigPostData'
-      required:
-      - data
-      type: object
-    AccountFilteringConfig:
-      description: The account filtering configuration.
-      properties:
-        excluded_accounts:
-          description: The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.
-          example:
-          - '123456789123'
-          - '123456789143'
-          items:
-            type: string
-          type: array
-        include_new_accounts:
-          description: Whether or not to automatically include new member accounts by default in your billing dataset.
-          example: true
-          type: boolean
-        included_accounts:
-          description: The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.
-          example:
-          - '123456789123'
-          - '123456789143'
-          items:
-            type: string
-          type: array
-      type: object
-    AzureUCConfigPatchRequestAttributes:
-      description: Attributes for Azure config Patch Request.
-      properties:
-        is_enabled:
-          description: Whether or not the Cloud Cost Management account is enabled.
-          example: true
-          type: boolean
-      required:
-      - is_enabled
-      type: object
-    AzureUCConfigsResponse:
-      description: List of Azure accounts with configs.
-      properties:
-        data:
-          description: An Azure config pair.
-          items:
-            $ref: '#/components/schemas/AzureUCConfigPair'
-          type: array
-      type: object
-    AwsCURConfigPostRequestAttributes:
-      description: Attributes for AWS CUR config Post Request.
-      properties:
-        account_filters:
-          $ref: '#/components/schemas/AccountFilteringConfig'
-        account_id:
-          description: The AWS account ID.
-          example: '123456789123'
-          type: string
-        bucket_name:
-          description: The AWS bucket name used to store the Cost and Usage Report.
-          example: dd-cost-bucket
-          type: string
-        bucket_region:
-          description: The region the bucket is located in.
-          example: us-east-1
-          type: string
-        is_enabled:
-          description: Whether or not the Cloud Cost Management account is enabled.
-          type: boolean
-          example: true
-        months:
-          description: The month of the report.
-          format: int32
-          maximum: 36
-          type: integer
-          example: 42
-        report_name:
-          description: The name of the Cost and Usage Report.
-          example: dd-report-name
-          type: string
-        report_prefix:
-          description: The report prefix used for the Cost and Usage Report.
-          example: dd-report-prefix
-          type: string
-      required:
-      - account_id
-      - bucket_name
-      - report_name
-      - report_prefix
-      type: object
-    AzureUCConfigPatchRequestType:
-      default: azure_uc_config_patch_request
-      description: Type of Azure config Patch Request.
-      enum:
-      - azure_uc_config_patch_request
-      example: azure_uc_config_patch_request
-      type: string
-      x-enum-varnames:
-      - AZURE_UC_CONFIG_PATCH_REQUEST
-    AzureUCConfigPatchData:
-      description: Azure config Patch data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AzureUCConfigPatchRequestAttributes'
-        type:
-          $ref: '#/components/schemas/AzureUCConfigPatchRequestType'
-      required:
-      - attributes
-      - type
-      type: object
     AwsCURConfigAttributes:
       description: Attributes for An AWS CUR config.
       properties:
@@ -808,117 +888,45 @@ components:
       type: string
       x-enum-varnames:
       - AZURE_UC_CONFIGS
-    AzureUCConfigPatchRequest:
-      description: Azure config Patch Request.
+    AccountFilteringConfig:
+      description: The account filtering configuration.
       properties:
-        data:
-          $ref: '#/components/schemas/AzureUCConfigPatchData'
-      required:
-      - data
-      type: object
-    AzureUCConfigPairAttributes:
-      description: Attributes for Azure config pair.
-      properties:
-        configs:
-          description: An Azure config.
+        excluded_accounts:
+          description: The AWS account IDs to be excluded from your billing dataset. This field is used when `include_new_accounts` is `true`.
+          example:
+          - '123456789123'
+          - '123456789143'
           items:
-            $ref: '#/components/schemas/AzureUCConfig'
+            type: string
           type: array
-        id:
-          description: The ID of the Azure config pair.
-          format: int64
-          type: integer
-          example: 42
-      required:
-      - configs
+        include_new_accounts:
+          description: Whether or not to automatically include new member accounts by default in your billing dataset.
+          example: true
+          type: boolean
+        included_accounts:
+          description: The AWS account IDs to be included in your billing dataset. This field is used when `include_new_accounts` is `false`.
+          example:
+          - '123456789123'
+          - '123456789143'
+          items:
+            type: string
+          type: array
       type: object
-      x-merge-override:
-        properties: false
-    AzureUCConfigPairsResponse:
-      description: Response of Azure config pair.
-      properties:
-        data:
-          $ref: '#/components/schemas/AzureUCConfigPair'
-      type: object
+    AwsCURConfigType:
+      default: aws_cur_config
+      description: Type of AWS CUR config.
+      enum:
+      - aws_cur_config
+      example: aws_cur_config
+      type: string
+      x-enum-varnames:
+      - AWS_CUR_CONFIG
     AwsCURConfigResponse:
       description: Response of AWS CUR config.
       properties:
         data:
           $ref: '#/components/schemas/AwsCURConfig'
       type: object
-    AwsCURConfig:
-      description: AWS CUR config.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsCURConfigAttributes'
-        id:
-          description: The ID of the AWS CUR config.
-          format: int64
-          type: integer
-          example: 42
-        type:
-          $ref: '#/components/schemas/AwsCURConfigType'
-      required:
-      - attributes
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    AwsCURConfigPostData:
-      description: AWS CUR config Post data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AwsCURConfigPostRequestAttributes'
-        type:
-          $ref: '#/components/schemas/AwsCURConfigPostRequestType'
-      required:
-      - attributes
-      - type
-      type: object
-    AzureUCConfigPair:
-      description: Azure config pair.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/AzureUCConfigPairAttributes'
-        id:
-          description: The ID of Cloud Cost Management account.
-          format: int64
-          type: integer
-          example: 42
-        type:
-          $ref: '#/components/schemas/AzureUCConfigPairType'
-      required:
-      - attributes
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    AwsCURConfigPostRequestType:
-      default: aws_cur_config_post_request
-      description: Type of AWS CUR config Post Request.
-      enum:
-      - aws_cur_config_post_request
-      example: aws_cur_config_post_request
-      type: string
-      x-enum-varnames:
-      - AWS_CUR_CONFIG_POST_REQUEST
-    AwsCURConfigPostRequest:
-      description: AWS CUR config Post Request.
-      properties:
-        data:
-          $ref: '#/components/schemas/AwsCURConfigPostData'
-      required:
-      - data
-      type: object
-    AzureUCConfigPostRequestType:
-      default: azure_uc_config_post_request
-      description: Type of Azure config Post Request.
-      enum:
-      - azure_uc_config_post_request
-      example: azure_uc_config_post_request
-      type: string
-      x-enum-varnames:
-      - AZURE_UC_CONFIG_POST_REQUEST
     BillConfig:
       description: Bill config.
       properties:
@@ -943,14 +951,6 @@ components:
       - export_path
       - storage_account
       - storage_container
-      type: object
-    AwsCURConfigPatchRequest:
-      description: AWS CUR config Patch Request.
-      properties:
-        data:
-          $ref: '#/components/schemas/AwsCURConfigPatchData'
-      required:
-      - data
       type: object
   parameters:
     CloudAccountID:

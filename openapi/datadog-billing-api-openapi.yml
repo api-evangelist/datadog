@@ -124,14 +124,24 @@ components:
       items:
         $ref: '#/components/schemas/BillingDimensionsMappingBodyItem'
       type: array
-    ActiveBillingDimensionsType:
-      default: billing_dimensions
-      description: Type of active billing dimensions data.
-      enum:
-      - billing_dimensions
-      type: string
-      x-enum-varnames:
-      - BILLING_DIMENSIONS
+    BillingDimensionsMappingBodyItemAttributes:
+      description: Mapping of billing dimensions to endpoint keys.
+      properties:
+        endpoints:
+          description: List of supported endpoints with their keys mapped to the billing_dimension.
+          items:
+            $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributesEndpointsItems'
+          type: array
+        in_app_label:
+          description: Label used for the billing dimension in the Plan & Usage charts.
+          example: APM Hosts
+          type: string
+        timestamp:
+          description: 'Month in ISO-8601 format, UTC, and precise to the second: `[YYYY-MM-DDThh:mm:ss]`.'
+          format: date-time
+          type: string
+          example: '2026-04-17T12:00:00Z'
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -146,6 +156,41 @@ components:
           type: array
       required:
       - errors
+      type: object
+    ActiveBillingDimensionsType:
+      default: billing_dimensions
+      description: Type of active billing dimensions data.
+      enum:
+      - billing_dimensions
+      type: string
+      x-enum-varnames:
+      - BILLING_DIMENSIONS
+    BillingDimensionsMappingBodyItem:
+      description: The mapping data for each billing dimension.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributes'
+        id:
+          description: ID of the billing dimension.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ActiveBillingDimensionsType'
+      type: object
+    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
+      description: Denotes whether mapping keys were available for this endpoint.
+      enum:
+      - OK
+      - NOT_FOUND
+      type: string
+      x-enum-varnames:
+      - OK
+      - NOT_FOUND
+    BillingDimensionsMappingResponse:
+      description: Billing dimensions mapping response.
+      properties:
+        data:
+          $ref: '#/components/schemas/BillingDimensionsMappingBody'
       type: object
     BillingDimensionsMappingBodyItemAttributesEndpointsItems:
       description: An endpoint's keys mapped to the billing_dimension.
@@ -165,51 +210,6 @@ components:
           type: array
         status:
           $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus'
-      type: object
-    BillingDimensionsMappingResponse:
-      description: Billing dimensions mapping response.
-      properties:
-        data:
-          $ref: '#/components/schemas/BillingDimensionsMappingBody'
-      type: object
-    BillingDimensionsMappingBodyItemAttributesEndpointsItemsStatus:
-      description: Denotes whether mapping keys were available for this endpoint.
-      enum:
-      - OK
-      - NOT_FOUND
-      type: string
-      x-enum-varnames:
-      - OK
-      - NOT_FOUND
-    BillingDimensionsMappingBodyItemAttributes:
-      description: Mapping of billing dimensions to endpoint keys.
-      properties:
-        endpoints:
-          description: List of supported endpoints with their keys mapped to the billing_dimension.
-          items:
-            $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributesEndpointsItems'
-          type: array
-        in_app_label:
-          description: Label used for the billing dimension in the Plan & Usage charts.
-          example: APM Hosts
-          type: string
-        timestamp:
-          description: 'Month in ISO-8601 format, UTC, and precise to the second: `[YYYY-MM-DDThh:mm:ss]`.'
-          format: date-time
-          type: string
-          example: '2026-04-17T12:00:00Z'
-      type: object
-    BillingDimensionsMappingBodyItem:
-      description: The mapping data for each billing dimension.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/BillingDimensionsMappingBodyItemAttributes'
-        id:
-          description: ID of the billing dimension.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/ActiveBillingDimensionsType'
       type: object
   securitySchemes:
     AuthZ:

@@ -104,23 +104,52 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    SecurityMonitoringSignalMetadataType:
-      default: signal_metadata
-      description: The type of event.
-      enum:
-      - signal_metadata
-      example: signal_metadata
-      type: string
-      x-enum-varnames:
-      - SIGNAL_METADATA
-    SecurityMonitoringSignalAssigneeUpdateData:
-      description: Data containing the patch for changing the assignee of a signal.
+    SecurityMonitoringSignalTriageUpdateData:
+      description: Data containing the updated triage attributes of the signal.
       properties:
         attributes:
-          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateAttributes'
-      required:
-      - attributes
+          $ref: '#/components/schemas/SecurityMonitoringSignalTriageAttributes'
+        id:
+          description: The unique ID of the security signal.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/SecurityMonitoringSignalMetadataType'
       type: object
+    SecurityMonitoringSignalArchiveReason:
+      description: Reason a signal is archived.
+      enum:
+      - none
+      - false_positive
+      - testing_or_maintenance
+      - investigated_case_opened
+      - other
+      type: string
+      x-enum-varnames:
+      - NONE
+      - FALSE_POSITIVE
+      - TESTING_OR_MAINTENANCE
+      - INVESTIGATED_CASE_OPENED
+      - OTHER
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    SecurityMonitoringSignalVersion:
+      description: Version of the updated signal. If server side version is higher, update will be rejected.
+      format: int64
+      type: integer
     SecurityMonitoringTriageUser:
       description: Object representing a given user entity.
       properties:
@@ -150,31 +179,6 @@ components:
           type: string
       required:
       - uuid
-      type: object
-    SecurityMonitoringSignalAssigneeUpdateAttributes:
-      description: Attributes describing the new assignee of a security signal.
-      properties:
-        assignee:
-          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
-        version:
-          $ref: '#/components/schemas/SecurityMonitoringSignalVersion'
-      required:
-      - assignee
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
       type: object
     SecurityMonitoringSignalTriageAttributes:
       description: Attributes describing a triage state update operation over a security signal.
@@ -210,6 +214,49 @@ components:
       - state
       - incident_ids
       type: object
+    SecurityMonitoringSignalAssigneeUpdateRequest:
+      description: Request body for changing the assignee of a given security monitoring signal.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSignalTriageUpdateResponse:
+      description: The response returned after all triage operations, containing the updated signal triage data.
+      properties:
+        data:
+          $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateData'
+      required:
+      - data
+      type: object
+    SecurityMonitoringSignalMetadataType:
+      default: signal_metadata
+      description: The type of event.
+      enum:
+      - signal_metadata
+      example: signal_metadata
+      type: string
+      x-enum-varnames:
+      - SIGNAL_METADATA
+    SecurityMonitoringSignalIncidentIds:
+      description: Array of incidents that are associated with this signal.
+      example:
+      - 2066
+      items:
+        description: Public ID attribute of the incident that is associated with the signal.
+        example: 2066
+        format: int64
+        type: integer
+      type: array
+    SecurityMonitoringSignalAssigneeUpdateData:
+      description: Data containing the patch for changing the assignee of a signal.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateAttributes'
+      required:
+      - attributes
+      type: object
     SecurityMonitoringSignalState:
       description: The new triage state of the signal.
       enum:
@@ -222,66 +269,19 @@ components:
       - OPEN
       - ARCHIVED
       - UNDER_REVIEW
-    SecurityMonitoringSignalArchiveReason:
-      description: Reason a signal is archived.
-      enum:
-      - none
-      - false_positive
-      - testing_or_maintenance
-      - investigated_case_opened
-      - other
-      type: string
-      x-enum-varnames:
-      - NONE
-      - FALSE_POSITIVE
-      - TESTING_OR_MAINTENANCE
-      - INVESTIGATED_CASE_OPENED
-      - OTHER
-    SecurityMonitoringSignalIncidentIds:
-      description: Array of incidents that are associated with this signal.
-      example:
-      - 2066
-      items:
-        description: Public ID attribute of the incident that is associated with the signal.
-        example: 2066
-        format: int64
-        type: integer
-      type: array
-    SecurityMonitoringSignalTriageUpdateResponse:
-      description: The response returned after all triage operations, containing the updated signal triage data.
-      properties:
-        data:
-          $ref: '#/components/schemas/SecurityMonitoringSignalTriageUpdateData'
-      required:
-      - data
-      type: object
-    SecurityMonitoringSignalAssigneeUpdateRequest:
-      description: Request body for changing the assignee of a given security monitoring signal.
-      properties:
-        data:
-          $ref: '#/components/schemas/SecurityMonitoringSignalAssigneeUpdateData'
-      required:
-      - data
-      type: object
-    SecurityMonitoringSignalTriageUpdateData:
-      description: Data containing the updated triage attributes of the signal.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SecurityMonitoringSignalTriageAttributes'
-        id:
-          description: The unique ID of the security signal.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/SecurityMonitoringSignalMetadataType'
-      type: object
     SecurityMonitoringSignalArchiveComment:
       description: Optional comment to display on archived signals.
       type: string
-    SecurityMonitoringSignalVersion:
-      description: Version of the updated signal. If server side version is higher, update will be rejected.
-      format: int64
-      type: integer
+    SecurityMonitoringSignalAssigneeUpdateAttributes:
+      description: Attributes describing the new assignee of a security signal.
+      properties:
+        assignee:
+          $ref: '#/components/schemas/SecurityMonitoringTriageUser'
+        version:
+          $ref: '#/components/schemas/SecurityMonitoringSignalVersion'
+      required:
+      - assignee
+      type: object
   responses:
     TooManyRequestsResponse:
       content:

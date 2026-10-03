@@ -87,14 +87,6 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  parameters:
-    RumApplicationIDParameter:
-      description: RUM application ID.
-      in: path
-      name: app_id
-      required: true
-      schema:
-        type: string
   schemas:
     RumRetentionFiltersOrderData:
       description: The RUM retention filter data for ordering.
@@ -107,15 +99,15 @@ components:
       - id
       - type
       type: object
-    RumRetentionFilterType:
-      default: retention_filters
-      description: The type of the resource. The value should always be retention_filters.
-      enum:
-      - retention_filters
-      example: retention_filters
-      type: string
-      x-enum-varnames:
-      - RETENTION_FILTERS
+    RumRetentionFiltersOrderResponse:
+      description: The list of RUM retention filter IDs along with type.
+      properties:
+        data:
+          description: A list of RUM retention filter IDs along with type.
+          items:
+            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
+          type: array
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -131,19 +123,15 @@ components:
       required:
       - errors
       type: object
-    RumRetentionFilterID:
-      description: ID of retention filter in UUID.
-      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+    RumRetentionFilterType:
+      default: retention_filters
+      description: The type of the resource. The value should always be retention_filters.
+      enum:
+      - retention_filters
+      example: retention_filters
       type: string
-    RumRetentionFiltersOrderResponse:
-      description: The list of RUM retention filter IDs along with type.
-      properties:
-        data:
-          description: A list of RUM retention filter IDs along with type.
-          items:
-            $ref: '#/components/schemas/RumRetentionFiltersOrderData'
-          type: array
-      type: object
+      x-enum-varnames:
+      - RETENTION_FILTERS
     RumRetentionFiltersOrderRequest:
       description: 'The list of RUM retention filter IDs along with their corresponding type to reorder.
 
@@ -155,25 +143,37 @@ components:
             $ref: '#/components/schemas/RumRetentionFiltersOrderData'
           type: array
       type: object
+    RumRetentionFilterID:
+      description: ID of retention filter in UUID.
+      example: 051601eb-54a0-abc0-03f9-cc02efa18892
+      type: string
+  parameters:
+    RumApplicationIDParameter:
+      description: RUM application ID.
+      in: path
+      name: app_id
+      required: true
+      schema:
+        type: string
   responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
     TooManyRequestsResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

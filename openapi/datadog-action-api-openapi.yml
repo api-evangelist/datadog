@@ -250,93 +250,181 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    JSONAPIErrorItem:
-      description: API error response body
+    UrlParamUpdate:
+      description: The definition of `UrlParamUpdate` object.
       properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the error.
-          example: Missing required attribute in body
-          type: string
-        meta:
-          additionalProperties: {}
-          description: Non-standard meta-information about the error
-          type: object
-        source:
-          $ref: '#/components/schemas/JSONAPIErrorItemSource'
-        status:
-          description: Status code of the response.
-          example: '400'
-          type: string
-        title:
-          description: Short human-readable summary of the error.
-          example: Bad Request
-          type: string
-      type: object
-    HTTPHeader:
-      description: The definition of `HTTPHeader` object.
-      properties:
+        deleted:
+          description: Should the header be deleted.
+          type: boolean
+          example: true
         name:
-          description: The `HTTPHeader` `name`.
-          example: MyHttpHeader
-          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
-          type: string
+          $ref: '#/components/schemas/TokenName'
+          example: MyUrlParameter
         value:
-          description: The `HTTPHeader` `value`.
-          example: Some header value
+          description: The `UrlParamUpdate` `value`.
+          example: Some Url Parameter value
           type: string
       required:
       - name
-      - value
       type: object
-    ActionConnectionDataType:
-      description: The definition of `ActionConnectionDataType` object.
-      enum:
-      - action_connection
-      example: action_connection
-      type: string
-      x-enum-varnames:
-      - ACTION_CONNECTION
-    HTTPToken:
-      description: The definition of `HTTPToken` object.
-      properties:
-        name:
-          description: The `HTTPToken` `name`.
-          example: MyToken
-          pattern: ^[A-Za-z][A-Za-z\\d]*$
-          type: string
-        type:
-          $ref: '#/components/schemas/TokenType'
-        value:
-          description: The `HTTPToken` `value`.
-          example: Some Token Value
-          type: string
-      required:
-      - name
-      - value
-      - type
-      type: object
-    HTTPIntegrationType:
-      description: The definition of `HTTPIntegrationType` object.
-      enum:
-      - HTTP
-      example: HTTP
-      type: string
-      x-enum-varnames:
-      - HTTP
+    AWSCredentialsUpdate:
+      description: The definition of `AWSCredentialsUpdate` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSAssumeRoleUpdate'
     TokenName:
       description: Name for tokens.
       example: MyTokenName
       pattern: ^[A-Za-z][A-Za-z\\d]*$
       type: string
+    HTTPCredentialsUpdate:
+      description: The definition of `HTTPCredentialsUpdate` object.
+      oneOf:
+      - $ref: '#/components/schemas/HTTPTokenAuthUpdate'
+    HTTPTokenAuthType:
+      description: The definition of `HTTPTokenAuthType` object.
+      enum:
+      - HTTPTokenAuth
+      example: HTTPTokenAuth
+      type: string
+      x-enum-varnames:
+      - HTTPTOKENAUTH
+    HTTPBody:
+      description: The definition of `HTTPBody` object.
+      properties:
+        content:
+          description: Serialized body content
+          example: '{"some-json": "with-value"}'
+          type: string
+        content_type:
+          description: Content type of the body
+          example: application/json
+          type: string
+      type: object
+    AWSIntegration:
+      description: The definition of `AWSIntegration` object.
+      properties:
+        credentials:
+          $ref: '#/components/schemas/AWSCredentials'
+        type:
+          $ref: '#/components/schemas/AWSIntegrationType'
+      required:
+      - type
+      - credentials
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    TokenType:
+      description: The definition of `TokenType` object.
+      enum:
+      - SECRET
+      example: SECRET
+      type: string
+      x-enum-varnames:
+      - SECRET
+    ActionConnectionData:
+      description: Data related to the connection.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ActionConnectionAttributes'
+        id:
+          description: The connection identifier
+          readOnly: true
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/ActionConnectionDataType'
+      required:
+      - type
+      - attributes
+      type: object
+    AWSIntegrationType:
+      description: The definition of `AWSIntegrationType` object.
+      enum:
+      - AWS
+      example: AWS
+      type: string
+      x-enum-varnames:
+      - AWS
+    UpdateActionConnectionRequest:
+      description: Request used to update an action connection.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionDataUpdate'
+      required:
+      - data
+      type: object
+    HTTPHeaderUpdate:
+      description: The definition of `HTTPHeaderUpdate` object.
+      properties:
+        deleted:
+          description: Should the header be deleted.
+          type: boolean
+          example: true
+        name:
+          description: The `HTTPHeaderUpdate` `name`.
+          example: MyHttpHeader
+          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
+          type: string
+        value:
+          description: The `HTTPHeaderUpdate` `value`.
+          example: Updated Header Value
+          type: string
+      required:
+      - name
+      type: object
+    AWSIntegrationUpdate:
+      description: The definition of `AWSIntegrationUpdate` object.
+      properties:
+        credentials:
+          $ref: '#/components/schemas/AWSCredentialsUpdate'
+        type:
+          $ref: '#/components/schemas/AWSIntegrationType'
+      required:
+      - type
+      type: object
+    GetActionConnectionResponse:
+      description: The response for found connection
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      type: object
+    HTTPCredentials:
+      description: The definition of `HTTPCredentials` object.
+      oneOf:
+      - $ref: '#/components/schemas/HTTPTokenAuth'
+    UrlParam:
+      description: The definition of `UrlParam` object.
+      properties:
+        name:
+          $ref: '#/components/schemas/TokenName'
+          example: MyUrlParameter
+        value:
+          description: The `UrlParam` `value`.
+          example: Some Url Parameter value
+          type: string
+      required:
+      - name
+      - value
+      type: object
     ActionConnectionIntegration:
       description: The definition of `ActionConnectionIntegration` object.
       oneOf:
       - $ref: '#/components/schemas/AWSIntegration'
       - $ref: '#/components/schemas/HTTPIntegration'
-    AWSCredentials:
-      description: The definition of `AWSCredentials` object.
-      oneOf:
-      - $ref: '#/components/schemas/AWSAssumeRole'
     HTTPTokenAuthUpdate:
       description: The definition of `HTTPTokenAuthUpdate` object.
       properties:
@@ -362,127 +450,35 @@ components:
       required:
       - type
       type: object
-    UrlParamUpdate:
-      description: The definition of `UrlParamUpdate` object.
+    CreateActionConnectionResponse:
+      description: The response for a created connection
       properties:
-        deleted:
-          description: Should the header be deleted.
-          type: boolean
-          example: true
-        name:
-          $ref: '#/components/schemas/TokenName'
-          example: MyUrlParameter
-        value:
-          description: The `UrlParamUpdate` `value`.
-          example: Some Url Parameter value
-          type: string
-      required:
-      - name
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
       type: object
-    AWSAssumeRole:
-      description: The definition of `AWSAssumeRole` object.
-      properties:
-        account_id:
-          description: AWS account the connection is created for
-          example: '111222333444'
-          pattern: ^\d{12}$
-          type: string
-        external_id:
-          description: External ID used to scope which connection can be used to assume the role
-          example: 33a1011635c44b38a064cf14e82e1d8f
-          readOnly: true
-          type: string
-        principal_id:
-          description: AWS account that will assume the role
-          example: '123456789012'
-          readOnly: true
-          type: string
-        role:
-          description: Role to assume
-          example: my-role
-          type: string
-        type:
-          $ref: '#/components/schemas/AWSAssumeRoleType'
-      required:
-      - type
-      - account_id
-      - role
-      type: object
-    TokenType:
-      description: The definition of `TokenType` object.
-      enum:
-      - SECRET
-      example: SECRET
-      type: string
-      x-enum-varnames:
-      - SECRET
-    ActionConnectionAttributesUpdate:
-      description: The definition of `ActionConnectionAttributesUpdate` object.
-      properties:
-        integration:
-          $ref: '#/components/schemas/ActionConnectionIntegrationUpdate'
-        name:
-          description: Name of the connection
-          example: My AWS Connection
-          type: string
-      type: object
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    HTTPHeaderUpdate:
-      description: The definition of `HTTPHeaderUpdate` object.
-      properties:
-        deleted:
-          description: Should the header be deleted.
-          type: boolean
-          example: true
-        name:
-          description: The `HTTPHeaderUpdate` `name`.
-          example: MyHttpHeader
-          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
-          type: string
-        value:
-          description: The `HTTPHeaderUpdate` `value`.
-          example: Updated Header Value
-          type: string
-      required:
-      - name
-      type: object
-    AWSCredentialsUpdate:
-      description: The definition of `AWSCredentialsUpdate` object.
-      oneOf:
-      - $ref: '#/components/schemas/AWSAssumeRoleUpdate'
     ActionConnectionIntegrationUpdate:
       description: The definition of `ActionConnectionIntegrationUpdate` object.
       oneOf:
       - $ref: '#/components/schemas/AWSIntegrationUpdate'
       - $ref: '#/components/schemas/HTTPIntegrationUpdate'
-    AWSAssumeRoleType:
-      description: The definition of `AWSAssumeRoleType` object.
-      enum:
-      - AWSAssumeRole
-      example: AWSAssumeRole
-      type: string
-      x-enum-varnames:
-      - AWSASSUMEROLE
-    AWSIntegration:
-      description: The definition of `AWSIntegration` object.
+    HTTPToken:
+      description: The definition of `HTTPToken` object.
       properties:
-        credentials:
-          $ref: '#/components/schemas/AWSCredentials'
+        name:
+          description: The `HTTPToken` `name`.
+          example: MyToken
+          pattern: ^[A-Za-z][A-Za-z\\d]*$
+          type: string
         type:
-          $ref: '#/components/schemas/AWSIntegrationType'
+          $ref: '#/components/schemas/TokenType'
+        value:
+          description: The `HTTPToken` `value`.
+          example: Some Token Value
+          type: string
       required:
+      - name
+      - value
       - type
-      - credentials
       type: object
     AWSAssumeRoleUpdate:
       description: The definition of `AWSAssumeRoleUpdate` object.
@@ -505,113 +501,16 @@ components:
       required:
       - type
       type: object
-    HTTPBody:
-      description: The definition of `HTTPBody` object.
-      properties:
-        content:
-          description: Serialized body content
-          example: '{"some-json": "with-value"}'
-          type: string
-        content_type:
-          description: Content type of the body
-          example: application/json
-          type: string
-      type: object
-    ActionConnectionAttributes:
-      description: The definition of `ActionConnectionAttributes` object.
-      properties:
-        integration:
-          $ref: '#/components/schemas/ActionConnectionIntegration'
-        name:
-          description: Name of the connection
-          example: My AWS Connection
-          type: string
-      required:
-      - name
-      - integration
-      type: object
-    ActionConnectionData:
-      description: Data related to the connection.
+    ActionConnectionDataUpdate:
+      description: Data related to the connection update.
       properties:
         attributes:
-          $ref: '#/components/schemas/ActionConnectionAttributes'
-        id:
-          description: The connection identifier
-          readOnly: true
-          type: string
-          example: abc-123-def
+          $ref: '#/components/schemas/ActionConnectionAttributesUpdate'
         type:
           $ref: '#/components/schemas/ActionConnectionDataType'
       required:
       - type
       - attributes
-      type: object
-    UpdateActionConnectionResponse:
-      description: The response for an updated connection.
-      properties:
-        data:
-          $ref: '#/components/schemas/ActionConnectionData'
-      type: object
-    HTTPTokenAuth:
-      description: The definition of `HTTPTokenAuth` object.
-      properties:
-        body:
-          $ref: '#/components/schemas/HTTPBody'
-        headers:
-          description: The `HTTPTokenAuth` `headers`.
-          items:
-            $ref: '#/components/schemas/HTTPHeader'
-          type: array
-        tokens:
-          description: The `HTTPTokenAuth` `tokens`.
-          items:
-            $ref: '#/components/schemas/HTTPToken'
-          type: array
-        type:
-          $ref: '#/components/schemas/HTTPTokenAuthType'
-        url_parameters:
-          description: The `HTTPTokenAuth` `url_parameters`.
-          items:
-            $ref: '#/components/schemas/UrlParam'
-          type: array
-      required:
-      - type
-      type: object
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
-      properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
-    HTTPCredentials:
-      description: The definition of `HTTPCredentials` object.
-      oneOf:
-      - $ref: '#/components/schemas/HTTPTokenAuth'
-    AWSIntegrationUpdate:
-      description: The definition of `AWSIntegrationUpdate` object.
-      properties:
-        credentials:
-          $ref: '#/components/schemas/AWSCredentialsUpdate'
-        type:
-          $ref: '#/components/schemas/AWSIntegrationType'
-      required:
-      - type
-      type: object
-    CreateActionConnectionResponse:
-      description: The response for a created connection
-      properties:
-        data:
-          $ref: '#/components/schemas/ActionConnectionData'
       type: object
     CreateActionConnectionRequest:
       description: Request used to create an action connection.
@@ -644,34 +543,103 @@ components:
       - type
       - value
       type: object
-    UrlParam:
-      description: The definition of `UrlParam` object.
+    HTTPHeader:
+      description: The definition of `HTTPHeader` object.
       properties:
         name:
-          $ref: '#/components/schemas/TokenName'
-          example: MyUrlParameter
+          description: The `HTTPHeader` `name`.
+          example: MyHttpHeader
+          pattern: ^[A-Za-z][A-Za-z\\d\\-\\_]*$
+          type: string
         value:
-          description: The `UrlParam` `value`.
-          example: Some Url Parameter value
+          description: The `HTTPHeader` `value`.
+          example: Some header value
           type: string
       required:
       - name
       - value
       type: object
-    UpdateActionConnectionRequest:
-      description: Request used to update an action connection.
+    ActionConnectionDataType:
+      description: The definition of `ActionConnectionDataType` object.
+      enum:
+      - action_connection
+      example: action_connection
+      type: string
+      x-enum-varnames:
+      - ACTION_CONNECTION
+    ActionConnectionAttributesUpdate:
+      description: The definition of `ActionConnectionAttributesUpdate` object.
       properties:
-        data:
-          $ref: '#/components/schemas/ActionConnectionDataUpdate'
+        integration:
+          $ref: '#/components/schemas/ActionConnectionIntegrationUpdate'
+        name:
+          description: Name of the connection
+          example: My AWS Connection
+          type: string
+      type: object
+    AWSAssumeRoleType:
+      description: The definition of `AWSAssumeRoleType` object.
+      enum:
+      - AWSAssumeRole
+      example: AWSAssumeRole
+      type: string
+      x-enum-varnames:
+      - AWSASSUMEROLE
+    JSONAPIErrorItem:
+      description: API error response body
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        status:
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
+      type: object
+    HTTPTokenAuth:
+      description: The definition of `HTTPTokenAuth` object.
+      properties:
+        body:
+          $ref: '#/components/schemas/HTTPBody'
+        headers:
+          description: The `HTTPTokenAuth` `headers`.
+          items:
+            $ref: '#/components/schemas/HTTPHeader'
+          type: array
+        tokens:
+          description: The `HTTPTokenAuth` `tokens`.
+          items:
+            $ref: '#/components/schemas/HTTPToken'
+          type: array
+        type:
+          $ref: '#/components/schemas/HTTPTokenAuthType'
+        url_parameters:
+          description: The `HTTPTokenAuth` `url_parameters`.
+          items:
+            $ref: '#/components/schemas/UrlParam'
+          type: array
       required:
-      - data
+      - type
       type: object
-    GetActionConnectionResponse:
-      description: The response for found connection
-      properties:
-        data:
-          $ref: '#/components/schemas/ActionConnectionData'
-      type: object
+    HTTPIntegrationType:
+      description: The definition of `HTTPIntegrationType` object.
+      enum:
+      - HTTP
+      example: HTTP
+      type: string
+      x-enum-varnames:
+      - HTTP
     HTTPIntegrationUpdate:
       description: The definition of `HTTPIntegrationUpdate` object.
       properties:
@@ -686,14 +654,69 @@ components:
       required:
       - type
       type: object
-    AWSIntegrationType:
-      description: The definition of `AWSIntegrationType` object.
-      enum:
-      - AWS
-      example: AWS
-      type: string
-      x-enum-varnames:
-      - AWS
+    AWSCredentials:
+      description: The definition of `AWSCredentials` object.
+      oneOf:
+      - $ref: '#/components/schemas/AWSAssumeRole'
+    ActionConnectionAttributes:
+      description: The definition of `ActionConnectionAttributes` object.
+      properties:
+        integration:
+          $ref: '#/components/schemas/ActionConnectionIntegration'
+        name:
+          description: Name of the connection
+          example: My AWS Connection
+          type: string
+      required:
+      - name
+      - integration
+      type: object
+    AWSAssumeRole:
+      description: The definition of `AWSAssumeRole` object.
+      properties:
+        account_id:
+          description: AWS account the connection is created for
+          example: '111222333444'
+          pattern: ^\d{12}$
+          type: string
+        external_id:
+          description: External ID used to scope which connection can be used to assume the role
+          example: 33a1011635c44b38a064cf14e82e1d8f
+          readOnly: true
+          type: string
+        principal_id:
+          description: AWS account that will assume the role
+          example: '123456789012'
+          readOnly: true
+          type: string
+        role:
+          description: Role to assume
+          example: my-role
+          type: string
+        type:
+          $ref: '#/components/schemas/AWSAssumeRoleType'
+      required:
+      - type
+      - account_id
+      - role
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    UpdateActionConnectionResponse:
+      description: The response for an updated connection.
+      properties:
+        data:
+          $ref: '#/components/schemas/ActionConnectionData'
+      type: object
     HTTPIntegration:
       description: The definition of `HTTPIntegration` object.
       properties:
@@ -710,29 +733,6 @@ components:
       - base_url
       - credentials
       type: object
-    HTTPTokenAuthType:
-      description: The definition of `HTTPTokenAuthType` object.
-      enum:
-      - HTTPTokenAuth
-      example: HTTPTokenAuth
-      type: string
-      x-enum-varnames:
-      - HTTPTOKENAUTH
-    ActionConnectionDataUpdate:
-      description: Data related to the connection update.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ActionConnectionAttributesUpdate'
-        type:
-          $ref: '#/components/schemas/ActionConnectionDataType'
-      required:
-      - type
-      - attributes
-      type: object
-    HTTPCredentialsUpdate:
-      description: The definition of `HTTPCredentialsUpdate` object.
-      oneOf:
-      - $ref: '#/components/schemas/HTTPTokenAuthUpdate'
   parameters:
     ConnectionId:
       description: The ID of the action connection

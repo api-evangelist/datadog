@@ -226,6 +226,270 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    NotificationRuleAttributes:
+      description: Attributes of the notification rule.
+      properties:
+        created_at:
+          $ref: '#/components/schemas/Date'
+        created_by:
+          $ref: '#/components/schemas/RuleUser'
+        enabled:
+          $ref: '#/components/schemas/Enabled'
+        modified_at:
+          $ref: '#/components/schemas/Date'
+        modified_by:
+          $ref: '#/components/schemas/RuleUser'
+        name:
+          $ref: '#/components/schemas/RuleName'
+        selectors:
+          $ref: '#/components/schemas/Selectors'
+        targets:
+          $ref: '#/components/schemas/Targets'
+        time_aggregation:
+          $ref: '#/components/schemas/TimeAggregation'
+        version:
+          $ref: '#/components/schemas/Version'
+      required:
+      - created_at
+      - created_by
+      - enabled
+      - modified_at
+      - modified_by
+      - name
+      - selectors
+      - targets
+      - version
+      type: object
+    ExternalUserPatchRequestOperationsItemsOp:
+      description: The operation to be performed.
+      enum:
+      - add
+      - replace
+      type: string
+      x-enum-varnames:
+      - ADD
+      - REPLACE
+    RuleTypesItems:
+      description: 'Security rule type which can be used in security rules.
+
+        Signal-based notification rules can filter signals based on rule types application_security, log_detection,
+
+        workload_security, signal_correlation, cloud_configuration and infrastructure_configuration.
+
+        Vulnerability-based notification rules can filter vulnerabilities based on rule types application_code_vulnerability,
+
+        application_library_vulnerability, attack_path, container_image_vulnerability, identity_risk, misconfiguration, and api_security.'
+      enum:
+      - application_security
+      - log_detection
+      - workload_security
+      - signal_correlation
+      - cloud_configuration
+      - infrastructure_configuration
+      - application_code_vulnerability
+      - application_library_vulnerability
+      - attack_path
+      - container_image_vulnerability
+      - identity_risk
+      - misconfiguration
+      - api_security
+      type: string
+      x-enum-varnames:
+      - APPLICATION_SECURITY
+      - LOG_DETECTION
+      - WORKLOAD_SECURITY
+      - SIGNAL_CORRELATION
+      - CLOUD_CONFIGURATION
+      - INFRASTRUCTURE_CONFIGURATION
+      - APPLICATION_CODE_VULNERABILITY
+      - APPLICATION_LIBRARY_VULNERABILITY
+      - ATTACK_PATH
+      - CONTAINER_IMAGE_VULNERABILITY
+      - IDENTITY_RISK
+      - MISCONFIGURATION
+      - API_SECURITY
+    PatchNotificationRuleParametersData:
+      description: 'Data of the notification rule patch request: the rule ID, the rule type, and the rule attributes. All fields are required.'
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PatchNotificationRuleParametersDataAttributes'
+        id:
+          $ref: '#/components/schemas/ID'
+        type:
+          $ref: '#/components/schemas/NotificationRulesType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    RuleUser:
+      description: User creating or modifying a rule.
+      properties:
+        handle:
+          description: The user handle.
+          example: john.doe@domain.com
+          type: string
+        name:
+          description: The user name.
+          example: John Doe
+          type: string
+      type: object
+    Enabled:
+      description: Field used to enable or disable the rule.
+      example: true
+      type: boolean
+    TimeAggregation:
+      description: 'Time aggregation period (in seconds) is used to aggregate the results of the notification rule evaluation.
+
+        Results are aggregated over a selected time frame using a rolling window, which updates with each new evaluation.
+
+        Notifications are only sent for new issues discovered during the window.
+
+        Time aggregation is only available for vulnerability-based notification rules. When omitted or set to 0, no aggregation
+
+        is done.'
+      example: 86400
+      format: int64
+      type: integer
+    Targets:
+      description: 'List of recipients to notify when a notification rule is triggered. Many different target types are supported,
+
+        such as email addresses, Slack channels, and PagerDuty services.
+
+        The appropriate integrations need to be properly configured to send notifications to the specified targets.'
+      example:
+      - '@john.doe@email.com'
+      items:
+        description: Recipients to notify.
+        type: string
+      type: array
+    ExternalUserPatchRequestOperationsItems:
+      description: The definition of an individual patch operation in a patch request.
+      properties:
+        op:
+          $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItemsOp'
+        path:
+          description: An attribute path describing the target of the operation.
+          example: title
+          type: string
+        value:
+          description: New value to use for the patch operation.
+          example: example_value
+      type: object
+    ID:
+      description: The ID of a notification rule.
+      example: aaa-bbb-ccc
+      type: string
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    PatchNotificationRuleParametersDataAttributes:
+      description: Attributes of the notification rule patch request. It is required to update the version of the rule when patching it.
+      properties:
+        enabled:
+          $ref: '#/components/schemas/Enabled'
+        name:
+          $ref: '#/components/schemas/RuleName'
+        selectors:
+          $ref: '#/components/schemas/Selectors'
+        targets:
+          $ref: '#/components/schemas/Targets'
+        time_aggregation:
+          $ref: '#/components/schemas/TimeAggregation'
+        version:
+          $ref: '#/components/schemas/Version'
+      type: object
+    Selectors:
+      description: 'Selectors are used to filter security issues for which notifications should be generated.
+
+        Users can specify rule severities, rule types, a query to filter security issues on tags and attributes, and the trigger source.
+
+        Only the trigger_source field is required.'
+      properties:
+        query:
+          $ref: '#/components/schemas/NotificationRuleQuery'
+        rule_types:
+          $ref: '#/components/schemas/RuleTypes'
+        severities:
+          description: The security rules severities to consider.
+          items:
+            $ref: '#/components/schemas/RuleSeverity'
+          type: array
+        trigger_source:
+          $ref: '#/components/schemas/TriggerSource'
+      required:
+      - trigger_source
+      type: object
+    ExternalUserPatchRequest:
+      description: Request object for patching a user.
+      properties:
+        Operations:
+          description: A list of update operations to be performed on a user.
+          items:
+            $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItems'
+          type: array
+        schemas:
+          description: Input JSON Schemas
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:PatchOp
+          items:
+            type: string
+          type: array
+      type: object
+    RuleName:
+      description: Name of the notification rule.
+      example: Rule 1
+      type: string
+    RuleTypes:
+      description: Security rule types used as filters in security rules.
+      example:
+      - misconfiguration
+      - attack_path
+      items:
+        $ref: '#/components/schemas/RuleTypesItems'
+      type: array
+    ExternalUserEmailType:
+      description: Email address for the user.
+      properties:
+        primary:
+          description: Boolean indicating if this email is the primary email address.
+          type: boolean
+          example: true
+        type:
+          $ref: '#/components/schemas/EmailTypeType'
+        value:
+          description: Email addresses for the user.
+          type: string
+          example: example_value
+      type: object
     NotificationRule:
       description: 'Notification rules allow full control over notifications generated by the various Datadog security products.
 
@@ -270,50 +534,25 @@ components:
           example: Bad Request
           type: string
       type: object
-    ExternalUserPatchRequest:
-      description: Request object for patching a user.
-      properties:
-        Operations:
-          description: A list of update operations to be performed on a user.
-          items:
-            $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItems'
-          type: array
-        schemas:
-          description: Input JSON Schemas
-          example:
-          - urn:ietf:params:scim:api:messages:2.0:PatchOp
-          items:
-            type: string
-          type: array
-      type: object
-    TimeAggregation:
-      description: 'Time aggregation period (in seconds) is used to aggregate the results of the notification rule evaluation.
+    EmailTypeType:
+      description: The type of email.
+      enum:
+      - work
+      type: string
+      x-enum-varnames:
+      - WORK
+    TriggerSource:
+      description: 'The type of security issues on which the rule applies. Notification rules based on security signals need to use the trigger source "security_signals",
 
-        Results are aggregated over a selected time frame using a rolling window, which updates with each new evaluation.
-
-        Notifications are only sent for new issues discovered during the window.
-
-        Time aggregation is only available for vulnerability-based notification rules. When omitted or set to 0, no aggregation
-
-        is done.'
-      example: 86400
-      format: int64
-      type: integer
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
+        while notification rules based on security vulnerabilities need to use the trigger source "security_findings".'
+      enum:
+      - security_findings
+      - security_signals
+      example: security_findings
+      type: string
+      x-enum-varnames:
+      - SECURITY_FINDINGS
+      - SECURITY_SIGNALS
     ExternalUserNameType:
       description: The components of user's real name
       properties:
@@ -322,155 +561,29 @@ components:
           type: string
           example: example_value
       type: object
-    ExternalUserMeta:
-      description: Metadata associated with a user.
-      properties:
-        created:
-          description: The date and time the user was created.
-          example: '2024-10-17T12:53:35.793Z'
-          format: date-time
-          type: string
-        lastModified:
-          description: The date and time the user was last changed.
-          example: '2024-10-19T12:53:35.793Z'
-          format: date-time
-          type: string
-        location:
-          description: URL identifying the resource.
-          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
-          type: string
-        resourceType:
-          description: Type of resource.
-          example: User
-          type: string
-      type: object
-    Date:
-      description: Date as Unix timestamp in milliseconds.
-      example: 1722439510282
-      format: int64
-      type: integer
-    RuleTypes:
-      description: Security rule types used as filters in security rules.
-      example:
-      - misconfiguration
-      - attack_path
-      items:
-        $ref: '#/components/schemas/RuleTypesItems'
-      type: array
-    EmailTypeType:
-      description: The type of email.
+    RuleSeverity:
+      description: Severity of a security rule.
       enum:
-      - work
+      - critical
+      - high
+      - medium
+      - low
+      - unknown
+      - info
+      example: critical
       type: string
       x-enum-varnames:
-      - WORK
-    RuleTypesItems:
-      description: 'Security rule type which can be used in security rules.
-
-        Signal-based notification rules can filter signals based on rule types application_security, log_detection,
-
-        workload_security, signal_correlation, cloud_configuration and infrastructure_configuration.
-
-        Vulnerability-based notification rules can filter vulnerabilities based on rule types application_code_vulnerability,
-
-        application_library_vulnerability, attack_path, container_image_vulnerability, identity_risk, misconfiguration, and api_security.'
-      enum:
-      - application_security
-      - log_detection
-      - workload_security
-      - signal_correlation
-      - cloud_configuration
-      - infrastructure_configuration
-      - application_code_vulnerability
-      - application_library_vulnerability
-      - attack_path
-      - container_image_vulnerability
-      - identity_risk
-      - misconfiguration
-      - api_security
-      type: string
-      x-enum-varnames:
-      - APPLICATION_SECURITY
-      - LOG_DETECTION
-      - WORKLOAD_SECURITY
-      - SIGNAL_CORRELATION
-      - CLOUD_CONFIGURATION
-      - INFRASTRUCTURE_CONFIGURATION
-      - APPLICATION_CODE_VULNERABILITY
-      - APPLICATION_LIBRARY_VULNERABILITY
-      - ATTACK_PATH
-      - CONTAINER_IMAGE_VULNERABILITY
-      - IDENTITY_RISK
-      - MISCONFIGURATION
-      - API_SECURITY
-    JSONAPIErrorResponse:
-      description: API error response.
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      - UNKNOWN
+      - INFO
+    NotificationRuleResponse:
+      description: Response object which includes a notification rule.
       properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    NotificationRuleAttributes:
-      description: Attributes of the notification rule.
-      properties:
-        created_at:
-          $ref: '#/components/schemas/Date'
-        created_by:
-          $ref: '#/components/schemas/RuleUser'
-        enabled:
-          $ref: '#/components/schemas/Enabled'
-        modified_at:
-          $ref: '#/components/schemas/Date'
-        modified_by:
-          $ref: '#/components/schemas/RuleUser'
-        name:
-          $ref: '#/components/schemas/RuleName'
-        selectors:
-          $ref: '#/components/schemas/Selectors'
-        targets:
-          $ref: '#/components/schemas/Targets'
-        time_aggregation:
-          $ref: '#/components/schemas/TimeAggregation'
-        version:
-          $ref: '#/components/schemas/Version'
-      required:
-      - created_at
-      - created_by
-      - enabled
-      - modified_at
-      - modified_by
-      - name
-      - selectors
-      - targets
-      - version
-      type: object
-    NotificationRulesType:
-      description: The rule type associated to notification rules.
-      enum:
-      - notification_rules
-      example: notification_rules
-      type: string
-      x-enum-varnames:
-      - NOTIFICATION_RULES
-    RuleName:
-      description: Name of the notification rule.
-      example: Rule 1
-      type: string
-    RuleUser:
-      description: User creating or modifying a rule.
-      properties:
-        handle:
-          description: The user handle.
-          example: john.doe@domain.com
-          type: string
-        name:
-          description: The user name.
-          example: John Doe
-          type: string
+        data:
+          $ref: '#/components/schemas/NotificationRule'
       type: object
     ExternalUser:
       description: Definition of a user.
@@ -508,179 +621,66 @@ components:
           type: string
           example: Example Monitor
       type: object
-    Targets:
-      description: 'List of recipients to notify when a notification rule is triggered. Many different target types are supported,
-
-        such as email addresses, Slack channels, and PagerDuty services.
-
-        The appropriate integrations need to be properly configured to send notifications to the specified targets.'
-      example:
-      - '@john.doe@email.com'
-      items:
-        description: Recipients to notify.
-        type: string
-      type: array
-    NotificationRuleQuery:
-      description: The query is composed of one or several key:value pairs, which can be used to filter security issues on tags and attributes.
-      example: (source:production_service OR env:prod)
-      type: string
-    PatchNotificationRuleParametersDataAttributes:
-      description: Attributes of the notification rule patch request. It is required to update the version of the rule when patching it.
+    Version:
+      description: Version of the notification rule. It is updated when the rule is modified.
+      example: 1
+      format: int64
+      type: integer
+    ExternalUserMeta:
+      description: Metadata associated with a user.
       properties:
-        enabled:
-          $ref: '#/components/schemas/Enabled'
-        name:
-          $ref: '#/components/schemas/RuleName'
-        selectors:
-          $ref: '#/components/schemas/Selectors'
-        targets:
-          $ref: '#/components/schemas/Targets'
-        time_aggregation:
-          $ref: '#/components/schemas/TimeAggregation'
-        version:
-          $ref: '#/components/schemas/Version'
-      type: object
-    ExternalUserEmailType:
-      description: Email address for the user.
-      properties:
-        primary:
-          description: Boolean indicating if this email is the primary email address.
-          type: boolean
-          example: true
-        type:
-          $ref: '#/components/schemas/EmailTypeType'
-        value:
-          description: Email addresses for the user.
+        created:
+          description: The date and time the user was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
           type: string
-          example: example_value
-      type: object
-    RuleSeverity:
-      description: Severity of a security rule.
-      enum:
-      - critical
-      - high
-      - medium
-      - low
-      - unknown
-      - info
-      example: critical
-      type: string
-      x-enum-varnames:
-      - CRITICAL
-      - HIGH
-      - MEDIUM
-      - LOW
-      - UNKNOWN
-      - INFO
-    PatchNotificationRuleParametersData:
-      description: 'Data of the notification rule patch request: the rule ID, the rule type, and the rule attributes. All fields are required.'
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PatchNotificationRuleParametersDataAttributes'
-        id:
-          $ref: '#/components/schemas/ID'
-        type:
-          $ref: '#/components/schemas/NotificationRulesType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
-      properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
+        lastModified:
+          description: The date and time the user was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
           type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
           type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
+        resourceType:
+          description: Type of resource.
+          example: User
           type: string
       type: object
-    Selectors:
-      description: 'Selectors are used to filter security issues for which notifications should be generated.
-
-        Users can specify rule severities, rule types, a query to filter security issues on tags and attributes, and the trigger source.
-
-        Only the trigger_source field is required.'
+    Date:
+      description: Date as Unix timestamp in milliseconds.
+      example: 1722439510282
+      format: int64
+      type: integer
+    JSONAPIErrorResponse:
+      description: API error response.
       properties:
-        query:
-          $ref: '#/components/schemas/NotificationRuleQuery'
-        rule_types:
-          $ref: '#/components/schemas/RuleTypes'
-        severities:
-          description: The security rules severities to consider.
+        errors:
+          description: A list of errors.
           items:
-            $ref: '#/components/schemas/RuleSeverity'
+            $ref: '#/components/schemas/JSONAPIErrorItem'
           type: array
-        trigger_source:
-          $ref: '#/components/schemas/TriggerSource'
       required:
-      - trigger_source
+      - errors
       type: object
-    Enabled:
-      description: Field used to enable or disable the rule.
-      example: true
-      type: boolean
     PatchNotificationRuleParameters:
       description: Body of the notification rule patch request.
       properties:
         data:
           $ref: '#/components/schemas/PatchNotificationRuleParametersData'
       type: object
-    TriggerSource:
-      description: 'The type of security issues on which the rule applies. Notification rules based on security signals need to use the trigger source "security_signals",
-
-        while notification rules based on security vulnerabilities need to use the trigger source "security_findings".'
+    NotificationRulesType:
+      description: The rule type associated to notification rules.
       enum:
-      - security_findings
-      - security_signals
-      example: security_findings
+      - notification_rules
+      example: notification_rules
       type: string
       x-enum-varnames:
-      - SECURITY_FINDINGS
-      - SECURITY_SIGNALS
-    ExternalUserPatchRequestOperationsItems:
-      description: The definition of an individual patch operation in a patch request.
-      properties:
-        op:
-          $ref: '#/components/schemas/ExternalUserPatchRequestOperationsItemsOp'
-        path:
-          description: An attribute path describing the target of the operation.
-          example: title
-          type: string
-        value:
-          description: New value to use for the patch operation.
-          example: example_value
-      type: object
-    NotificationRuleResponse:
-      description: Response object which includes a notification rule.
-      properties:
-        data:
-          $ref: '#/components/schemas/NotificationRule'
-      type: object
-    Version:
-      description: Version of the notification rule. It is updated when the rule is modified.
-      example: 1
-      format: int64
-      type: integer
-    ExternalUserPatchRequestOperationsItemsOp:
-      description: The operation to be performed.
-      enum:
-      - add
-      - replace
-      type: string
-      x-enum-varnames:
-      - ADD
-      - REPLACE
-    ID:
-      description: The ID of a notification rule.
-      example: aaa-bbb-ccc
+      - NOTIFICATION_RULES
+    NotificationRuleQuery:
+      description: The query is composed of one or several key:value pairs, which can be used to filter security issues on tags and attributes.
+      example: (source:production_service OR env:prod)
       type: string
   responses:
     ForbiddenResponse:
@@ -695,6 +695,12 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
     UnprocessableEntityResponse:
       content:
         application/json:
@@ -707,12 +713,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Found
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

@@ -117,6 +117,64 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    RoleUpdateAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: Name of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: The user count.
+          format: int32
+          maximum: 2147483647
+          type: integer
+          example: 42
+      type: object
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
+      properties:
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      type: object
+      x-merge-override:
+        required: false
     APIErrorResponse:
       description: API error response.
       properties:
@@ -152,86 +210,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
-    RoleRelationships:
-      description: Relationships of the role object.
-      properties:
-        permissions:
-          $ref: '#/components/schemas/RelationshipToPermissions'
-      type: object
-    RelationshipToPermissions:
-      description: Relationship to multiple permissions objects.
-      properties:
-        data:
-          description: Relationships to permission objects.
-          items:
-            $ref: '#/components/schemas/RelationshipToPermissionData'
-          type: array
-      type: object
-      x-merge-override:
-        required: false
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    RoleUpdateAttributes:
-      description: Attributes of the role.
-      properties:
-        created_at:
-          description: Creation time of the role.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-        modified_at:
-          description: Time of last role modification.
-          format: date-time
-          readOnly: true
-          type: string
-          example: example_value
-        name:
-          description: Name of the role.
-          type: string
-          example: Example Monitor
-        user_count:
-          description: The user count.
-          format: int32
-          maximum: 2147483647
-          type: integer
-          example: 42
-      type: object
-    RoleUpdateResponseData:
-      description: Role object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RoleUpdateAttributes'
-        id:
-          description: The unique identifier of the role.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/RoleResponseRelationships'
-        type:
-          $ref: '#/components/schemas/RolesType'
-      required:
-      - type
-      type: object
     RoleUpdateResponse:
       description: Response containing information about an updated role.
       properties:
@@ -252,22 +230,37 @@ components:
       required:
       - data
       type: object
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
+    RoleUpdateResponseData:
+      description: Role object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoleUpdateAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
+      type: object
+    RolesType:
+      default: roles
+      description: Roles type.
       enum:
-      - permissions
-      example: permissions
+      - roles
+      example: roles
       type: string
       x-enum-varnames:
-      - PERMISSIONS
-  responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
+      - ROLES
+    RoleRelationships:
+      description: Relationships of the role object.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
   parameters:
     RoleID:
       description: The unique identifier of the role.
@@ -276,6 +269,13 @@ components:
       required: true
       schema:
         type: string
+  responses:
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.
