@@ -1,0 +1,138 @@
+# Vendor facets — Datadog Status Pages (the status-page product only, not the observability suite). On the
+# Kin Score it touches one pointer check, status_page_present (6 pts). Headline: the default
+# <name>.statuspage.datadoghq.com page is a 599-byte client-rendered shell returned for every path, so the
+# pointer grades dead (0); a custom status.* domain can at best be rescued to unverified (0.5).
+vendor: datadog
+name: Datadog Status Pages
+website: https://www.datadoghq.com
+areas:
+- status-page
+registry_keys: []
+rubric_schema_version: 0.22.0
+generated: '2026-09-25'
+features_refreshed: '2026-09-25'
+basis: capability
+summary: >-
+  Datadog Status Pages touch one Kin Score check, status_page_present, and today earn at most half of
+  it. The default <name>.statuspage.datadoghq.com page returns the same small shell for every path, which
+  the pointer-liveness probe reads as a soft-404 on a host it does not excuse: it grades dead, 0 of 6.
+  A custom status.* domain would be graded unverified, 3 of 6, if it serves the same shell (inferred from
+  the scorer's host rule, not probed — no custom-domain customer was found). No vendor-registry key detects
+  it. Note status.datadoghq.com, Datadog's own status page, is not this product and grades live.
+features:
+- id: hosted-status-page
+  name: Public and internal status pages on <name>.statuspage.datadoghq.com
+  description: >-
+    Component-based pages with degradation notices, scheduled maintenance and uptime percentages; public
+    pages for anyone with the link, internal pages for authenticated org users.
+  source: https://docs.datadoghq.com/incident_response/status_pages/
+  tier: unknown
+- id: custom-domain
+  name: Custom domain with automatic SSL
+  description: Map a domain such as status.acme.com with DNS records; Datadog provisions the certificate.
+  source: https://docs.datadoghq.com/incident_response/status_pages/
+  tier: unknown
+- id: catch-all-shell
+  name: Same 599-byte shell for every path (measured)
+  description: >-
+    Probed 2026-09-25: artilleryio.statuspage.datadoghq.com returns a byte-identical 200 "Status Pages
+    Site" shell for the page and for a nonsense path.
+  source: https://artilleryio.statuspage.datadoghq.com
+  tier: all
+- id: subscribers-and-templates
+  name: Email and Slack subscriptions, notice templates, Terraform
+  description: >-
+    Double opt-in email and Slack subscribers per component, templated notices, backfilled incidents,
+    Terraform management.
+  source: https://docs.datadoghq.com/incident_response/status_pages/
+  tier: unknown
+maps:
+- feature: custom-domain
+  check: status_page_present
+  layer: composite
+  credit: 0.5
+  conditional: true
+  condition: >-
+    Only on a custom domain whose host begins with `status.`. The default *.statuspage.datadoghq.com pointer
+    earns 0 (see earns_nothing). The 0.5 is inferred from the scorer's SPA-shell prefix rule; no Datadog
+    custom-domain page was probed.
+  provider_must: Serve the page on status.<own-domain> and declare it in apis.yml as common[].type StatusPage.
+  note: >-
+    The pointer is liveness-graded: live 1.0, unverified 0.5, dead/soft-404 0. Adding statuspage.datadoghq.com
+    to SPA_SHELL_HOSTS would move the default to 0.5, never to 1.0.
+  catalog_pass_rate: 0.125
+  facet: operational_transparency
+  points: 6
+  baseline_pass_rate: 0.376
+earns_nothing:
+- feature: hosted-status-page
+  check: status_page_present
+  why: >-
+    A *.statuspage.datadoghq.com pointer is a soft-404 on a host the SPA rule does not excuse, so it grades
+    dead (the one such pointer in the catalog, artillery, earns 0).
+out_of_reach:
+  checks:
+  - change_log_present
+  - deprecation_policy
+  - roadmap_present
+  - rate_limits_documented
+  - webhooks_advertised
+  note: A status page publishes nothing about the API's changes, limits, deprecations or own webhooks.
+unscored_practice:
+- feature: hosted-status-page
+  why: Uptime percentages and scheduled maintenance per component; no check reads them.
+surface:
+  operational_transparency:
+    reachable: 3.0
+    total: 38
+  agent_readiness:
+    reachable: 0
+    total: 139
+hard_rule: >-
+  A model, not a score. Adopting this vendor changes a provider's Kin Score only when the provider publishes
+  the resulting artifacts on its own surface; nothing here writes a score, and no sponsorship or partnership
+  can.
+method: searched
+source:
+- https://artilleryio.statuspage.datadoghq.com
+- https://docs.datadoghq.com/incident_response/status_pages/
+measured:
+  cohort:
+    method: vendors-catalog.json detections (CNAME / header / URL shape / markup), never a name match
+    detected: 0
+    in_baseline: 0
+  control:
+    basis: providers earning contract_present + documentation_present + api_reference_present, minus the
+      cohort
+    n: 5216
+  metric: >-
+    cohort_pct / control_pct = mean share of the check's points earned (derived and platform credit weighted),
+    x100
+  measured_on: '2026-09-25'
+  status: 'not measurable: 0 detected customers clear the baseline (need 20)'
+simulation:
+  simulated_on: '2026-09-25'
+  rubric: 0.23.0
+  population: providers publishing a contract (contract_present earned), replayable exactly
+  providers: 8977
+  providers_unreplayable: 987
+  providers_moved: 0
+  conditional_rows: excluded (they depend on what the API already does)
+  composite_lift:
+    median: 0.0
+    p75: 0.0
+    p90: 0.0
+    max: 0.0
+    mean_among_movers: 0.0
+  agent_readiness_lift:
+    median: 0.0
+    p75: 0.0
+    p90: 0.0
+    max: 0.0
+    mean_among_movers: 0.0
+  facet_lift_median_among_movers: {}
+  composite_band_moves: {}
+  agent_readiness_band_moves: {}
+  method: >-
+    each provider's own kin/checks file, the vendor's maps at their stated credit, the scorer's composite
+    formula; from -> to, nothing written
