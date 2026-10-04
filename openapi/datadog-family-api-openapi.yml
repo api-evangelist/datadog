@@ -190,6 +190,12 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    HourlyUsageMetadata:
+      description: The object containing document metadata.
+      properties:
+        pagination:
+          $ref: '#/components/schemas/HourlyUsagePagination'
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -204,6 +210,25 @@ components:
           type: array
       required:
       - errors
+      type: object
+    UsageTimeSeriesType:
+      default: usage_timeseries
+      description: Type of usage data.
+      enum:
+      - usage_timeseries
+      example: usage_timeseries
+      type: string
+      x-enum-varnames:
+      - USAGE_TIMESERIES
+    HourlyUsagePagination:
+      description: The metadata for the current pagination.
+      properties:
+        next_record_id:
+          description: The cursor to get the next results (if any). To make the next request, use the same parameters and add `next_record_id`.
+          type:
+          - string
+          - 'null'
+          example: abc-123-def
       type: object
     HourlyUsageAttributes:
       description: Attributes of hourly usage for a product family for an org for a time period.
@@ -243,11 +268,16 @@ components:
           type: string
           example: '2026-04-17T12:00:00Z'
       type: object
-    HourlyUsageMetadata:
-      description: The object containing document metadata.
+    HourlyUsageResponse:
+      description: Hourly usage response.
       properties:
-        pagination:
-          $ref: '#/components/schemas/HourlyUsagePagination'
+        data:
+          description: Response containing hourly usage.
+          items:
+            $ref: '#/components/schemas/HourlyUsage'
+          type: array
+        meta:
+          $ref: '#/components/schemas/HourlyUsageMetadata'
       type: object
     HourlyUsageMeasurement:
       description: Usage amount for a given usage type.
@@ -264,16 +294,6 @@ components:
           - 'null'
           example: 42
       type: object
-    HourlyUsagePagination:
-      description: The metadata for the current pagination.
-      properties:
-        next_record_id:
-          description: The cursor to get the next results (if any). To make the next request, use the same parameters and add `next_record_id`.
-          type:
-          - string
-          - 'null'
-          example: abc-123-def
-      type: object
     HourlyUsage:
       description: Hourly usage for a product family for an org.
       properties:
@@ -285,26 +305,6 @@ components:
           example: abc-123-def
         type:
           $ref: '#/components/schemas/UsageTimeSeriesType'
-      type: object
-    UsageTimeSeriesType:
-      default: usage_timeseries
-      description: Type of usage data.
-      enum:
-      - usage_timeseries
-      example: usage_timeseries
-      type: string
-      x-enum-varnames:
-      - USAGE_TIMESERIES
-    HourlyUsageResponse:
-      description: Hourly usage response.
-      properties:
-        data:
-          description: Response containing hourly usage.
-          items:
-            $ref: '#/components/schemas/HourlyUsage'
-          type: array
-        meta:
-          $ref: '#/components/schemas/HourlyUsageMetadata'
       type: object
   securitySchemes:
     AuthZ:

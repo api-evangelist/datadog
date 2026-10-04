@@ -436,111 +436,89 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
       properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
+        id:
+          description: ID of the permission.
           type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
-    ExternalUserEmailType:
-      description: Email address for the user.
-      properties:
-        primary:
-          description: Boolean indicating if this email is the primary email address.
-          type: boolean
-          example: true
+          example: abc-123-def
         type:
-          $ref: '#/components/schemas/EmailTypeType'
-        value:
-          description: Email addresses for the user.
-          type: string
-          example: example_value
+          $ref: '#/components/schemas/PermissionsType'
       type: object
-    RelationshipToUsers:
-      description: Relationship to users.
-      properties:
-        data:
-          description: Relationships to user objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToUserData'
-          type: array
-      required:
-      - data
-      type: object
-    DowntimeUpdateRequest:
-      description: Request for editing a downtime.
-      properties:
-        data:
-          $ref: '#/components/schemas/DowntimeUpdateRequestData'
-      required:
-      - data
-      type: object
-    DowntimeResponseAttributes:
-      description: Downtime details.
-      properties:
-        canceled:
-          description: Time that the downtime was canceled.
-          example: 2020-01-02T03:04:05.282979+0000
-          format: date-time
-          type:
-          - string
-          - 'null'
-        created:
-          description: Creation time of the downtime.
-          example: 2020-01-02T03:04:05.282979+0000
-          format: date-time
-          type: string
-        display_timezone:
-          $ref: '#/components/schemas/DowntimeDisplayTimezone'
-        message:
-          $ref: '#/components/schemas/DowntimeMessage'
-        modified:
-          description: Time that the downtime was last modified.
-          example: 2020-01-02T03:04:05.282979+0000
-          format: date-time
-          type: string
-        monitor_identifier:
-          $ref: '#/components/schemas/DowntimeMonitorIdentifier'
-        mute_first_recovery_notification:
-          $ref: '#/components/schemas/DowntimeMuteFirstRecoveryNotification'
-        notify_end_states:
-          $ref: '#/components/schemas/DowntimeNotifyEndStates'
-        notify_end_types:
-          $ref: '#/components/schemas/DowntimeNotifyEndTypes'
-        schedule:
-          $ref: '#/components/schemas/DowntimeScheduleResponse'
-        scope:
-          $ref: '#/components/schemas/DowntimeScope'
-        status:
-          $ref: '#/components/schemas/DowntimeStatus'
-      type: object
-    JSONAPIErrorResponse:
+      x-merge-override:
+        required: false
+    APIErrorResponse:
       description: API error response.
       properties:
         errors:
           description: A list of errors.
+          example:
+          - Bad Request
           items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
+            description: A list of items.
+            example: Bad Request
+            type: string
           type: array
       required:
       - errors
       type: object
-    RoleResponseRelationships:
-      description: Relationships of the role object returned by the API.
+    PowerpackGroupWidget:
+      description: Powerpack group widget definition object.
       properties:
-        permissions:
-          $ref: '#/components/schemas/RelationshipToPermissions'
+        definition:
+          $ref: '#/components/schemas/PowerpackGroupWidgetDefinition'
+        layout:
+          $ref: '#/components/schemas/PowerpackGroupWidgetLayout'
+        live_span:
+          $ref: '#/components/schemas/WidgetLiveSpan'
+      required:
+      - definition
+      type: object
+    UserUpdateRequest:
+      description: Update a user.
+      properties:
+        data:
+          $ref: '#/components/schemas/UserUpdateData'
+      required:
+      - data
+      type: object
+    DowntimeNotifyEndTypes:
+      description: Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
+      example:
+      - canceled
+      - expired
+      items:
+        $ref: '#/components/schemas/DowntimeNotifyEndStateActions'
+      type: array
+    DowntimeMonitorIncludedItem:
+      description: Information about the monitor identified by the downtime.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeMonitorIncludedAttributes'
+        id:
+          description: ID of the monitor identified by the downtime.
+          example: 12345
+          format: int64
+          type: integer
+        type:
+          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
+      type: object
+    ExternalUserNameType:
+      description: The components of user's real name
+      properties:
+        formatted:
+          description: The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.
+          type: string
+          example: example_value
+      type: object
+    UpdateOpenAPIResponseData:
+      description: Data envelope for `UpdateOpenAPIResponse`.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UpdateOpenAPIResponseAttributes'
+        id:
+          $ref: '#/components/schemas/ApiID'
       type: object
     RelationshipToUser:
       description: Relationship to user.
@@ -550,97 +528,72 @@ components:
       required:
       - data
       type: object
-    RelationshipToRoleData:
-      description: Relationship to role object.
+    PermissionAttributes:
+      description: Attributes of a permission.
       properties:
-        id:
-          description: The unique identifier of the role.
-          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
-          type: string
-        type:
-          $ref: '#/components/schemas/RolesType'
-      type: object
-      x-merge-override:
-        required: false
-    UpdateOpenAPIResponseAttributes:
-      description: Attributes for `UpdateOpenAPI`.
-      properties:
-        failed_endpoints:
-          description: List of endpoints which couldn't be parsed.
-          items:
-            $ref: '#/components/schemas/OpenAPIEndpoint'
-          type: array
-      type: object
-    RoleAttributes:
-      description: Attributes of the role.
-      properties:
-        created_at:
-          description: Creation time of the role.
+        created:
+          description: Creation time of the permission.
           format: date-time
-          readOnly: true
           type: string
           example: example_value
-        modified_at:
-          description: Time of last role modification.
-          format: date-time
-          readOnly: true
+        description:
+          description: Description of the permission.
           type: string
           example: example_value
-        name:
-          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+        display_name:
+          description: Displayed name for the permission.
           type: string
           example: Example Monitor
-        user_count:
-          description: Number of users with that role.
+        display_type:
+          description: Display type.
+          type: string
+          example: metric alert
+        group_name:
+          description: Name of the permission group.
+          type: string
+          example: Example Monitor
+        name:
+          description: Name of the permission.
+          type: string
+          example: Example Monitor
+        restricted:
+          description: Whether or not the permission is restricted.
+          type: boolean
+          example: true
+      type: object
+    PowerpackGroupWidgetLayout:
+      description: Powerpack group widget layout.
+      properties:
+        height:
+          description: The height of the widget. Should be a non-negative integer.
+          example: 0
           format: int64
-          readOnly: true
+          minimum: 0
           type: integer
-          example: 42
-      type: object
-    DowntimeRelationshipsMonitorData:
-      description: Data for the monitor.
-      properties:
-        id:
-          description: Monitor ID of the downtime.
-          example: '12345'
-          type: string
-        type:
-          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
-      type:
-      - object
-      - 'null'
-    DowntimeMonitorIdentifier:
-      description: Monitor identifier for the downtime.
-      oneOf:
-      - $ref: '#/components/schemas/DowntimeMonitorIdentifierId'
-      - $ref: '#/components/schemas/DowntimeMonitorIdentifierTags'
-    FastlyServiceType:
-      default: fastly-services
-      description: The JSON:API type for this API. Should always be `fastly-services`.
-      enum:
-      - fastly-services
-      example: fastly-services
-      type: string
-      x-enum-varnames:
-      - FASTLY_SERVICES
-    Role:
-      description: Role object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RoleAttributes'
-        id:
-          description: The unique identifier of the role.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/RoleResponseRelationships'
-        type:
-          $ref: '#/components/schemas/RolesType'
+        width:
+          description: The width of the widget. Should be a non-negative integer.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+        x:
+          description: The position of the widget on the x (horizontal) axis. Should be a non-negative integer.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
+        y:
+          description: The position of the widget on the y (vertical) axis. Should be a non-negative integer.
+          example: 0
+          format: int64
+          minimum: 0
+          type: integer
       required:
-      - type
+      - x
+      - y
+      - width
+      - height
       type: object
-      x-merge-override:
-        required: false
     DowntimeScheduleRecurrenceRrule:
       description: 'The `RRULE` standard for defining recurring events.
 
@@ -654,42 +607,61 @@ components:
         More examples available in this [downtime guide](https://docs.datadoghq.com/monitors/guide/suppress-alert-with-downtimes/?tab=api).'
       example: FREQ=MONTHLY;BYSETPOS=3;BYDAY=WE;INTERVAL=1
       type: string
-    ExternalUser:
-      description: Definition of a user.
+    FastlyServiceResponse:
+      description: The expected response schema when getting a Fastly service.
       properties:
-        active:
-          description: A Boolean value indicating the User's administrative status.
-          type: boolean
-          example: true
-        emails:
-          description: Email addresses for the user.
-          items:
-            $ref: '#/components/schemas/ExternalUserEmailType'
-          type: array
-        id:
-          description: The identifier of the resource. Not required when creating a user.
-          type: string
-          example: abc-123-def
-        meta:
-          $ref: '#/components/schemas/ExternalUserMeta'
-        name:
-          $ref: '#/components/schemas/ExternalUserNameType'
-        schemas:
-          description: User JSON Schemas.
-          example:
-          - urn:ietf:params:scim:schemas:core:2.0:User
-          items:
-            type: string
-          type: array
-        title:
-          description: The user's title.
-          type: string
-          example: Example Monitor
-        userName:
-          description: Unique identifier for the User.
-          type: string
-          example: Example Monitor
+        data:
+          $ref: '#/components/schemas/FastlyServiceData'
       type: object
+    DowntimeMonitorIdentifierTags:
+      additionalProperties: {}
+      description: Object of the monitor tags.
+      properties:
+        monitor_tags:
+          description: 'A list of monitor tags. For example, tags that are applied directly to monitors,
+
+            not tags that are used in monitor queries (which are filtered by the scope parameter), to which the downtime applies.
+
+            The resulting downtime applies to monitors that match **all** provided monitor tags. Setting `monitor_tags`
+
+            to `[*]` configures the downtime to mute all monitors for the given scope.'
+          example:
+          - service:postgres
+          - team:frontend
+          items:
+            description: A list of monitor tags.
+            example: service:postgres
+            type: string
+          minItems: 1
+          type: array
+      required:
+      - monitor_tags
+      type: object
+    DowntimeScheduleRecurrenceResponse:
+      description: An RRULE-based recurring downtime.
+      properties:
+        duration:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
+        rrule:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: 2020-01-02T03:04
+          type: string
+      type: object
+    RelationshipToPermissions:
+      description: Relationship to multiple permissions objects.
+      properties:
+        data:
+          description: Relationships to permission objects.
+          items:
+            $ref: '#/components/schemas/RelationshipToPermissionData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
     DowntimeUpdateRequestAttributes:
       description: Attributes of the downtime to update.
       properties:
@@ -710,15 +682,108 @@ components:
         scope:
           $ref: '#/components/schemas/DowntimeScope'
       type: object
-    DowntimeResourceType:
-      default: downtime
-      description: Downtime resource type.
-      enum:
-      - downtime
-      example: downtime
+    DowntimeScheduleOneTimeResponse:
+      description: A one-time downtime definition.
+      properties:
+        end:
+          description: ISO-8601 Datetime to end the downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type:
+          - string
+          - 'null'
+        start:
+          description: ISO-8601 Datetime to start the downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+      required:
+      - start
+      type: object
+    DowntimeRelationshipsCreatedBy:
+      description: The user who created the downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeRelationshipsCreatedByData'
+      type: object
+    DowntimeScheduleRecurrenceDuration:
+      description: The length of the downtime. Must begin with an integer and end with one of 'm', 'h', d', or 'w'.
+      example: 123d
       type: string
-      x-enum-varnames:
-      - DOWNTIME
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    Organization:
+      description: Organization object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/OrganizationAttributes'
+        id:
+          description: ID of the organization.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/OrganizationsType'
+      required:
+      - type
+      type: object
+    DowntimeResponse:
+      description: 'Downtiming gives you greater control over monitor notifications by
+
+        allowing you to globally exclude scopes from alerting.
+
+        Downtime settings, which can be scheduled with start and end times,
+
+        prevent all alerting related to specified Datadog tags.'
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeResponseData'
+        included:
+          description: Array of objects related to the downtime that the user requested.
+          items:
+            $ref: '#/components/schemas/DowntimeResponseIncludedItem'
+          type: array
+      type: object
+    RoleResponseRelationships:
+      description: Relationships of the role object returned by the API.
+      properties:
+        permissions:
+          $ref: '#/components/schemas/RelationshipToPermissions'
+      type: object
+    DowntimeNotifyEndStates:
+      description: States that will trigger a monitor notification when the `notify_end_types` action occurs.
+      example:
+      - alert
+      - warn
+      items:
+        $ref: '#/components/schemas/DowntimeNotifyEndStateTypes'
+      type: array
     PowerpackGroupWidgetDefinition:
       description: Powerpack group widget object.
       properties:
@@ -757,305 +822,79 @@ components:
       - layout_type
       - type
       type: object
-    UserResponse:
-      description: Response containing information about a single user.
+    RelationshipToOrganizationData:
+      description: Relationship to organization object.
       properties:
-        data:
-          $ref: '#/components/schemas/User'
-        included:
-          description: Array of objects related to the user.
-          items:
-            $ref: '#/components/schemas/UserResponseIncludedItem'
-          type: array
-      type: object
-    UpdateOpenAPIResponseData:
-      description: Data envelope for `UpdateOpenAPIResponse`.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UpdateOpenAPIResponseAttributes'
         id:
-          $ref: '#/components/schemas/ApiID'
-      type: object
-    UpdateOpenAPIResponse:
-      description: Response for `UpdateOpenAPI`.
-      properties:
-        data:
-          $ref: '#/components/schemas/UpdateOpenAPIResponseData'
-      type: object
-    DowntimeScheduleRecurrencesUpdateRequest:
-      additionalProperties: false
-      description: A recurring downtime schedule definition.
-      properties:
-        recurrences:
-          description: A list of downtime recurrences.
-          items:
-            $ref: '#/components/schemas/DowntimeScheduleRecurrenceCreateUpdateRequest'
-          type: array
-        timezone:
-          default: UTC
-          description: The timezone in which to schedule the downtime.
-          example: America/New_York
+          description: ID of the organization.
+          example: 00000000-0000-beef-0000-000000000000
           type: string
-      type: object
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
-    PowerpackData:
-      description: Powerpack data object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PowerpackAttributes'
-        id:
-          description: ID of the powerpack.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/PowerpackRelationships'
         type:
-          description: Type of widget, must be powerpack.
-          example: powerpack
-          type: string
-      type: object
-      x-merge-override:
-        required: false
-    DowntimeMonitorIdentifierTags:
-      additionalProperties: {}
-      description: Object of the monitor tags.
-      properties:
-        monitor_tags:
-          description: 'A list of monitor tags. For example, tags that are applied directly to monitors,
-
-            not tags that are used in monitor queries (which are filtered by the scope parameter), to which the downtime applies.
-
-            The resulting downtime applies to monitors that match **all** provided monitor tags. Setting `monitor_tags`
-
-            to `[*]` configures the downtime to mute all monitors for the given scope.'
-          example:
-          - service:postgres
-          - team:frontend
-          items:
-            description: A list of monitor tags.
-            example: service:postgres
-            type: string
-          minItems: 1
-          type: array
+          $ref: '#/components/schemas/OrganizationsType'
       required:
-      - monitor_tags
-      type: object
-    PowerpackResponse:
-      description: Response object which includes a single powerpack configuration.
-      properties:
-        data:
-          $ref: '#/components/schemas/PowerpackData'
-        included:
-          description: Array of objects related to the users.
-          items:
-            $ref: '#/components/schemas/User'
-          type: array
-      readOnly: true
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    DowntimeStatus:
-      description: The current status of the downtime.
-      enum:
-      - active
-      - canceled
-      - ended
-      - scheduled
-      example: active
-      type: string
-      x-enum-varnames:
-      - ACTIVE
-      - CANCELED
-      - ENDED
-      - SCHEDULED
-    PermissionAttributes:
-      description: Attributes of a permission.
-      properties:
-        created:
-          description: Creation time of the permission.
-          format: date-time
-          type: string
-          example: example_value
-        description:
-          description: Description of the permission.
-          type: string
-          example: example_value
-        display_name:
-          description: Displayed name for the permission.
-          type: string
-          example: Example Monitor
-        display_type:
-          description: Display type.
-          type: string
-          example: metric alert
-        group_name:
-          description: Name of the permission group.
-          type: string
-          example: Example Monitor
-        name:
-          description: Name of the permission.
-          type: string
-          example: Example Monitor
-        restricted:
-          description: Whether or not the permission is restricted.
-          type: boolean
-          example: true
-      type: object
-    RelationshipToOrganizations:
-      description: Relationship to organizations.
-      properties:
-        data:
-          description: Relationships to organization objects.
-          example: []
-          items:
-            $ref: '#/components/schemas/RelationshipToOrganizationData'
-          type: array
-      required:
-      - data
-      type: object
-    DowntimeRelationships:
-      description: All relationships associated with downtime.
-      properties:
-        created_by:
-          $ref: '#/components/schemas/DowntimeRelationshipsCreatedBy'
-        monitor:
-          $ref: '#/components/schemas/DowntimeRelationshipsMonitor'
-      type: object
-    FastlyServiceResponse:
-      description: The expected response schema when getting a Fastly service.
-      properties:
-        data:
-          $ref: '#/components/schemas/FastlyServiceData'
+      - id
+      - type
       type: object
     ApiID:
       description: API identifier.
       example: 90646597-5fdb-4a17-a240-647003f8c028
       format: uuid
       type: string
-    PowerpackRelationships:
-      description: Powerpack relationship object.
-      properties:
-        author:
-          $ref: '#/components/schemas/RelationshipToUser'
-      type: object
-    PowerpackTemplateVariable:
-      description: Powerpack template variables.
-      properties:
-        available_values:
-          description: The list of values that the template variable drop-down is limited to.
-          example:
-          - my-host
-          - host1
-          - host2
-          items:
-            description: Template variable value.
-            type: string
-          type:
-          - array
-          - 'null'
-        defaults:
-          description: One or many template variable default values within the saved view, which are unioned together using `OR` if more than one is specified.
-          items:
-            description: One or many default values of the template variable.
-            minLength: 1
-            type: string
-          type: array
-        name:
-          description: The name of the variable.
-          example: datacenter
-          type: string
-        prefix:
-          description: The tag prefix associated with the variable. Only tags with this prefix appear in the variable drop-down.
-          example: host
-          type:
-          - string
-          - 'null'
-      required:
-      - name
-      type: object
-    RelationshipToOrganization:
-      description: Relationship to an organization.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToOrganizationData'
-      required:
-      - data
-      type: object
-    DowntimeRelationshipsCreatedBy:
-      description: The user who created the downtime.
-      properties:
-        data:
-          $ref: '#/components/schemas/DowntimeRelationshipsCreatedByData'
-      type: object
-    DowntimeIncludedMonitorType:
-      default: monitors
-      description: Monitor resource type.
-      enum:
-      - monitors
-      example: monitors
-      type: string
-      x-enum-varnames:
-      - MONITORS
-    DowntimeScheduleRecurrencesResponse:
-      description: A recurring downtime schedule definition.
-      properties:
-        current_downtime:
-          $ref: '#/components/schemas/DowntimeScheduleCurrentDowntimeResponse'
-        recurrences:
-          description: A list of downtime recurrences.
-          items:
-            $ref: '#/components/schemas/DowntimeScheduleRecurrenceResponse'
-          maxItems: 5
-          minItems: 1
-          type: array
-        timezone:
-          default: UTC
-          description: 'The timezone in which to schedule the downtime. This affects recurring start and end dates.
+    DowntimeDisplayTimezone:
+      default: UTC
+      description: 'The timezone in which to display the downtime''s start and end times in Datadog applications. This is not used
 
-            Must match `display_timezone`.'
-          example: America/New_York
-          type: string
-      required:
-      - recurrences
-      type: object
-    DowntimeScheduleUpdateRequest:
-      description: Schedule for the downtime.
+        as an offset for scheduling.'
+      example: America/New_York
+      type:
+      - string
+      - 'null'
+    DowntimeScheduleResponse:
+      description: 'The schedule that defines when the monitor starts, stops, and recurs. There are two types of schedules:
+
+        one-time and recurring. Recurring schedules may have up to five RRULE-based recurrences. If no schedules are
+
+        provided, the downtime will begin immediately and never end.'
       oneOf:
-      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesUpdateRequest'
-      - $ref: '#/components/schemas/DowntimeScheduleOneTimeCreateUpdateRequest'
-    RelationshipToUserData:
-      description: Relationship to user object.
+      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesResponse'
+      - $ref: '#/components/schemas/DowntimeScheduleOneTimeResponse'
+    DowntimeUpdateRequestData:
+      description: Object to update a downtime.
       properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeUpdateRequestAttributes'
         id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
+          description: ID of this downtime.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/DowntimeResourceType'
+      required:
+      - id
+      - type
+      - attributes
+      type: object
+    UserResponseIncludedItem:
+      description: An object related to a user.
+      oneOf:
+      - $ref: '#/components/schemas/Organization'
+      - $ref: '#/components/schemas/Permission'
+      - $ref: '#/components/schemas/Role'
+    UserUpdateData:
+      description: Object to update a user.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserUpdateAttributes'
+        id:
+          description: ID of the user.
+          example: 00000000-0000-feed-0000-000000000000
           type: string
         type:
           $ref: '#/components/schemas/UsersType'
       required:
-      - id
+      - attributes
       - type
+      - id
       type: object
       x-merge-override:
         required: false
@@ -1092,60 +931,135 @@ components:
       - width
       - height
       type: object
-    DowntimeNotifyEndStateActions:
-      description: Action that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
+    DowntimeResourceType:
+      default: downtime
+      description: Downtime resource type.
       enum:
-      - canceled
-      - expired
-      example: canceled
+      - downtime
+      example: downtime
       type: string
       x-enum-varnames:
-      - CANCELED
-      - EXPIRED
-    DowntimeNotifyEndStates:
-      description: States that will trigger a monitor notification when the `notify_end_types` action occurs.
-      example:
-      - alert
-      - warn
-      items:
-        $ref: '#/components/schemas/DowntimeNotifyEndStateTypes'
-      type: array
-    RelationshipToRoles:
-      description: Relationship to roles.
+      - DOWNTIME
+    RolesType:
+      default: roles
+      description: Roles type.
+      enum:
+      - roles
+      example: roles
+      type: string
+      x-enum-varnames:
+      - ROLES
+    Role:
+      description: Role object returned by the API.
       properties:
-        data:
-          description: An array containing type and the unique identifier of a role.
-          items:
-            $ref: '#/components/schemas/RelationshipToRoleData'
-          type: array
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        id:
+          description: The unique identifier of the role.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoleResponseRelationships'
+        type:
+          $ref: '#/components/schemas/RolesType'
+      required:
+      - type
       type: object
       x-merge-override:
         required: false
-    PowerpackInnerWidgets:
-      description: Powerpack group widget definition of individual widgets.
+    UserUpdateAttributes:
+      description: Attributes of the edited user.
       properties:
-        definition:
-          additionalProperties: {}
-          description: Information about widget.
-          example:
-            definition:
-              content: example
-              type: note
-          type: object
-        layout:
-          $ref: '#/components/schemas/PowerpackInnerWidgetLayout'
-      required:
-      - definition
+        disabled:
+          description: If the user is enabled or disabled.
+          type: boolean
+          example: true
+        email:
+          description: The email of the user.
+          type: string
+          example: user@example.com
+        name:
+          description: The name of the user.
+          type: string
+          example: Example Monitor
       type: object
-    DowntimeScheduleResponse:
-      description: 'The schedule that defines when the monitor starts, stops, and recurs. There are two types of schedules:
-
-        one-time and recurring. Recurring schedules may have up to five RRULE-based recurrences. If no schedules are
-
-        provided, the downtime will begin immediately and never end.'
-      oneOf:
-      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesResponse'
-      - $ref: '#/components/schemas/DowntimeScheduleOneTimeResponse'
+    DowntimeIncludedMonitorType:
+      default: monitors
+      description: Monitor resource type.
+      enum:
+      - monitors
+      example: monitors
+      type: string
+      x-enum-varnames:
+      - MONITORS
+    OpenAPIEndpoint:
+      description: Endpoint info extracted from an `OpenAPI` specification.
+      properties:
+        method:
+          description: The endpoint method.
+          type: string
+          example: example_value
+        path:
+          description: The endpoint path.
+          type: string
+          example: example_value
+      type: object
+    OrganizationsType:
+      default: orgs
+      description: Organizations resource type.
+      enum:
+      - orgs
+      example: orgs
+      type: string
+      x-enum-varnames:
+      - ORGS
+    UserResponseRelationships:
+      description: Relationships of the user object returned by the API.
+      properties:
+        org:
+          $ref: '#/components/schemas/RelationshipToOrganization'
+        other_orgs:
+          $ref: '#/components/schemas/RelationshipToOrganizations'
+        other_users:
+          $ref: '#/components/schemas/RelationshipToUsers'
+        roles:
+          $ref: '#/components/schemas/RelationshipToRoles'
+      type: object
+      x-merge-override:
+        properties: false
+    RelationshipToOrganization:
+      description: Relationship to an organization.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToOrganizationData'
+      required:
+      - data
+      type: object
+    UpdateOpenAPIResponseAttributes:
+      description: Attributes for `UpdateOpenAPI`.
+      properties:
+        failed_endpoints:
+          description: List of endpoints which couldn't be parsed.
+          items:
+            $ref: '#/components/schemas/OpenAPIEndpoint'
+          type: array
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
     JSONAPIErrorItem:
       description: API error response body
       properties:
@@ -1168,43 +1082,120 @@ components:
           example: Bad Request
           type: string
       type: object
-    DowntimeScheduleRecurrenceDuration:
-      description: The length of the downtime. Must begin with an integer and end with one of 'm', 'h', d', or 'w'.
-      example: 123d
-      type: string
-    PowerpackAttributes:
-      description: Powerpack attribute object.
+    UpdateOpenAPIResponse:
+      description: Response for `UpdateOpenAPI`.
       properties:
-        description:
-          description: Description of this powerpack.
-          example: Powerpack for ABC
-          type: string
-        group_widget:
-          $ref: '#/components/schemas/PowerpackGroupWidget'
-        name:
-          description: Name of the powerpack.
-          example: Sample Powerpack
-          type: string
-        tags:
-          description: List of tags to identify this powerpack.
-          example:
-          - tag:foo1
+        data:
+          $ref: '#/components/schemas/UpdateOpenAPIResponseData'
+      type: object
+    DowntimeMonitorIdentifierId:
+      additionalProperties: {}
+      description: Object of the monitor identifier.
+      properties:
+        monitor_id:
+          description: ID of the monitor to prevent notifications.
+          example: 123
+          format: int64
+          type: integer
+      required:
+      - monitor_id
+      type: object
+    EmailTypeType:
+      description: The type of email.
+      enum:
+      - work
+      type: string
+      x-enum-varnames:
+      - WORK
+    FastlyServiceRequest:
+      description: Payload schema for Fastly service requests.
+      properties:
+        data:
+          $ref: '#/components/schemas/FastlyServiceData'
+      required:
+      - data
+      type: object
+    RelationshipToOrganizations:
+      description: Relationship to organizations.
+      properties:
+        data:
+          description: Relationships to organization objects.
+          example: []
           items:
-            maxLength: 80
-            type: string
-          maxItems: 8
-          type: array
-        template_variables:
-          description: List of template variables for this powerpack.
-          example:
-          - defaults:
-            - '*'
-            name: test
-          items:
-            $ref: '#/components/schemas/PowerpackTemplateVariable'
+            $ref: '#/components/schemas/RelationshipToOrganizationData'
           type: array
       required:
-      - group_widget
+      - data
+      type: object
+    DowntimeStatus:
+      description: The current status of the downtime.
+      enum:
+      - active
+      - canceled
+      - ended
+      - scheduled
+      example: active
+      type: string
+      x-enum-varnames:
+      - ACTIVE
+      - CANCELED
+      - ENDED
+      - SCHEDULED
+    DowntimeScheduleRecurrencesResponse:
+      description: A recurring downtime schedule definition.
+      properties:
+        current_downtime:
+          $ref: '#/components/schemas/DowntimeScheduleCurrentDowntimeResponse'
+        recurrences:
+          description: A list of downtime recurrences.
+          items:
+            $ref: '#/components/schemas/DowntimeScheduleRecurrenceResponse'
+          maxItems: 5
+          minItems: 1
+          type: array
+        timezone:
+          default: UTC
+          description: 'The timezone in which to schedule the downtime. This affects recurring start and end dates.
+
+            Must match `display_timezone`.'
+          example: America/New_York
+          type: string
+      required:
+      - recurrences
+      type: object
+    PowerpackTemplateVariable:
+      description: Powerpack template variables.
+      properties:
+        available_values:
+          description: The list of values that the template variable drop-down is limited to.
+          example:
+          - my-host
+          - host1
+          - host2
+          items:
+            description: Template variable value.
+            type: string
+          type:
+          - array
+          - 'null'
+        defaults:
+          description: One or many template variable default values within the saved view, which are unioned together using `OR` if more than one is specified.
+          items:
+            description: One or many default values of the template variable.
+            minLength: 1
+            type: string
+          type: array
+        name:
+          description: The name of the variable.
+          example: datacenter
+          type: string
+        prefix:
+          description: The tag prefix associated with the variable. Only tags with this prefix appear in the variable drop-down.
+          example: host
+          type:
+          - string
+          - 'null'
+      required:
       - name
       type: object
     UserAttributes:
@@ -1266,508 +1257,15 @@ components:
           type: boolean
           example: true
       type: object
-    DowntimeMessage:
-      description: 'A message to include with notifications for this downtime. Email notifications can be sent to specific users
-
-        by using the same `@username` notation as events.'
-      example: Message about the downtime
-      type:
-      - string
-      - 'null'
-    DowntimeDisplayTimezone:
-      default: UTC
-      description: 'The timezone in which to display the downtime''s start and end times in Datadog applications. This is not used
-
-        as an offset for scheduling.'
-      example: America/New_York
-      type:
-      - string
-      - 'null'
-    RelationshipToPermissions:
-      description: Relationship to multiple permissions objects.
-      properties:
-        data:
-          description: Relationships to permission objects.
-          items:
-            $ref: '#/components/schemas/RelationshipToPermissionData'
-          type: array
-      type: object
-      x-merge-override:
-        required: false
-    DowntimeScheduleRecurrenceResponse:
-      description: An RRULE-based recurring downtime.
-      properties:
-        duration:
-          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
-        rrule:
-          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
-        start:
-          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
-
-            downtime starts the moment it is created.'
-          example: 2020-01-02T03:04
-          type: string
-      type: object
-    DowntimeUpdateRequestData:
-      description: Object to update a downtime.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DowntimeUpdateRequestAttributes'
-        id:
-          description: ID of this downtime.
-          example: 00000000-0000-1234-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/DowntimeResourceType'
-      required:
-      - id
-      - type
-      - attributes
-      type: object
-    OpenAPIEndpoint:
-      description: Endpoint info extracted from an `OpenAPI` specification.
-      properties:
-        method:
-          description: The endpoint method.
-          type: string
-          example: example_value
-        path:
-          description: The endpoint path.
-          type: string
-          example: example_value
-      type: object
-    UserResponseRelationships:
-      description: Relationships of the user object returned by the API.
-      properties:
-        org:
-          $ref: '#/components/schemas/RelationshipToOrganization'
-        other_orgs:
-          $ref: '#/components/schemas/RelationshipToOrganizations'
-        other_users:
-          $ref: '#/components/schemas/RelationshipToUsers'
-        roles:
-          $ref: '#/components/schemas/RelationshipToRoles'
-      type: object
-      x-merge-override:
-        properties: false
-    OpenAPIFile:
-      description: Object for API data in an `OpenAPI` format as a file.
-      properties:
-        openapi_spec_file:
-          description: Binary `OpenAPI` spec file
-          format: binary
-          type: string
-          example: example_value
-      type: object
-    DowntimeMonitorIdentifierId:
-      additionalProperties: {}
-      description: Object of the monitor identifier.
-      properties:
-        monitor_id:
-          description: ID of the monitor to prevent notifications.
-          example: 123
-          format: int64
-          type: integer
-      required:
-      - monitor_id
-      type: object
-    PowerpackGroupWidget:
-      description: Powerpack group widget definition object.
-      properties:
-        definition:
-          $ref: '#/components/schemas/PowerpackGroupWidgetDefinition'
-        layout:
-          $ref: '#/components/schemas/PowerpackGroupWidgetLayout'
-        live_span:
-          $ref: '#/components/schemas/WidgetLiveSpan'
-      required:
-      - definition
-      type: object
-    DowntimeRelationshipsMonitor:
-      description: The monitor identified by the downtime.
-      properties:
-        data:
-          $ref: '#/components/schemas/DowntimeRelationshipsMonitorData'
-      type: object
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
-    ExternalUserMeta:
-      description: Metadata associated with a user.
-      properties:
-        created:
-          description: The date and time the user was created.
-          example: '2024-10-17T12:53:35.793Z'
-          format: date-time
-          type: string
-        lastModified:
-          description: The date and time the user was last changed.
-          example: '2024-10-19T12:53:35.793Z'
-          format: date-time
-          type: string
-        location:
-          description: URL identifying the resource.
-          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
-          type: string
-        resourceType:
-          description: Type of resource.
-          example: User
-          type: string
-      type: object
-    FastlyServiceRequest:
-      description: Payload schema for Fastly service requests.
-      properties:
-        data:
-          $ref: '#/components/schemas/FastlyServiceData'
-      required:
-      - data
-      type: object
-    UserResponseIncludedItem:
-      description: An object related to a user.
-      oneOf:
-      - $ref: '#/components/schemas/Organization'
-      - $ref: '#/components/schemas/Permission'
-      - $ref: '#/components/schemas/Role'
-    DowntimeMuteFirstRecoveryNotification:
-      description: If the first recovery notification during a downtime should be muted.
-      example: false
-      type: boolean
-    DowntimeResponseIncludedItem:
-      description: An object related to a downtime.
-      oneOf:
-      - $ref: '#/components/schemas/User'
-      - $ref: '#/components/schemas/DowntimeMonitorIncludedItem'
-    DowntimeScheduleCurrentDowntimeResponse:
-      description: 'The most recent actual start and end dates for a recurring downtime. For a canceled downtime,
-
-        this is the previously occurring downtime. For active downtimes, this is the ongoing downtime, and for scheduled
-
-        downtimes it is the upcoming downtime.'
-      properties:
-        end:
-          description: The end of the current downtime.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type:
-          - string
-          - 'null'
-        start:
-          description: The start of the current downtime.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type: string
-      type: object
-    DowntimeNotifyEndTypes:
-      description: Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
-      example:
-      - canceled
-      - expired
-      items:
-        $ref: '#/components/schemas/DowntimeNotifyEndStateActions'
-      type: array
-    DowntimeResponseData:
-      description: Downtime data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DowntimeResponseAttributes'
-        id:
-          description: The downtime ID.
-          example: 00000000-0000-1234-0000-000000000000
-          type: string
-        relationships:
-          $ref: '#/components/schemas/DowntimeRelationships'
-        type:
-          $ref: '#/components/schemas/DowntimeResourceType'
-      type: object
-    Organization:
-      description: Organization object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/OrganizationAttributes'
-        id:
-          description: ID of the organization.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - type
-      type: object
-    DowntimeMonitorIncludedItem:
-      description: Information about the monitor identified by the downtime.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DowntimeMonitorIncludedAttributes'
-        id:
-          description: ID of the monitor identified by the downtime.
-          example: 12345
-          format: int64
-          type: integer
-        type:
-          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
-      type: object
-    UserUpdateData:
-      description: Object to update a user.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserUpdateAttributes'
-        id:
-          description: ID of the user.
-          example: 00000000-0000-feed-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - attributes
-      - type
-      - id
-      type: object
-      x-merge-override:
-        required: false
-    PowerpackGroupWidgetLayout:
-      description: Powerpack group widget layout.
-      properties:
-        height:
-          description: The height of the widget. Should be a non-negative integer.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-        width:
-          description: The width of the widget. Should be a non-negative integer.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-        x:
-          description: The position of the widget on the x (horizontal) axis. Should be a non-negative integer.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-        y:
-          description: The position of the widget on the y (vertical) axis. Should be a non-negative integer.
-          example: 0
-          format: int64
-          minimum: 0
-          type: integer
-      required:
-      - x
-      - y
-      - width
-      - height
-      type: object
-    DowntimeScope:
-      description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
-      example: env:(staging OR prod) AND datacenter:us-east-1
-      type: string
-    DowntimeScheduleOneTimeResponse:
-      description: A one-time downtime definition.
-      properties:
-        end:
-          description: ISO-8601 Datetime to end the downtime.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type:
-          - string
-          - 'null'
-        start:
-          description: ISO-8601 Datetime to start the downtime.
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type: string
-      required:
-      - start
-      type: object
-    DowntimeMonitorIncludedAttributes:
-      description: Attributes of the monitor identified by the downtime.
-      properties:
-        name:
-          description: The name of the monitor identified by the downtime.
-          example: A monitor name
-          type: string
-      type: object
-    OrganizationsType:
-      default: orgs
-      description: Organizations resource type.
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
       enum:
-      - orgs
-      example: orgs
+      - permissions
+      example: permissions
       type: string
       x-enum-varnames:
-      - ORGS
-    Powerpack:
-      description: Powerpacks are templated groups of dashboard widgets you can save from an existing dashboard and turn into reusable packs in the widget tray.
-      properties:
-        data:
-          $ref: '#/components/schemas/PowerpackData'
-      type: object
-    FastlyServiceAttributes:
-      description: Attributes object for Fastly service requests.
-      properties:
-        tags:
-          description: A list of tags for the Fastly service.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      type: object
-    RelationshipToOrganizationData:
-      description: Relationship to organization object.
-      properties:
-        id:
-          description: ID of the organization.
-          example: 00000000-0000-beef-0000-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/OrganizationsType'
-      required:
-      - id
-      - type
-      type: object
-    DowntimeNotifyEndStateTypes:
-      description: State that will trigger a monitor notification when the `notify_end_types` action occurs.
-      enum:
-      - alert
-      - no data
-      - warn
-      example: alert
-      type: string
-      x-enum-varnames:
-      - ALERT
-      - NO_DATA
-      - WARN
-    DowntimeScheduleOneTimeCreateUpdateRequest:
-      additionalProperties: false
-      description: A one-time downtime definition.
-      properties:
-        end:
-          description: 'ISO-8601 Datetime to end the downtime. Must include a UTC offset of zero. If not provided, the
-
-            downtime continues forever.'
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type:
-          - string
-          - 'null'
-        start:
-          description: 'ISO-8601 Datetime to start the downtime. Must include a UTC offset of zero. If not provided, the
-
-            downtime starts the moment it is created.'
-          example: '2020-01-02T03:04:00.000Z'
-          format: date-time
-          type:
-          - string
-          - 'null'
-      type: object
-    DowntimeResponse:
-      description: 'Downtiming gives you greater control over monitor notifications by
-
-        allowing you to globally exclude scopes from alerting.
-
-        Downtime settings, which can be scheduled with start and end times,
-
-        prevent all alerting related to specified Datadog tags.'
-      properties:
-        data:
-          $ref: '#/components/schemas/DowntimeResponseData'
-        included:
-          description: Array of objects related to the downtime that the user requested.
-          items:
-            $ref: '#/components/schemas/DowntimeResponseIncludedItem'
-          type: array
-      type: object
-    Permission:
-      description: Permission object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PermissionAttributes'
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      required:
-      - type
-      type: object
-    FastlyServiceData:
-      description: Data object for Fastly service requests.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FastlyServiceAttributes'
-        id:
-          description: The ID of the Fastly service.
-          example: abc123
-          type: string
-        type:
-          $ref: '#/components/schemas/FastlyServiceType'
-      required:
-      - id
-      - type
-      type: object
-    UserUpdateRequest:
-      description: Update a user.
-      properties:
-        data:
-          $ref: '#/components/schemas/UserUpdateData'
-      required:
-      - data
-      type: object
-    DowntimeScheduleRecurrenceCreateUpdateRequest:
-      additionalProperties: {}
-      description: An object defining the recurrence of the downtime.
-      properties:
-        duration:
-          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
-        rrule:
-          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
-        start:
-          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
-
-            downtime starts the moment it is created.'
-          example: 2020-01-02T03:04
-          type:
-          - string
-          - 'null'
-      required:
-      - duration
-      - rrule
-      type: object
-    EmailTypeType:
-      description: The type of email.
-      enum:
-      - work
-      type: string
-      x-enum-varnames:
-      - WORK
-    User:
-      description: User object returned by the API.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/UserAttributes'
-        id:
-          description: ID of the user.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/UserResponseRelationships'
-        type:
-          $ref: '#/components/schemas/UsersType'
-      type: object
-      x-merge-override:
-        required: false
+      - PERMISSIONS
     DowntimeRelationshipsCreatedByData:
       description: Data for the user who created the downtime.
       properties:
@@ -1818,48 +1316,159 @@ components:
           type: string
           example: https://app.datadoghq.com
       type: object
-    UserUpdateAttributes:
-      description: Attributes of the edited user.
+    DowntimeScheduleCurrentDowntimeResponse:
+      description: 'The most recent actual start and end dates for a recurring downtime. For a canceled downtime,
+
+        this is the previously occurring downtime. For active downtimes, this is the ongoing downtime, and for scheduled
+
+        downtimes it is the upcoming downtime.'
       properties:
-        disabled:
-          description: If the user is enabled or disabled.
+        end:
+          description: The end of the current downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type:
+          - string
+          - 'null'
+        start:
+          description: The start of the current downtime.
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type: string
+      type: object
+    DowntimeRelationshipsMonitor:
+      description: The monitor identified by the downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeRelationshipsMonitorData'
+      type: object
+    ExternalUserEmailType:
+      description: Email address for the user.
+      properties:
+        primary:
+          description: Boolean indicating if this email is the primary email address.
           type: boolean
           example: true
-        email:
-          description: The email of the user.
-          type: string
-          example: user@example.com
-        name:
-          description: The name of the user.
-          type: string
-          example: Example Monitor
-      type: object
-    RolesType:
-      default: roles
-      description: Roles type.
-      enum:
-      - roles
-      example: roles
-      type: string
-      x-enum-varnames:
-      - ROLES
-    ExternalUserNameType:
-      description: The components of user's real name
-      properties:
-        formatted:
-          description: The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.
+        type:
+          $ref: '#/components/schemas/EmailTypeType'
+        value:
+          description: Email addresses for the user.
           type: string
           example: example_value
       type: object
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
-      enum:
-      - permissions
-      example: permissions
+    DowntimeScheduleUpdateRequest:
+      description: Schedule for the downtime.
+      oneOf:
+      - $ref: '#/components/schemas/DowntimeScheduleRecurrencesUpdateRequest'
+      - $ref: '#/components/schemas/DowntimeScheduleOneTimeCreateUpdateRequest'
+    PowerpackResponse:
+      description: Response object which includes a single powerpack configuration.
+      properties:
+        data:
+          $ref: '#/components/schemas/PowerpackData'
+        included:
+          description: Array of objects related to the users.
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
+      readOnly: true
+      type: object
+    FastlyServiceAttributes:
+      description: Attributes object for Fastly service requests.
+      properties:
+        tags:
+          description: A list of tags for the Fastly service.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      type: object
+    DowntimeScheduleRecurrencesUpdateRequest:
+      additionalProperties: false
+      description: A recurring downtime schedule definition.
+      properties:
+        recurrences:
+          description: A list of downtime recurrences.
+          items:
+            $ref: '#/components/schemas/DowntimeScheduleRecurrenceCreateUpdateRequest'
+          type: array
+        timezone:
+          default: UTC
+          description: The timezone in which to schedule the downtime.
+          example: America/New_York
+          type: string
+      type: object
+    FastlyServiceData:
+      description: Data object for Fastly service requests.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/FastlyServiceAttributes'
+        id:
+          description: The ID of the Fastly service.
+          example: abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/FastlyServiceType'
+      required:
+      - id
+      - type
+      type: object
+    User:
+      description: User object returned by the API.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        id:
+          description: ID of the user.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/UserResponseRelationships'
+        type:
+          $ref: '#/components/schemas/UsersType'
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToRoleData:
+      description: Relationship to role object.
+      properties:
+        id:
+          description: The unique identifier of the role.
+          example: 3653d3c6-0c75-11ea-ad28-fb5701eabc7d
+          type: string
+        type:
+          $ref: '#/components/schemas/RolesType'
+      type: object
+      x-merge-override:
+        required: false
+    PowerpackInnerWidgets:
+      description: Powerpack group widget definition of individual widgets.
+      properties:
+        definition:
+          additionalProperties: {}
+          description: Information about widget.
+          example:
+            definition:
+              content: example
+              type: note
+          type: object
+        layout:
+          $ref: '#/components/schemas/PowerpackInnerWidgetLayout'
+      required:
+      - definition
+      type: object
+    PowerpackRelationships:
+      description: Powerpack relationship object.
+      properties:
+        author:
+          $ref: '#/components/schemas/RelationshipToUser'
+      type: object
+    DowntimeScope:
+      description: The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).
+      example: env:(staging OR prod) AND datacenter:us-east-1
       type: string
-      x-enum-varnames:
-      - PERMISSIONS
     WidgetLiveSpan:
       description: The available timeframes depend on the widget you are using.
       enum:
@@ -1896,15 +1505,423 @@ components:
       - PAST_SIX_MONTHS
       - PAST_ONE_YEAR
       - ALERT
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    DowntimeResponseIncludedItem:
+      description: An object related to a downtime.
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/DowntimeMonitorIncludedItem'
+    UserResponse:
+      description: Response containing information about a single user.
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+        included:
+          description: Array of objects related to the user.
+          items:
+            $ref: '#/components/schemas/UserResponseIncludedItem'
+          type: array
+      type: object
+    DowntimeRelationshipsMonitorData:
+      description: Data for the monitor.
+      properties:
+        id:
+          description: Monitor ID of the downtime.
+          example: '12345'
+          type: string
+        type:
+          $ref: '#/components/schemas/DowntimeIncludedMonitorType'
+      type:
+      - object
+      - 'null'
+    ExternalUser:
+      description: Definition of a user.
+      properties:
+        active:
+          description: A Boolean value indicating the User's administrative status.
+          type: boolean
+          example: true
+        emails:
+          description: Email addresses for the user.
+          items:
+            $ref: '#/components/schemas/ExternalUserEmailType'
+          type: array
+        id:
+          description: The identifier of the resource. Not required when creating a user.
+          type: string
+          example: abc-123-def
+        meta:
+          $ref: '#/components/schemas/ExternalUserMeta'
+        name:
+          $ref: '#/components/schemas/ExternalUserNameType'
+        schemas:
+          description: User JSON Schemas.
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          items:
+            type: string
+          type: array
+        title:
+          description: The user's title.
+          type: string
+          example: Example Monitor
+        userName:
+          description: Unique identifier for the User.
+          type: string
+          example: Example Monitor
+      type: object
+    DowntimeUpdateRequest:
+      description: Request for editing a downtime.
+      properties:
+        data:
+          $ref: '#/components/schemas/DowntimeUpdateRequestData'
+      required:
+      - data
+      type: object
+    DowntimeRelationships:
+      description: All relationships associated with downtime.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/DowntimeRelationshipsCreatedBy'
+        monitor:
+          $ref: '#/components/schemas/DowntimeRelationshipsMonitor'
+      type: object
+    DowntimeScheduleRecurrenceCreateUpdateRequest:
+      additionalProperties: {}
+      description: An object defining the recurrence of the downtime.
+      properties:
+        duration:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceDuration'
+        rrule:
+          $ref: '#/components/schemas/DowntimeScheduleRecurrenceRrule'
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: 2020-01-02T03:04
+          type:
+          - string
+          - 'null'
+      required:
+      - duration
+      - rrule
+      type: object
+    DowntimeMonitorIdentifier:
+      description: Monitor identifier for the downtime.
+      oneOf:
+      - $ref: '#/components/schemas/DowntimeMonitorIdentifierId'
+      - $ref: '#/components/schemas/DowntimeMonitorIdentifierTags'
+    PowerpackAttributes:
+      description: Powerpack attribute object.
+      properties:
+        description:
+          description: Description of this powerpack.
+          example: Powerpack for ABC
+          type: string
+        group_widget:
+          $ref: '#/components/schemas/PowerpackGroupWidget'
+        name:
+          description: Name of the powerpack.
+          example: Sample Powerpack
+          type: string
+        tags:
+          description: List of tags to identify this powerpack.
+          example:
+          - tag:foo1
+          items:
+            maxLength: 80
+            type: string
+          maxItems: 8
+          type: array
+        template_variables:
+          description: List of template variables for this powerpack.
+          example:
+          - defaults:
+            - '*'
+            name: test
+          items:
+            $ref: '#/components/schemas/PowerpackTemplateVariable'
+          type: array
+      required:
+      - group_widget
+      - name
+      type: object
+    FastlyServiceType:
+      default: fastly-services
+      description: The JSON:API type for this API. Should always be `fastly-services`.
+      enum:
+      - fastly-services
+      example: fastly-services
+      type: string
+      x-enum-varnames:
+      - FASTLY_SERVICES
+    DowntimeMonitorIncludedAttributes:
+      description: Attributes of the monitor identified by the downtime.
+      properties:
+        name:
+          description: The name of the monitor identified by the downtime.
+          example: A monitor name
+          type: string
+      type: object
+    DowntimeNotifyEndStateActions:
+      description: Action that will trigger a monitor notification if the downtime is in the `notify_end_types` state.
+      enum:
+      - canceled
+      - expired
+      example: canceled
+      type: string
+      x-enum-varnames:
+      - CANCELED
+      - EXPIRED
+    RoleAttributes:
+      description: Attributes of the role.
+      properties:
+        created_at:
+          description: Creation time of the role.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        modified_at:
+          description: Time of last role modification.
+          format: date-time
+          readOnly: true
+          type: string
+          example: example_value
+        name:
+          description: The name of the role. The name is neither unique nor a stable identifier of the role.
+          type: string
+          example: Example Monitor
+        user_count:
+          description: Number of users with that role.
+          format: int64
+          readOnly: true
+          type: integer
+          example: 42
+      type: object
+    OpenAPIFile:
+      description: Object for API data in an `OpenAPI` format as a file.
+      properties:
+        openapi_spec_file:
+          description: Binary `OpenAPI` spec file
+          format: binary
+          type: string
+          example: example_value
+      type: object
+    DowntimeResponseAttributes:
+      description: Downtime details.
+      properties:
+        canceled:
+          description: Time that the downtime was canceled.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          type:
+          - string
+          - 'null'
+        created:
+          description: Creation time of the downtime.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          type: string
+        display_timezone:
+          $ref: '#/components/schemas/DowntimeDisplayTimezone'
+        message:
+          $ref: '#/components/schemas/DowntimeMessage'
+        modified:
+          description: Time that the downtime was last modified.
+          example: 2020-01-02T03:04:05.282979+0000
+          format: date-time
+          type: string
+        monitor_identifier:
+          $ref: '#/components/schemas/DowntimeMonitorIdentifier'
+        mute_first_recovery_notification:
+          $ref: '#/components/schemas/DowntimeMuteFirstRecoveryNotification'
+        notify_end_states:
+          $ref: '#/components/schemas/DowntimeNotifyEndStates'
+        notify_end_types:
+          $ref: '#/components/schemas/DowntimeNotifyEndTypes'
+        schedule:
+          $ref: '#/components/schemas/DowntimeScheduleResponse'
+        scope:
+          $ref: '#/components/schemas/DowntimeScope'
+        status:
+          $ref: '#/components/schemas/DowntimeStatus'
+      type: object
+    DowntimeMuteFirstRecoveryNotification:
+      description: If the first recovery notification during a downtime should be muted.
+      example: false
+      type: boolean
+    RelationshipToUsers:
+      description: Relationship to users.
+      properties:
+        data:
+          description: Relationships to user objects.
+          example: []
+          items:
+            $ref: '#/components/schemas/RelationshipToUserData'
+          type: array
+      required:
+      - data
+      type: object
+    PowerpackData:
+      description: Powerpack data object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PowerpackAttributes'
+        id:
+          description: ID of the powerpack.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/PowerpackRelationships'
+        type:
+          description: Type of widget, must be powerpack.
+          example: powerpack
+          type: string
+      type: object
+      x-merge-override:
+        required: false
+    Powerpack:
+      description: Powerpacks are templated groups of dashboard widgets you can save from an existing dashboard and turn into reusable packs in the widget tray.
+      properties:
+        data:
+          $ref: '#/components/schemas/PowerpackData'
+      type: object
+    RelationshipToRoles:
+      description: Relationship to roles.
+      properties:
+        data:
+          description: An array containing type and the unique identifier of a role.
+          items:
+            $ref: '#/components/schemas/RelationshipToRoleData'
+          type: array
+      type: object
+      x-merge-override:
+        required: false
+    DowntimeNotifyEndStateTypes:
+      description: State that will trigger a monitor notification when the `notify_end_types` action occurs.
+      enum:
+      - alert
+      - no data
+      - warn
+      example: alert
+      type: string
+      x-enum-varnames:
+      - ALERT
+      - NO_DATA
+      - WARN
+    DowntimeMessage:
+      description: 'A message to include with notifications for this downtime. Email notifications can be sent to specific users
+
+        by using the same `@username` notation as events.'
+      example: Message about the downtime
+      type:
+      - string
+      - 'null'
+    DowntimeScheduleOneTimeCreateUpdateRequest:
+      additionalProperties: false
+      description: A one-time downtime definition.
+      properties:
+        end:
+          description: 'ISO-8601 Datetime to end the downtime. Must include a UTC offset of zero. If not provided, the
+
+            downtime continues forever.'
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type:
+          - string
+          - 'null'
+        start:
+          description: 'ISO-8601 Datetime to start the downtime. Must include a UTC offset of zero. If not provided, the
+
+            downtime starts the moment it is created.'
+          example: '2020-01-02T03:04:00.000Z'
+          format: date-time
+          type:
+          - string
+          - 'null'
+      type: object
+    DowntimeResponseData:
+      description: Downtime data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DowntimeResponseAttributes'
+        id:
+          description: The downtime ID.
+          example: 00000000-0000-1234-0000-000000000000
+          type: string
+        relationships:
+          $ref: '#/components/schemas/DowntimeRelationships'
+        type:
+          $ref: '#/components/schemas/DowntimeResourceType'
+      type: object
+    ExternalUserMeta:
+      description: Metadata associated with a user.
+      properties:
+        created:
+          description: The date and time the user was created.
+          example: '2024-10-17T12:53:35.793Z'
+          format: date-time
+          type: string
+        lastModified:
+          description: The date and time the user was last changed.
+          example: '2024-10-19T12:53:35.793Z'
+          format: date-time
+          type: string
+        location:
+          description: URL identifying the resource.
+          example: https://app.datadoghq.com/api/scim/v2/Users/13a95654-b76d-478d-8636-157a7e461d7c
+          type: string
+        resourceType:
+          description: Type of resource.
+          example: User
+          type: string
+      type: object
+  responses:
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
   parameters:
-    UserID:
-      description: The ID of the user.
-      in: path
-      name: user_id
-      required: true
-      schema:
-        example: 00000000-0000-9999-0000-000000000000
-        type: string
     FastlyServiceID:
       description: Fastly Service ID.
       in: path
@@ -1919,31 +1936,14 @@ components:
       required: true
       schema:
         type: string
-  responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
+    UserID:
+      description: The ID of the user.
+      in: path
+      name: user_id
+      required: true
+      schema:
+        example: 00000000-0000-9999-0000-000000000000
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

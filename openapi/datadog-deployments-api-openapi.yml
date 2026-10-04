@@ -203,32 +203,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
-      properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
-          type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
-      type: object
-    DORAListDeploymentsRequestData:
-      description: The JSON:API data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/DORAListDeploymentsRequestAttributes'
-        type:
-          $ref: '#/components/schemas/DORAListDeploymentsRequestDataType'
-      required:
-      - attributes
-      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -244,6 +218,33 @@ components:
       required:
       - errors
       type: object
+    GitCommitSHA:
+      description: Git Commit SHA.
+      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
+      pattern: ^[a-fA-F0-9]{40,}$
+      type: string
+    DORAFetchResponse:
+      description: Response for the DORA fetch endpoints.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORAEvent'
+      type: object
+    DORAListResponse:
+      description: Response for the DORA list endpoints.
+      properties:
+        data:
+          description: The list of DORA events.
+          items:
+            $ref: '#/components/schemas/DORAEvent'
+          type: array
+      type: object
+    DORAListDeploymentsRequestDataType:
+      description: The definition of `DORAListDeploymentsRequestDataType` object.
+      enum:
+      - dora_deployments_list_request
+      type: string
+      x-enum-varnames:
+      - DORA_DEPLOYMENTS_LIST_REQUEST
     DORAListDeploymentsRequestAttributes:
       description: Attributes to get a list of deployments.
       properties:
@@ -273,13 +274,37 @@ components:
           type: string
           example: example_value
       type: object
-    DORADeploymentResponse:
-      description: Response after receiving a DORA deployment event.
+    DORADeploymentRequest:
+      description: Request to create a DORA deployment event.
       properties:
         data:
-          $ref: '#/components/schemas/DORADeploymentResponseData'
+          $ref: '#/components/schemas/DORADeploymentRequestData'
       required:
       - data
+      type: object
+    DORADeploymentType:
+      default: dora_deployment
+      description: JSON:API type for DORA deployment events.
+      enum:
+      - dora_deployment
+      example: dora_deployment
+      type: string
+      x-enum-varnames:
+      - DORA_DEPLOYMENT
+    DORAEvent:
+      description: A DORA event.
+      properties:
+        attributes:
+          description: The attributes of the event.
+          type: object
+        id:
+          description: The ID of the event.
+          type: string
+          example: abc-123-def
+        type:
+          description: The type of the event.
+          type: string
+          example: metric alert
       type: object
     DORAListDeploymentsRequest:
       description: Request to get a list of deployments.
@@ -289,53 +314,6 @@ components:
       required:
       - data
       type: object
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
-    DORADeploymentRequest:
-      description: Request to create a DORA deployment event.
-      properties:
-        data:
-          $ref: '#/components/schemas/DORADeploymentRequestData'
-      required:
-      - data
-      type: object
-    DORAListResponse:
-      description: Response for the DORA list endpoints.
-      properties:
-        data:
-          description: The list of DORA events.
-          items:
-            $ref: '#/components/schemas/DORAEvent'
-          type: array
-      type: object
-    DORADeploymentResponseData:
-      description: The JSON:API data.
-      properties:
-        id:
-          description: The ID of the received DORA deployment event.
-          example: 4242fcdd31586083
-          type: string
-        type:
-          $ref: '#/components/schemas/DORADeploymentType'
-      required:
-      - id
-      type: object
-    DORAListDeploymentsRequestDataType:
-      description: The definition of `DORAListDeploymentsRequestDataType` object.
-      enum:
-      - dora_deployments_list_request
-      type: string
-      x-enum-varnames:
-      - DORA_DEPLOYMENTS_LIST_REQUEST
     DORADeploymentRequestAttributes:
       description: Attributes to create a DORA deployment event.
       properties:
@@ -376,25 +354,6 @@ components:
       - started_at
       - finished_at
       type: object
-    DORADeploymentType:
-      default: dora_deployment
-      description: JSON:API type for DORA deployment events.
-      enum:
-      - dora_deployment
-      example: dora_deployment
-      type: string
-      x-enum-varnames:
-      - DORA_DEPLOYMENT
-    DORAFetchResponse:
-      description: Response for the DORA fetch endpoints.
-      properties:
-        data:
-          $ref: '#/components/schemas/DORAEvent'
-      type: object
-    GitRepositoryURL:
-      description: Git Repository URL
-      example: https://github.com/organization/example-repository
-      type: string
     DORAGitInfo:
       description: Git info for DORA Metrics events.
       properties:
@@ -406,6 +365,59 @@ components:
       - repository_url
       - commit_sha
       type: object
+    DORAListDeploymentsRequestData:
+      description: The JSON:API data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/DORAListDeploymentsRequestAttributes'
+        type:
+          $ref: '#/components/schemas/DORAListDeploymentsRequestDataType'
+      required:
+      - attributes
+      type: object
+    GitRepositoryURL:
+      description: Git Repository URL
+      example: https://github.com/organization/example-repository
+      type: string
+    DORADeploymentResponseData:
+      description: The JSON:API data.
+      properties:
+        id:
+          description: The ID of the received DORA deployment event.
+          example: 4242fcdd31586083
+          type: string
+        type:
+          $ref: '#/components/schemas/DORADeploymentType'
+      required:
+      - id
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
+          type: string
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
+          type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
+      type: object
     DORADeploymentRequestData:
       description: The JSON:API data.
       properties:
@@ -413,21 +425,6 @@ components:
           $ref: '#/components/schemas/DORADeploymentRequestAttributes'
       required:
       - attributes
-      type: object
-    DORAEvent:
-      description: A DORA event.
-      properties:
-        attributes:
-          description: The attributes of the event.
-          type: object
-        id:
-          description: The ID of the event.
-          type: string
-          example: abc-123-def
-        type:
-          description: The type of the event.
-          type: string
-          example: metric alert
       type: object
     JSONAPIErrorItem:
       description: API error response body
@@ -451,24 +448,27 @@ components:
           example: Bad Request
           type: string
       type: object
-    GitCommitSHA:
-      description: Git Commit SHA.
-      example: 66adc9350f2cc9b250b69abddab733dd55e1a588
-      pattern: ^[a-fA-F0-9]{40,}$
-      type: string
+    DORADeploymentResponse:
+      description: Response after receiving a DORA deployment event.
+      properties:
+        data:
+          $ref: '#/components/schemas/DORADeploymentResponseData'
+      required:
+      - data
+      type: object
   responses:
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
     NotAuthorizedResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Not Authorized
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

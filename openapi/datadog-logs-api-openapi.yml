@@ -388,51 +388,6 @@ paths:
           description: The subdomain where the API is deployed.
 components:
   schemas:
-    LogsListRequestPage:
-      description: Paging attributes for listing logs.
-      properties:
-        cursor:
-          description: List following results with a cursor provided in the previous query.
-          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-        limit:
-          default: 10
-          description: Maximum number of logs in the response.
-          example: 25
-          format: int32
-          maximum: 1000
-          type: integer
-      type: object
-    LogsSort:
-      description: Sort parameters when querying logs.
-      enum:
-      - timestamp
-      - -timestamp
-      type: string
-      x-enum-varnames:
-      - TIMESTAMP_ASCENDING
-      - TIMESTAMP_DESCENDING
-    Log:
-      description: Object description of a log after being processed and stored by Datadog.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/LogAttributes'
-        id:
-          description: Unique ID of the Log.
-          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
-          type: string
-        type:
-          $ref: '#/components/schemas/LogType'
-      type: object
-    LogType:
-      default: log
-      description: Type of the event.
-      enum:
-      - log
-      example: log
-      type: string
-      x-enum-varnames:
-      - LOG
     APIErrorResponse:
       description: API error response.
       properties:
@@ -448,6 +403,15 @@ components:
       required:
       - errors
       type: object
+    LogType:
+      default: log
+      description: Type of the event.
+      enum:
+      - log
+      example: log
+      type: string
+      x-enum-varnames:
+      - LOG
     HTTPLog:
       description: Structured log message.
       items:
@@ -503,124 +467,21 @@ components:
           example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
       type: object
-    LogsListRequest:
-      description: The request for a logs list.
+    LogsListRequestPage:
+      description: Paging attributes for listing logs.
       properties:
-        filter:
-          $ref: '#/components/schemas/LogsQueryFilter'
-        options:
-          $ref: '#/components/schemas/LogsQueryOptions'
-        page:
-          $ref: '#/components/schemas/LogsListRequestPage'
-        sort:
-          $ref: '#/components/schemas/LogsSort'
-      type: object
-    ContentEncoding:
-      description: HTTP header used to compress the media-type.
-      enum:
-      - identity
-      - gzip
-      - deflate
-      type: string
-      x-enum-varnames:
-      - IDENTITY
-      - GZIP
-      - DEFLATE
-    LogsWarning:
-      description: A warning message indicating something that went wrong with the query
-      properties:
-        code:
-          description: A unique code for this type of warning
-          example: unknown_index
+        cursor:
+          description: List following results with a cursor provided in the previous query.
+          example: eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
           type: string
-        detail:
-          description: A detailed explanation of this specific warning
-          example: 'indexes: foo, bar'
-          type: string
-        title:
-          description: A short human-readable summary of the warning
-          example: One or several indexes are missing or invalid, results hold data from the other indexes
-          type: string
-      type: object
-    LogsQueryFilter:
-      description: The search and filter query settings
-      properties:
-        from:
-          default: now-15m
-          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
-          example: now-15m
-          type: string
-        indexes:
-          default:
-          - '*'
-          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
-          example:
-          - main
-          - web
-          items:
-            description: The name of a log index.
-            type: string
-          type: array
-        query:
-          default: '*'
-          description: The search query - following the log search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-        storage_tier:
-          $ref: '#/components/schemas/LogsStorageTier'
-        to:
-          default: now
-          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
-          example: now
-          type: string
-      type: object
-    LogsStorageTier:
-      default: indexes
-      description: Specifies storage type as indexes, online-archives or flex
-      enum:
-      - indexes
-      - online-archives
-      - flex
-      example: indexes
-      type: string
-      x-enum-varnames:
-      - INDEXES
-      - ONLINE_ARCHIVES
-      - FLEX
-    LogsResponseMetadata:
-      description: The metadata associated with a request
-      properties:
-        elapsed:
-          description: The time elapsed in milliseconds
-          example: 132
-          format: int64
+        limit:
+          default: 10
+          description: Maximum number of logs in the response.
+          example: 25
+          format: int32
+          maximum: 1000
           type: integer
-        page:
-          $ref: '#/components/schemas/LogsResponseMetadataPage'
-        request_id:
-          description: The identifier of the request
-          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
-          type: string
-        status:
-          $ref: '#/components/schemas/LogsAggregateResponseStatus'
-        warnings:
-          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
-
-            warnings are present in the response.'
-          items:
-            $ref: '#/components/schemas/LogsWarning'
-          type: array
       type: object
-    LogsAggregateResponseStatus:
-      description: The status of the response
-      enum:
-      - done
-      - timeout
-      example: done
-      type: string
-      x-enum-varnames:
-      - DONE
-      - TIMEOUT
     LogsQueryOptions:
       deprecated: true
       description: 'Global query options that are used during the query.
@@ -638,45 +499,16 @@ components:
           example: GMT
           type: string
       type: object
-    LogsListResponse:
-      description: Response object with all logs matching the request and pagination information.
-      properties:
-        data:
-          description: Array of logs matching the request.
-          items:
-            $ref: '#/components/schemas/Log'
-          type: array
-        links:
-          $ref: '#/components/schemas/LogsListResponseLinks'
-        meta:
-          $ref: '#/components/schemas/LogsResponseMetadata'
-      type: object
-    LogsListResponseLinks:
-      description: Links attributes.
-      properties:
-        next:
-          description: 'Link for the next set of results. Note that the request can also be made using the
-
-            POST endpoint.'
-          example: https://app.datadoghq.com/api/v2/logs/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
-          type: string
-      type: object
-    HTTPLogError:
-      description: List of errors.
-      properties:
-        detail:
-          description: Error message.
-          example: Malformed payload
-          type: string
-        status:
-          description: Error code.
-          example: '400'
-          type: string
-        title:
-          description: Error title.
-          example: Bad Request
-          type: string
-      type: object
+    LogsAggregateResponseStatus:
+      description: The status of the response
+      enum:
+      - done
+      - timeout
+      example: done
+      type: string
+      x-enum-varnames:
+      - DONE
+      - TIMEOUT
     HTTPLogErrors:
       description: Invalid query performed.
       properties:
@@ -686,6 +518,35 @@ components:
             $ref: '#/components/schemas/HTTPLogError'
           type: array
       type: object
+    LogsWarning:
+      description: A warning message indicating something that went wrong with the query
+      properties:
+        code:
+          description: A unique code for this type of warning
+          example: unknown_index
+          type: string
+        detail:
+          description: A detailed explanation of this specific warning
+          example: 'indexes: foo, bar'
+          type: string
+        title:
+          description: A short human-readable summary of the warning
+          example: One or several indexes are missing or invalid, results hold data from the other indexes
+          type: string
+      type: object
+    LogsStorageTier:
+      default: indexes
+      description: Specifies storage type as indexes, online-archives or flex
+      enum:
+      - indexes
+      - online-archives
+      - flex
+      example: indexes
+      type: string
+      x-enum-varnames:
+      - INDEXES
+      - ONLINE_ARCHIVES
+      - FLEX
     LogAttributes:
       description: JSON object containing all log attributes and their associated values.
       properties:
@@ -734,49 +595,160 @@ components:
           format: date-time
           type: string
       type: object
-    LogsListResponse_2:
+    LogsListResponseLinks:
+      description: Links attributes.
+      properties:
+        next:
+          description: 'Link for the next set of results. Note that the request can also be made using the
+
+            POST endpoint.'
+          example: https://app.datadoghq.com/api/v2/logs/event?filter[query]=foo&page[cursor]=eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==
+          type: string
       type: object
-      description: Response containing matching log events from a search query
+    HTTPLogError:
+      description: List of errors.
+      properties:
+        detail:
+          description: Error message.
+          example: Malformed payload
+          type: string
+        status:
+          description: Error code.
+          example: '400'
+          type: string
+        title:
+          description: Error title.
+          example: Bad Request
+          type: string
+      type: object
+    LogsListRequest:
+      description: The request for a logs list.
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        options:
+          $ref: '#/components/schemas/LogsQueryOptions'
+        page:
+          $ref: '#/components/schemas/LogsListRequestPage'
+        sort:
+          $ref: '#/components/schemas/LogsSort'
+      type: object
+    LogsListResponse:
+      description: Response object with all logs matching the request and pagination information.
       properties:
         data:
-          type: array
-          description: List of matching log events
+          description: Array of logs matching the request.
           items:
-            $ref: '#/components/schemas/Log_2'
+            $ref: '#/components/schemas/Log'
+          type: array
+        links:
+          $ref: '#/components/schemas/LogsListResponseLinks'
         meta:
-          type: object
-          description: Metadata about the search response including pagination information
-          properties:
-            page:
-              type: object
-              description: Pagination details for continuing the search
-              properties:
-                after:
-                  type: string
-                  description: Cursor token to retrieve the next page of results
-            elapsed:
-              type: integer
-              description: Time in milliseconds taken to execute the search query
-            status:
-              type: string
-              description: Status of the search request (done, timeout)
-              enum:
-              - done
-              - timeout
-    Log_2:
+          $ref: '#/components/schemas/LogsResponseMetadata'
       type: object
-      description: A single log event returned from a search query
+    ContentEncoding:
+      description: HTTP header used to compress the media-type.
+      enum:
+      - identity
+      - gzip
+      - deflate
+      type: string
+      x-enum-varnames:
+      - IDENTITY
+      - GZIP
+      - DEFLATE
+    LogsResponseMetadata:
+      description: The metadata associated with a request
       properties:
-        id:
+        elapsed:
+          description: The time elapsed in milliseconds
+          example: 132
+          format: int64
+          type: integer
+        page:
+          $ref: '#/components/schemas/LogsResponseMetadataPage'
+        request_id:
+          description: The identifier of the request
+          example: MWlFUjVaWGZTTTZPYzM0VXp1OXU2d3xLSVpEMjZKQ0VKUTI0dEYtM3RSOFVR
           type: string
-          description: The unique identifier of the log event
-          example: abc-123-def
-        type:
+        status:
+          $ref: '#/components/schemas/LogsAggregateResponseStatus'
+        warnings:
+          description: 'A list of warnings (non fatal errors) encountered, partial results might be returned if
+
+            warnings are present in the response.'
+          items:
+            $ref: '#/components/schemas/LogsWarning'
+          type: array
+      type: object
+    LogsQueryFilter:
+      description: The search and filter query settings
+      properties:
+        from:
+          default: now-15m
+          description: The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now-15m
           type: string
-          description: The type of the resource (always 'log')
-          example: metric alert
+        indexes:
+          default:
+          - '*'
+          description: For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.
+          example:
+          - main
+          - web
+          items:
+            description: The name of a log index.
+            type: string
+          type: array
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+        storage_tier:
+          $ref: '#/components/schemas/LogsStorageTier'
+        to:
+          default: now
+          description: The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).
+          example: now
+          type: string
+      type: object
+    LogsSort:
+      description: Sort parameters when querying logs.
+      enum:
+      - timestamp
+      - -timestamp
+      type: string
+      x-enum-varnames:
+      - TIMESTAMP_ASCENDING
+      - TIMESTAMP_DESCENDING
+    Log:
+      description: Object description of a log after being processed and stored by Datadog.
+      properties:
         attributes:
-          $ref: '#/components/schemas/LogAttributes_2'
+          $ref: '#/components/schemas/LogAttributes'
+        id:
+          description: Unique ID of the Log.
+          example: AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA
+          type: string
+        type:
+          $ref: '#/components/schemas/LogType'
+      type: object
+    HTTPLogSuccess:
+      type: object
+      description: Response indicating logs were accepted for processing
+      properties: {}
+    APIErrorResponse_2:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
     LogsQueryFilter_2:
       type: object
       description: Filter criteria for log search queries
@@ -798,85 +770,20 @@ components:
           type: string
           description: The end of the time range for the search in ISO 8601 format or relative format (e.g., now)
           example: example_value
-    APIErrorResponse_2:
+    Log_2:
       type: object
-      description: Standard API error response returned for failed requests
-      required:
-      - errors
+      description: A single log event returned from a search query
       properties:
-        errors:
-          type: array
-          description: List of error messages describing the failure
-          items:
-            type: string
-    LogsListRequest_2:
-      type: object
-      description: Request body for searching log events
-      properties:
-        filter:
-          $ref: '#/components/schemas/LogsQueryFilter_2'
-        sort:
+        id:
           type: string
-          description: The sort order for log results, either ascending or descending by timestamp
-          enum:
-          - timestamp
-          - -timestamp
-          example: timestamp
-        page:
-          type: object
-          description: Pagination configuration for log search results
-          properties:
-            cursor:
-              type: string
-              description: A cursor token from a previous response to retrieve the next page of results
-            limit:
-              type: integer
-              description: The maximum number of logs to return per page (default 10, max 1000)
-              minimum: 1
-              maximum: 1000
-              default: 10
-    HTTPLogSuccess:
-      type: object
-      description: Response indicating logs were accepted for processing
-      properties: {}
-    LogAttributes_2:
-      type: object
-      description: The attributes of a log event returned from the search API
-      properties:
-        timestamp:
+          description: The unique identifier of the log event
+          example: abc-123-def
+        type:
           type: string
-          format: date-time
-          description: ISO 8601 timestamp when the log was generated
-          example: '2026-04-17T12:00:00Z'
-        status:
-          type: string
-          description: The log level or severity status of the event
-          example: OK
-        message:
-          type: string
-          description: The raw log message content
-          example: CPU usage is high on {{host.name}}
-        host:
-          type: string
-          description: The hostname of the machine that generated the log
-          example: example_value
-        service:
-          type: string
-          description: The name of the application or service that generated the log
-          example: example_value
-        source:
-          type: string
-          description: The technology source that generated the log (e.g., nginx, java)
-          example: example_value
-        tags:
-          type: array
-          description: List of tags associated with the log event in key:value format
-          items:
-            type: string
+          description: The type of the resource (always 'log')
+          example: metric alert
         attributes:
-          type: object
-          description: Custom key-value attributes extracted from the log message
-          additionalProperties: true
+          $ref: '#/components/schemas/LogAttributes_2'
     HTTPLogItem_2:
       type: object
       description: A single log entry to submit to Datadog
@@ -916,7 +823,106 @@ components:
           - info
           - debug
           example: emerg
+    LogsListRequest_2:
+      type: object
+      description: Request body for searching log events
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter_2'
+        sort:
+          type: string
+          description: The sort order for log results, either ascending or descending by timestamp
+          enum:
+          - timestamp
+          - -timestamp
+          example: timestamp
+        page:
+          type: object
+          description: Pagination configuration for log search results
+          properties:
+            cursor:
+              type: string
+              description: A cursor token from a previous response to retrieve the next page of results
+            limit:
+              type: integer
+              description: The maximum number of logs to return per page (default 10, max 1000)
+              minimum: 1
+              maximum: 1000
+              default: 10
+    LogsListResponse_2:
+      type: object
+      description: Response containing matching log events from a search query
+      properties:
+        data:
+          type: array
+          description: List of matching log events
+          items:
+            $ref: '#/components/schemas/Log_2'
+        meta:
+          type: object
+          description: Metadata about the search response including pagination information
+          properties:
+            page:
+              type: object
+              description: Pagination details for continuing the search
+              properties:
+                after:
+                  type: string
+                  description: Cursor token to retrieve the next page of results
+            elapsed:
+              type: integer
+              description: Time in milliseconds taken to execute the search query
+            status:
+              type: string
+              description: Status of the search request (done, timeout)
+              enum:
+              - done
+              - timeout
+    LogAttributes_2:
+      type: object
+      description: The attributes of a log event returned from the search API
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the log was generated
+          example: '2026-04-17T12:00:00Z'
+        status:
+          type: string
+          description: The log level or severity status of the event
+          example: OK
+        message:
+          type: string
+          description: The raw log message content
+          example: CPU usage is high on {{host.name}}
+        host:
+          type: string
+          description: The hostname of the machine that generated the log
+          example: example_value
+        service:
+          type: string
+          description: The name of the application or service that generated the log
+          example: example_value
+        source:
+          type: string
+          description: The technology source that generated the log (e.g., nginx, java)
+          example: example_value
+        tags:
+          type: array
+          description: List of tags associated with the log event in key:value format
+          items:
+            type: string
+        attributes:
+          type: object
+          description: Custom key-value attributes extracted from the log message
+          additionalProperties: true
   responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
     BadRequestResponse:
       content:
         application/json:
@@ -929,12 +935,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

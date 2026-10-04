@@ -107,6 +107,19 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    UserInvitationData:
+      description: Object to create a user invitation.
+      properties:
+        relationships:
+          $ref: '#/components/schemas/UserInvitationRelationships'
+        type:
+          $ref: '#/components/schemas/UserInvitationsType'
+      required:
+      - type
+      - relationships
+      type: object
+      x-merge-override:
+        required: false
     APIErrorResponse:
       description: API error response.
       properties:
@@ -121,6 +134,55 @@ components:
           type: array
       required:
       - errors
+      type: object
+    RelationshipToUserData:
+      description: Relationship to user object.
+      properties:
+        id:
+          description: A unique identifier that represents the user.
+          example: 00000000-0000-0000-2345-000000000000
+          type: string
+        type:
+          $ref: '#/components/schemas/UsersType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    RelationshipToUser:
+      description: Relationship to user.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToUserData'
+      required:
+      - data
+      type: object
+    UserInvitationRelationships:
+      description: Relationships data for user invitation.
+      properties:
+        user:
+          $ref: '#/components/schemas/RelationshipToUser'
+      required:
+      - user
+      type: object
+    UserInvitationsType:
+      default: user_invitations
+      description: User invitations type.
+      enum:
+      - user_invitations
+      example: user_invitations
+      type: string
+      x-enum-varnames:
+      - USER_INVITATIONS
+    UserInvitationsResponse:
+      description: User invitations as returned by the API.
+      properties:
+        data:
+          description: Array of user invitations.
+          items:
+            $ref: '#/components/schemas/UserInvitationResponseData'
+          type: array
       type: object
     UserInvitationResponseData:
       description: Object of a user invitation returned by the API.
@@ -138,76 +200,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    UserInvitationRelationships:
-      description: Relationships data for user invitation.
-      properties:
-        user:
-          $ref: '#/components/schemas/RelationshipToUser'
-      required:
-      - user
-      type: object
-    RelationshipToUser:
-      description: Relationship to user.
-      properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToUserData'
-      required:
-      - data
-      type: object
-    UserInvitationsResponse:
-      description: User invitations as returned by the API.
-      properties:
-        data:
-          description: Array of user invitations.
-          items:
-            $ref: '#/components/schemas/UserInvitationResponseData'
-          type: array
-      type: object
-    RelationshipToUserData:
-      description: Relationship to user object.
-      properties:
-        id:
-          description: A unique identifier that represents the user.
-          example: 00000000-0000-0000-2345-000000000000
-          type: string
-        type:
-          $ref: '#/components/schemas/UsersType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    UserInvitationsRequest:
-      description: Object to invite users to join the organization.
-      properties:
-        data:
-          description: List of user invitations.
-          example: []
-          items:
-            $ref: '#/components/schemas/UserInvitationData'
-          type: array
-      required:
-      - data
-      type: object
-    UserInvitationsType:
-      default: user_invitations
-      description: User invitations type.
-      enum:
-      - user_invitations
-      example: user_invitations
-      type: string
-      x-enum-varnames:
-      - USER_INVITATIONS
-    UsersType:
-      default: users
-      description: Users resource type.
-      enum:
-      - users
-      example: users
-      type: string
-      x-enum-varnames:
-      - USERS
     UserInvitationDataAttributes:
       description: Attributes of a user invitation.
       properties:
@@ -230,19 +222,27 @@ components:
           type: string
           example: abc-123-def
       type: object
-    UserInvitationData:
-      description: Object to create a user invitation.
+    UsersType:
+      default: users
+      description: Users resource type.
+      enum:
+      - users
+      example: users
+      type: string
+      x-enum-varnames:
+      - USERS
+    UserInvitationsRequest:
+      description: Object to invite users to join the organization.
       properties:
-        relationships:
-          $ref: '#/components/schemas/UserInvitationRelationships'
-        type:
-          $ref: '#/components/schemas/UserInvitationsType'
+        data:
+          description: List of user invitations.
+          example: []
+          items:
+            $ref: '#/components/schemas/UserInvitationData'
+          type: array
       required:
-      - type
-      - relationships
+      - data
       type: object
-      x-merge-override:
-        required: false
   responses:
     TooManyRequestsResponse:
       content:

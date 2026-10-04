@@ -511,46 +511,43 @@ paths:
       description: Datadog API Production Server
 components:
   schemas:
-    LogsMetricResponseCompute:
-      description: The compute rule to compute the log-based metric.
+    RumMetricUpdateData:
+      description: The new rum-based metric properties.
       properties:
-        aggregation_type:
-          $ref: '#/components/schemas/LogsMetricResponseComputeAggregationType'
-        include_percentiles:
-          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
-        path:
-          description: The path to the value the log-based metric will aggregate on (only used if the aggregation type is a "distribution").
-          example: '@duration'
-          type: string
-      type: object
-    RumMetricUpdateRequest:
-      description: The new rum-based metric body.
-      properties:
-        data:
-          $ref: '#/components/schemas/RumMetricUpdateData'
+        attributes:
+          $ref: '#/components/schemas/RumMetricUpdateAttributes'
+        id:
+          $ref: '#/components/schemas/RumMetricID'
+        type:
+          $ref: '#/components/schemas/RumMetricType'
       required:
-      - data
+      - type
+      - attributes
       type: object
-    SpansMetricComputeAggregationType:
-      description: The type of aggregation to use.
-      enum:
-      - count
-      - distribution
-      example: distribution
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - DISTRIBUTION
-    RumMetricFilter:
-      description: The rum-based metric filter. Events matching this filter will be aggregated in this metric.
+    LogsMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when the `aggregation_type` is `distribution`.'
+      example: true
+      type: boolean
+    MetricPoint:
+      description: A point object is of the form `{POSIX_timestamp, numeric_value}`.
+      example:
+        timestamp: 1575317847
+        value: 0.5
       properties:
-        query:
-          default: '*'
-          description: The search query - following the RUM search syntax.
-          example: '@service:web-ui: '
-          type: string
-      required:
-      - query
+        timestamp:
+          description: 'The timestamp should be in seconds and current.
+
+            Current is defined as not more than 10 minutes in the future or more than 1 hour in the past.'
+          format: int64
+          type: integer
+          example: 42
+        value:
+          description: The numeric value format should be a 64bit float gauge-type value.
+          format: double
+          type: number
+          example: 95.5
       type: object
     APIErrorResponse:
       description: API error response.
@@ -567,357 +564,16 @@ components:
       required:
       - errors
       type: object
-    LogsMetricUpdateCompute:
-      description: The compute rule to compute the log-based metric.
-      properties:
-        include_percentiles:
-          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
-      type: object
-    SpansMetricUpdateRequest:
-      description: The new span-based metric body.
-      properties:
-        data:
-          $ref: '#/components/schemas/SpansMetricUpdateData'
-      required:
-      - data
-      type: object
-    MetricContentEncoding:
-      default: deflate
-      description: HTTP header used to compress the media-type.
-      enum:
-      - deflate
-      - zstd1
-      - gzip
-      example: deflate
-      type: string
-      x-enum-varnames:
-      - DEFLATE
-      - ZSTD1
-      - GZIP
-    SpansMetricUpdateAttributes:
-      description: The span-based metric properties that will be updated.
-      properties:
-        compute:
-          $ref: '#/components/schemas/SpansMetricUpdateCompute'
-        filter:
-          $ref: '#/components/schemas/SpansMetricFilter'
-        group_by:
-          description: The rules for the group by.
-          items:
-            $ref: '#/components/schemas/SpansMetricGroupBy'
-          type: array
-      type: object
-    LogsMetricResponse:
-      description: The log-based metric object.
-      properties:
-        data:
-          $ref: '#/components/schemas/LogsMetricResponseData'
-      type: object
-    RumMetricUpdateAttributes:
-      description: The rum-based metric properties that will be updated.
-      properties:
-        compute:
-          $ref: '#/components/schemas/RumMetricUpdateCompute'
-        filter:
-          $ref: '#/components/schemas/RumMetricFilter'
-        group_by:
-          description: The rules for the group by.
-          items:
-            $ref: '#/components/schemas/RumMetricGroupBy'
-          type: array
-      type: object
-    MetricResource:
-      description: Metric resource.
-      example:
-        name: dummyhost
-        type: host
-      properties:
-        name:
-          description: The name of the resource.
-          type: string
-          example: Example Monitor
-        type:
-          description: The type of the resource.
-          type: string
-          example: metric alert
-      type: object
-    MetricMetadata:
-      description: Metadata for the metric.
-      properties:
-        origin:
-          $ref: '#/components/schemas/MetricOrigin'
-      type: object
-    LogsMetricResponseData:
-      description: The log-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/LogsMetricResponseAttributes'
-        id:
-          $ref: '#/components/schemas/LogsMetricID'
-        type:
-          $ref: '#/components/schemas/LogsMetricType'
-      type: object
-    RumMetricResponseGroupBy:
+    RumMetricGroupBy:
       description: A group by rule.
       properties:
         path:
           description: The path to the value the rum-based metric will be aggregated over.
-          example: '@http.status_code'
+          example: '@browser.name'
           type: string
         tag_name:
           description: Eventual name of the tag that gets created. By default, `path` is used as the tag name.
-          example: status_code
-          type: string
-      type: object
-    RumMetricUpdateData:
-      description: The new rum-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RumMetricUpdateAttributes'
-        id:
-          $ref: '#/components/schemas/RumMetricID'
-        type:
-          $ref: '#/components/schemas/RumMetricType'
-      required:
-      - type
-      - attributes
-      type: object
-    SpansMetricID:
-      description: The name of the span-based metric.
-      example: my.metric
-      type: string
-    RumMetricResponseData:
-      description: The rum-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/RumMetricResponseAttributes'
-        id:
-          $ref: '#/components/schemas/RumMetricID'
-        type:
-          $ref: '#/components/schemas/RumMetricType'
-      type: object
-    LogsMetricUpdateData:
-      description: The new log-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/LogsMetricUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/LogsMetricType'
-      required:
-      - type
-      - attributes
-      type: object
-    LogsMetricID:
-      description: The name of the log-based metric.
-      example: logs.page.load.count
-      type: string
-    RumMetricUpdateCompute:
-      description: The compute rule to compute the rum-based metric.
-      properties:
-        include_percentiles:
-          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
-      type: object
-    SpansMetricComputeIncludePercentiles:
-      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
-
-        Only present when the `aggregation_type` is `distribution`.'
-      example: false
-      type: boolean
-    LogsMetricResponseFilter:
-      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
-      properties:
-        query:
-          description: The search query - following the log search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-      type: object
-    RumMetricResponseCompute:
-      description: The compute rule to compute the rum-based metric.
-      properties:
-        aggregation_type:
-          $ref: '#/components/schemas/RumMetricComputeAggregationType'
-        include_percentiles:
-          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
-        path:
-          description: 'The path to the value the rum-based metric will aggregate on.
-
-            Only present when `aggregation_type` is `distribution`.'
-          example: '@duration'
-          type: string
-      type: object
-    LogsMetricComputeIncludePercentiles:
-      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
-
-        Only present when the `aggregation_type` is `distribution`.'
-      example: true
-      type: boolean
-    SpansMetricFilter:
-      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
-      properties:
-        query:
-          default: '*'
-          description: The search query - following the span search syntax.
-          example: '@http.status_code:200 service:my-service'
-          type: string
-      type: object
-    MetricOrigin:
-      description: Metric origin information.
-      properties:
-        metric_type:
-          default: 0
-          description: The origin metric type code
-          format: int32
-          maximum: 1000
-          type: integer
-          example: 42
-        product:
-          default: 0
-          description: The origin product code
-          format: int32
-          maximum: 1000
-          type: integer
-          example: 42
-        service:
-          default: 0
-          description: The origin service code
-          format: int32
-          maximum: 1000
-          type: integer
-          example: 42
-      type: object
-    LogsMetricResponseComputeAggregationType:
-      description: The type of aggregation to use.
-      enum:
-      - count
-      - distribution
-      example: distribution
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - DISTRIBUTION
-    RumMetricComputeAggregationType:
-      description: The type of aggregation to use.
-      enum:
-      - count
-      - distribution
-      example: distribution
-      type: string
-      x-enum-varnames:
-      - COUNT
-      - DISTRIBUTION
-    MetricPayload:
-      description: The metrics' payload.
-      properties:
-        series:
-          description: A list of timeseries to submit to Datadog.
-          example:
-          - metric: system.load.1
-            points:
-            - timestamp: 1475317847
-              value: 0.7
-            resources:
-            - name: dummyhost
-              type: host
-          items:
-            $ref: '#/components/schemas/MetricSeries'
-          type: array
-      required:
-      - series
-      type: object
-    RumMetricResponseUniqueness:
-      description: The rule to count updatable events. Is only set if `event_type` is `session` or `view`.
-      properties:
-        when:
-          $ref: '#/components/schemas/RumMetricUniquenessWhen'
-      type: object
-    SpansMetricResponseFilter:
-      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
-      properties:
-        query:
-          description: The search query - following the span search syntax.
-          example: '@http.status_code:200 service:my-service'
-          type: string
-      type: object
-    RumMetricResponseFilter:
-      description: The rum-based metric filter. RUM events matching this filter will be aggregated in this metric.
-      properties:
-        query:
-          description: The search query - following the RUM search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-      type: object
-    RumMetricComputeIncludePercentiles:
-      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
-
-        Only present when `aggregation_type` is `distribution`.'
-      example: true
-      type: boolean
-    SpansMetricResponse:
-      description: The span-based metric object.
-      properties:
-        data:
-          $ref: '#/components/schemas/SpansMetricResponseData'
-      type: object
-    RumMetricType:
-      default: rum_metrics
-      description: The type of the resource. The value should always be rum_metrics.
-      enum:
-      - rum_metrics
-      example: rum_metrics
-      type: string
-      x-enum-varnames:
-      - RUM_METRICS
-    SpansMetricResponseData:
-      description: The span-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SpansMetricResponseAttributes'
-        id:
-          $ref: '#/components/schemas/SpansMetricID'
-        type:
-          $ref: '#/components/schemas/SpansMetricType'
-      type: object
-    LogsMetricFilter:
-      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
-      properties:
-        query:
-          default: '*'
-          description: The search query - following the log search syntax.
-          example: service:web* AND @http.status_code:[200 TO 299]
-          type: string
-      type: object
-    LogsMetricType:
-      default: logs_metrics
-      description: The type of the resource. The value should always be logs_metrics.
-      enum:
-      - logs_metrics
-      example: logs_metrics
-      type: string
-      x-enum-varnames:
-      - LOGS_METRICS
-    SpansMetricResponseAttributes:
-      description: The object describing a Datadog span-based metric.
-      properties:
-        compute:
-          $ref: '#/components/schemas/SpansMetricResponseCompute'
-        filter:
-          $ref: '#/components/schemas/SpansMetricResponseFilter'
-        group_by:
-          description: The rules for the group by.
-          items:
-            $ref: '#/components/schemas/SpansMetricResponseGroupBy'
-          type: array
-      type: object
-    SpansMetricGroupBy:
-      description: A group by rule.
-      properties:
-        path:
-          description: The path to the value the span-based metric will be aggregated over.
-          example: resource_name
-          type: string
-        tag_name:
-          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
-          example: resource_name
+          example: browser_name
           type: string
       required:
       - path
@@ -973,29 +629,116 @@ components:
       - metric
       - points
       type: object
-    SpansMetricResponseCompute:
+    SpansMetricType:
+      default: spans_metrics
+      description: The type of resource. The value should always be spans_metrics.
+      enum:
+      - spans_metrics
+      example: spans_metrics
+      type: string
+      x-enum-varnames:
+      - SPANS_METRICS
+    SpansMetricComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    SpansMetricUpdateData:
+      description: The new span-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansMetricUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/SpansMetricType'
+      required:
+      - type
+      - attributes
+      type: object
+    SpansMetricUpdateCompute:
       description: The compute rule to compute the span-based metric.
       properties:
-        aggregation_type:
-          $ref: '#/components/schemas/SpansMetricComputeAggregationType'
         include_percentiles:
           $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
-        path:
-          description: The path to the value the span-based metric will aggregate on (only used if the aggregation type is a "distribution").
-          example: '@duration'
-          type: string
       type: object
-    LogsMetricResponseGroupBy:
-      description: A group by rule.
+    RumMetricResponseUniqueness:
+      description: The rule to count updatable events. Is only set if `event_type` is `session` or `view`.
       properties:
-        path:
-          description: The path to the value the log-based metric will be aggregated over.
-          example: '@http.status_code'
-          type: string
-        tag_name:
-          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
-          example: status_code
-          type: string
+        when:
+          $ref: '#/components/schemas/RumMetricUniquenessWhen'
+      type: object
+    LogsMetricResponse:
+      description: The log-based metric object.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsMetricResponseData'
+      type: object
+    RumMetricUniquenessWhen:
+      description: When to count updatable events. `match` when the event is first seen, or `end` when the event is complete.
+      enum:
+      - match
+      - end
+      example: match
+      type: string
+      x-enum-varnames:
+      - WHEN_MATCH
+      - WHEN_END
+    LogsMetricUpdateData:
+      description: The new log-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsMetricUpdateAttributes'
+        type:
+          $ref: '#/components/schemas/LogsMetricType'
+      required:
+      - type
+      - attributes
+      type: object
+    RumMetricUpdateCompute:
+      description: The compute rule to compute the rum-based metric.
+      properties:
+        include_percentiles:
+          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
+      type: object
+    RumMetricResponseData:
+      description: The rum-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RumMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/RumMetricID'
+        type:
+          $ref: '#/components/schemas/RumMetricType'
+      type: object
+    LogsMetricUpdateAttributes:
+      description: The log-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/LogsMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/LogsMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/LogsMetricGroupBy'
+          type: array
+      type: object
+    RumMetricUpdateAttributes:
+      description: The rum-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/RumMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/RumMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/RumMetricGroupBy'
+          type: array
       type: object
     MetricIntakeType:
       description: The type of metric. The available types are `0` (unspecified), `1` (count), `2` (rate), and `3` (gauge).
@@ -1011,6 +754,192 @@ components:
       - COUNT
       - RATE
       - GAUGE
+    MetricResource:
+      description: Metric resource.
+      example:
+        name: dummyhost
+        type: host
+      properties:
+        name:
+          description: The name of the resource.
+          type: string
+          example: Example Monitor
+        type:
+          description: The type of the resource.
+          type: string
+          example: metric alert
+      type: object
+    LogsMetricUpdateCompute:
+      description: The compute rule to compute the log-based metric.
+      properties:
+        include_percentiles:
+          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
+      type: object
+    LogsMetricType:
+      default: logs_metrics
+      description: The type of the resource. The value should always be logs_metrics.
+      enum:
+      - logs_metrics
+      example: logs_metrics
+      type: string
+      x-enum-varnames:
+      - LOGS_METRICS
+    LogsMetricResponseComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    SpansMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the span-based metric will be aggregated over.
+          example: resource_name
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: resource_name
+          type: string
+      type: object
+    LogsMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the log-based metric will be aggregated over.
+          example: '@http.status_code'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: status_code
+          type: string
+      type: object
+    MetricOrigin:
+      description: Metric origin information.
+      properties:
+        metric_type:
+          default: 0
+          description: The origin metric type code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+        product:
+          default: 0
+          description: The origin product code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+        service:
+          default: 0
+          description: The origin service code
+          format: int32
+          maximum: 1000
+          type: integer
+          example: 42
+      type: object
+    LogsMetricResponseCompute:
+      description: The compute rule to compute the log-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/LogsMetricResponseComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/LogsMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the log-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      type: object
+    LogsMetricResponseData:
+      description: The log-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/LogsMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/LogsMetricID'
+        type:
+          $ref: '#/components/schemas/LogsMetricType'
+      type: object
+    RumMetricResponseGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the rum-based metric will be aggregated over.
+          example: '@http.status_code'
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, `path` is used as the tag name.
+          example: status_code
+          type: string
+      type: object
+    LogsMetricID:
+      description: The name of the log-based metric.
+      example: logs.page.load.count
+      type: string
+    RumMetricComputeAggregationType:
+      description: The type of aggregation to use.
+      enum:
+      - count
+      - distribution
+      example: distribution
+      type: string
+      x-enum-varnames:
+      - COUNT
+      - DISTRIBUTION
+    IntakePayloadAccepted:
+      description: The payload accepted for intake.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            description: An empty error list.
+            type: string
+          type: array
+      type: object
+    RumMetricID:
+      description: The name of the rum-based metric.
+      example: rum.sessions.webui.count
+      type: string
+    SpansMetricResponseCompute:
+      description: The compute rule to compute the span-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/SpansMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
+        path:
+          description: The path to the value the span-based metric will aggregate on (only used if the aggregation type is a "distribution").
+          example: '@duration'
+          type: string
+      type: object
+    SpansMetricUpdateAttributes:
+      description: The span-based metric properties that will be updated.
+      properties:
+        compute:
+          $ref: '#/components/schemas/SpansMetricUpdateCompute'
+        filter:
+          $ref: '#/components/schemas/SpansMetricFilter'
+        group_by:
+          description: The rules for the group by.
+          items:
+            $ref: '#/components/schemas/SpansMetricGroupBy'
+          type: array
+      type: object
+    SpansMetricResponseData:
+      description: The span-based metric properties.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SpansMetricResponseAttributes'
+        id:
+          $ref: '#/components/schemas/SpansMetricID'
+        type:
+          $ref: '#/components/schemas/SpansMetricType'
+      type: object
     RumMetricEventType:
       description: The type of RUM events to filter on.
       enum:
@@ -1031,88 +960,67 @@ components:
       - RESOURCE
       - LONG_TASK
       - VITAL
-    LogsMetricUpdateAttributes:
-      description: The log-based metric properties that will be updated.
+    MetricPayload:
+      description: The metrics' payload.
+      properties:
+        series:
+          description: A list of timeseries to submit to Datadog.
+          example:
+          - metric: system.load.1
+            points:
+            - timestamp: 1475317847
+              value: 0.7
+            resources:
+            - name: dummyhost
+              type: host
+          items:
+            $ref: '#/components/schemas/MetricSeries'
+          type: array
+      required:
+      - series
+      type: object
+    LogsMetricResponseAttributes:
+      description: The object describing a Datadog log-based metric.
       properties:
         compute:
-          $ref: '#/components/schemas/LogsMetricUpdateCompute'
+          $ref: '#/components/schemas/LogsMetricResponseCompute'
         filter:
-          $ref: '#/components/schemas/LogsMetricFilter'
+          $ref: '#/components/schemas/LogsMetricResponseFilter'
         group_by:
           description: The rules for the group by.
           items:
-            $ref: '#/components/schemas/LogsMetricGroupBy'
+            $ref: '#/components/schemas/LogsMetricResponseGroupBy'
           type: array
       type: object
-    RumMetricGroupBy:
-      description: A group by rule.
-      properties:
-        path:
-          description: The path to the value the rum-based metric will be aggregated over.
-          example: '@browser.name'
-          type: string
-        tag_name:
-          description: Eventual name of the tag that gets created. By default, `path` is used as the tag name.
-          example: browser_name
-          type: string
-      required:
-      - path
-      type: object
-    MetricPoint:
-      description: A point object is of the form `{POSIX_timestamp, numeric_value}`.
-      example:
-        timestamp: 1575317847
-        value: 0.5
-      properties:
-        timestamp:
-          description: 'The timestamp should be in seconds and current.
-
-            Current is defined as not more than 10 minutes in the future or more than 1 hour in the past.'
-          format: int64
-          type: integer
-          example: 42
-        value:
-          description: The numeric value format should be a 64bit float gauge-type value.
-          format: double
-          type: number
-          example: 95.5
-      type: object
-    SpansMetricUpdateCompute:
-      description: The compute rule to compute the span-based metric.
-      properties:
-        include_percentiles:
-          $ref: '#/components/schemas/SpansMetricComputeIncludePercentiles'
-      type: object
-    SpansMetricUpdateData:
-      description: The new span-based metric properties.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/SpansMetricUpdateAttributes'
-        type:
-          $ref: '#/components/schemas/SpansMetricType'
-      required:
-      - type
-      - attributes
-      type: object
-    RumMetricUniquenessWhen:
-      description: When to count updatable events. `match` when the event is first seen, or `end` when the event is complete.
-      enum:
-      - match
-      - end
-      example: match
+    SpansMetricID:
+      description: The name of the span-based metric.
+      example: my.metric
       type: string
-      x-enum-varnames:
-      - WHEN_MATCH
-      - WHEN_END
-    IntakePayloadAccepted:
-      description: The payload accepted for intake.
+    SpansMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when the `aggregation_type` is `distribution`.'
+      example: false
+      type: boolean
+    SpansMetricResponse:
+      description: The span-based metric object.
       properties:
-        errors:
-          description: A list of errors.
-          items:
-            description: An empty error list.
-            type: string
-          type: array
+        data:
+          $ref: '#/components/schemas/SpansMetricResponseData'
+      type: object
+    RumMetricResponse:
+      description: The rum-based metric object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumMetricResponseData'
+      type: object
+    LogsMetricUpdateRequest:
+      description: The new log-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/LogsMetricUpdateData'
+      required:
+      - data
       type: object
     LogsMetricGroupBy:
       description: A group by rule.
@@ -1127,6 +1035,101 @@ components:
           type: string
       required:
       - path
+      type: object
+    RumMetricType:
+      default: rum_metrics
+      description: The type of the resource. The value should always be rum_metrics.
+      enum:
+      - rum_metrics
+      example: rum_metrics
+      type: string
+      x-enum-varnames:
+      - RUM_METRICS
+    LogsMetricResponseFilter:
+      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    SpansMetricResponseFilter:
+      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the span search syntax.
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    SpansMetricGroupBy:
+      description: A group by rule.
+      properties:
+        path:
+          description: The path to the value the span-based metric will be aggregated over.
+          example: resource_name
+          type: string
+        tag_name:
+          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
+          example: resource_name
+          type: string
+      required:
+      - path
+      type: object
+    LogsMetricFilter:
+      description: The log-based metric filter. Logs matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the log search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    MetricMetadata:
+      description: Metadata for the metric.
+      properties:
+        origin:
+          $ref: '#/components/schemas/MetricOrigin'
+      type: object
+    RumMetricUpdateRequest:
+      description: The new rum-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/RumMetricUpdateData'
+      required:
+      - data
+      type: object
+    RumMetricFilter:
+      description: The rum-based metric filter. Events matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the RUM search syntax.
+          example: '@service:web-ui: '
+          type: string
+      required:
+      - query
+      type: object
+    SpansMetricUpdateRequest:
+      description: The new span-based metric body.
+      properties:
+        data:
+          $ref: '#/components/schemas/SpansMetricUpdateData'
+      required:
+      - data
+      type: object
+    RumMetricResponseCompute:
+      description: The compute rule to compute the rum-based metric.
+      properties:
+        aggregation_type:
+          $ref: '#/components/schemas/RumMetricComputeAggregationType'
+        include_percentiles:
+          $ref: '#/components/schemas/RumMetricComputeIncludePercentiles'
+        path:
+          description: 'The path to the value the rum-based metric will aggregate on.
+
+            Only present when `aggregation_type` is `distribution`.'
+          example: '@duration'
+          type: string
       type: object
     RumMetricResponseAttributes:
       description: The object describing a Datadog rum-based metric.
@@ -1145,58 +1148,55 @@ components:
         uniqueness:
           $ref: '#/components/schemas/RumMetricResponseUniqueness'
       type: object
-    LogsMetricUpdateRequest:
-      description: The new log-based metric body.
-      properties:
-        data:
-          $ref: '#/components/schemas/LogsMetricUpdateData'
-      required:
-      - data
-      type: object
-    SpansMetricResponseGroupBy:
-      description: A group by rule.
-      properties:
-        path:
-          description: The path to the value the span-based metric will be aggregated over.
-          example: resource_name
-          type: string
-        tag_name:
-          description: Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
-          example: resource_name
-          type: string
-      type: object
-    SpansMetricType:
-      default: spans_metrics
-      description: The type of resource. The value should always be spans_metrics.
+    MetricContentEncoding:
+      default: deflate
+      description: HTTP header used to compress the media-type.
       enum:
-      - spans_metrics
-      example: spans_metrics
+      - deflate
+      - zstd1
+      - gzip
+      example: deflate
       type: string
       x-enum-varnames:
-      - SPANS_METRICS
-    LogsMetricResponseAttributes:
-      description: The object describing a Datadog log-based metric.
+      - DEFLATE
+      - ZSTD1
+      - GZIP
+    RumMetricResponseFilter:
+      description: The rum-based metric filter. RUM events matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          description: The search query - following the RUM search syntax.
+          example: service:web* AND @http.status_code:[200 TO 299]
+          type: string
+      type: object
+    SpansMetricFilter:
+      description: The span-based metric filter. Spans matching this filter will be aggregated in this metric.
+      properties:
+        query:
+          default: '*'
+          description: The search query - following the span search syntax.
+          example: '@http.status_code:200 service:my-service'
+          type: string
+      type: object
+    SpansMetricResponseAttributes:
+      description: The object describing a Datadog span-based metric.
       properties:
         compute:
-          $ref: '#/components/schemas/LogsMetricResponseCompute'
+          $ref: '#/components/schemas/SpansMetricResponseCompute'
         filter:
-          $ref: '#/components/schemas/LogsMetricResponseFilter'
+          $ref: '#/components/schemas/SpansMetricResponseFilter'
         group_by:
           description: The rules for the group by.
           items:
-            $ref: '#/components/schemas/LogsMetricResponseGroupBy'
+            $ref: '#/components/schemas/SpansMetricResponseGroupBy'
           type: array
       type: object
-    RumMetricResponse:
-      description: The rum-based metric object.
-      properties:
-        data:
-          $ref: '#/components/schemas/RumMetricResponseData'
-      type: object
-    RumMetricID:
-      description: The name of the rum-based metric.
-      example: rum.sessions.webui.count
-      type: string
+    RumMetricComputeIncludePercentiles:
+      description: 'Toggle to include or exclude percentile aggregations for distribution metrics.
+
+        Only present when `aggregation_type` is `distribution`.'
+      example: true
+      type: boolean
     MetricPoint_2:
       type: object
       description: A single data point consisting of a Unix timestamp and a numeric value
@@ -1214,93 +1214,6 @@ components:
           format: double
           description: The numeric value of the metric at the given timestamp
           example: 95.5
-    TimeseriesResult:
-      type: object
-      description: A single timeseries result for a query formula
-      properties:
-        query_index:
-          type: integer
-          description: Index of the query or formula that produced this result
-          example: 42
-        unit:
-          type: array
-          description: Unit information for the metric values in this series
-          items:
-            type: object
-            properties:
-              family:
-                type: string
-                description: The unit family (e.g., time, bytes, percent)
-              name:
-                type: string
-                description: The unit name (e.g., second, byte, percent)
-        group_tags:
-          type: array
-          description: The tag key:value pairs that identify this series within a group-by
-          items:
-            type: string
-        values:
-          type: array
-          description: The numeric values at each timestamp
-          items:
-            type: number
-            format: double
-            nullable: true
-    MetricScalarQuery:
-      type: object
-      description: Request body for querying scalar metric data
-      required:
-      - data
-      properties:
-        data:
-          type: object
-          description: The scalar query data object
-          required:
-          - type
-          - attributes
-          properties:
-            type:
-              type: string
-              description: The type identifier for the scalar query request
-              enum:
-              - scalar_request
-            attributes:
-              type: object
-              description: The scalar query attributes
-              required:
-              - from
-              - to
-              - queries
-              properties:
-                from:
-                  type: integer
-                  format: int64
-                  description: Unix timestamp in milliseconds for the start of the query time range
-                to:
-                  type: integer
-                  format: int64
-                  description: Unix timestamp in milliseconds for the end of the query time range
-                queries:
-                  type: array
-                  description: List of metric queries to evaluate as scalar values
-                  items:
-                    $ref: '#/components/schemas/MetricQueryDefinition'
-                formulas:
-                  type: array
-                  description: List of formula expressions combining the defined queries
-                  items:
-                    $ref: '#/components/schemas/QueryFormula'
-    APIErrorResponse_2:
-      type: object
-      description: Standard API error response returned for failed requests
-      required:
-      - errors
-      properties:
-        errors:
-          type: array
-          description: List of error messages describing the failure
-          items:
-            type: string
     ScalarColumn:
       type: object
       description: A single column of scalar results from a query formula
@@ -1330,6 +1243,17 @@ components:
         errors:
           type: array
           description: List of any non-fatal errors encountered when processing the payload
+          items:
+            type: string
+    APIErrorResponse_2:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
           items:
             type: string
     MetricSeries_2:
@@ -1380,111 +1304,6 @@ components:
           type: string
           description: The unit of the metric value (e.g., byte, second, request)
           example: example_value
-    MetricScalarResponse:
-      type: object
-      description: Response containing scalar metric values for the requested queries
-      properties:
-        data:
-          type: object
-          description: The scalar response data
-          properties:
-            type:
-              type: string
-              description: The type identifier for the response
-            id:
-              type: string
-              description: A unique identifier for this response
-            attributes:
-              type: object
-              description: The response attributes
-              properties:
-                columns:
-                  type: array
-                  description: List of scalar result columns, one per query formula
-                  items:
-                    $ref: '#/components/schemas/ScalarColumn'
-    MetricTimeseriesResponse:
-      type: object
-      description: Response containing timeseries metric data for the requested queries
-      properties:
-        data:
-          type: object
-          description: The response data object
-          properties:
-            type:
-              type: string
-              description: The type identifier for the response
-            id:
-              type: string
-              description: A unique identifier for this response
-            attributes:
-              type: object
-              description: The response attributes containing timeseries results
-              properties:
-                times:
-                  type: array
-                  description: Array of Unix timestamps in milliseconds for each data point
-                  items:
-                    type: integer
-                    format: int64
-                series:
-                  type: array
-                  description: List of timeseries results, one per query formula
-                  items:
-                    $ref: '#/components/schemas/TimeseriesResult'
-    MetricResource_2:
-      type: object
-      description: A resource (such as a host or service) associated with a metric series
-      required:
-      - name
-      - type
-      properties:
-        name:
-          type: string
-          description: The name of the resource (e.g., hostname or service name)
-          example: Example Monitor
-        type:
-          type: string
-          description: The type of the resource (e.g., host, service, container)
-          example: metric alert
-    MetricPayload_2:
-      type: object
-      description: The payload containing one or more metric series to submit
-      required:
-      - series
-      properties:
-        series:
-          type: array
-          description: List of metric series to submit in this payload
-          items:
-            $ref: '#/components/schemas/MetricSeries_2'
-    QueryFormula:
-      type: object
-      description: A formula expression that combines one or more query results
-      required:
-      - formula
-      properties:
-        formula:
-          type: string
-          description: The formula expression using query names as variables (e.g., query1 + query2)
-          example: example_value
-        alias:
-          type: string
-          description: An optional alias for the formula result used in the response
-          example: example_value
-        limit:
-          type: object
-          description: Optional limit configuration for top/bottom N results
-          properties:
-            count:
-              type: integer
-              description: The number of results to return
-            order:
-              type: string
-              description: The sort order for limiting results
-              enum:
-              - asc
-              - desc
     MetricTimeseriesQuery:
       type: object
       description: Request body for querying timeseries metric data
@@ -1533,6 +1352,64 @@ components:
                   description: List of formula expressions combining the defined queries
                   items:
                     $ref: '#/components/schemas/QueryFormula'
+    TimeseriesResult:
+      type: object
+      description: A single timeseries result for a query formula
+      properties:
+        query_index:
+          type: integer
+          description: Index of the query or formula that produced this result
+          example: 42
+        unit:
+          type: array
+          description: Unit information for the metric values in this series
+          items:
+            type: object
+            properties:
+              family:
+                type: string
+                description: The unit family (e.g., time, bytes, percent)
+              name:
+                type: string
+                description: The unit name (e.g., second, byte, percent)
+        group_tags:
+          type: array
+          description: The tag key:value pairs that identify this series within a group-by
+          items:
+            type: string
+        values:
+          type: array
+          description: The numeric values at each timestamp
+          items:
+            type: number
+            format: double
+            nullable: true
+    MetricPayload_2:
+      type: object
+      description: The payload containing one or more metric series to submit
+      required:
+      - series
+      properties:
+        series:
+          type: array
+          description: List of metric series to submit in this payload
+          items:
+            $ref: '#/components/schemas/MetricSeries_2'
+    MetricResource_2:
+      type: object
+      description: A resource (such as a host or service) associated with a metric series
+      required:
+      - name
+      - type
+      properties:
+        name:
+          type: string
+          description: The name of the resource (e.g., hostname or service name)
+          example: Example Monitor
+        type:
+          type: string
+          description: The type of the resource (e.g., host, service, container)
+          example: metric alert
     MetricQueryDefinition:
       type: object
       description: A metric query definition referencing a Datadog metrics query expression
@@ -1556,16 +1433,170 @@ components:
           type: string
           description: The Datadog metrics query string (e.g., avg:system.cpu.user{*} by {host})
           example: avg:system.cpu.user{*}
+    QueryFormula:
+      type: object
+      description: A formula expression that combines one or more query results
+      required:
+      - formula
+      properties:
+        formula:
+          type: string
+          description: The formula expression using query names as variables (e.g., query1 + query2)
+          example: example_value
+        alias:
+          type: string
+          description: An optional alias for the formula result used in the response
+          example: example_value
+        limit:
+          type: object
+          description: Optional limit configuration for top/bottom N results
+          properties:
+            count:
+              type: integer
+              description: The number of results to return
+            order:
+              type: string
+              description: The sort order for limiting results
+              enum:
+              - asc
+              - desc
+    MetricScalarResponse:
+      type: object
+      description: Response containing scalar metric values for the requested queries
+      properties:
+        data:
+          type: object
+          description: The scalar response data
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes
+              properties:
+                columns:
+                  type: array
+                  description: List of scalar result columns, one per query formula
+                  items:
+                    $ref: '#/components/schemas/ScalarColumn'
+    MetricScalarQuery:
+      type: object
+      description: Request body for querying scalar metric data
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          description: The scalar query data object
+          required:
+          - type
+          - attributes
+          properties:
+            type:
+              type: string
+              description: The type identifier for the scalar query request
+              enum:
+              - scalar_request
+            attributes:
+              type: object
+              description: The scalar query attributes
+              required:
+              - from
+              - to
+              - queries
+              properties:
+                from:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the start of the query time range
+                to:
+                  type: integer
+                  format: int64
+                  description: Unix timestamp in milliseconds for the end of the query time range
+                queries:
+                  type: array
+                  description: List of metric queries to evaluate as scalar values
+                  items:
+                    $ref: '#/components/schemas/MetricQueryDefinition'
+                formulas:
+                  type: array
+                  description: List of formula expressions combining the defined queries
+                  items:
+                    $ref: '#/components/schemas/QueryFormula'
+    MetricTimeseriesResponse:
+      type: object
+      description: Response containing timeseries metric data for the requested queries
+      properties:
+        data:
+          type: object
+          description: The response data object
+          properties:
+            type:
+              type: string
+              description: The type identifier for the response
+            id:
+              type: string
+              description: A unique identifier for this response
+            attributes:
+              type: object
+              description: The response attributes containing timeseries results
+              properties:
+                times:
+                  type: array
+                  description: Array of Unix timestamps in milliseconds for each data point
+                  items:
+                    type: integer
+                    format: int64
+                series:
+                  type: array
+                  description: List of timeseries results, one per query formula
+                  items:
+                    $ref: '#/components/schemas/TimeseriesResult'
+  responses:
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Conflict
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
   parameters:
-    RumMetricIDParameter:
-      description: The name of the rum-based metric.
+    MetricID:
+      description: The name of the log-based metric.
       in: path
       name: metric_id
       required: true
       schema:
         type: string
-    MetricID:
-      description: The name of the log-based metric.
+    RumMetricIDParameter:
+      description: The name of the rum-based metric.
       in: path
       name: metric_id
       required: true
@@ -1578,37 +1609,6 @@ components:
       required: true
       schema:
         type: string
-  responses:
-    ConflictResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Conflict
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

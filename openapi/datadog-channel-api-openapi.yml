@@ -83,7 +83,69 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  responses:
+    BadRequestResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Bad Request
+    TooManyRequestsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Too many requests
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Forbidden
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
   schemas:
+    APIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+    MicrosoftTeamsGetChannelByNameResponse:
+      description: Response with channel, team, and tenant ID information.
+      properties:
+        data:
+          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoResponseData'
+      type: object
+    MicrosoftTeamsChannelInfoResponseData:
+      description: Channel data from a response.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoResponseAttributes'
+        id:
+          description: The ID of the channel.
+          example: 19:b41k24b14bn1nwffkernfkwrnfneubgkr@thread.tacv2
+          maxLength: 255
+          minLength: 1
+          type: string
+        type:
+          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoType'
+      type: object
+      x-merge-override:
+        required: false
     MicrosoftTeamsChannelInfoResponseAttributes:
       description: Channel attributes.
       properties:
@@ -105,43 +167,6 @@ components:
       type: object
       x-merge-override:
         required: false
-    MicrosoftTeamsGetChannelByNameResponse:
-      description: Response with channel, team, and tenant ID information.
-      properties:
-        data:
-          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoResponseData'
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    MicrosoftTeamsChannelInfoResponseData:
-      description: Channel data from a response.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoResponseAttributes'
-        id:
-          description: The ID of the channel.
-          example: 19:b41k24b14bn1nwffkernfkwrnfneubgkr@thread.tacv2
-          maxLength: 255
-          minLength: 1
-          type: string
-        type:
-          $ref: '#/components/schemas/MicrosoftTeamsChannelInfoType'
-      type: object
-      x-merge-override:
-        required: false
     MicrosoftTeamsChannelInfoType:
       default: ms-teams-channel-info
       description: Channel info resource type.
@@ -152,17 +177,17 @@ components:
       x-enum-varnames:
       - MS_TEAMS_CHANNEL_INFO
   parameters:
-    MicrosoftTeamsTenantNamePathParameter:
-      description: Your tenant name.
-      in: path
-      name: tenant_name
-      required: true
-      schema:
-        type: string
     MicrosoftTeamsChannelNamePathParameter:
       description: Your channel name.
       in: path
       name: channel_name
+      required: true
+      schema:
+        type: string
+    MicrosoftTeamsTenantNamePathParameter:
+      description: Your tenant name.
+      in: path
+      name: tenant_name
       required: true
       schema:
         type: string
@@ -173,31 +198,6 @@ components:
       required: true
       schema:
         type: string
-  responses:
-    BadRequestResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Bad Request
-    TooManyRequestsResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Too many requests
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    ForbiddenResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Forbidden
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

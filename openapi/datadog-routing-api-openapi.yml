@@ -109,39 +109,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    TeamRoutingRulesRequestDataAttributes:
-      description: Represents the attributes of a request to update or create team routing rules.
-      properties:
-        rules:
-          description: A list of routing rule items that define how incoming pages should be handled.
-          items:
-            $ref: '#/components/schemas/TeamRoutingRulesRequestRule'
-          type: array
-      type: object
-    APIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          example:
-          - Bad Request
-          items:
-            description: A list of items.
-            example: Bad Request
-            type: string
-          type: array
-      required:
-      - errors
-      type: object
-    SendTeamsMessageActionType:
-      default: send_teams_message
-      description: Indicates that the action is a send Microsoft Teams message action.
-      enum:
-      - send_teams_message
-      example: send_teams_message
-      type: string
-      x-enum-varnames:
-      - SEND_TEAMS_MESSAGE
     Weekday:
       description: A day of the week.
       enum:
@@ -161,59 +128,47 @@ components:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-    TeamRoutingRulesDataRelationships:
-      description: Specifies relationships for team routing rules, including rule references.
+    TeamRoutingRulesDataRelationshipsRules:
+      description: Holds references to a set of routing rules in a relationship.
       properties:
-        rules:
-          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRules'
+        data:
+          description: An array of references to the routing rules associated with this team.
+          items:
+            $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItems'
+          type: array
       type: object
-    Urgency:
-      description: Specifies the level of urgency for a routing rule (low, high, or dynamic).
+    RoutingRuleRelationshipsPolicyDataType:
+      default: policies
+      description: Indicates that the resource is of type 'policies'.
       enum:
-      - low
-      - high
-      - dynamic
-      example: low
+      - policies
+      example: policies
       type: string
       x-enum-varnames:
-      - LOW
-      - HIGH
-      - DYNAMIC
-    TeamRoutingRulesData:
-      description: Represents the top-level data object for team routing rules, containing the ID, relationships, and resource type.
+      - POLICIES
+    TeamRoutingRulesRequestDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    APIErrorResponse:
+      description: API error response.
       properties:
-        id:
-          description: Specifies the unique identifier of this team routing rules record.
-          type: string
-          example: abc-123-def
-        relationships:
-          $ref: '#/components/schemas/TeamRoutingRulesDataRelationships'
-        type:
-          $ref: '#/components/schemas/TeamRoutingRulesDataType'
+        errors:
+          description: A list of errors.
+          example:
+          - Bad Request
+          items:
+            description: A list of items.
+            example: Bad Request
+            type: string
+          type: array
       required:
-      - type
-      type: object
-    TimeRestriction:
-      description: Defines a single time restriction rule with start and end times and the applicable weekdays.
-      properties:
-        end_day:
-          $ref: '#/components/schemas/Weekday'
-        end_time:
-          description: Specifies the ending time for this restriction.
-          type: string
-          example: '2026-04-17T12:00:00Z'
-        start_day:
-          $ref: '#/components/schemas/Weekday'
-        start_time:
-          description: Specifies the starting time for this restriction.
-          type: string
-          example: '2026-04-17T12:00:00Z'
-      type: object
-    RoutingRuleRelationships:
-      description: Specifies relationships for a routing rule, linking to associated policy resources.
-      properties:
-        policy:
-          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicy'
+      - errors
       type: object
     TeamRoutingRules:
       description: Represents a complete set of team routing rules, including data and optionally included related resources.
@@ -258,92 +213,48 @@ components:
             $ref: '#/components/schemas/TeamRoutingRulesIncluded'
           type: array
       type: object
-    TeamRoutingRulesRequestData:
-      description: Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type.
+    SendTeamsMessageAction:
+      description: Sends a message to a Microsoft Teams channel.
       properties:
-        attributes:
-          $ref: '#/components/schemas/TeamRoutingRulesRequestDataAttributes'
-        id:
-          description: Specifies the unique identifier for this set of team routing rules.
+        channel:
+          description: The channel ID.
+          example: CHANNEL
           type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/TeamRoutingRulesRequestDataType'
-      required:
-      - type
-      type: object
-    RoutingRuleAttributes:
-      description: Defines the configurable attributes of a routing rule, such as actions, query, time restriction, and urgency.
-      properties:
-        actions:
-          description: Specifies the list of actions to perform when the routing rule matches.
-          items:
-            $ref: '#/components/schemas/RoutingRuleAction'
-          type: array
-        query:
-          description: Defines the query or condition that triggers this routing rule.
+        team:
+          description: The team ID.
+          example: TEAM
           type: string
-          example: avg:system.cpu.user{*}
-        time_restriction:
-          $ref: '#/components/schemas/TimeRestrictions'
-        urgency:
-          $ref: '#/components/schemas/Urgency'
-      type: object
-    TeamRoutingRulesDataRelationshipsRulesDataItems:
-      description: Defines a relationship item to link a routing rule by its ID and type.
-      properties:
-        id:
-          description: Specifies the unique identifier for the related routing rule.
-          example: ''
+        tenant:
+          description: The tenant ID.
+          example: TENANT
           type: string
         type:
-          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItemsType'
+          $ref: '#/components/schemas/SendTeamsMessageActionType'
       required:
       - type
-      - id
+      - channel
+      - tenant
+      - team
       type: object
-    TeamRoutingRulesDataType:
-      default: team_routing_rules
-      description: Team routing rules resource type.
-      enum:
-      - team_routing_rules
-      example: team_routing_rules
-      type: string
-      x-enum-varnames:
-      - TEAM_ROUTING_RULES
-    TeamRoutingRulesDataRelationshipsRulesDataItemsType:
-      default: team_routing_rules
-      description: Indicates that the resource is of type 'team_routing_rules'.
-      enum:
-      - team_routing_rules
-      example: team_routing_rules
-      type: string
-      x-enum-varnames:
-      - TEAM_ROUTING_RULES
-    RoutingRuleRelationshipsPolicyDataType:
-      default: policies
-      description: Indicates that the resource is of type 'policies'.
-      enum:
-      - policies
-      example: policies
-      type: string
-      x-enum-varnames:
-      - POLICIES
-    RoutingRuleType:
-      default: team_routing_rules
-      description: Team routing rules resource type.
-      enum:
-      - team_routing_rules
-      example: team_routing_rules
-      type: string
-      x-enum-varnames:
-      - TEAM_ROUTING_RULES
-    RoutingRuleRelationshipsPolicy:
-      description: Defines the relationship that links a routing rule to a policy.
+    RoutingRuleRelationships:
+      description: Specifies relationships for a routing rule, linking to associated policy resources.
       properties:
-        data:
-          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyData'
+        policy:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicy'
       type: object
+    TeamRoutingRulesIncluded:
+      description: Represents additional included resources for team routing rules, such as associated routing rules.
+      oneOf:
+      - $ref: '#/components/schemas/RoutingRule'
+    SendTeamsMessageActionType:
+      default: send_teams_message
+      description: Indicates that the action is a send Microsoft Teams message action.
+      enum:
+      - send_teams_message
+      example: send_teams_message
+      type: string
+      x-enum-varnames:
+      - SEND_TEAMS_MESSAGE
     TeamRoutingRulesRequest:
       description: Represents a request to create or update team routing rules, including the data payload.
       example:
@@ -379,18 +290,48 @@ components:
         data:
           $ref: '#/components/schemas/TeamRoutingRulesRequestData'
       type: object
-    TeamRoutingRulesIncluded:
-      description: Represents additional included resources for team routing rules, such as associated routing rules.
-      oneOf:
-      - $ref: '#/components/schemas/RoutingRule'
-    TeamRoutingRulesDataRelationshipsRules:
-      description: Holds references to a set of routing rules in a relationship.
+    SendSlackMessageActionType:
+      default: send_slack_message
+      description: Indicates that the action is a send Slack message action.
+      enum:
+      - send_slack_message
+      example: send_slack_message
+      type: string
+      x-enum-varnames:
+      - SEND_SLACK_MESSAGE
+    TeamRoutingRulesRequestDataAttributes:
+      description: Represents the attributes of a request to update or create team routing rules.
       properties:
-        data:
-          description: An array of references to the routing rules associated with this team.
+        rules:
+          description: A list of routing rule items that define how incoming pages should be handled.
           items:
-            $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItems'
+            $ref: '#/components/schemas/TeamRoutingRulesRequestRule'
           type: array
+      type: object
+    TeamRoutingRulesDataRelationshipsRulesDataItemsType:
+      default: team_routing_rules
+      description: Indicates that the resource is of type 'team_routing_rules'.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    RoutingRule:
+      description: Represents a routing rule, including its attributes, relationships, and unique identifier.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/RoutingRuleAttributes'
+        id:
+          description: Specifies the unique identifier of this routing rule.
+          type: string
+          example: abc-123-def
+        relationships:
+          $ref: '#/components/schemas/RoutingRuleRelationships'
+        type:
+          $ref: '#/components/schemas/RoutingRuleType'
+      required:
+      - type
       type: object
     TimeRestrictions:
       description: Holds time zone information and a list of time restrictions for a routing rule.
@@ -408,63 +349,106 @@ components:
       - time_zone
       - restrictions
       type: object
-    SendTeamsMessageAction:
-      description: Sends a message to a Microsoft Teams channel.
+    TeamRoutingRulesDataRelationships:
+      description: Specifies relationships for team routing rules, including rule references.
       properties:
-        channel:
-          description: The channel ID.
-          example: CHANNEL
-          type: string
-        team:
-          description: The team ID.
-          example: TEAM
-          type: string
-        tenant:
-          description: The tenant ID.
-          example: TENANT
-          type: string
-        type:
-          $ref: '#/components/schemas/SendTeamsMessageActionType'
-      required:
-      - type
-      - channel
-      - tenant
-      - team
+        rules:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRules'
       type: object
-    RoutingRule:
-      description: Represents a routing rule, including its attributes, relationships, and unique identifier.
+    TeamRoutingRulesData:
+      description: Represents the top-level data object for team routing rules, containing the ID, relationships, and resource type.
       properties:
-        attributes:
-          $ref: '#/components/schemas/RoutingRuleAttributes'
         id:
-          description: Specifies the unique identifier of this routing rule.
+          description: Specifies the unique identifier of this team routing rules record.
           type: string
           example: abc-123-def
         relationships:
-          $ref: '#/components/schemas/RoutingRuleRelationships'
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationships'
         type:
-          $ref: '#/components/schemas/RoutingRuleType'
+          $ref: '#/components/schemas/TeamRoutingRulesDataType'
       required:
       - type
       type: object
-    TeamRoutingRulesRequestDataType:
-      default: team_routing_rules
-      description: Team routing rules resource type.
+    RoutingRuleRelationshipsPolicy:
+      description: Defines the relationship that links a routing rule to a policy.
+      properties:
+        data:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyData'
+      type: object
+    TeamRoutingRulesDataRelationshipsRulesDataItems:
+      description: Defines a relationship item to link a routing rule by its ID and type.
+      properties:
+        id:
+          description: Specifies the unique identifier for the related routing rule.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItemsType'
+      required:
+      - type
+      - id
+      type: object
+    TeamRoutingRulesRequestData:
+      description: Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataAttributes'
+        id:
+          description: Specifies the unique identifier for this set of team routing rules.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/TeamRoutingRulesRequestDataType'
+      required:
+      - type
+      type: object
+    RoutingRuleAttributes:
+      description: Defines the configurable attributes of a routing rule, such as actions, query, time restriction, and urgency.
+      properties:
+        actions:
+          description: Specifies the list of actions to perform when the routing rule matches.
+          items:
+            $ref: '#/components/schemas/RoutingRuleAction'
+          type: array
+        query:
+          description: Defines the query or condition that triggers this routing rule.
+          type: string
+          example: avg:system.cpu.user{*}
+        time_restriction:
+          $ref: '#/components/schemas/TimeRestrictions'
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+      type: object
+    RoutingRuleRelationshipsPolicyData:
+      description: Represents the policy data reference, containing the policy's ID and resource type.
+      properties:
+        id:
+          description: Specifies the unique identifier of the policy.
+          example: ''
+          type: string
+        type:
+          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyDataType'
+      required:
+      - type
+      - id
+      type: object
+    Urgency:
+      description: Specifies the level of urgency for a routing rule (low, high, or dynamic).
       enum:
-      - team_routing_rules
-      example: team_routing_rules
+      - low
+      - high
+      - dynamic
+      example: low
       type: string
       x-enum-varnames:
-      - TEAM_ROUTING_RULES
-    SendSlackMessageActionType:
-      default: send_slack_message
-      description: Indicates that the action is a send Slack message action.
-      enum:
-      - send_slack_message
-      example: send_slack_message
-      type: string
-      x-enum-varnames:
-      - SEND_SLACK_MESSAGE
+      - LOW
+      - HIGH
+      - DYNAMIC
+    RoutingRuleAction:
+      description: Defines an action that is executed when a routing rule matches certain criteria.
+      oneOf:
+      - $ref: '#/components/schemas/SendSlackMessageAction'
+      - $ref: '#/components/schemas/SendTeamsMessageAction'
     SendSlackMessageAction:
       description: Sends a message to a Slack channel.
       properties:
@@ -483,24 +467,40 @@ components:
       - channel
       - workspace
       type: object
-    RoutingRuleRelationshipsPolicyData:
-      description: Represents the policy data reference, containing the policy's ID and resource type.
+    RoutingRuleType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    TeamRoutingRulesDataType:
+      default: team_routing_rules
+      description: Team routing rules resource type.
+      enum:
+      - team_routing_rules
+      example: team_routing_rules
+      type: string
+      x-enum-varnames:
+      - TEAM_ROUTING_RULES
+    TimeRestriction:
+      description: Defines a single time restriction rule with start and end times and the applicable weekdays.
       properties:
-        id:
-          description: Specifies the unique identifier of the policy.
-          example: ''
+        end_day:
+          $ref: '#/components/schemas/Weekday'
+        end_time:
+          description: Specifies the ending time for this restriction.
           type: string
-        type:
-          $ref: '#/components/schemas/RoutingRuleRelationshipsPolicyDataType'
-      required:
-      - type
-      - id
+          example: '2026-04-17T12:00:00Z'
+        start_day:
+          $ref: '#/components/schemas/Weekday'
+        start_time:
+          description: Specifies the starting time for this restriction.
+          type: string
+          example: '2026-04-17T12:00:00Z'
       type: object
-    RoutingRuleAction:
-      description: Defines an action that is executed when a routing rule matches certain criteria.
-      oneOf:
-      - $ref: '#/components/schemas/SendSlackMessageAction'
-      - $ref: '#/components/schemas/SendTeamsMessageAction'
     TeamRoutingRulesRequestRule:
       description: Defines an individual routing rule item that contains the rule data for the request.
       properties:

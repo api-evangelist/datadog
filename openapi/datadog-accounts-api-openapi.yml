@@ -260,6 +260,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    ConfluentAccountsResponse:
+      description: Confluent account returned by the API.
+      properties:
+        data:
+          description: The Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentAccountResponseData'
+          type: array
+      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -275,166 +284,6 @@ components:
       required:
       - errors
       type: object
-    CsmCloudAccountsCoverageAnalysisAttributes:
-      description: CSM Cloud Accounts Coverage Analysis attributes.
-      properties:
-        aws_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-        azure_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-        gcp_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-        org_id:
-          description: The ID of your organization.
-          example: 123456
-          format: int64
-          type: integer
-        total_coverage:
-          $ref: '#/components/schemas/CsmCoverageAnalysis'
-      type: object
-    FastlyAccounResponseAttributes:
-      description: Attributes object of a Fastly account.
-      properties:
-        name:
-          description: The name of the Fastly account.
-          example: test-name
-          type: string
-        services:
-          description: A list of services belonging to the parent account.
-          items:
-            $ref: '#/components/schemas/FastlyService'
-          type: array
-      required:
-      - name
-      type: object
-    CloudflareAccountResponseData:
-      description: Data object of a Cloudflare account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/CloudflareAccountResponseAttributes'
-        id:
-          description: The ID of the Cloudflare account, a hash of the account name.
-          example: c1a8e059bfd1e911cf10b626340c9a54
-          type: string
-        type:
-          $ref: '#/components/schemas/CloudflareAccountType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    FastlyAccountResponseData:
-      description: Data object of a Fastly account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/FastlyAccounResponseAttributes'
-        id:
-          description: The ID of the Fastly account, a hash of the account name.
-          example: abc123
-          type: string
-        type:
-          $ref: '#/components/schemas/FastlyAccountType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    CloudflareAccountType:
-      default: cloudflare-accounts
-      description: The JSON:API type for this API. Should always be `cloudflare-accounts`.
-      enum:
-      - cloudflare-accounts
-      example: cloudflare-accounts
-      type: string
-      x-enum-varnames:
-      - CLOUDFLARE_ACCOUNTS
-    ConfluentAccountResponseData:
-      description: An API key and API secret pair that represents a Confluent account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/ConfluentAccountResponseAttributes'
-        id:
-          description: A randomly generated ID associated with a Confluent account.
-          example: account_id_abc123
-          type: string
-        type:
-          $ref: '#/components/schemas/ConfluentAccountType'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    CloudflareAccountsResponse:
-      description: The expected response schema when getting Cloudflare accounts.
-      properties:
-        data:
-          description: The JSON:API data schema.
-          items:
-            $ref: '#/components/schemas/CloudflareAccountResponseData'
-          type: array
-      type: object
-    ConfluentResourceResponseAttributes:
-      description: Model representation of a Confluent Cloud resource.
-      properties:
-        enable_custom_metrics:
-          default: false
-          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
-          example: false
-          type: boolean
-        id:
-          description: The ID associated with the Confluent resource.
-          example: resource_id_abc123
-          type: string
-        resource_type:
-          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
-          example: kafka
-          type: string
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
-      required:
-      - resource_type
-      type: object
-      x-merge-override:
-        required: false
-    ConfluentAccountsResponse:
-      description: Confluent account returned by the API.
-      properties:
-        data:
-          description: The Confluent account.
-          items:
-            $ref: '#/components/schemas/ConfluentAccountResponseData'
-          type: array
-      type: object
-    FastlyAccountsResponse:
-      description: The expected response schema when getting Fastly accounts.
-      properties:
-        data:
-          description: The JSON:API data schema.
-          items:
-            $ref: '#/components/schemas/FastlyAccountResponseData'
-          type: array
-      type: object
-    GCPServiceAccountType:
-      default: gcp_service_account
-      description: The type of account.
-      enum:
-      - gcp_service_account
-      example: gcp_service_account
-      type: string
-      x-enum-varnames:
-      - GCP_SERVICE_ACCOUNT
     CloudflareAccountResponseAttributes:
       description: Attributes object of a Cloudflare account.
       properties:
@@ -467,6 +316,41 @@ components:
       required:
       - name
       type: object
+    GCPSTSServiceAccount:
+      description: Info on your service account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
+        id:
+          description: Your service account's unique ID.
+          example: d291291f-12c2-22g4-j290-123456678897
+          type: string
+        meta:
+          $ref: '#/components/schemas/GCPServiceAccountMeta'
+        type:
+          $ref: '#/components/schemas/GCPServiceAccountType'
+      type: object
+      x-merge-override:
+        required: false
+    GCPServiceAccountMeta:
+      description: Additional information related to your service account.
+      properties:
+        accessible_projects:
+          description: The current list of projects accessible from your service account.
+          items:
+            description: List of GCP projects.
+            type: string
+          type: array
+      type: object
+    CloudflareAccountType:
+      default: cloudflare-accounts
+      description: The JSON:API type for this API. Should always be `cloudflare-accounts`.
+      enum:
+      - cloudflare-accounts
+      example: cloudflare-accounts
+      type: string
+      x-enum-varnames:
+      - CLOUDFLARE_ACCOUNTS
     FastlyService:
       description: The schema representation of a Fastly service.
       properties:
@@ -485,78 +369,15 @@ components:
       required:
       - id
       type: object
-    ConfluentAccountType:
-      default: confluent-cloud-accounts
-      description: The JSON:API type for this API. Should always be `confluent-cloud-accounts`.
+    GCPServiceAccountType:
+      default: gcp_service_account
+      description: The type of account.
       enum:
-      - confluent-cloud-accounts
-      example: confluent-cloud-accounts
+      - gcp_service_account
+      example: gcp_service_account
       type: string
       x-enum-varnames:
-      - CONFLUENT_CLOUD_ACCOUNTS
-    GCPServiceAccountMeta:
-      description: Additional information related to your service account.
-      properties:
-        accessible_projects:
-          description: The current list of projects accessible from your service account.
-          items:
-            description: List of GCP projects.
-            type: string
-          type: array
-      type: object
-    GCPSTSServiceAccountsResponse:
-      description: Object containing all your STS enabled accounts.
-      properties:
-        data:
-          description: Array of GCP STS enabled service accounts.
-          items:
-            $ref: '#/components/schemas/GCPSTSServiceAccount'
-          type: array
-      type: object
-    GCPSTSServiceAccount:
-      description: Info on your service account.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/GCPSTSServiceAccountAttributes'
-        id:
-          description: Your service account's unique ID.
-          example: d291291f-12c2-22g4-j290-123456678897
-          type: string
-        meta:
-          $ref: '#/components/schemas/GCPServiceAccountMeta'
-        type:
-          $ref: '#/components/schemas/GCPServiceAccountType'
-      type: object
-      x-merge-override:
-        required: false
-    FastlyAccountType:
-      default: fastly-accounts
-      description: The JSON:API type for this API. Should always be `fastly-accounts`.
-      enum:
-      - fastly-accounts
-      example: fastly-accounts
-      type: string
-      x-enum-varnames:
-      - FASTLY_ACCOUNTS
-    GCPMetricNamespaceConfig:
-      description: Configuration for a GCP metric namespace.
-      properties:
-        disabled:
-          default: false
-          description: When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.
-          example: true
-          type: boolean
-        id:
-          description: The id of the GCP metric namespace.
-          example: aiplatform
-          type: string
-      type: object
-    CsmCloudAccountsCoverageAnalysisResponse:
-      description: CSM Cloud Accounts Coverage Analysis response.
-      properties:
-        data:
-          $ref: '#/components/schemas/CsmCloudAccountsCoverageAnalysisData'
-      type: object
+      - GCP_SERVICE_ACCOUNT
     CsmCoverageAnalysis:
       description: CSM Coverage Analysis.
       properties:
@@ -581,38 +402,24 @@ components:
           format: int64
           type: integer
       type: object
-    OktaAccountType:
-      default: okta-accounts
-      description: Account type for an Okta account.
-      enum:
-      - okta-accounts
-      example: okta-accounts
-      type: string
-      x-enum-varnames:
-      - OKTA_ACCOUNTS
-    ConfluentAccountResponseAttributes:
-      description: The attributes of a Confluent account.
+    OktaAccountResponseData:
+      description: Data object of an Okta account
       properties:
-        api_key:
-          description: The API key associated with your Confluent account.
-          example: TESTAPIKEY123
+        attributes:
+          $ref: '#/components/schemas/OktaAccountAttributes'
+        id:
+          description: The ID of the Okta account, a UUID hash of the account name.
+          example: f749daaf-682e-4208-a38d-c9b43162c609
           type: string
-        resources:
-          description: A list of Confluent resources associated with the Confluent account.
-          items:
-            $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
-          type: array
-        tags:
-          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
-          example:
-          - myTag
-          - myTag2:myValue
-          items:
-            type: string
-          type: array
+        type:
+          $ref: '#/components/schemas/OktaAccountType'
       required:
-      - api_key
+      - attributes
+      - id
+      - type
       type: object
+      x-merge-override:
+        required: false
     CsmCloudAccountsCoverageAnalysisData:
       description: CSM Cloud Accounts Coverage Analysis data.
       properties:
@@ -627,15 +434,6 @@ components:
           description: The type of the resource. The value should always be `get_cloud_accounts_coverage_analysis_response_public_v0`.
           example: get_cloud_accounts_coverage_analysis_response_public_v0
           type: string
-      type: object
-    OktaAccountsResponse:
-      description: The expected response schema when getting Okta accounts.
-      properties:
-        data:
-          description: List of Okta accounts.
-          items:
-            $ref: '#/components/schemas/OktaAccountResponseData'
-          type: array
       type: object
     GCPSTSServiceAccountAttributes:
       description: Attributes associated with your service account.
@@ -704,6 +502,33 @@ components:
       type: object
       x-merge-override:
         required: false
+    OktaAccountsResponse:
+      description: The expected response schema when getting Okta accounts.
+      properties:
+        data:
+          description: List of Okta accounts.
+          items:
+            $ref: '#/components/schemas/OktaAccountResponseData'
+          type: array
+      type: object
+    GCPSTSServiceAccountsResponse:
+      description: Object containing all your STS enabled accounts.
+      properties:
+        data:
+          description: Array of GCP STS enabled service accounts.
+          items:
+            $ref: '#/components/schemas/GCPSTSServiceAccount'
+          type: array
+      type: object
+    ConfluentAccountType:
+      default: confluent-cloud-accounts
+      description: The JSON:API type for this API. Should always be `confluent-cloud-accounts`.
+      enum:
+      - confluent-cloud-accounts
+      example: confluent-cloud-accounts
+      type: string
+      x-enum-varnames:
+      - CONFLUENT_CLOUD_ACCOUNTS
     OktaAccountAttributes:
       description: Attributes object for an Okta account.
       properties:
@@ -738,17 +563,124 @@ components:
       - domain
       - name
       type: object
-    OktaAccountResponseData:
-      description: Data object of an Okta account
+    FastlyAccountsResponse:
+      description: The expected response schema when getting Fastly accounts.
+      properties:
+        data:
+          description: The JSON:API data schema.
+          items:
+            $ref: '#/components/schemas/FastlyAccountResponseData'
+          type: array
+      type: object
+    ConfluentResourceResponseAttributes:
+      description: Model representation of a Confluent Cloud resource.
+      properties:
+        enable_custom_metrics:
+          default: false
+          description: Enable the `custom.consumer_lag_offset` metric, which contains extra metric tags.
+          example: false
+          type: boolean
+        id:
+          description: The ID associated with the Confluent resource.
+          example: resource_id_abc123
+          type: string
+        resource_type:
+          description: The resource type of the Resource. Can be `kafka`, `connector`, `ksql`, or `schema_registry`.
+          example: kafka
+          type: string
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - resource_type
+      type: object
+      x-merge-override:
+        required: false
+    CloudflareAccountsResponse:
+      description: The expected response schema when getting Cloudflare accounts.
+      properties:
+        data:
+          description: The JSON:API data schema.
+          items:
+            $ref: '#/components/schemas/CloudflareAccountResponseData'
+          type: array
+      type: object
+    GCPMetricNamespaceConfig:
+      description: Configuration for a GCP metric namespace.
+      properties:
+        disabled:
+          default: false
+          description: When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.
+          example: true
+          type: boolean
+        id:
+          description: The id of the GCP metric namespace.
+          example: aiplatform
+          type: string
+      type: object
+    FastlyAccounResponseAttributes:
+      description: Attributes object of a Fastly account.
+      properties:
+        name:
+          description: The name of the Fastly account.
+          example: test-name
+          type: string
+        services:
+          description: A list of services belonging to the parent account.
+          items:
+            $ref: '#/components/schemas/FastlyService'
+          type: array
+      required:
+      - name
+      type: object
+    OktaAccountType:
+      default: okta-accounts
+      description: Account type for an Okta account.
+      enum:
+      - okta-accounts
+      example: okta-accounts
+      type: string
+      x-enum-varnames:
+      - OKTA_ACCOUNTS
+    ConfluentAccountResponseAttributes:
+      description: The attributes of a Confluent account.
+      properties:
+        api_key:
+          description: The API key associated with your Confluent account.
+          example: TESTAPIKEY123
+          type: string
+        resources:
+          description: A list of Confluent resources associated with the Confluent account.
+          items:
+            $ref: '#/components/schemas/ConfluentResourceResponseAttributes'
+          type: array
+        tags:
+          description: A list of strings representing tags. Can be a single key, or key-value pairs separated by a colon.
+          example:
+          - myTag
+          - myTag2:myValue
+          items:
+            type: string
+          type: array
+      required:
+      - api_key
+      type: object
+    FastlyAccountResponseData:
+      description: Data object of a Fastly account.
       properties:
         attributes:
-          $ref: '#/components/schemas/OktaAccountAttributes'
+          $ref: '#/components/schemas/FastlyAccounResponseAttributes'
         id:
-          description: The ID of the Okta account, a UUID hash of the account name.
-          example: f749daaf-682e-4208-a38d-c9b43162c609
+          description: The ID of the Fastly account, a hash of the account name.
+          example: abc123
           type: string
         type:
-          $ref: '#/components/schemas/OktaAccountType'
+          $ref: '#/components/schemas/FastlyAccountType'
       required:
       - attributes
       - id
@@ -756,13 +688,93 @@ components:
       type: object
       x-merge-override:
         required: false
+    CloudflareAccountResponseData:
+      description: Data object of a Cloudflare account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/CloudflareAccountResponseAttributes'
+        id:
+          description: The ID of the Cloudflare account, a hash of the account name.
+          example: c1a8e059bfd1e911cf10b626340c9a54
+          type: string
+        type:
+          $ref: '#/components/schemas/CloudflareAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    ConfluentAccountResponseData:
+      description: An API key and API secret pair that represents a Confluent account.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/ConfluentAccountResponseAttributes'
+        id:
+          description: A randomly generated ID associated with a Confluent account.
+          example: account_id_abc123
+          type: string
+        type:
+          $ref: '#/components/schemas/ConfluentAccountType'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
+    CsmCloudAccountsCoverageAnalysisResponse:
+      description: CSM Cloud Accounts Coverage Analysis response.
+      properties:
+        data:
+          $ref: '#/components/schemas/CsmCloudAccountsCoverageAnalysisData'
+      type: object
+    CsmCloudAccountsCoverageAnalysisAttributes:
+      description: CSM Cloud Accounts Coverage Analysis attributes.
+      properties:
+        aws_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        azure_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        gcp_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+        org_id:
+          description: The ID of your organization.
+          example: 123456
+          format: int64
+          type: integer
+        total_coverage:
+          $ref: '#/components/schemas/CsmCoverageAnalysis'
+      type: object
+    FastlyAccountType:
+      default: fastly-accounts
+      description: The JSON:API type for this API. Should always be `fastly-accounts`.
+      enum:
+      - fastly-accounts
+      example: fastly-accounts
+      type: string
+      x-enum-varnames:
+      - FASTLY_ACCOUNTS
   responses:
+    NotAuthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Authorized
     BadRequestResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Bad Request
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+      description: Not Found
     ForbiddenResponse:
       content:
         application/json:
@@ -775,18 +787,6 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
-    NotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Found
-    NotAuthorizedResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/APIErrorResponse'
-      description: Not Authorized
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

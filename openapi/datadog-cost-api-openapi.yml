@@ -196,6 +196,30 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    CostAttributionTagNames:
+      additionalProperties:
+        description: 'A list of values that are associated with each tag key.
+
+          - An empty list means the resource use wasn''t tagged with the respective tag.
+
+          - Multiple values means the respective tag was applied multiple times on the resource.
+
+          - An `<empty>` value means the resource was tagged with the respective tag but did not have a value.'
+        items:
+          description: A given tag in a list.
+          example: datadog-integrations-lab
+          type: string
+        type: array
+      description: 'Tag keys and values.
+
+        A `null` value here means that the requested tag breakdown cannot be applied because it does not match the [tags
+
+        configured for usage attribution](https://docs.datadoghq.com/account_management/billing/usage_attribution/#getting-started).
+
+        In this scenario the API returns the total cost, not broken down by tags.'
+      type:
+      - object
+      - 'null'
     MonthlyCostAttributionAttributes:
       description: Cost Attribution by Tag for a given organization.
       properties:
@@ -226,52 +250,6 @@ components:
           description: 'Fields in Cost Attribution by tag(s). Example: `infra_host_on_demand_cost`, `infra_host_committed_cost`, `infra_host_total_cost`, `infra_host_percentage_in_org`, `infra_host_percentage_in_account`.'
           type: object
       type: object
-    CostAttributionAggregates:
-      description: An array of available aggregates.
-      items:
-        $ref: '#/components/schemas/CostAttributionAggregatesBody'
-      type: array
-    MonthlyCostAttributionResponse:
-      description: Response containing the monthly cost attribution by tag(s).
-      properties:
-        data:
-          description: Response containing cost attribution.
-          items:
-            $ref: '#/components/schemas/MonthlyCostAttributionBody'
-          type: array
-        meta:
-          $ref: '#/components/schemas/MonthlyCostAttributionMeta'
-      type: object
-    MonthlyCostAttributionBody:
-      description: Cost data.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/MonthlyCostAttributionAttributes'
-        id:
-          description: Unique ID of the response.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/CostAttributionType'
-      type: object
-    MonthlyCostAttributionPagination:
-      description: The metadata for the current pagination.
-      properties:
-        next_record_id:
-          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of the `next_record_id`.
-          type:
-          - string
-          - 'null'
-          example: abc-123-def
-      type: object
-    MonthlyCostAttributionMeta:
-      description: The object containing document metadata.
-      properties:
-        aggregates:
-          $ref: '#/components/schemas/CostAttributionAggregates'
-        pagination:
-          $ref: '#/components/schemas/MonthlyCostAttributionPagination'
-      type: object
     APIErrorResponse:
       description: API error response.
       properties:
@@ -286,6 +264,71 @@ components:
           type: array
       required:
       - errors
+      type: object
+    CostAttributionAggregates:
+      description: An array of available aggregates.
+      items:
+        $ref: '#/components/schemas/CostAttributionAggregatesBody'
+      type: array
+    MonthlyCostAttributionMeta:
+      description: The object containing document metadata.
+      properties:
+        aggregates:
+          $ref: '#/components/schemas/CostAttributionAggregates'
+        pagination:
+          $ref: '#/components/schemas/MonthlyCostAttributionPagination'
+      type: object
+    CostAttributionType:
+      default: cost_by_tag
+      description: Type of cost attribution data.
+      enum:
+      - cost_by_tag
+      example: cost_by_tag
+      type: string
+      x-enum-varnames:
+      - COST_BY_TAG
+    MonthlyCostAttributionResponse:
+      description: Response containing the monthly cost attribution by tag(s).
+      properties:
+        data:
+          description: Response containing cost attribution.
+          items:
+            $ref: '#/components/schemas/MonthlyCostAttributionBody'
+          type: array
+        meta:
+          $ref: '#/components/schemas/MonthlyCostAttributionMeta'
+      type: object
+    MonthlyCostAttributionPagination:
+      description: The metadata for the current pagination.
+      properties:
+        next_record_id:
+          description: The cursor to use to get the next results, if any. To make the next request, use the same parameters with the addition of the `next_record_id`.
+          type:
+          - string
+          - 'null'
+          example: abc-123-def
+      type: object
+    SortDirection:
+      default: desc
+      description: The direction to sort by.
+      enum:
+      - desc
+      - asc
+      type: string
+      x-enum-varnames:
+      - DESC
+      - ASC
+    MonthlyCostAttributionBody:
+      description: Cost data.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/MonthlyCostAttributionAttributes'
+        id:
+          description: Unique ID of the response.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/CostAttributionType'
       type: object
     CostAttributionAggregatesBody:
       description: The object containing the aggregates.
@@ -304,49 +347,6 @@ components:
           type: number
           example: 95.5
       type: object
-    SortDirection:
-      default: desc
-      description: The direction to sort by.
-      enum:
-      - desc
-      - asc
-      type: string
-      x-enum-varnames:
-      - DESC
-      - ASC
-    CostAttributionTagNames:
-      additionalProperties:
-        description: 'A list of values that are associated with each tag key.
-
-          - An empty list means the resource use wasn''t tagged with the respective tag.
-
-          - Multiple values means the respective tag was applied multiple times on the resource.
-
-          - An `<empty>` value means the resource was tagged with the respective tag but did not have a value.'
-        items:
-          description: A given tag in a list.
-          example: datadog-integrations-lab
-          type: string
-        type: array
-      description: 'Tag keys and values.
-
-        A `null` value here means that the requested tag breakdown cannot be applied because it does not match the [tags
-
-        configured for usage attribution](https://docs.datadoghq.com/account_management/billing/usage_attribution/#getting-started).
-
-        In this scenario the API returns the total cost, not broken down by tags.'
-      type:
-      - object
-      - 'null'
-    CostAttributionType:
-      default: cost_by_tag
-      description: Type of cost attribution data.
-      enum:
-      - cost_by_tag
-      example: cost_by_tag
-      type: string
-      x-enum-varnames:
-      - COST_BY_TAG
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

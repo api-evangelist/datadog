@@ -76,6 +76,112 @@ components:
                   description: List of aggregation buckets, each representing a group-by combination
                   items:
                     $ref: '#/components/schemas/LogsAggregateBucket'
+    APIErrorResponse:
+      type: object
+      description: Standard API error response returned for failed requests
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          description: List of error messages describing the failure
+          items:
+            type: string
+    LogsCompute:
+      type: object
+      description: A computation to perform over the filtered log set
+      required:
+      - aggregation
+      - type
+      properties:
+        aggregation:
+          type: string
+          description: The type of aggregation to compute over log events
+          enum:
+          - count
+          - cardinality
+          - pc75
+          - pc90
+          - pc95
+          - pc98
+          - pc99
+          - sum
+          - avg
+          - min
+          - max
+          example: count
+        metric:
+          type: string
+          description: The log attribute to aggregate (required for all aggregations except count)
+          example: example_value
+        type:
+          type: string
+          description: Whether this is a total aggregation or a timeseries
+          enum:
+          - total
+          - timeseries
+          example: total
+        interval:
+          type: string
+          description: The time interval for timeseries computations (e.g., 1m, 1h, 1d)
+          example: example_value
+    LogsQueryFilter:
+      type: object
+      description: Filter criteria for log search queries
+      properties:
+        query:
+          type: string
+          description: A Datadog log search query string to filter log events (e.g., service:web status:error)
+          example: avg:system.cpu.user{*}
+        indexes:
+          type: array
+          description: List of log index names to search; if empty, all indexes are searched
+          items:
+            type: string
+        from:
+          type: string
+          description: The start of the time range for the search in ISO 8601 format or relative format (e.g., now-15m)
+          example: example_value
+        to:
+          type: string
+          description: The end of the time range for the search in ISO 8601 format or relative format (e.g., now)
+          example: example_value
+    LogsAggregateBucket:
+      type: object
+      description: A single aggregation bucket representing one group-by combination
+      properties:
+        by:
+          type: object
+          description: The facet values that define this bucket
+          additionalProperties:
+            type: string
+        computes:
+          type: object
+          description: The computed aggregation values for this bucket, keyed by computation index
+          additionalProperties: true
+    LogsAggregateRequest:
+      type: object
+      description: Request body for aggregating log events
+      properties:
+        filter:
+          $ref: '#/components/schemas/LogsQueryFilter'
+        compute:
+          type: array
+          description: List of aggregation computations to perform on the filtered log set
+          items:
+            $ref: '#/components/schemas/LogsCompute'
+        group_by:
+          type: array
+          description: List of facets to group results by, enabling breakdown by log attribute
+          items:
+            $ref: '#/components/schemas/LogsGroupBy'
+        options:
+          type: object
+          description: Options for the aggregation query
+          properties:
+            timezone:
+              type: string
+              description: The timezone to use for time-based group-by operations (IANA timezone name)
     LogsGroupBy:
       type: object
       description: A group-by configuration for aggregating log results by facet values
@@ -116,112 +222,6 @@ components:
               enum:
               - asc
               - desc
-    APIErrorResponse:
-      type: object
-      description: Standard API error response returned for failed requests
-      required:
-      - errors
-      properties:
-        errors:
-          type: array
-          description: List of error messages describing the failure
-          items:
-            type: string
-    LogsAggregateRequest:
-      type: object
-      description: Request body for aggregating log events
-      properties:
-        filter:
-          $ref: '#/components/schemas/LogsQueryFilter'
-        compute:
-          type: array
-          description: List of aggregation computations to perform on the filtered log set
-          items:
-            $ref: '#/components/schemas/LogsCompute'
-        group_by:
-          type: array
-          description: List of facets to group results by, enabling breakdown by log attribute
-          items:
-            $ref: '#/components/schemas/LogsGroupBy'
-        options:
-          type: object
-          description: Options for the aggregation query
-          properties:
-            timezone:
-              type: string
-              description: The timezone to use for time-based group-by operations (IANA timezone name)
-    LogsQueryFilter:
-      type: object
-      description: Filter criteria for log search queries
-      properties:
-        query:
-          type: string
-          description: A Datadog log search query string to filter log events (e.g., service:web status:error)
-          example: avg:system.cpu.user{*}
-        indexes:
-          type: array
-          description: List of log index names to search; if empty, all indexes are searched
-          items:
-            type: string
-        from:
-          type: string
-          description: The start of the time range for the search in ISO 8601 format or relative format (e.g., now-15m)
-          example: example_value
-        to:
-          type: string
-          description: The end of the time range for the search in ISO 8601 format or relative format (e.g., now)
-          example: example_value
-    LogsCompute:
-      type: object
-      description: A computation to perform over the filtered log set
-      required:
-      - aggregation
-      - type
-      properties:
-        aggregation:
-          type: string
-          description: The type of aggregation to compute over log events
-          enum:
-          - count
-          - cardinality
-          - pc75
-          - pc90
-          - pc95
-          - pc98
-          - pc99
-          - sum
-          - avg
-          - min
-          - max
-          example: count
-        metric:
-          type: string
-          description: The log attribute to aggregate (required for all aggregations except count)
-          example: example_value
-        type:
-          type: string
-          description: Whether this is a total aggregation or a timeseries
-          enum:
-          - total
-          - timeseries
-          example: total
-        interval:
-          type: string
-          description: The time interval for timeseries computations (e.g., 1m, 1h, 1d)
-          example: example_value
-    LogsAggregateBucket:
-      type: object
-      description: A single aggregation bucket representing one group-by combination
-      properties:
-        by:
-          type: object
-          description: The facet values that define this bucket
-          additionalProperties:
-            type: string
-        computes:
-          type: object
-          description: The computed aggregation values for this bucket, keyed by computation index
-          additionalProperties: true
   securitySchemes:
     apiKeyAuth:
       type: apiKey

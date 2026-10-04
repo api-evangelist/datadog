@@ -176,11 +176,15 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    RelationshipToPermission:
-      description: Relationship to a permissions object.
+    RelationshipToPermissionData:
+      description: Relationship to permission object.
       properties:
-        data:
-          $ref: '#/components/schemas/RelationshipToPermissionData'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
       type: object
       x-merge-override:
         required: false
@@ -199,12 +203,41 @@ components:
       required:
       - errors
       type: object
-    TeamPermissionSettingUpdateAttributes:
-      description: Team permission setting update attributes
+    TeamPermissionSettingSerializerAction:
+      description: The identifier for the action
+      enum:
+      - manage_membership
+      - edit
+      readOnly: true
+      type: string
+      x-enum-varnames:
+      - MANAGE_MEMBERSHIP
+      - EDIT
+    TeamPermissionSettingUpdateRequest:
+      description: Team permission setting update request
       properties:
-        value:
-          $ref: '#/components/schemas/TeamPermissionSettingValue'
+        data:
+          $ref: '#/components/schemas/TeamPermissionSettingUpdate'
+      required:
+      - data
       type: object
+    TeamPermissionSetting:
+      description: Team permission setting
+      properties:
+        attributes:
+          $ref: '#/components/schemas/TeamPermissionSettingAttributes'
+        id:
+          description: The team permission setting's identifier
+          example: TeamPermission-aeadc05e-98a8-11ec-ac2c-da7ad0900001-edit
+          type: string
+        type:
+          $ref: '#/components/schemas/TeamPermissionSettingType'
+      required:
+      - id
+      - type
+      type: object
+      x-merge-override:
+        required: false
     PermissionAttributes:
       description: Attributes of a permission.
       properties:
@@ -238,97 +271,6 @@ components:
           type: boolean
           example: true
       type: object
-    TeamPermissionSetting:
-      description: Team permission setting
-      properties:
-        attributes:
-          $ref: '#/components/schemas/TeamPermissionSettingAttributes'
-        id:
-          description: The team permission setting's identifier
-          example: TeamPermission-aeadc05e-98a8-11ec-ac2c-da7ad0900001-edit
-          type: string
-        type:
-          $ref: '#/components/schemas/TeamPermissionSettingType'
-      required:
-      - id
-      - type
-      type: object
-      x-merge-override:
-        required: false
-    TeamPermissionSettingValues:
-      description: Possible values for action
-      items:
-        $ref: '#/components/schemas/TeamPermissionSettingValue'
-      readOnly: true
-      type: array
-    TeamPermissionSettingType:
-      default: team_permission_settings
-      description: Team permission setting type
-      enum:
-      - team_permission_settings
-      example: team_permission_settings
-      type: string
-      x-enum-varnames:
-      - TEAM_PERMISSION_SETTINGS
-    Permission:
-      description: Permission object.
-      properties:
-        attributes:
-          $ref: '#/components/schemas/PermissionAttributes'
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      required:
-      - type
-      type: object
-    TeamPermissionSettingSerializerAction:
-      description: The identifier for the action
-      enum:
-      - manage_membership
-      - edit
-      readOnly: true
-      type: string
-      x-enum-varnames:
-      - MANAGE_MEMBERSHIP
-      - EDIT
-    RelationshipToPermissionData:
-      description: Relationship to permission object.
-      properties:
-        id:
-          description: ID of the permission.
-          type: string
-          example: abc-123-def
-        type:
-          $ref: '#/components/schemas/PermissionsType'
-      type: object
-      x-merge-override:
-        required: false
-    TeamPermissionSettingResponse:
-      description: Team permission setting response
-      properties:
-        data:
-          $ref: '#/components/schemas/TeamPermissionSetting'
-      type: object
-    PermissionsResponse:
-      description: Payload with API-returned permissions.
-      properties:
-        data:
-          description: Array of permissions.
-          items:
-            $ref: '#/components/schemas/Permission'
-          type: array
-      type: object
-    TeamPermissionSettingUpdateRequest:
-      description: Team permission setting update request
-      properties:
-        data:
-          $ref: '#/components/schemas/TeamPermissionSettingUpdate'
-      required:
-      - data
-      type: object
     TeamPermissionSettingUpdate:
       description: Team permission setting update
       properties:
@@ -339,6 +281,54 @@ components:
       required:
       - type
       type: object
+    PermissionsResponse:
+      description: Payload with API-returned permissions.
+      properties:
+        data:
+          description: Array of permissions.
+          items:
+            $ref: '#/components/schemas/Permission'
+          type: array
+      type: object
+    PermissionsType:
+      default: permissions
+      description: Permissions resource type.
+      enum:
+      - permissions
+      example: permissions
+      type: string
+      x-enum-varnames:
+      - PERMISSIONS
+    TeamPermissionSettingType:
+      default: team_permission_settings
+      description: Team permission setting type
+      enum:
+      - team_permission_settings
+      example: team_permission_settings
+      type: string
+      x-enum-varnames:
+      - TEAM_PERMISSION_SETTINGS
+    TeamPermissionSettingUpdateAttributes:
+      description: Team permission setting update attributes
+      properties:
+        value:
+          $ref: '#/components/schemas/TeamPermissionSettingValue'
+      type: object
+    TeamPermissionSettingValue:
+      description: What type of user is allowed to perform the specified action
+      enum:
+      - admins
+      - members
+      - organization
+      - user_access_manage
+      - teams_manage
+      type: string
+      x-enum-varnames:
+      - ADMINS
+      - MEMBERS
+      - ORGANIZATION
+      - USER_ACCESS_MANAGE
+      - TEAMS_MANAGE
     TeamPermissionSettingAttributes:
       description: Team permission setting attributes
       properties:
@@ -359,38 +349,40 @@ components:
         value:
           $ref: '#/components/schemas/TeamPermissionSettingValue'
       type: object
-    PermissionsType:
-      default: permissions
-      description: Permissions resource type.
-      enum:
-      - permissions
-      example: permissions
-      type: string
-      x-enum-varnames:
-      - PERMISSIONS
-    TeamPermissionSettingValue:
-      description: What type of user is allowed to perform the specified action
-      enum:
-      - admins
-      - members
-      - organization
-      - user_access_manage
-      - teams_manage
-      type: string
-      x-enum-varnames:
-      - ADMINS
-      - MEMBERS
-      - ORGANIZATION
-      - USER_ACCESS_MANAGE
-      - TEAMS_MANAGE
-  parameters:
-    RoleID:
-      description: The unique identifier of the role.
-      in: path
-      name: role_id
-      required: true
-      schema:
-        type: string
+    RelationshipToPermission:
+      description: Relationship to a permissions object.
+      properties:
+        data:
+          $ref: '#/components/schemas/RelationshipToPermissionData'
+      type: object
+      x-merge-override:
+        required: false
+    TeamPermissionSettingValues:
+      description: Possible values for action
+      items:
+        $ref: '#/components/schemas/TeamPermissionSettingValue'
+      readOnly: true
+      type: array
+    Permission:
+      description: Permission object.
+      properties:
+        attributes:
+          $ref: '#/components/schemas/PermissionAttributes'
+        id:
+          description: ID of the permission.
+          type: string
+          example: abc-123-def
+        type:
+          $ref: '#/components/schemas/PermissionsType'
+      required:
+      - type
+      type: object
+    TeamPermissionSettingResponse:
+      description: Team permission setting response
+      properties:
+        data:
+          $ref: '#/components/schemas/TeamPermissionSetting'
+      type: object
   responses:
     ForbiddenResponse:
       content:
@@ -404,6 +396,14 @@ components:
           schema:
             $ref: '#/components/schemas/APIErrorResponse'
       description: Too many requests
+  parameters:
+    RoleID:
+      description: The unique identifier of the role.
+      in: path
+      name: role_id
+      required: true
+      schema:
+        type: string
   securitySchemes:
     AuthZ:
       description: This API uses OAuth 2 with the implicit grant flow.

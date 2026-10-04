@@ -242,22 +242,52 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    JSONAPIErrorItemSource:
-      description: References to the source of the error.
+    FindingEvaluation:
+      description: The evaluation of the finding.
+      enum:
+      - pass
+      - fail
+      example: pass
+      type: string
+      x-enum-varnames:
+      - PASS
+      - FAIL
+    FindingResource:
+      description: The resource name of this finding.
+      example: my_resource_name
+      type: string
+    FindingVulnerabilityType:
+      description: The vulnerability type of the finding.
+      enum:
+      - misconfiguration
+      - attack_path
+      - identity_risk
+      - api_security
+      example: misconfiguration
+      type: string
+      x-enum-varnames:
+      - MISCONFIGURATION
+      - ATTACK_PATH
+      - IDENTITY_RISK
+      - API_SECURITY
+    ListFindingsPage:
+      additionalProperties: false
+      description: Pagination and findings count information.
       properties:
-        header:
-          description: A string indicating the name of a single request header which caused the error.
-          example: Authorization
+        cursor:
+          description: The cursor used to paginate requests.
+          example: eyJhZnRlciI6IkFRQUFBWWJiaEJXQS1OY1dqUUFBQUFCQldXSmlhRUpYUVVGQlJFSktkbTlDTUdaWFRVbDNRVUUiLCJ2YWx1ZXMiOlsiY3JpdGljYWwiXX0=
           type: string
-        parameter:
-          description: A string indicating which URI query parameter caused the error.
-          example: limit
-          type: string
-        pointer:
-          description: A JSON pointer to the value in the request document that caused the error.
-          example: /data/attributes/title
-          type: string
+        total_filtered_count:
+          description: The total count of findings after the filter has been applied.
+          example: 213
+          format: int64
+          type: integer
       type: object
+    FindingID:
+      description: The unique ID for this finding.
+      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
+      type: string
     ListFindingsResponse:
       description: The expected response schema when listing findings.
       properties:
@@ -269,17 +299,36 @@ components:
       - data
       - meta
       type: object
-    JSONAPIErrorResponse:
-      description: API error response.
-      properties:
-        errors:
-          description: A list of errors.
-          items:
-            $ref: '#/components/schemas/JSONAPIErrorItem'
-          type: array
-      required:
-      - errors
-      type: object
+    FindingEvaluationChangedAt:
+      description: The date on which the evaluation for this finding changed (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
+    FindingTags:
+      description: The tags associated with this finding.
+      example:
+      - cloud_provider:aws
+      - myTag:myValue
+      items:
+        description: The list of tags.
+        type: string
+      type: array
+    FindingType:
+      default: finding
+      description: The JSON:API type for findings.
+      enum:
+      - finding
+      example: finding
+      type: string
+      x-enum-varnames:
+      - FINDING
+    FindingResourceDiscoveryDate:
+      description: The date on which the resource was discovered (Unix ms).
+      example: 1678721573794
+      format: int64
+      minimum: 1
+      type: integer
     Finding:
       description: A single finding without the message and resource configuration.
       properties:
@@ -290,21 +339,6 @@ components:
         type:
           $ref: '#/components/schemas/FindingType'
       type: object
-    FindingEvaluationChangedAt:
-      description: The date on which the evaluation for this finding changed (Unix ms).
-      example: 1678721573794
-      format: int64
-      minimum: 1
-      type: integer
-    ListFindingsData:
-      description: Array of findings.
-      items:
-        $ref: '#/components/schemas/Finding'
-      type: array
-    FindingResource:
-      description: The resource name of this finding.
-      example: my_resource_name
-      type: string
     FindingMuteReason:
       description: The reason why this finding is muted or unmuted.
       enum:
@@ -325,68 +359,10 @@ components:
       - HUMAN_ERROR
       - NO_LONGER_ACCEPTED_RISK
       - OTHER
-    ListFindingsPage:
-      additionalProperties: false
-      description: Pagination and findings count information.
-      properties:
-        cursor:
-          description: The cursor used to paginate requests.
-          example: eyJhZnRlciI6IkFRQUFBWWJiaEJXQS1OY1dqUUFBQUFCQldXSmlhRUpYUVVGQlJFSktkbTlDTUdaWFRVbDNRVUUiLCJ2YWx1ZXMiOlsiY3JpdGljYWwiXX0=
-          type: string
-        total_filtered_count:
-          description: The total count of findings after the filter has been applied.
-          example: 213
-          format: int64
-          type: integer
-      type: object
-    FindingStatus:
-      description: The status of the finding.
-      enum:
-      - critical
-      - high
-      - medium
-      - low
-      - info
-      example: critical
-      type: string
-      x-enum-varnames:
-      - CRITICAL
-      - HIGH
-      - MEDIUM
-      - LOW
-      - INFO
-    FindingResourceDiscoveryDate:
-      description: The date on which the resource was discovered (Unix ms).
-      example: 1678721573794
-      format: int64
-      minimum: 1
-      type: integer
     FindingResourceType:
       description: The resource type of this finding.
       example: azure_storage_account
       type: string
-    FindingType:
-      default: finding
-      description: The JSON:API type for findings.
-      enum:
-      - finding
-      example: finding
-      type: string
-      x-enum-varnames:
-      - FINDING
-    FindingID:
-      description: The unique ID for this finding.
-      example: ZGVmLTAwcC1pZXJ-aS0wZjhjNjMyZDNmMzRlZTgzNw==
-      type: string
-    FindingTags:
-      description: The tags associated with this finding.
-      example:
-      - cloud_provider:aws
-      - myTag:myValue
-      items:
-        description: The list of tags.
-        type: string
-      type: array
     FindingRule:
       additionalProperties: false
       description: The rule that triggered this finding.
@@ -400,41 +376,74 @@ components:
           example: Soft delete is enabled for Azure Storage
           type: string
       type: object
-    FindingVulnerabilityType:
-      description: The vulnerability type of the finding.
-      enum:
-      - misconfiguration
-      - attack_path
-      - identity_risk
-      - api_security
-      example: misconfiguration
-      type: string
-      x-enum-varnames:
-      - MISCONFIGURATION
-      - ATTACK_PATH
-      - IDENTITY_RISK
-      - API_SECURITY
-    JSONAPIErrorItem:
-      description: API error response body
+    ListFindingsMeta:
+      additionalProperties: false
+      description: Metadata for pagination.
       properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the error.
-          example: Missing required attribute in body
-          type: string
-        meta:
-          additionalProperties: {}
-          description: Non-standard meta-information about the error
-          type: object
-        source:
-          $ref: '#/components/schemas/JSONAPIErrorItemSource'
+        page:
+          $ref: '#/components/schemas/ListFindingsPage'
+        snapshot_timestamp:
+          description: The point in time corresponding to the listed findings.
+          example: 1678721573794
+          format: int64
+          minimum: 1
+          type: integer
+      type: object
+    FindingAttributes:
+      description: The JSON:API attributes of the finding.
+      properties:
+        evaluation:
+          $ref: '#/components/schemas/FindingEvaluation'
+        evaluation_changed_at:
+          $ref: '#/components/schemas/FindingEvaluationChangedAt'
+        mute:
+          $ref: '#/components/schemas/FindingMute'
+        resource:
+          $ref: '#/components/schemas/FindingResource'
+        resource_discovery_date:
+          $ref: '#/components/schemas/FindingResourceDiscoveryDate'
+        resource_type:
+          $ref: '#/components/schemas/FindingResourceType'
+        rule:
+          $ref: '#/components/schemas/FindingRule'
         status:
-          description: Status code of the response.
-          example: '400'
+          $ref: '#/components/schemas/FindingStatus'
+        tags:
+          $ref: '#/components/schemas/FindingTags'
+        vulnerability_type:
+          $ref: '#/components/schemas/FindingVulnerabilityType'
+      type: object
+    JSONAPIErrorItemSource:
+      description: References to the source of the error.
+      properties:
+        header:
+          description: A string indicating the name of a single request header which caused the error.
+          example: Authorization
           type: string
-        title:
-          description: Short human-readable summary of the error.
-          example: Bad Request
+        parameter:
+          description: A string indicating which URI query parameter caused the error.
+          example: limit
           type: string
+        pointer:
+          description: A JSON pointer to the value in the request document that caused the error.
+          example: /data/attributes/title
+          type: string
+      type: object
+    ListFindingsData:
+      description: Array of findings.
+      items:
+        $ref: '#/components/schemas/Finding'
+      type: array
+    JSONAPIErrorResponse:
+      description: API error response.
+      properties:
+        errors:
+          description: A list of errors.
+          items:
+            $ref: '#/components/schemas/JSONAPIErrorItem'
+          type: array
+      required:
+      - errors
       type: object
     FindingMute:
       additionalProperties: false
@@ -465,53 +474,44 @@ components:
           example: e51c9744-d158-11ec-ad23-da7ad0900002
           type: string
       type: object
-    FindingAttributes:
-      description: The JSON:API attributes of the finding.
+    JSONAPIErrorItem:
+      description: API error response body
       properties:
-        evaluation:
-          $ref: '#/components/schemas/FindingEvaluation'
-        evaluation_changed_at:
-          $ref: '#/components/schemas/FindingEvaluationChangedAt'
-        mute:
-          $ref: '#/components/schemas/FindingMute'
-        resource:
-          $ref: '#/components/schemas/FindingResource'
-        resource_discovery_date:
-          $ref: '#/components/schemas/FindingResourceDiscoveryDate'
-        resource_type:
-          $ref: '#/components/schemas/FindingResourceType'
-        rule:
-          $ref: '#/components/schemas/FindingRule'
+        detail:
+          description: A human-readable explanation specific to this occurrence of the error.
+          example: Missing required attribute in body
+          type: string
+        meta:
+          additionalProperties: {}
+          description: Non-standard meta-information about the error
+          type: object
+        source:
+          $ref: '#/components/schemas/JSONAPIErrorItemSource'
         status:
-          $ref: '#/components/schemas/FindingStatus'
-        tags:
-          $ref: '#/components/schemas/FindingTags'
-        vulnerability_type:
-          $ref: '#/components/schemas/FindingVulnerabilityType'
+          description: Status code of the response.
+          example: '400'
+          type: string
+        title:
+          description: Short human-readable summary of the error.
+          example: Bad Request
+          type: string
       type: object
-    FindingEvaluation:
-      description: The evaluation of the finding.
+    FindingStatus:
+      description: The status of the finding.
       enum:
-      - pass
-      - fail
-      example: pass
+      - critical
+      - high
+      - medium
+      - low
+      - info
+      example: critical
       type: string
       x-enum-varnames:
-      - PASS
-      - FAIL
-    ListFindingsMeta:
-      additionalProperties: false
-      description: Metadata for pagination.
-      properties:
-        page:
-          $ref: '#/components/schemas/ListFindingsPage'
-        snapshot_timestamp:
-          description: The point in time corresponding to the listed findings.
-          example: 1678721573794
-          format: int64
-          minimum: 1
-          type: integer
-      type: object
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      - INFO
   responses:
     FindingsTooManyRequestsResponse:
       content:
@@ -519,18 +519,18 @@ components:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Too many requests: The rate limit set by the API has been exceeded.'
-    FindingsNotFoundResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/JSONAPIErrorResponse'
-      description: 'Not Found: The requested finding cannot be found.'
     FindingsForbiddenResponse:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/JSONAPIErrorResponse'
       description: 'Forbidden: Access denied'
+    FindingsNotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JSONAPIErrorResponse'
+      description: 'Not Found: The requested finding cannot be found.'
     FindingsBadRequestResponse:
       content:
         application/json:
