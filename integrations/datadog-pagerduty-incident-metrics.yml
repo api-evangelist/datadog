@@ -1,0 +1,73 @@
+arazzo: 1.0.1
+info:
+  title: Datadog PagerDuty incident metrics
+  summary: Post new metrics in Datadog for new or updated PagerDuty incidents
+  description: Lists triggered PagerDuty incidents and submits the count as a gauge metric to Datadog. Recreated from the Zapier template linked in x-integration.
+  version: 1.0.0
+sourceDescriptions:
+- name: pagerdutyIncidents
+  url: https://raw.githubusercontent.com/api-evangelist/pagerduty/refs/heads/main/openapi/pagerduty-incidents-api-openapi.yml
+  type: openapi
+- name: datadogMetrics
+  url: https://raw.githubusercontent.com/api-evangelist/datadog/refs/heads/main/openapi/datadog-metrics-api-openapi.yml
+  type: openapi
+workflows:
+- workflowId: pagerduty-incidents-to-datadog-metric
+  summary: Submit PagerDuty incident counts as a Datadog metric
+  description: Reads PagerDuty incidents and records a metric point in Datadog.
+  inputs:
+    type: object
+    properties:
+      metricName:
+        type: string
+        default: pagerduty.incidents.triggered
+      timestamp:
+        type: integer
+        description: Unix epoch seconds for the metric point
+  steps:
+  - stepId: list-incidents
+    description: List triggered PagerDuty incidents, with the total count.
+    operationId: $sourceDescriptions.pagerdutyIncidents.listIncidents
+    parameters:
+    - name: statuses[]
+      in: query
+      value:
+      - triggered
+    - name: total
+      in: query
+      value: true
+    successCriteria:
+    - condition: $statusCode == 200
+    outputs:
+      total: $response.body#/total
+  - stepId: submit-metric
+    description: Submit the incident count as a Datadog gauge.
+    operationId: $sourceDescriptions.datadogMetrics.SubmitMetrics
+    requestBody:
+      contentType: application/json
+      payload:
+        series:
+        - metric: $inputs.metricName
+          type: 3
+          points:
+          - timestamp: $inputs.timestamp
+            value: $steps.list-incidents.outputs.total
+    successCriteria:
+    - condition: $statusCode == 202
+  outputs:
+    incidentTotal: $steps.list-incidents.outputs.total
+x-integration:
+  partner: pagerduty
+  template: https://zapier.com/apps/datadog/integrations/pagerduty/255638386/post-new-metrics-in-datadog-for-new-or-updated-pagerduty-incidents
+  edge_evidence: https://zapier.com/apps/datadog/integrations/pagerduty/255638386/post-new-metrics-in-datadog-for-new-or-updated-pagerduty-incidents
+  edge_type: marketplace
+  method: generated
+  generated: '2026-10-13'
+  generator: claude-opus-5.5 market-workflows
+  guessed_steps:
+  - step: list-incidents
+    cause: partner-contract
+    why: the /total output path is only populated when total=true and is not listed as a required response field
+  - step: submit-metric
+    cause: provider-contract
+    why: series type 3 is in the MetricIntakeType enum (0-3) but its gauge meaning and the points shape are inferred from the MetricPayload schema, not checked field-by-field
